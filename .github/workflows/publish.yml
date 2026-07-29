@@ -24,9 +24,7 @@ on:
         required: false
         type: string
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.version || github.event.inputs.bump || github.sha }}
-  cancel-in-progress: true
+concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
 
 permissions:
   id-token: write
@@ -48,21 +46,21 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          bolt-app-id: ${{ vars.bolt_APP_ID }}
-          bolt-app-secret: ${{ secrets.bolt_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
-      - name: Install bolt
+      - name: Install OpenCode
         if: inputs.bump || inputs.version
-        run: bun i -g bolt-ai
+        run: bun i -g opencode-ai
 
       - id: version
         run: |
           ./script/version.ts
         env:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
-          bolt_BUMP: ${{ inputs.bump }}
-          bolt_VERSION: ${{ inputs.version }}
-          bolt_API_KEY: ${{ secrets.bolt_API_KEY }}
+          OPENCODE_BUMP: ${{ inputs.bump }}
+          OPENCODE_VERSION: ${{ inputs.version }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GH_REPO: ${{ (github.ref_name == 'beta' && 'bolt-builder/bolt-cli') || github.repository }}
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -85,35 +83,35 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          bolt-app-id: ${{ vars.bolt_APP_ID }}
-          bolt-app-secret: ${{ secrets.bolt_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Build
         id: build
         run: |
-          ./packages/bolt/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
+          ./packages/opencode/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
           ./packages/cli/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
         env:
-          bolt_VERSION: ${{ needs.version.outputs.version }}
-          bolt_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
           GH_REPO: ${{ needs.version.outputs.repo }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-cli
+          name: opencode-cli
           path: |
-            packages/bolt/dist/bolt-darwin*
-            packages/bolt/dist/bolt-linux*
+            packages/opencode/dist/opencode-darwin*
+            packages/opencode/dist/opencode-linux*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-cli-windows
-          path: packages/bolt/dist/bolt-windows*
+          name: opencode-cli-windows
+          path: packages/opencode/dist/opencode-windows*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-preview-cli
+          name: opencode-preview-cli
           path: packages/cli/dist/cli-*
 
     outputs:
@@ -137,15 +135,15 @@ jobs:
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: bolt-cli-windows
-          path: packages/bolt/dist
+          name: opencode-cli-windows
+          path: packages/opencode/dist
 
       - name: Setup git committer
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          bolt-app-id: ${{ vars.bolt_APP_ID }}
-          bolt-app-secret: ${{ secrets.bolt_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Azure login
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
@@ -160,9 +158,9 @@ jobs:
           signing-account-name: ${{ env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
           files: |
-            ${{ github.workspace }}\packages\bolt\dist\bolt-windows-arm64\bin\bolt.exe
-            ${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64\bin\bolt.exe
-            ${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64-baseline\bin\bolt.exe
+            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64\bin\opencode.exe
+            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64\bin\opencode.exe
+            ${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline\bin\opencode.exe
           exclude-environment-credential: true
           exclude-workload-identity-credential: true
           exclude-managed-identity-credential: true
@@ -178,9 +176,9 @@ jobs:
         shell: pwsh
         run: |
           $files = @(
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-arm64\bin\bolt.exe",
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64\bin\bolt.exe",
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64-baseline\bin\bolt.exe"
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64\bin\opencode.exe",
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64\bin\opencode.exe",
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline\bin\opencode.exe"
           )
 
           foreach ($file in $files) {
@@ -191,12 +189,12 @@ jobs:
           }
 
       - name: Repack Windows CLI archives
-        working-directory: packages/bolt/dist
+        working-directory: packages/opencode/dist
         shell: pwsh
         run: |
-          Compress-Archive -Path "bolt-windows-arm64\bin\*" -DestinationPath "bolt-windows-arm64.zip" -Force
-          Compress-Archive -Path "bolt-windows-x64\bin\*" -DestinationPath "bolt-windows-x64.zip" -Force
-          Compress-Archive -Path "bolt-windows-x64-baseline\bin\*" -DestinationPath "bolt-windows-x64-baseline.zip" -Force
+          Compress-Archive -Path "opencode-windows-arm64\bin\*" -DestinationPath "opencode-windows-arm64.zip" -Force
+          Compress-Archive -Path "opencode-windows-x64\bin\*" -DestinationPath "opencode-windows-x64.zip" -Force
+          Compress-Archive -Path "opencode-windows-x64-baseline\bin\*" -DestinationPath "opencode-windows-x64-baseline.zip" -Force
 
       - name: Upload signed Windows CLI release assets
         if: needs.version.outputs.release != ''
@@ -205,19 +203,19 @@ jobs:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
         run: |
           gh release upload "v${{ needs.version.outputs.version }}" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-arm64.zip" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64.zip" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-windows-x64-baseline.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-arm64.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64.zip" `
+            "${{ github.workspace }}\packages\opencode\dist\opencode-windows-x64-baseline.zip" `
             --clobber `
             --repo "${{ needs.version.outputs.repo }}"
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-cli-signed-windows
+          name: opencode-cli-signed-windows
           path: |
-            packages/bolt/dist/bolt-windows-arm64
-            packages/bolt/dist/bolt-windows-x64
-            packages/bolt/dist/bolt-windows-x64-baseline
+            packages/opencode/dist/opencode-windows-arm64
+            packages/opencode/dist/opencode-windows-x64
+            packages/opencode/dist/opencode-windows-x64-baseline
 
   build-electron:
     needs:
@@ -308,15 +306,15 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          bolt-app-id: ${{ vars.bolt_APP_ID }}
-          bolt-app-secret: ${{ secrets.bolt_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Prepare
         run: bun ./scripts/prepare.ts
         working-directory: packages/desktop
         env:
-          bolt_VERSION: ${{ needs.version.outputs.version }}
-          bolt_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
           RUST_TARGET: ${{ matrix.settings.target }}
 
       - name: Build
@@ -324,7 +322,7 @@ jobs:
         working-directory: packages/desktop
         env:
           NODE_OPTIONS: --max-old-space-size=4096
-          bolt_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.WEB_SENTRY_PROJECT }}
@@ -339,7 +337,7 @@ jobs:
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          bolt_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
           CSC_LINK: ${{ secrets.APPLE_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -353,7 +351,7 @@ jobs:
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          bolt_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
 
       - name: Create macOS .app.tar.gz
         if: runner.os == 'macOS' && needs.version.outputs.release
@@ -361,10 +359,10 @@ jobs:
         run: |
           if [[ "${{ matrix.settings.target }}" == "x86_64-apple-darwin" ]]; then
             APP_DIR="mac"
-            OUT_NAME="bolt-desktop-mac-x64.app.tar.gz"
+            OUT_NAME="opencode-desktop-mac-x64.app.tar.gz"
           elif [[ "${{ matrix.settings.target }}" == "aarch64-apple-darwin" ]]; then
             APP_DIR="mac-arm64"
-            OUT_NAME="bolt-desktop-mac-arm64.app.tar.gz"
+            OUT_NAME="opencode-desktop-mac-arm64.app.tar.gz"
           else
             echo "Unknown macOS target: ${{ matrix.settings.target }}"
             exit 1
@@ -383,7 +381,7 @@ jobs:
           $files = @()
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*.exe" | Select-Object -ExpandProperty FullName
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\*.exe" | Select-Object -ExpandProperty FullName
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\resources\bolt-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\resources\opencode-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
           foreach ($file in $files | Select-Object -Unique) {
             $sig = Get-AuthenticodeSignature $file
@@ -394,7 +392,7 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-desktop-${{ matrix.settings.target }}
+          name: opencode-desktop-${{ matrix.settings.target }}
           path: packages/desktop/dist/*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -436,22 +434,22 @@ jobs:
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: bolt-cli
-          path: packages/bolt/dist
+          name: opencode-cli
+          path: packages/opencode/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: bolt-cli-windows
-          path: packages/bolt/dist
+          name: opencode-cli-windows
+          path: packages/opencode/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: bolt-cli-signed-windows
-          path: packages/bolt/dist
+          name: opencode-cli-signed-windows
+          path: packages/opencode/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: bolt-preview-cli
+          name: opencode-preview-cli
           path: packages/cli/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -463,7 +461,7 @@ jobs:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.version.outputs.release
         with:
-          pattern: bolt-desktop-*
+          pattern: opencode-desktop-*
           path: /tmp/desktop
           merge-multiple: true
 
@@ -471,8 +469,8 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          bolt-app-id: ${{ vars.bolt_APP_ID }}
-          bolt-app-secret: ${{ secrets.bolt_APP_SECRET }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Cache apt packages (AUR)
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
@@ -489,8 +487,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          git config --global user.email "bolt@sst.dev"
-          git config --global user.name "bolt"
+          git config --global user.email "opencode@sst.dev"
+          git config --global user.name "opencode"
           ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
 
       - name: Upload desktop release assets
@@ -508,8 +506,8 @@ jobs:
 
       - run: ./script/publish.ts
         env:
-          bolt_VERSION: ${{ needs.version.outputs.version }}
-          bolt_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
           AUR_KEY: ${{ secrets.AUR_KEY }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ needs.version.outputs.repo }}
