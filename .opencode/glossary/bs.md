@@ -2,7 +2,7 @@
 
 ## Sources
 
-- PR #12283: https://github.com/anomalyco/opencode/pull/12283
+- PR #12283: https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/pull/12283
 
 ## Do Not Translate (Locale Additions)
 
