@@ -47,7 +47,7 @@ jobs:
             exit 0
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "bolt-cli[bot]"
+          git config user.email "bolt-cli[bot]@bolt-cli.ai"
           git commit --amend -m "$NEW_MSG"
           git push --force origin HEAD:dev
