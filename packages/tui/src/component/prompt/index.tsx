@@ -1286,10 +1286,7 @@ export function Prompt(props: PromptProps) {
 
   const highlight = createMemo(() => {
     if (leader()) return theme.border
-    if (store.mode === "shell") return theme.primary
-    const agent = local.agent.current()
-    if (!agent) return theme.border
-    return local.agent.color(agent.name)
+    return theme.primary
   })
 
   const showVariant = createMemo(() => {
@@ -1668,17 +1665,24 @@ export function Prompt(props: PromptProps) {
                     </Match>
                     <Match when={true}>
                       <text fg={theme.text}>
-                        {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
+                        <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
+                          {"["}{agentShortcut()}{"]"}
+                        </span>{" "}
+                        <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
                     </Match>
                   </Switch>
                   <text fg={theme.text}>
-                    {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
+                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
+                      {"["}{paletteShortcut()}{"]"}
+                    </span>{" "}
+                    <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
                 </Match>
                 <Match when={store.mode === "shell"}>
                   <text fg={theme.text}>
-                    esc <span style={{ fg: theme.textMuted }}>exit shell mode</span>
+                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>[esc]</span>{" "}
+                    <span style={{ fg: theme.textMuted }}>exit shell mode</span>
                   </text>
                 </Match>
               </Switch>
