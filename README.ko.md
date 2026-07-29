@@ -1,17 +1,15 @@
 <p align="center">
-  <a href="https://boltcli.ai">
+  <a href="https://github.com/Bolt-builder/bolt-cli">
     <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
+      <source srcset="images/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt CLI logo">
     </picture>
   </a>
 </p>
-<p align="center">오픈 소스 AI 코딩 에이전트.</p>
+<p align="center">⚡ 오픈소스 AI 코딩 에이전트 — OpenCode 포크.</p>
 <p align="center">
-  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
   <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli"><img alt="GitHub" src="https://img.shields.io/github/stars/Bolt-builder/bolt-cli?style=flat-square" /></a>
 </p>
 
 <p align="center">
@@ -39,88 +37,67 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://github.com/Bolt-builder/bolt-cli)
 
 ---
+
+## Bolt CLI
+
+Bolt CLI는 [OpenCode](https://github.com/anomalyco/opencode)의 포크입니다 — 터미널에서 실행되는 오픈소스 AI 코딩 에이전트입니다. 코드베이스를 읽고, 무엇을 만들고 있는지 이해하며, 더 빠르게 출시할 수 있도록 도와줍니다.
 
 ### 설치
 
 ```bash
-# YOLO
-curl -fsSL https://boltcli.ai/install | bash
+# 빠른 설치
+curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/dev/install | bash
 
-# 패키지 매니저
-npm i -g boltcli-ai@latest        # 또는 bun/pnpm/yarn
-brew install bolt-builder/tap/bolt # macOS 및 Linux (권장, 항상 최신)
-sudo pacman -S bolt                # Arch Linux
-mise use -g bolt                   # 모든 OS
-nix run nixpkgs#bolt              # 또는 github:Bolt-builder/bolt-cli 최신 dev 브랜치
+# npm에서
+npm i -g opencode-ai@latest       # 또는 bun/pnpm/yarn
+
+# 소스에서
+git clone https://github.com/Bolt-builder/bolt-cli.git
+cd bolt-cli
+bun install
+bun run build
 ```
-
-> [!TIP]
-> 설치 전에 0.1.x보다 오래된 버전을 제거하세요.
 
 ### 데스크톱 앱 (BETA)
 
-Bolt CLI는 데스크톱 앱으로도 제공됩니다. [릴리스 페이지](https://github.com/Bolt-builder/bolt-cli/releases)에서 직접 다운로드하거나 [boltcli.ai/download](https://boltcli.ai/download)를 이용하세요.
+[릴리스 페이지](https://github.com/Bolt-builder/bolt-cli/releases)에서 직접 다운로드하세요.
 
 | 플랫폼                | 다운로드                         |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
+| --------------------- | -------------------------------- |
+| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
+| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
+| Windows               | `Bolt-Desktop-windows-x64.exe`   |
 | Linux                 | `.deb`, `.rpm`, 또는 `.AppImage` |
-
-```bash
-# macOS (Homebrew)
-brew install --cask bolt-desktop
-```
-
-#### 설치 디렉토리
-
-설치 스크립트는 설치 경로에 대해 다음 우선순위를 따릅니다:
-
-1. `$BOLT_INSTALL_DIR` - 사용자 지정 설치 디렉토리
-2. `$XDG_BIN_DIR` - XDG Base Directory 사양 준수 경로
-3. `$HOME/bin` - 표준 사용자 바이너리 디렉토리 (존재하거나 생성 가능한 경우)
-4. `$HOME/.bolt/bin` - 기본 폴백
-
-```bash
-# 예시
-BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
-```
 
 ### 에이전트
 
-Bolt CLI에는 `Tab` 키로 전환할 수 있는 내장 에이전트가 포함되어 있습니다.
+Bolt CLI에는 내장 에이전트가 포함되어 있습니다. `Tab`으로 전환하세요.
 
-- **code** - 개발 작업용 기본 전체 액세스 에이전트
-- **ask** - 질문 및 정보 수집용 읽기 전용 에이전트
-  - 기본적으로 파일 편집 차단
-  - 익숙하지 않은 코드베이스 탐색이나 질문에 이상적
-- **plan** - 분석 및 코드 탐색용 읽기 전용 에이전트
-  - 기본적으로 파일 편집 거부
-  - bash 명령 실행 전 허가 요청
-  - 변경 계획에 이상적
+| 에이전트 | 접근     | 설명                                                       |
+| -------- | -------- | ---------------------------------------------------------- |
+| `code`   | 전체     | 개발용 기본 에이전트 — 읽기, 쓰기, 실행                     |
+| `ask`    | 읽기     | 질문 및 조사 — 파일 편집 불가                               |
+| `plan`   | 읽기     | 분석 및 탐색 — bash 명령 전 확인                            |
 
-복잡한 검색 및 다단계 작업을 위한 **general** 하위 에이전트도 포함되어 있습니다.
-내부적으로 사용되며 메시지에서 `@general`을 사용하여 호출할 수 있습니다.
+또한 포함: 복잡한 다단계 작업을 위한 `general` 서브에이전트. `@general`로 호출하세요.
 
-[에이전트](https://boltcli.ai/docs/agents)에 대해 자세히 알아보세요.
+[에이전트](https://opencode.ai/docs/agents)에 대해 자세히 알아보세요.
 
 ### 문서
 
-Bolt CLI 구성 방법에 대한 자세한 내용은 [**문서를 참조하세요**](https://boltcli.ai/docs).
+설정 및 사용법은 [OpenCode 문서](https://opencode.ai/docs)를 확인하세요.
 
 ### 기여
 
-Bolt CLI에 기여하는 데 관심이 있으시면, 풀 리퀘스트를 제출하기 전에 [기여 문서](./CONTRIBUTING.md)를 읽어주세요.
+기여하고 싶으신가요? PR 제출 전에 [기여 가이드](./CONTRIBUTING.md)를 읽어주세요.
 
-### Bolt 위에 구축하기
+### 크레딧
 
-Bolt CLI와 관련된 프로젝트를 작업 중이고 이름의 일부로 "bolt"를 사용하는 경우(예: "bolt-dashboard" 또는 "bolt-mobile"), Bolt CLI 팀이 구축한 것이 아니며 우리와 어떤 방식으로든 제휴되지 않았음을 명확히 하는 메모를 README에 추가하세요.
+Bolt CLI는 [anomalyco](https://github.com/anomalyco)의 [OpenCode](https://github.com/anomalyco/opencode) 커뮤니티 포크입니다. 원본 작업의 모든 크레딧은 OpenCode 팀에 있습니다.
 
 ---
 
-**커뮤니티 참여** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)
+**커뮤니티** [OpenCode Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)

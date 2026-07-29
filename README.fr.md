@@ -1,17 +1,15 @@
 <p align="center">
-  <a href="https://boltcli.ai">
+  <a href="https://github.com/Bolt-builder/bolt-cli">
     <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
+      <source srcset="images/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt CLI logo">
     </picture>
   </a>
 </p>
-<p align="center">L'agent de codage IA open source.</p>
+<p align="center">⚡ L'agent de codage IA open source — fork d'OpenCode.</p>
 <p align="center">
-  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
   <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli"><img alt="GitHub" src="https://img.shields.io/github/stars/Bolt-builder/bolt-cli?style=flat-square" /></a>
 </p>
 
 <p align="center">
@@ -39,88 +37,67 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://github.com/Bolt-builder/bolt-cli)
 
 ---
+
+## Bolt CLI
+
+Bolt CLI est un fork d'[OpenCode](https://github.com/anomalyco/opencode) — l'agent de codage IA open source qui tourne dans votre terminal. Il lit votre codebase, comprend ce que vous construisez et vous aide à livrer plus vite.
 
 ### Installation
 
 ```bash
-# YOLO
-curl -fsSL https://boltcli.ai/install | bash
+# Installation rapide
+curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/dev/install | bash
 
-# Gestionnaires de paquets
-npm i -g boltcli-ai@latest        # ou bun/pnpm/yarn
-brew install bolt-builder/tap/bolt # macOS et Linux (recommandé, toujours à jour)
-sudo pacman -S bolt                # Arch Linux
-mise use -g bolt                   # N'importe quel OS
-nix run nixpkgs#bolt              # ou github:Bolt-builder/bolt-cli pour la branche dev la plus récente
+# Via npm
+npm i -g opencode-ai@latest       # ou bun/pnpm/yarn
+
+# Depuis les sources
+git clone https://github.com/Bolt-builder/bolt-cli.git
+cd bolt-cli
+bun install
+bun run build
 ```
-
-> [!TIP]
-> Supprimez les versions antérieures à 0.1.x avant d'installer.
 
 ### Application de bureau (BETA)
 
-Bolt CLI est aussi disponible en application de bureau. Téléchargez-la directement depuis la [page des releases](https://github.com/Bolt-builder/bolt-cli/releases) ou [boltcli.ai/download](https://boltcli.ai/download).
+Téléchargez directement depuis la [page des releases](https://github.com/Bolt-builder/bolt-cli/releases).
 
-| Plateforme            | Téléchargement                  |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
-| Linux                 | `.deb`, `.rpm`, ou `.AppImage`  |
-
-```bash
-# macOS (Homebrew)
-brew install --cask bolt-desktop
-```
-
-#### Répertoire d'installation
-
-Le script d'installation respecte l'ordre de priorité suivant pour le chemin d'installation :
-
-1. `$BOLT_INSTALL_DIR` - Répertoire d'installation personnalisé
-2. `$XDG_BIN_DIR` - Chemin conforme à la spécification XDG Base Directory
-3. `$HOME/bin` - Répertoire binaire utilisateur standard (s'il existe ou peut être créé)
-4. `$HOME/.bolt/bin` - Repli par défaut
-
-```bash
-# Exemples
-BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
-```
+| Plateforme            | Téléchargement                   |
+| --------------------- | -------------------------------- |
+| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
+| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
+| Windows               | `Bolt-Desktop-windows-x64.exe`   |
+| Linux                 | `.deb`, `.rpm`, ou `.AppImage`   |
 
 ### Agents
 
-Bolt CLI inclut des agents intégrés que vous pouvez alterner avec la touche `Tab`.
+Bolt CLI inclut des agents intégrés. Passez de l'un à l'autre avec `Tab`.
 
-- **code** - Agent par défaut avec accès complet pour le travail de développement
-- **ask** - Agent en lecture seule pour poser des questions et recueillir des informations
-  - Bloque les modifications de fichiers par défaut
-  - Idéal pour explorer des bases de code inconnues ou poser des questions
-- **plan** - Agent en lecture seule pour l'analyse et l'exploration de code
-  - Refuse les modifications de fichiers par défaut
-  - Demande l'autorisation avant d'exécuter des commandes bash
-  - Idéal pour planifier des changements
+| Agent   | Accès       | Description                                                  |
+| ------- | ----------- | ------------------------------------------------------------ |
+| `code`  | Complet     | Agent par défaut pour le développement — lit, écrit, exécute |
+| `ask`   | Lecture     | Questions et recherche — pas d'édition de fichiers           |
+| `plan`  | Lecture     | Analyse et exploration — demande avant les commandes bash    |
 
-Un sous-agent **general** est aussi inclus pour les recherches complexes et les tâches en plusieurs étapes.
-Il est utilisé en interne et peut être invoqué via `@general` dans les messages.
+Inclus également : le sous-agent `general` pour les tâches complexes en plusieurs étapes. Invoquez-le avec `@general`.
 
-En savoir plus sur les [agents](https://boltcli.ai/docs/agents).
+En savoir plus sur les [agents](https://opencode.ai/docs/agents).
 
 ### Documentation
 
-Pour plus d'informations sur la configuration de Bolt CLI, [**consultez notre documentation**](https://boltcli.ai/docs).
+Pour la configuration et l'utilisation, consultez la [documentation OpenCode](https://opencode.ai/docs).
 
 ### Contribuer
 
-Si vous souhaitez contribuer à Bolt CLI, lisez notre [documentation de contribution](./CONTRIBUTING.md) avant de soumettre une pull request.
+Envie de contribuer ? Lisez notre [guide de contribution](./CONTRIBUTING.md) avant de soumettre une PR.
 
-### Construire avec Bolt
+### Crédits
 
-Si vous travaillez sur un projet lié à Bolt CLI et que vous utilisez "bolt" dans le nom du projet (par exemple, "bolt-dashboard" ou "bolt-mobile"), ajoutez une note dans votre README pour préciser qu'il n'est pas construit par l'équipe Bolt CLI et qu'il n'est pas affilié à nous.
+Bolt CLI est un fork communautaire d'[OpenCode](https://github.com/anomalyco/opencode) par [anomalyco](https://github.com/anomalyco). Tout le mérite du travail original revient à l'équipe OpenCode.
 
 ---
 
-**Rejoignez notre communauté** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)
+**Communauté** [OpenCode Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)

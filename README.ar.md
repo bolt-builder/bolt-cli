@@ -1,17 +1,15 @@
 <p align="center">
-  <a href="https://boltcli.ai">
+  <a href="https://github.com/Bolt-builder/bolt-cli">
     <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
+      <source srcset="images/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt CLI logo">
     </picture>
   </a>
 </p>
-<p align="center">عميل البرمجة مفتوح المصدر بالذكاء الاصطناعي.</p>
+<p align="center">⚡ وكيل البرمجة بالذكاء الاصطناعي مفتوح المصدر — متفرع من OpenCode.</p>
 <p align="center">
-  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
   <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli"><img alt="GitHub" src="https://img.shields.io/github/stars/Bolt-builder/bolt-cli?style=flat-square" /></a>
 </p>
 
 <p align="center">
@@ -39,88 +37,67 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://github.com/Bolt-builder/bolt-cli)
 
 ---
+
+## Bolt CLI
+
+Bolt CLI هو تفرع من [OpenCode](https://github.com/anomalyco/opencode) — وكيل البرمجة بالذكاء الاصطناعي مفتوح المصدر الذي يعمل في الطرفية. يقرأ قاعدة التعليمات البرمجية الخاصة بك، ويفهم ما تقوم ببنائه، ويساعدك على الإطلاق بشكل أسرع.
 
 ### التثبيت
 
 ```bash
-# YOLO
-curl -fsSL https://boltcli.ai/install | bash
+# تثبيت سريع
+curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/dev/install | bash
 
-# مدراء الحزم
-npm i -g boltcli-ai@latest        # أو bun/pnpm/yarn
-brew install bolt-builder/tap/bolt # macOS و Linux (موصى به، محدث دائمًا)
-sudo pacman -S bolt                # Arch Linux
-mise use -g bolt                   # أي نظام تشغيل
-nix run nixpkgs#bolt              # أو github:Bolt-builder/bolt-cli لأحدث فرع dev
+# من npm
+npm i -g opencode-ai@latest       # أو bun/pnpm/yarn
+
+# من المصدر
+git clone https://github.com/Bolt-builder/bolt-cli.git
+cd bolt-cli
+bun install
+bun run build
 ```
-
-> [!TIP]
-> قم بإزالة الإصدارات الأقدم من 0.1.x قبل التثبيت.
 
 ### تطبيق سطح المكتب (BETA)
 
-Bolt CLI متاح أيضًا كتطبيق سطح مكتب. قم بالتنزيل مباشرة من [صفحة الإصدارات](https://github.com/Bolt-builder/bolt-cli/releases) أو [boltcli.ai/download](https://boltcli.ai/download).
+قم بالتنزيل مباشرة من [صفحة الإصدارات](https://github.com/Bolt-builder/bolt-cli/releases).
 
-| المنصة                | التحميل                         |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
-| Linux                 | `.deb`، `.rpm`، أو `.AppImage`  |
-
-```bash
-# macOS (Homebrew)
-brew install --cask bolt-desktop
-```
-
-#### دليل التثبيت
-
-يحترم سكريبت التثبيت ترتيب الأولوية التالي لمسار التثبيت:
-
-1. `$BOLT_INSTALL_DIR` - دليل تثبيت مخصص
-2. `$XDG_BIN_DIR` - مسار متوافق مع مواصفات XDG Base Directory
-3. `$HOME/bin` - دليل ثنائي المستخدم القياسي (إذا كان موجودًا أو يمكن إنشاؤه)
-4. `$HOME/.bolt/bin` - الاحتياطي الافتراضي
-
-```bash
-# أمثلة
-BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
-```
+| المنصة                | التحميل                           |
+| --------------------- | -------------------------------- |
+| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
+| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
+| Windows               | `Bolt-Desktop-windows-x64.exe`   |
+| Linux                 | `.deb` أو `.rpm` أو `.AppImage`   |
 
 ### الوكلاء
 
-يتضمن Bolt CLI وكلاء مدمجين يمكنك التبديل بينهم باستخدام مفتاح `Tab`.
+يتضمن Bolt CLI وكلاء مدمجين. تنقل بينهم باستخدام `Tab`.
 
-- **code** - الوكيل الافتراضي ذو الوصول الكامل لأعمال التطوير
-- **ask** - وكيل للقراءة فقط للأسئلة وجمع المعلومات
-  - يمنع تعديل الملفات افتراضيًا
-  - مثالي لاستكشاف قواعد التعليمات البرمجية غير المألوفة أو طرح الأسئلة
-- **plan** - وكيل للقراءة فقط للتحليل واستكشاف الكود
-  - يرفض تعديل الملفات افتراضيًا
-  - يطلب الإذن قبل تشغيل أوامر bash
-  - مثالي للتخطيط للتغييرات
+| الوكيل  | الوصول    | الوصف                                                       |
+| ------- | --------- | ----------------------------------------------------------- |
+| `code`  | كامل      | الوكيل الافتراضي للتطوير — يقرأ ويكتب وينفذ                  |
+| `ask`   | قراءة     | الأسئلة والبحث — لا يسمح بتعديل الملفات                      |
+| `plan`  | قراءة     | التحليل والاستكشاف — يسأل قبل أوامر bash                     |
 
-يتضمن أيضًا وكيل فرعي **general** للبحث المعقد والمهام متعددة الخطوات.
-يُستخدم داخليًا ويمكن استدعاؤه باستخدام `@general` في الرسائل.
+متضمن أيضًا: الوكيل الفرعي `general` للمهام المعقدة متعددة الخطوات. استدعِه باستخدام `@general`.
 
-تعرف على المزيد حول [الوكلاء](https://boltcli.ai/docs/agents).
+تعرف على المزيد حول [الوكلاء](https://opencode.ai/docs/agents).
 
 ### التوثيق
 
-لمزيد من المعلومات حول كيفية تكوين Bolt CLI، [**توجه إلى وثائقنا**](https://boltcli.ai/docs).
+للتكوين والاستخدام، راجع [توثيق OpenCode](https://opencode.ai/docs).
 
 ### المساهمة
 
-إذا كنت مهتمًا بالمساهمة في Bolt CLI، يرجى قراءة [وثائق المساهمة](./CONTRIBUTING.md) قبل تقديم طلب سحب.
+مهتم بالمساهمة؟ اقرأ [دليل المساهمة](./CONTRIBUTING.md) قبل تقديم PR.
 
-### البناء على Bolt
+### الشكر
 
-إذا كنت تعمل على مشروع مرتبط بـ Bolt CLI ويستخدم "bolt" كجزء من اسمه، على سبيل المثال "bolt-dashboard" أو "bolt-mobile"، يرجى إضافة ملاحظة في README الخاص بك لتوضيح أنه ليس مبنيًا من قبل فريق Bolt CLI وليس تابعًا لنا بأي شكل من الأشكال.
+Bolt CLI هو تفرع مجتمعي من [OpenCode](https://github.com/anomalyco/opencode) بواسطة [anomalyco](https://github.com/anomalyco). كل الشكر للعمل الأصلي يذهب لفريق OpenCode.
 
 ---
 
-**انضم إلى مجتمعنا** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)
+**المجتمع** [OpenCode Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
