@@ -258,12 +258,22 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
-      - uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2.0.0
-        if: runner.os == 'macOS' && secrets.APPLE_CERTIFICATE != ''
-        with:
-          keychain: build
-          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
-          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      - name: Check Apple signing secrets
+        if: runner.os == 'macOS'
+        id: apple_secrets
+        env:
+          CERT_PRESENT: ${{ secrets.APPLE_CERTIFICATE }}
+          API_KEY_PRESENT: ${{ secrets.APPLE_API_KEY_PATH }}
+        run: |
+          if [ -n "$CERT_PRESENT" ]; then
+            echo "has_cert=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_cert=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "$API_KEY_PRESENT" ]; then
+            echo "has_api_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_api_key=false" >>
 
       - name: Setup Apple API Key
         if: runner.os == 'macOS' && secrets.APPLE_API_KEY_PATH != ''
