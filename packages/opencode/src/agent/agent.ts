@@ -81,7 +81,7 @@ export interface Interface {
 
 type State = Omit<Interface, "generate">
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Agent") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Agent") { }
 
 export const use = serviceUse(Service)
 
@@ -101,9 +101,9 @@ const layer = Layer.effect(
         const skillDirs = yield* skill.dirs()
         const referenceDirs = Object.keys(cfg.references ?? cfg.reference ?? {}).length
           ? yield* Effect.gen(function* () {
-              yield* (yield* PluginV2.Service).wait(PluginV2.ID.make("core/config-reference"))
-              return (yield* (yield* Reference.Service).list()).map((reference) => reference.path)
-            }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
+            yield* (yield* PluginV2.Service).wait(PluginV2.ID.make("core/config-reference"))
+            return (yield* (yield* Reference.Service).list()).map((reference) => reference.path)
+          }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
           : []
         const whitelistedDirs = [
           Truncate.GLOB,
@@ -139,7 +139,7 @@ const layer = Layer.effect(
 
         const agents: Record<string, Info> = {
           build: {
-            name: "build",
+            name: "code",
             description: "The default agent. Executes tools based on configured permissions.",
             options: {},
             permission: Permission.merge(
@@ -173,6 +173,40 @@ const layer = Layer.effect(
                   [path.join(".opencode", "plans", "*.md")]: "allow",
                   [path.relative(ctx.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
                 },
+              }),
+              user,
+            ),
+            mode: "primary",
+            native: true,
+          },
+          ask: {
+            name: "ask",
+            description: "Ask mode. Focused on asking questions and gathering information without making changes.",
+            options: {},
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                // Allow all reading tools for information gathering
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                // Allow web search/fetch for external information
+                webfetch: "allow",
+                websearch: "allow",
+                // Block most file modifications to maintain ask-only behavior
+                write: { "*": "deny" },
+                edit: { "*": "deny" },
+                // Block task execution and system changes
+                task: { "*": "deny" },
+                bash: { "*": "deny" },
+                // Allow limited file creation for notes/reflections if needed
+                // write: {
+                //   "*": "deny",
+                //   "*.ask.*": "allow",
+                //   "notes/**": "allow",
+                // },
               }),
               user,
             ),
@@ -398,11 +432,11 @@ const layer = Layer.effect(
             ...(isOpenaiOauth
               ? []
               : system.map(
-                  (item): ModelMessage => ({
-                    role: "system",
-                    content: item,
-                  }),
-                )),
+                (item): ModelMessage => ({
+                  role: "system",
+                  content: item,
+                }),
+              )),
             {
               role: "user",
               content: `Create an agent configuration based on this request: "${input.description}".\n\nIMPORTANT: The following identifiers already exist and must NOT be used: ${existing.map((i) => i.name).join(", ")}\n  Return ONLY the JSON object, no other text, do not wrap in backticks`,
@@ -423,7 +457,7 @@ const layer = Layer.effect(
                 instructions: system.join("\n"),
                 store: false,
               }),
-              onError: () => {},
+              onError: () => { },
             })
             for await (const part of result.fullStream) {
               if (part.type === "error") throw part.error
