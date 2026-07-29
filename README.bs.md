@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
-<p align="center">OpenCode je open source AI agent za programiranje.</p>
+<p align="center">AI coding agent otvorenog koda.</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
@@ -47,83 +47,80 @@
 
 ```bash
 # YOLO
-curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://boltcli.ai/install | bash
 
-# Package manageri
-npm i -g opencode-ai@latest        # ili bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS i Linux (preporučeno, uvijek ažurno)
-brew install opencode              # macOS i Linux (zvanična brew formula, rjeđe se ažurira)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # Bilo koji OS
-nix run nixpkgs#opencode           # ili github:anomalyco/opencode za najnoviji dev branch
+# Menadžeri paketa
+npm i -g boltcli-ai@latest        # ili bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS i Linux (preporučeno, uvijek ažurno)
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # Bilo koji OS
+nix run nixpkgs#bolt              # ili github:Bolt-builder/bolt-cli za najnoviju dev granu
 ```
 
 > [!TIP]
-> Ukloni verzije starije od 0.1.x prije instalacije.
+> Uklonite verzije starije od 0.1.x prije instalacije.
 
 ### Desktop aplikacija (BETA)
 
-OpenCode je dostupan i kao desktop aplikacija. Preuzmi je direktno sa [stranice izdanja](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) ili sa [opencode.ai/download](https://opencode.ai/download).
+Bolt CLI je dostupan i kao desktop aplikacija. Preuzmite direktno sa [stranice izdanja](https://github.com/Bolt-builder/bolt-cli/releases) ili [boltcli.ai/download](https://boltcli.ai/download).
 
-| Platforma             | Preuzimanje                        |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, ili AppImage       |
+| Platforma             | Preuzimanje                     |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`, `.rpm`, ili `.AppImage` |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+brew install --cask bolt-desktop
 ```
 
 #### Instalacijski direktorij
 
-Instalacijska skripta koristi sljedeći redoslijed prioriteta za putanju instalacije:
+Instalacijska skripta poštuje sljedeći prioritet za instalacijsku putanju:
 
-1. `$OPENCODE_INSTALL_DIR` - Prilagođeni instalacijski direktorij
+1. `$BOLT_INSTALL_DIR` - Prilagođeni instalacijski direktorij
 2. `$XDG_BIN_DIR` - Putanja usklađena sa XDG Base Directory specifikacijom
-3. `$HOME/bin` - Standardni korisnički bin direktorij (ako postoji ili se može kreirati)
-4. `$HOME/.opencode/bin` - Podrazumijevana rezervna lokacija
+3. `$HOME/bin` - Standardni korisnički binarni direktorij (ako postoji ili se može kreirati)
+4. `$HOME/.bolt/bin` - Zadani fallback
 
 ```bash
 # Primjeri
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
 ### Agenti
 
-OpenCode uključuje dva ugrađena agenta između kojih možeš prebacivati tasterom `Tab`.
+Bolt CLI uključuje ugrađene agente koje možete mijenjati tipkom `Tab`.
 
-- **build** - Podrazumijevani agent sa punim pristupom za razvoj
+- **code** - Zadani agent s punim pristupom za razvojni rad
+- **ask** - Agent samo za čitanje za pitanja i prikupljanje informacija
+  - Blokira izmjene datoteka prema zadanim postavkama
+  - Idealan za istraživanje nepoznatih baza koda ili postavljanje pitanja
 - **plan** - Agent samo za čitanje za analizu i istraživanje koda
-  - Podrazumijevano zabranjuje izmjene datoteka
+  - Odbija izmjene datoteka prema zadanim postavkama
   - Traži dozvolu prije pokretanja bash komandi
-  - Idealan za istraživanje nepoznatih codebase-ova ili planiranje izmjena
+  - Idealan za planiranje promjena
 
-Uključen je i **general** pod-agent za složene pretrage i višekoračne zadatke.
+Također je uključen **general** podagent za složena pretraživanja i zadatke u više koraka.
 Koristi se interno i može se pozvati pomoću `@general` u porukama.
 
-Saznaj više o [agentima](https://opencode.ai/docs/agents).
+Saznajte više o [agentima](https://boltcli.ai/docs/agents).
 
 ### Dokumentacija
 
-Za više informacija o konfiguraciji OpenCode-a, [**pogledaj dokumentaciju**](https://opencode.ai/docs).
+Za više informacija o konfiguraciji Bolt CLI-ja, [**pogledajte našu dokumentaciju**](https://boltcli.ai/docs).
 
-### Doprinosi
+### Doprinos
 
-Ako želiš doprinositi OpenCode-u, pročitaj [upute za doprinošenje](./CONTRIBUTING.md) prije slanja pull requesta.
+Ako ste zainteresirani za doprinos Bolt CLI-ju, pročitajte našu [dokumentaciju za doprinos](./CONTRIBUTING.md) prije slanja pull requesta.
 
-### Gradnja na OpenCode-u
+### Izgradnja na Boltu
 
-Ako radiš na projektu koji je povezan s OpenCode-om i koristi "opencode" kao dio naziva, npr. "opencode-dashboard" ili "opencode-mobile", dodaj napomenu u svoj README da projekat nije napravio OpenCode tim i da nije povezan s nama.
+Ako radite na projektu povezanom s Bolt CLI-jem i koristite "bolt" kao dio naziva, na primjer "bolt-dashboard" ili "bolt-mobile", dodajte napomenu u svoj README da pojasnite da nije izgrađen od strane Bolt CLI tima i nije povezan s nama ni na koji način.
 
 ---
 
-**Pridruži se našoj zajednici** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+**Pridružite se našoj zajednici** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)

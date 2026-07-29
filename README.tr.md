@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
-<p align="center">Açık kaynaklı yapay zeka kodlama asistanı.</p>
+<p align="center">Açık kaynak AI kodlama ajanı.</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
@@ -47,18 +47,14 @@
 
 ```bash
 # YOLO
-curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://boltcli.ai/install | bash
 
 # Paket yöneticileri
-npm i -g opencode-ai@latest        # veya bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS ve Linux (önerilir, her zaman güncel)
-brew install opencode              # macOS ve Linux (resmi brew formülü, daha az güncellenir)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # Tüm işletim sistemleri
-nix run nixpkgs#opencode           # veya en güncel geliştirme dalı için github:anomalyco/opencode
+npm i -g boltcli-ai@latest        # veya bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS ve Linux (önerilir, her zaman güncel)
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # Herhangi bir işletim sistemi
+nix run nixpkgs#bolt              # veya github:Bolt-builder/bolt-cli en son dev dalı için
 ```
 
 > [!TIP]
@@ -66,64 +62,65 @@ nix run nixpkgs#opencode           # veya en güncel geliştirme dalı için git
 
 ### Masaüstü Uygulaması (BETA)
 
-OpenCode ayrıca masaüstü uygulaması olarak da mevcuttur. Doğrudan [sürüm sayfasından](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) veya [opencode.ai/download](https://opencode.ai/download) adresinden indirebilirsiniz.
+Bolt CLI ayrıca masaüstü uygulaması olarak da mevcuttur. Doğrudan [sürümler sayfasından](https://github.com/Bolt-builder/bolt-cli/releases) veya [boltcli.ai/download](https://boltcli.ai/download) adresinden indirin.
 
-| Platform              | İndirme                            |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm` veya AppImage       |
+| Platform              | İndirme                          |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`, `.rpm`, veya `.AppImage` |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+brew install --cask bolt-desktop
 ```
 
-#### Kurulum Dizini (Installation Directory)
+#### Kurulum Dizini
 
-Kurulum betiği (install script), kurulum yolu (installation path) için aşağıdaki öncelik sırasını takip eder:
+Kurulum betiği, kurulum yolu için aşağıdaki öncelik sırasına uyar:
 
-1. `$OPENCODE_INSTALL_DIR` - Özel kurulum dizini
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification uyumlu yol
+1. `$BOLT_INSTALL_DIR` - Özel kurulum dizini
+2. `$XDG_BIN_DIR` - XDG Base Directory şartnamesine uygun yol
 3. `$HOME/bin` - Standart kullanıcı binary dizini (varsa veya oluşturulabiliyorsa)
-4. `$HOME/.opencode/bin` - Varsayılan yedek konum
+4. `$HOME/.bolt/bin` - Varsayılan yedek
 
 ```bash
 # Örnekler
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
 ### Ajanlar
 
-OpenCode, `Tab` tuşuyla aralarında geçiş yapabileceğiniz iki yerleşik (built-in) ajan içerir.
+Bolt CLI, `Tab` tuşuyla aralarında geçiş yapabileceğiniz yerleşik ajanlar içerir.
 
-- **build** - Varsayılan, geliştirme çalışmaları için tam erişimli ajan
+- **code** - Geliştirme çalışmaları için varsayılan, tam erişimli ajan
+- **ask** - Sorular ve bilgi toplama için salt okunur ajan
+  - Varsayılan olarak dosya düzenlemelerini engeller
+  - Bilinmeyen kod tabanlarını keşfetmek veya soru sormak için idealdir
 - **plan** - Analiz ve kod keşfi için salt okunur ajan
   - Varsayılan olarak dosya düzenlemelerini reddeder
   - Bash komutlarını çalıştırmadan önce izin ister
-  - Tanımadığınız kod tabanlarını keşfetmek veya değişiklikleri planlamak için ideal
+  - Değişiklikleri planlamak için idealdir
 
-Ayrıca, karmaşık aramalar ve çok adımlı görevler için bir **genel** alt ajan bulunmaktadır.
-Bu dahili olarak kullanılır ve mesajlarda `@general` ile çağrılabilir.
+Ayrıca karmaşık aramalar ve çok adımlı görevler için bir **general** alt ajanı da bulunur.
+Bu dahili olarak kullanılır ve mesajlarda `@general` kullanılarak çağrılabilir.
 
-[Ajanlar](https://opencode.ai/docs/agents) hakkında daha fazla bilgi edinin.
+[Ajanlar](https://boltcli.ai/docs/agents) hakkında daha fazla bilgi edinin.
 
 ### Dokümantasyon
 
-OpenCode'u nasıl yapılandıracağınız hakkında daha fazla bilgi için [**dokümantasyonumuza göz atın**](https://opencode.ai/docs).
+Bolt CLI'yi yapılandırma hakkında daha fazla bilgi için [**dokümanlarımıza göz atın**](https://boltcli.ai/docs).
 
 ### Katkıda Bulunma
 
-OpenCode'a katkıda bulunmak istiyorsanız, lütfen bir pull request göndermeden önce [katkıda bulunma dokümanlarımızı](./CONTRIBUTING.md) okuyun.
+Bolt CLI'ye katkıda bulunmak istiyorsanız, lütfen bir pull request göndermeden önce [katkı dokümanlarımızı](./CONTRIBUTING.md) okuyun.
 
-### OpenCode Üzerine Geliştirme
+### Bolt Üzerine İnşa Etme
 
-OpenCode ile ilgili bir proje üzerinde çalışıyorsanız ve projenizin adının bir parçası olarak "opencode" kullanıyorsanız (örneğin, "opencode-dashboard" veya "opencode-mobile"), lütfen README dosyanıza projenin OpenCode ekibi tarafından geliştirilmediğini ve bizimle hiçbir şekilde bağlantılı olmadığını belirten bir not ekleyin.
+Bolt CLI ile ilgili bir proje üzerinde çalışıyorsanız ve adının bir parçası olarak "bolt" kullanıyorsanız, örneğin "bolt-dashboard" veya "bolt-mobile", lütfen README'nize Bolt CLI ekibi tarafından oluşturulmadığını ve bizimle hiçbir şekilde bağlantılı olmadığını açıklayan bir not ekleyin.
 
 ---
 
-**Topluluğumuza katılın** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+**Topluluğumuza katılın** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)

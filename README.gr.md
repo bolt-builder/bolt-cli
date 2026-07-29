@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
-<p align="center">Ο πράκτορας τεχνητής νοημοσύνης ανοικτού κώδικα για προγραμματισμό.</p>
+<p align="center">Ο πράκτορας κωδικοποίησης AI ανοιχτού κώδικα.</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
@@ -47,83 +47,80 @@
 
 ```bash
 # YOLO
-curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://boltcli.ai/install | bash
 
 # Διαχειριστές πακέτων
-npm i -g opencode-ai@latest        # ή bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS και Linux (προτείνεται, πάντα ενημερωμένο)
-brew install opencode              # macOS και Linux (επίσημος τύπος brew, λιγότερο συχνές ενημερώσεις)
-sudo pacman -S opencode            # Arch Linux (Σταθερό)
-paru -S opencode-bin               # Arch Linux (Τελευταία έκδοση από AUR)
-mise use -g opencode               # Οποιοδήποτε λειτουργικό σύστημα
-nix run nixpkgs#opencode           # ή github:anomalyco/opencode με βάση την πιο πρόσφατη αλλαγή από το dev branch
+npm i -g boltcli-ai@latest        # ή bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS και Linux (προτείνεται, πάντα ενημερωμένο)
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # Οποιοδήποτε ΛΣ
+nix run nixpkgs#bolt              # ή github:Bolt-builder/bolt-cli για το τελευταίο dev branch
 ```
 
 > [!TIP]
-> Αφαίρεσε παλαιότερες εκδόσεις από τη 0.1.x πριν από την εγκατάσταση.
+> Αφαιρέστε εκδόσεις παλαιότερες από 0.1.x πριν την εγκατάσταση.
 
 ### Εφαρμογή Desktop (BETA)
 
-Το OpenCode είναι επίσης διαθέσιμο ως εφαρμογή. Κατέβασε το απευθείας από τη [σελίδα εκδόσεων](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) ή το [opencode.ai/download](https://opencode.ai/download).
+Το Bolt CLI είναι επίσης διαθέσιμο ως εφαρμογή desktop. Κατεβάστε το απευθείας από τη [σελίδα εκδόσεων](https://github.com/Bolt-builder/bolt-cli/releases) ή το [boltcli.ai/download](https://boltcli.ai/download).
 
-| Πλατφόρμα             | Λήψη                               |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, ή AppImage         |
+| Πλατφόρμα             | Λήψη                            |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`, `.rpm`, ή `.AppImage`   |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+brew install --cask bolt-desktop
 ```
 
 #### Κατάλογος Εγκατάστασης
 
-Το script εγκατάστασης τηρεί την ακόλουθη σειρά προτεραιότητας για τη διαδρομή εγκατάστασης:
+Το σενάριο εγκατάστασης σέβεται την ακόλουθη σειρά προτεραιότητας για τη διαδρομή εγκατάστασης:
 
-1. `$OPENCODE_INSTALL_DIR` - Προσαρμοσμένος κατάλογος εγκατάστασης
-2. `$XDG_BIN_DIR` - Διαδρομή συμβατή με τις προδιαγραφές XDG Base Directory
-3. `$HOME/bin` - Τυπικός κατάλογος εκτελέσιμων αρχείων χρήστη (εάν υπάρχει ή μπορεί να δημιουργηθεί)
-4. `$HOME/.opencode/bin` - Προεπιλεγμένη εφεδρική διαδρομή
+1. `$BOLT_INSTALL_DIR` - Προσαρμοσμένος κατάλογος εγκατάστασης
+2. `$XDG_BIN_DIR` - Διαδρομή σύμφωνη με την προδιαγραφή XDG Base Directory
+3. `$HOME/bin` - Τυπικός δυαδικός κατάλογος χρήστη (αν υπάρχει ή μπορεί να δημιουργηθεί)
+4. `$HOME/.bolt/bin` - Προεπιλεγμένο fallback
 
 ```bash
 # Παραδείγματα
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
 ### Πράκτορες
 
-Το OpenCode περιλαμβάνει δύο ενσωματωμένους πράκτορες μεταξύ των οποίων μπορείτε να εναλλάσσεστε με το πλήκτρο `Tab`.
+Το Bolt CLI περιλαμβάνει ενσωματωμένους πράκτορες που μπορείτε να εναλλάσσετε με το πλήκτρο `Tab`.
 
-- **build** - Προεπιλεγμένος πράκτορας με πλήρη πρόσβαση για εργασία πάνω σε κώδικα
-- **plan** - Πράκτορας μόνο ανάγνωσης για ανάλυση και εξερεύνηση κώδικα
-  - Αρνείται την επεξεργασία αρχείων από προεπιλογή
-  - Ζητά άδεια πριν εκτελέσει εντολές bash
-  - Ιδανικός για εξερεύνηση άγνωστων αρχείων πηγαίου κώδικα ή σχεδιασμό αλλαγών
+- **code** - Προεπιλεγμένος πράκτορας πλήρους πρόσβασης για εργασίες ανάπτυξης
+- **ask** - Πράκτορας μόνο για ανάγνωση για ερωτήσεις και συλλογή πληροφοριών
+  - Αποκλείει τις επεξεργασίες αρχείων από προεπιλογή
+  - Ιδανικό για εξερεύνηση άγνωστων βάσεων κώδικα ή υποβολή ερωτήσεων
+- **plan** - Πράκτορας μόνο για ανάγνωση για ανάλυση και εξερεύνηση κώδικα
+  - Αρνείται τις επεξεργασίες αρχείων από προεπιλογή
+  - Ζητά άδεια πριν από την εκτέλεση εντολών bash
+  - Ιδανικό για σχεδιασμό αλλαγών
 
-Περιλαμβάνεται επίσης ένας **general** υποπράκτορας για σύνθετες αναζητήσεις και πολυβηματικές διεργασίες.
+Περιλαμβάνεται επίσης ένας υποπράκτορας **general** για σύνθετες αναζητήσεις και εργασίες πολλαπλών βημάτων.
 Χρησιμοποιείται εσωτερικά και μπορεί να κληθεί χρησιμοποιώντας `@general` στα μηνύματα.
 
-Μάθετε περισσότερα για τους [πράκτορες](https://opencode.ai/docs/agents).
+Μάθετε περισσότερα για τους [πράκτορες](https://boltcli.ai/docs/agents).
 
-### Οδηγός Χρήσης
+### Τεκμηρίωση
 
-Για περισσότερες πληροφορίες σχετικά με τη ρύθμιση του OpenCode, [**πλοηγήσου στον οδηγό χρήσης μας**](https://opencode.ai/docs).
+Για περισσότερες πληροφορίες σχετικά με τη διαμόρφωση του Bolt CLI, [**επισκεφθείτε την τεκμηρίωσή μας**](https://boltcli.ai/docs).
 
 ### Συνεισφορά
 
-Εάν ενδιαφέρεσαι να συνεισφέρεις στο OpenCode, διαβάστε τα [οδηγό χρήσης συνεισφοράς](./CONTRIBUTING.md) πριν υποβάλεις ένα pull request.
+Αν ενδιαφέρεστε να συνεισφέρετε στο Bolt CLI, διαβάστε την [τεκμηρίωση συνεισφοράς](./CONTRIBUTING.md) πριν υποβάλετε ένα pull request.
 
-### Δημιουργία πάνω στο OpenCode
+### Χτίζοντας πάνω στο Bolt
 
-Εάν εργάζεσαι σε ένα έργο σχετικό με το OpenCode και χρησιμοποιείτε το "opencode" ως μέρος του ονόματός του, για παράδειγμα "opencode-dashboard" ή "opencode-mobile", πρόσθεσε μια σημείωση στο README σας για να διευκρινίσεις ότι δεν είναι κατασκευασμένο από την ομάδα του OpenCode και δεν έχει καμία σχέση με εμάς.
+Αν εργάζεστε σε ένα έργο που σχετίζεται με το Bolt CLI και χρησιμοποιείτε το "bolt" ως μέρος του ονόματός του, για παράδειγμα "bolt-dashboard" ή "bolt-mobile", προσθέστε μια σημείωση στο README σας για να διευκρινίσετε ότι δεν έχει δημιουργηθεί από την ομάδα του Bolt CLI και δεν συνδέεται με εμάς με κανέναν τρόπο.
 
 ---
 
-**Γίνε μέλος της κοινότητάς μας** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+**Γίνετε μέλος της κοινότητάς μας** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)

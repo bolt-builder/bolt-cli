@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
-<p align="center">開源的 AI Coding Agent。</p>
+<p align="center">開源的 AI 程式開發代理。</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,90 +39,88 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
 ### 安裝
 
 ```bash
-# 直接安裝 (YOLO)
-curl -fsSL https://opencode.ai/install | bash
+# YOLO
+curl -fsSL https://boltcli.ai/install | bash
 
-# 套件管理員
-npm i -g opencode-ai@latest        # 也可使用 bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS 與 Linux（推薦，始終保持最新）
-brew install opencode              # macOS 與 Linux（官方 brew formula，更新頻率較低）
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # 任何作業系統
-nix run nixpkgs#opencode           # 或使用 github:anomalyco/opencode 以取得最新開發分支
+# 套件管理器
+npm i -g boltcli-ai@latest        # 或 bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS 和 Linux（推薦，始終最新）
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # 任何作業系統
+nix run nixpkgs#bolt              # 或 github:Bolt-builder/bolt-cli 獲取最新 dev 分支
 ```
 
 > [!TIP]
-> 安裝前請先移除 0.1.x 以前的舊版本。
+> 安裝前請移除早於 0.1.x 的版本。
 
-### 桌面應用程式 (BETA)
+### 桌面應用 (BETA)
 
-OpenCode 也提供桌面版應用程式。您可以直接從 [發佈頁面 (releases page)](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) 或 [opencode.ai/download](https://opencode.ai/download) 下載。
+Bolt CLI 也可作為桌面應用使用。直接從[發布頁面](https://github.com/Bolt-builder/bolt-cli/releases)或 [boltcli.ai/download](https://boltcli.ai/download) 下載。
 
-| 平台                  | 下載連結                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`, `.rpm`, 或 AppImage        |
+| 平台                  | 下載                             |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`、`.rpm` 或 `.AppImage`   |
 
 ```bash
-# macOS (Homebrew Cask)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+# macOS (Homebrew)
+brew install --cask bolt-desktop
 ```
 
 #### 安裝目錄
 
-安裝腳本會依據以下優先順序決定安裝路徑：
+安裝腳本遵循以下安裝路徑優先級：
 
-1. `$OPENCODE_INSTALL_DIR` - 自定義安裝目錄
-2. `$XDG_BIN_DIR` - 符合 XDG 基礎目錄規範的路徑
-3. `$HOME/bin` - 標準使用者執行檔目錄 (若存在或可建立)
-4. `$HOME/.opencode/bin` - 預設備用路徑
+1. `$BOLT_INSTALL_DIR` - 自訂安裝目錄
+2. `$XDG_BIN_DIR` - 符合 XDG Base Directory 規範的路徑
+3. `$HOME/bin` - 標準使用者二進位目錄（如果存在或可建立）
+4. `$HOME/.bolt/bin` - 預設回退
 
 ```bash
 # 範例
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
-### Agents
+### 代理
 
-OpenCode 內建了兩種 Agent，您可以使用 `Tab` 鍵快速切換。
+Bolt CLI 包含內建代理，可使用 `Tab` 鍵切換。
 
-- **build** - 預設模式，具備完整權限的 Agent，適用於開發工作。
-- **plan** - 唯讀模式，適用於程式碼分析與探索。
-  - 預設禁止修改檔案。
-  - 執行 bash 指令前會詢問權限。
-  - 非常適合用來探索陌生的程式碼庫或規劃變更。
+- **code** - 預設的完全存取代理，用於開發工作
+- **ask** - 唯讀代理，用於提問和資訊收集
+  - 預設阻止檔案編輯
+  - 非常適合探索不熟悉的程式碼庫或提問
+- **plan** - 唯讀代理，用於分析和程式碼探索
+  - 預設拒絕檔案編輯
+  - 執行 bash 指令前請求許可
+  - 非常適合規劃變更
 
-此外，OpenCode 還包含一個 **general** 子 Agent，用於處理複雜搜尋與多步驟任務。此 Agent 供系統內部使用，亦可透過在訊息中輸入 `@general` 來呼叫。
+還包含一個 **general** 子代理，用於複雜搜尋和多步驟任務。
+該代理在內部使用，可透過在訊息中使用 `@general` 呼叫。
 
-了解更多關於 [Agents](https://opencode.ai/docs/agents) 的資訊。
+了解更多關於[代理](https://boltcli.ai/docs/agents)的資訊。
 
-### 線上文件
+### 文件
 
-關於如何設定 OpenCode 的詳細資訊，請參閱我們的 [**官方文件**](https://opencode.ai/docs)。
+有關如何設定 Bolt CLI 的更多資訊，[**請查看我們的文件**](https://boltcli.ai/docs)。
 
 ### 參與貢獻
 
-如果您有興趣參與 OpenCode 的開發，請在提交 Pull Request 前先閱讀我們的 [貢獻指南 (Contributing Docs)](./CONTRIBUTING.md)。
+如果您有興趣為 Bolt CLI 做出貢獻，請在提交 pull request 前閱讀我們的[貢獻文件](./CONTRIBUTING.md)。
 
-### 基於 OpenCode 進行開發
+### 基於 Bolt 構建
 
-如果您正在開發與 OpenCode 相關的專案，並在名稱中使用了 "opencode"（例如 "opencode-dashboard" 或 "opencode-mobile"），請在您的 README 中加入聲明，說明該專案並非由 OpenCode 團隊開發，且與我們沒有任何隸屬關係。
+如果您正在開發與 Bolt CLI 相關的專案，並在名稱中使用 "bolt"，例如 "bolt-dashboard" 或 "bolt-mobile"，請在您的 README 中新增說明，澄清該專案並非由 Bolt CLI 團隊構建且與我們無關。
 
 ---
 
-**加入我們的社群** [飞书](https://applink.feishu.cn/client/chat/chatter/add_by_link?link_token=52ao9352-5623-4fa0-b7dd-3407c392c1af&qr_code=true) | [X.com](https://x.com/opencode)
+**加入我們的社群** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)

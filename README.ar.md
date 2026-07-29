@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="شعار OpenCode">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
-<p align="center">وكيل برمجة بالذكاء الاصطناعي مفتوح المصدر.</p>
+<p align="center">عميل البرمجة مفتوح المصدر بالذكاء الاصطناعي.</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
@@ -47,83 +47,80 @@
 
 ```bash
 # YOLO
-curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://boltcli.ai/install | bash
 
-# مديري الحزم
-npm i -g opencode-ai@latest        # او bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS و Linux (موصى به، دائما محدث)
-brew install opencode              # macOS و Linux (صيغة brew الرسمية، تحديث اقل)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # اي نظام
-nix run nixpkgs#opencode           # او github:anomalyco/opencode لاحدث فرع dev
+# مدراء الحزم
+npm i -g boltcli-ai@latest        # أو bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS و Linux (موصى به، محدث دائمًا)
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # أي نظام تشغيل
+nix run nixpkgs#bolt              # أو github:Bolt-builder/bolt-cli لأحدث فرع dev
 ```
 
 > [!TIP]
-> احذف الاصدارات الاقدم من 0.1.x قبل التثبيت.
+> قم بإزالة الإصدارات الأقدم من 0.1.x قبل التثبيت.
 
 ### تطبيق سطح المكتب (BETA)
 
-يتوفر OpenCode ايضا كتطبيق سطح مكتب. قم بالتنزيل مباشرة من [صفحة الاصدارات](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) او من [opencode.ai/download](https://opencode.ai/download).
+Bolt CLI متاح أيضًا كتطبيق سطح مكتب. قم بالتنزيل مباشرة من [صفحة الإصدارات](https://github.com/Bolt-builder/bolt-cli/releases) أو [boltcli.ai/download](https://boltcli.ai/download).
 
-| المنصة                | التنزيل                            |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb` او `.rpm` او AppImage       |
+| المنصة                | التحميل                         |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`، `.rpm`، أو `.AppImage`  |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+brew install --cask bolt-desktop
 ```
 
-#### مجلد التثبيت
+#### دليل التثبيت
 
-يحترم سكربت التثبيت ترتيب الاولوية التالي لمسار التثبيت:
+يحترم سكريبت التثبيت ترتيب الأولوية التالي لمسار التثبيت:
 
-1. `$OPENCODE_INSTALL_DIR` - مجلد تثبيت مخصص
+1. `$BOLT_INSTALL_DIR` - دليل تثبيت مخصص
 2. `$XDG_BIN_DIR` - مسار متوافق مع مواصفات XDG Base Directory
-3. `$HOME/bin` - مجلد الثنائيات القياسي للمستخدم (ان وجد او امكن انشاؤه)
-4. `$HOME/.opencode/bin` - المسار الافتراضي الاحتياطي
+3. `$HOME/bin` - دليل ثنائي المستخدم القياسي (إذا كان موجودًا أو يمكن إنشاؤه)
+4. `$HOME/.bolt/bin` - الاحتياطي الافتراضي
 
 ```bash
-# امثلة
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+# أمثلة
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
-### Agents
+### الوكلاء
 
-يتضمن OpenCode وكيليْن (Agents) مدمجين يمكنك التبديل بينهما باستخدام زر `Tab`.
+يتضمن Bolt CLI وكلاء مدمجين يمكنك التبديل بينهم باستخدام مفتاح `Tab`.
 
-- **build** - الافتراضي، وكيل بصلاحيات كاملة لاعمال التطوير
+- **code** - الوكيل الافتراضي ذو الوصول الكامل لأعمال التطوير
+- **ask** - وكيل للقراءة فقط للأسئلة وجمع المعلومات
+  - يمنع تعديل الملفات افتراضيًا
+  - مثالي لاستكشاف قواعد التعليمات البرمجية غير المألوفة أو طرح الأسئلة
 - **plan** - وكيل للقراءة فقط للتحليل واستكشاف الكود
-  - يرفض تعديل الملفات افتراضيا
-  - يطلب الاذن قبل تشغيل اوامر bash
-  - مثالي لاستكشاف قواعد كود غير مألوفة او لتخطيط التغييرات
+  - يرفض تعديل الملفات افتراضيًا
+  - يطلب الإذن قبل تشغيل أوامر bash
+  - مثالي للتخطيط للتغييرات
 
-بالاضافة الى ذلك يوجد وكيل فرعي **general** للبحث المعقد والمهام متعددة الخطوات.
-يستخدم داخليا ويمكن استدعاؤه بكتابة `@general` في الرسائل.
+يتضمن أيضًا وكيل فرعي **general** للبحث المعقد والمهام متعددة الخطوات.
+يُستخدم داخليًا ويمكن استدعاؤه باستخدام `@general` في الرسائل.
 
-تعرف على المزيد حول [agents](https://opencode.ai/docs/agents).
+تعرف على المزيد حول [الوكلاء](https://boltcli.ai/docs/agents).
 
 ### التوثيق
 
-لمزيد من المعلومات حول كيفية ضبط OpenCode، [**راجع التوثيق**](https://opencode.ai/docs).
+لمزيد من المعلومات حول كيفية تكوين Bolt CLI، [**توجه إلى وثائقنا**](https://boltcli.ai/docs).
 
 ### المساهمة
 
-اذا كنت مهتما بالمساهمة في OpenCode، يرجى قراءة [contributing docs](./CONTRIBUTING.md) قبل ارسال pull request.
+إذا كنت مهتمًا بالمساهمة في Bolt CLI، يرجى قراءة [وثائق المساهمة](./CONTRIBUTING.md) قبل تقديم طلب سحب.
 
-### البناء فوق OpenCode
+### البناء على Bolt
 
-اذا كنت تعمل على مشروع مرتبط بـ OpenCode ويستخدم "opencode" كجزء من اسمه (مثل "opencode-dashboard" او "opencode-mobile")، يرجى اضافة ملاحظة في README توضح انه ليس مبنيا بواسطة فريق OpenCode ولا يرتبط بنا بأي شكل.
+إذا كنت تعمل على مشروع مرتبط بـ Bolt CLI ويستخدم "bolt" كجزء من اسمه، على سبيل المثال "bolt-dashboard" أو "bolt-mobile"، يرجى إضافة ملاحظة في README الخاص بك لتوضيح أنه ليس مبنيًا من قبل فريق Bolt CLI وليس تابعًا لنا بأي شكل من الأشكال.
 
 ---
 
-**انضم الى مجتمعنا** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+**انضم إلى مجتمعنا** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)

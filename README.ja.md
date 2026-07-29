@@ -1,17 +1,17 @@
 <p align="center">
-  <a href="https://opencode.ai">
+  <a href="https://boltcli.ai">
     <picture>
       <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
       <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt logo">
     </picture>
   </a>
 </p>
 <p align="center">オープンソースのAIコーディングエージェント。</p>
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://boltcli.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
+  <a href="https://www.npmjs.com/package/boltcli-ai"><img alt="npm" src="https://img.shields.io/npm/v/boltcli-ai?style=flat-square" /></a>
+  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
 </p>
 
 <p align="center">
@@ -39,7 +39,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://boltcli.ai)
 
 ---
 
@@ -47,83 +47,80 @@
 
 ```bash
 # YOLO
-curl -fsSL https://opencode.ai/install | bash
+curl -fsSL https://boltcli.ai/install | bash
 
 # パッケージマネージャー
-npm i -g opencode-ai@latest        # bun/pnpm/yarn でもOK
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS と Linux（推奨。常に最新）
-brew install opencode              # macOS と Linux（公式 brew formula。更新頻度は低め）
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-bin               # Arch Linux (Latest from AUR)
-mise use -g opencode               # どのOSでも
-nix run nixpkgs#opencode           # または github:anomalyco/opencode で最新 dev ブランチ
+npm i -g boltcli-ai@latest        # または bun/pnpm/yarn
+brew install bolt-builder/tap/bolt # macOS と Linux（推奨、常に最新）
+sudo pacman -S bolt                # Arch Linux
+mise use -g bolt                   # 任意のOS
+nix run nixpkgs#bolt              # または github:Bolt-builder/bolt-cli で最新のdevブランチ
 ```
 
 > [!TIP]
-> インストール前に 0.1.x より古いバージョンを削除してください。
+> インストール前に0.1.xより古いバージョンを削除してください。
 
 ### デスクトップアプリ (BETA)
 
-OpenCode はデスクトップアプリとしても利用できます。[releases page](https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/releases) から直接ダウンロードするか、[opencode.ai/download](https://opencode.ai/download) を利用してください。
+Bolt CLIはデスクトップアプリとしても利用できます。[リリースページ](https://github.com/Bolt-builder/bolt-cli/releases)から直接ダウンロードするか、[boltcli.ai/download](https://boltcli.ai/download)を利用してください。
 
-| プラットフォーム      | ダウンロード                       |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe` |
-| Linux                 | `.deb`、`.rpm`、または AppImage    |
+| プラットフォーム      | ダウンロード                    |
+| --------------------- | ------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
+| Windows               | `bolt-desktop-windows-x64.exe`  |
+| Linux                 | `.deb`、`.rpm`、または `.AppImage` |
 
 ```bash
 # macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
+brew install --cask bolt-desktop
 ```
 
 #### インストールディレクトリ
 
-インストールスクリプトは、インストール先パスを次の優先順位で決定します。
+インストールスクリプトは、以下の優先順位でインストールパスを決定します：
 
-1. `$OPENCODE_INSTALL_DIR` - カスタムのインストールディレクトリ
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification に準拠したパス
-3. `$HOME/bin` - 標準のユーザー用バイナリディレクトリ（存在する場合、または作成できる場合）
-4. `$HOME/.opencode/bin` - デフォルトのフォールバック
+1. `$BOLT_INSTALL_DIR` - カスタムインストールディレクトリ
+2. `$XDG_BIN_DIR` - XDG Base Directory仕様に準拠したパス
+3. `$HOME/bin` - 標準ユーザーバイナリディレクトリ（存在するか作成可能な場合）
+4. `$HOME/.bolt/bin` - デフォルトのフォールバック
 
 ```bash
 # 例
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
+BOLT_INSTALL_DIR=/usr/local/bin curl -fsSL https://boltcli.ai/install | bash
+XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://boltcli.ai/install | bash
 ```
 
-### Agents
+### エージェント
 
-OpenCode には組み込みの Agent が2つあり、`Tab` キーで切り替えられます。
+Bolt CLIには組み込みエージェントが含まれており、`Tab`キーで切り替えられます。
 
-- **build** - デフォルト。開発向けのフルアクセス Agent
-- **plan** - 分析とコード探索向けの読み取り専用 Agent
+- **code** - 開発作業用のデフォルトのフルアクセスエージェント
+- **ask** - 質問と情報収集のための読み取り専用エージェント
+  - デフォルトでファイル編集をブロック
+  - 未知のコードベースの探索や質問に最適
+- **plan** - 分析とコード探索のための読み取り専用エージェント
   - デフォルトでファイル編集を拒否
-  - bash コマンド実行前に確認
-  - 未知のコードベース探索や変更計画に最適
+  - bashコマンドの実行前に許可を要求
+  - 変更の計画に最適
 
-また、複雑な検索やマルチステップのタスク向けに **general** サブ Agent も含まれています。
-内部的に使用されており、メッセージで `@general` と入力して呼び出せます。
+複雑な検索とマルチステップタスクのための**general**サブエージェントも含まれています。
+これは内部的に使用され、メッセージで`@general`を使用して呼び出すことができます。
 
-[agents](https://opencode.ai/docs/agents) の詳細はこちら。
+[エージェント](https://boltcli.ai/docs/agents)について詳しく見る。
 
 ### ドキュメント
 
-OpenCode の設定については [**ドキュメント**](https://opencode.ai/docs) を参照してください。
+Bolt CLIの設定方法の詳細については、[**ドキュメントをご覧ください**](https://boltcli.ai/docs)。
 
-### コントリビュート
+### 貢献
 
-OpenCode に貢献したい場合は、Pull Request を送る前に [contributing docs](./CONTRIBUTING.md) を読んでください。
+Bolt CLIへの貢献に興味がある場合は、プルリクエストを送信する前に[貢献ドキュメント](./CONTRIBUTING.md)をお読みください。
 
-### OpenCode の上に構築する
+### Boltの上に構築する
 
-OpenCode に関連するプロジェクトで、名前に "opencode"（例: "opencode-dashboard" や "opencode-mobile"）を含める場合は、そのプロジェクトが OpenCode チームによって作られたものではなく、いかなる形でも関係がないことを README に明記してください。
+Bolt CLIに関連するプロジェクトに取り組んでいて、名前に"bolt"を含めている場合（例：「bolt-dashboard」や「bolt-mobile」）、Bolt CLIチームによって構築されたものではなく、私たちとは一切関係がないことを明記する注記をREADMEに追加してください。
 
 ---
 
-**コミュニティに参加** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+**コミュニティに参加** [Discord](https://discord.gg/boltcli) | [X.com](https://x.com/boltcli)
