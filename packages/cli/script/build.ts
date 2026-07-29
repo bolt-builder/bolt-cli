@@ -105,7 +105,10 @@ for (const item of targets) {
         name: `@opencode-ai/${name}`,
         version: Script.version,
         license: "MIT",
-        repository: { type: "git", url: "git+https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym.git" },
+        repository: {
+          type: "git",
+          url: "git+https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym.git",
+        },
         os: [item.os],
         cpu: [item.arch],
       },

@@ -43,31 +43,31 @@ opencode run --agent ask "what does this project do?"
 
 ## CLI commands
 
-| Command       | Description                                      |
-| ------------- | ------------------------------------------------ |
-| `opencode`    | Launch the interactive TUI                        |
-| `run`         | Run a non-interactive prompt                      |
-| `attach`      | Attach to a running session                       |
-| `session`     | Manage sessions (list, tail, delete)              |
-| `agent`       | List and configure agents                         |
-| `providers`   | Configure LLM providers                           |
-| `models`      | List available models                             |
-| `mcp`         | Manage MCP servers                                |
-| `serve`       | Start the API server                              |
-| `web`         | Start the web UI                                  |
-| `upgrade`     | Upgrade to the latest version                     |
-| `uninstall`   | Remove opencode                                   |
-| `generate`    | Generate shell completions                        |
-| `export`      | Export session history                            |
-| `import`      | Import session history                            |
-| `plugin`      | Manage plugins                                    |
-| `github`      | GitHub integration (PR, issues)                   |
-| `pr`          | Create PR from a session                          |
-| `stats`       | Show usage statistics                             |
-| `account`     | Manage accounts                                   |
-| `debug`       | Debug information                                 |
-| `db`          | Database operations                               |
-| `acp`         | Agent-to-agent communication protocol commands    |
+| Command     | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `opencode`  | Launch the interactive TUI                     |
+| `run`       | Run a non-interactive prompt                   |
+| `attach`    | Attach to a running session                    |
+| `session`   | Manage sessions (list, tail, delete)           |
+| `agent`     | List and configure agents                      |
+| `providers` | Configure LLM providers                        |
+| `models`    | List available models                          |
+| `mcp`       | Manage MCP servers                             |
+| `serve`     | Start the API server                           |
+| `web`       | Start the web UI                               |
+| `upgrade`   | Upgrade to the latest version                  |
+| `uninstall` | Remove opencode                                |
+| `generate`  | Generate shell completions                     |
+| `export`    | Export session history                         |
+| `import`    | Import session history                         |
+| `plugin`    | Manage plugins                                 |
+| `github`    | GitHub integration (PR, issues)                |
+| `pr`        | Create PR from a session                       |
+| `stats`     | Show usage statistics                          |
+| `account`   | Manage accounts                                |
+| `debug`     | Debug information                              |
+| `db`        | Database operations                            |
+| `acp`       | Agent-to-agent communication protocol commands |
 
 ## Configuration
 
@@ -78,28 +78,28 @@ Configuration lives in `.opencode/opencode.jsonc` in your project root (created 
   "$schema": "https://opencode.ai/config.json",
   "provider": {
     // Provider config goes here
-  }
+  },
 }
 ```
 
 ### Environment variables
 
-| Variable                   | Description                        |
-| -------------------------- | ---------------------------------- |
-| `OPENCODE_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
-| `OPENCODE_PRINT_LOGS`      | Print logs to stderr                |
-| `OPENCODE_PURE`            | Run without external plugins        |
-| `OPENCODE_BIN_PATH`        | Override binary path                |
+| Variable              | Description                         |
+| --------------------- | ----------------------------------- |
+| `OPENCODE_LOG_LEVEL`  | Log level: DEBUG, INFO, WARN, ERROR |
+| `OPENCODE_PRINT_LOGS` | Print logs to stderr                |
+| `OPENCODE_PURE`       | Run without external plugins        |
+| `OPENCODE_BIN_PATH`   | Override binary path                |
 
 ## Agents
 
 Built-in agents. Switch with `Tab` in the TUI.
 
-| Agent   | Access | Description                                         |
-| ------- | ------ | --------------------------------------------------- |
-| `code`  | Full   | Default — reads, writes, runs code                   |
-| `ask`   | Read   | Questions and research — no file edits               |
-| `plan`  | Read   | Analysis — asks before bash commands                 |
+| Agent  | Access | Description                            |
+| ------ | ------ | -------------------------------------- |
+| `code` | Full   | Default — reads, writes, runs code     |
+| `ask`  | Read   | Questions and research — no file edits |
+| `plan` | Read   | Analysis — asks before bash commands   |
 
 Use `@general` to invoke the subagent for complex multi-step tasks.
 

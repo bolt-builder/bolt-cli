@@ -23,7 +23,11 @@ function Directory(props: { api: TuiPluginApi }) {
 
   return (
     <Show when={dir()}>
-      {(value) => <text fg={theme().textMuted} wrapMode="none" flexShrink={1} truncate>{value()}</text>}
+      {(value) => (
+        <text fg={theme().textMuted} wrapMode="none" flexShrink={1} truncate>
+          {value()}
+        </text>
+      )}
     </Show>
   )
 }

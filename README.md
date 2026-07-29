@@ -7,9 +7,6 @@
   </a>
 </p>
 
-
-
-
 #bolt
 
 Terminal-based AI coding agent. Reads your codebase, understands what you're building, and ships code — all from the command line.
@@ -44,31 +41,31 @@ bolt run --agent ask "what does this project do?"
 
 ## CLI commands
 
-| Command       | Description                                      |
-| ------------- | ------------------------------------------------ |
-| `bolt`    | Launch the interactive TUI                        |
-| `run`         | Run a non-interactive prompt                      |
-| `attach`      | Attach to a running session                       |
-| `session`     | Manage sessions (list, tail, delete)              |
-| `agent`       | List and configure agents                         |
-| `providers`   | Configure LLM providers                           |
-| `models`      | List available models                             |
-| `mcp`         | Manage MCP servers                                |
-| `serve`       | Start the API server                              |
-| `web`         | Start the web UI                                  |
-| `upgrade`     | Upgrade to the latest version                     |
-| `uninstall`   | Remove bolt                                   |
-| `generate`    | Generate shell completions                        |
-| `export`      | Export session history                            |
-| `import`      | Import session history                            |
-| `plugin`      | Manage plugins                                    |
-| `github`      | GitHub integration (PR, issues)                   |
-| `pr`          | Create PR from a session                          |
-| `stats`       | Show usage statistics                             |
-| `account`     | Manage accounts                                   |
-| `debug`       | Debug information                                 |
-| `db`          | Database operations                               |
-| `acp`         | Agent-to-agent communication protocol commands    |
+| Command     | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `bolt`      | Launch the interactive TUI                     |
+| `run`       | Run a non-interactive prompt                   |
+| `attach`    | Attach to a running session                    |
+| `session`   | Manage sessions (list, tail, delete)           |
+| `agent`     | List and configure agents                      |
+| `providers` | Configure LLM providers                        |
+| `models`    | List available models                          |
+| `mcp`       | Manage MCP servers                             |
+| `serve`     | Start the API server                           |
+| `web`       | Start the web UI                               |
+| `upgrade`   | Upgrade to the latest version                  |
+| `uninstall` | Remove bolt                                    |
+| `generate`  | Generate shell completions                     |
+| `export`    | Export session history                         |
+| `import`    | Import session history                         |
+| `plugin`    | Manage plugins                                 |
+| `github`    | GitHub integration (PR, issues)                |
+| `pr`        | Create PR from a session                       |
+| `stats`     | Show usage statistics                          |
+| `account`   | Manage accounts                                |
+| `debug`     | Debug information                              |
+| `db`        | Database operations                            |
+| `acp`       | Agent-to-agent communication protocol commands |
 
 ## Configuration
 
@@ -79,28 +76,28 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
   "$schema": "https://opencode.ai/config.json",
   "provider": {
     // Provider config goes here
-  }
+  },
 }
 ```
 
 ### Environment variables
 
-| Variable                   | Description                        |
-| -------------------------- | ---------------------------------- |
-| `bolt_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
-| `bolt_PRINT_LOGS`      | Print logs to stderr                |
-| `bolt_PURE`            | Run without external plugins        |
-| `bolt_BIN_PATH`        | Override binary path                |
+| Variable          | Description                         |
+| ----------------- | ----------------------------------- |
+| `bolt_LOG_LEVEL`  | Log level: DEBUG, INFO, WARN, ERROR |
+| `bolt_PRINT_LOGS` | Print logs to stderr                |
+| `bolt_PURE`       | Run without external plugins        |
+| `bolt_BIN_PATH`   | Override binary path                |
 
 ## Agents
 
 Built-in agents. Switch with `Tab` in the TUI.
 
-| Agent   | Access | Description                                         |
-| ------- | ------ | --------------------------------------------------- |
-| `code`  | Full   | Default — reads, writes, runs code                   |
-| `ask`   | Read   | Questions and research — no file edits               |
-| `plan`  | Read   | Analysis — asks before bash commands                 |
+| Agent  | Access | Description                            |
+| ------ | ------ | -------------------------------------- |
+| `code` | Full   | Default — reads, writes, runs code     |
+| `ask`  | Read   | Questions and research — no file edits |
+| `plan` | Read   | Analysis — asks before bash commands   |
 
 Use `@general` to invoke the subagent for complex multi-step tasks.
 
@@ -161,4 +158,3 @@ tmux kill-session -t bolt-dev
 MIT © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
 
 ---
-

@@ -61,11 +61,11 @@ export function logo(pad?: string) {
 
   const result: string[] = []
   const reset = "\x1b[0m"
-const left = {
-  fg: Style.TEXT_INFO,
-  shadow: "\x1b[38;5;235m",
-  bg: "\x1b[48;5;235m",
-}
+  const left = {
+    fg: Style.TEXT_INFO,
+    shadow: "\x1b[38;5;235m",
+    bg: "\x1b[48;5;235m",
+  }
   const right = {
     fg: reset,
     shadow: "\x1b[38;5;238m",

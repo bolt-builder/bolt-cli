@@ -64,11 +64,11 @@ nix run nixpkgs#bolt              # หรือ github:Bolt-builder/bolt-cli �
 
 Bolt CLI ยังมีให้ใช้เป็นแอปพลิเคชันเดสก์ท็อป ดาวน์โหลดโดยตรงจาก [หน้าออกเวอร์ชัน](https://github.com/Bolt-builder/bolt-cli/releases) หรือ [boltcli.ai/download](https://boltcli.ai/download)
 
-| แพลตฟอร์ม            | ดาวน์โหลด                       |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
+| แพลตฟอร์ม             | ดาวน์โหลด                        |
+| --------------------- | -------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`     |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`       |
+| Windows               | `bolt-desktop-windows-x64.exe`   |
 | Linux                 | `.deb`, `.rpm`, หรือ `.AppImage` |
 
 ```bash

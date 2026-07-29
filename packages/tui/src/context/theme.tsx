@@ -264,11 +264,13 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         if (theme) return resolveTheme(theme, store.mode)
       }
 
-      return resolveTheme(store.themes.opencode, store.mode) || {
-        background: { r: 0, g: 0, b: 0, a: 255 },
-        text: { r: 255, g: 255, b: 255, a: 255 },
-        textMuted: { r: 128, g: 128, b: 128, a: 255 }
-      }
+      return (
+        resolveTheme(store.themes.opencode, store.mode) || {
+          background: { r: 0, g: 0, b: 0, a: 255 },
+          text: { r: 255, g: 255, b: 255, a: 255 },
+          textMuted: { r: 128, g: 128, b: 128, a: 255 },
+        }
+      )
     })
 
     const defaultTheme = () => resolveTheme(store.themes.opencode, store.mode)
@@ -279,14 +281,11 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     const subtleSyntax = createSyntaxStyleMemo(() => generateSubtleSyntax(values() ?? defaultTheme()))
 
     return {
-      theme: new Proxy(
-        {} as Theme,
-        {
-          get(_target, prop: keyof Theme) {
-            return values()[prop]
-          },
-        }
-      ),
+      theme: new Proxy({} as Theme, {
+        get(_target, prop: keyof Theme) {
+          return values()[prop]
+        },
+      }),
       get selected() {
         return store.active
       },

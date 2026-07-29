@@ -1666,7 +1666,9 @@ export function Prompt(props: PromptProps) {
                     <Match when={true}>
                       <text fg={theme.text}>
                         <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
-                          {"["}{agentShortcut()}{"]"}
+                          {"["}
+                          {agentShortcut()}
+                          {"]"}
                         </span>{" "}
                         <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
@@ -1674,7 +1676,9 @@ export function Prompt(props: PromptProps) {
                   </Switch>
                   <text fg={theme.text}>
                     <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
-                      {"["}{paletteShortcut()}{"]"}
+                      {"["}
+                      {paletteShortcut()}
+                      {"]"}
                     </span>{" "}
                     <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>

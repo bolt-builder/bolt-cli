@@ -65,10 +65,10 @@ nix run nixpkgs#bolt              # veya github:Bolt-builder/bolt-cli en son dev
 Bolt CLI ayrıca masaüstü uygulaması olarak da mevcuttur. Doğrudan [sürümler sayfasından](https://github.com/Bolt-builder/bolt-cli/releases) veya [boltcli.ai/download](https://boltcli.ai/download) adresinden indirin.
 
 | Platform              | İndirme                          |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
+| --------------------- | -------------------------------- |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`     |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`       |
+| Windows               | `bolt-desktop-windows-x64.exe`   |
 | Linux                 | `.deb`, `.rpm`, veya `.AppImage` |
 
 ```bash

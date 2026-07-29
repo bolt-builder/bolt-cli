@@ -65,22 +65,22 @@ bun run build
 
 [リリースページ](https://github.com/Bolt-builder/bolt-cli/releases)から直接ダウンロードしてください。
 
-| プラットフォーム      | ダウンロード                     |
-| --------------------- | -------------------------------- |
-| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
-| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
-| Windows               | `Bolt-Desktop-windows-x64.exe`   |
-| Linux                 | `.deb`, `.rpm`, `.AppImage`      |
+| プラットフォーム      | ダウンロード                   |
+| --------------------- | ------------------------------ |
+| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`   |
+| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`     |
+| Windows               | `Bolt-Desktop-windows-x64.exe` |
+| Linux                 | `.deb`, `.rpm`, `.AppImage`    |
 
 ### エージェント
 
 Bolt CLIには内蔵エージェントが含まれています。`Tab`で切り替えてください。
 
-| エージェント | アクセス   | 説明                                                       |
-| ------------ | ---------- | ---------------------------------------------------------- |
-| `code`       | フル       | 開発用デフォルトエージェント — 読み取り・書き込み・実行     |
-| `ask`        | 読み取り   | 質問と調査 — ファイル編集不可                               |
-| `plan`       | 読み取り   | 分析と探索 — bashコマンド前に確認                            |
+| エージェント | アクセス | 説明                                                    |
+| ------------ | -------- | ------------------------------------------------------- |
+| `code`       | フル     | 開発用デフォルトエージェント — 読み取り・書き込み・実行 |
+| `ask`        | 読み取り | 質問と調査 — ファイル編集不可                           |
+| `plan`       | 読み取り | 分析と探索 — bashコマンド前に確認                       |
 
 さらに `general` サブエージェント — 複雑なマルチステップタスク用。`@general`で呼び出します。
 

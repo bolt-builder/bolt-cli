@@ -64,12 +64,12 @@ nix run nixpkgs#bolt              # 或 github:Bolt-builder/bolt-cli 获取最�
 
 Bolt CLI 也可作为桌面应用使用。直接从[发布页面](https://github.com/Bolt-builder/bolt-cli/releases)或 [boltcli.ai/download](https://boltcli.ai/download) 下载。
 
-| 平台                  | 下载                             |
-| --------------------- | ------------------------------- |
-| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`    |
-| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`      |
-| Windows               | `bolt-desktop-windows-x64.exe`  |
-| Linux                 | `.deb`、`.rpm` 或 `.AppImage`   |
+| 平台                  | 下载                           |
+| --------------------- | ------------------------------ |
+| macOS (Apple Silicon) | `bolt-desktop-mac-arm64.dmg`   |
+| macOS (Intel)         | `bolt-desktop-mac-x64.dmg`     |
+| Windows               | `bolt-desktop-windows-x64.exe` |
+| Linux                 | `.deb`、`.rpm` 或 `.AppImage`  |
 
 ```bash
 # macOS (Homebrew)

@@ -76,11 +76,11 @@ Direkt von der [Release-Seite](https://github.com/Bolt-builder/bolt-cli/releases
 
 Bolt CLI enthält integrierte Agenten. Wechsle zwischen ihnen mit `Tab`.
 
-| Agent   | Zugriff | Beschreibung                                               |
-| ------- | ------- | ---------------------------------------------------------- |
-| `code`  | Voll    | Standard-Agent für Entwicklung — liest, schreibt, führt aus |
-| `ask`   | Lesen   | Fragen & Recherche — keine Dateiänderungen erlaubt          |
-| `plan`  | Lesen   | Analyse & Exploration — fragt vor Bash-Befehlen             |
+| Agent  | Zugriff | Beschreibung                                                |
+| ------ | ------- | ----------------------------------------------------------- |
+| `code` | Voll    | Standard-Agent für Entwicklung — liest, schreibt, führt aus |
+| `ask`  | Lesen   | Fragen & Recherche — keine Dateiänderungen erlaubt          |
+| `plan` | Lesen   | Analyse & Exploration — fragt vor Bash-Befehlen             |
 
 Außerdem enthalten: `general`-Subagent für komplexe, mehrstufige Aufgaben. Aufruf mit `@general`.
 

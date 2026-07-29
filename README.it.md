@@ -65,22 +65,22 @@ bun run build
 
 Scarica direttamente dalla [pagina release](https://github.com/Bolt-builder/bolt-cli/releases).
 
-| Piattaforma           | Download                         |
-| --------------------- | -------------------------------- |
-| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
-| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
-| Windows               | `Bolt-Desktop-windows-x64.exe`   |
-| Linux                 | `.deb`, `.rpm`, o `.AppImage`    |
+| Piattaforma           | Download                       |
+| --------------------- | ------------------------------ |
+| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`   |
+| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`     |
+| Windows               | `Bolt-Desktop-windows-x64.exe` |
+| Linux                 | `.deb`, `.rpm`, o `.AppImage`  |
 
 ### Agenti
 
 Bolt CLI include agenti integrati. Passa da uno all'altro con `Tab`.
 
-| Agente  | Accesso      | Descrizione                                                      |
-| ------- | ------------ | ---------------------------------------------------------------- |
-| `code`  | Completo     | Agente predefinito per lo sviluppo — legge, scrive, esegue       |
-| `ask`   | Lettura      | Domande e ricerca — nessuna modifica ai file                     |
-| `plan`  | Lettura      | Analisi ed esplorazione — chiede prima dei comandi bash          |
+| Agente | Accesso  | Descrizione                                                |
+| ------ | -------- | ---------------------------------------------------------- |
+| `code` | Completo | Agente predefinito per lo sviluppo — legge, scrive, esegue |
+| `ask`  | Lettura  | Domande e ricerca — nessuna modifica ai file               |
+| `plan` | Lettura  | Analisi ed esplorazione — chiede prima dei comandi bash    |
 
 Incluso anche: subagente `general` per task complessi multi-passo. Invocalo con `@general`.
 
