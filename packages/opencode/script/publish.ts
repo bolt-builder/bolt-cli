@@ -119,7 +119,7 @@ if (!Script.preview) {
     `sha256sums_x86_64=('${x64Sha}')`,
     "",
     "package() {",
-    '  install -Dm755 ./opencode "${pkgdir}/usr/bin/opencode"',
+    '  install -Dm755 ./opencode "${pkgdir}/usr/bin/bolt"',
     "}",
     "",
   ].join("\n")
