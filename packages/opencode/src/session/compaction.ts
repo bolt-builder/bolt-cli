@@ -339,6 +339,27 @@ const layer = Layer.effect(
         cfg,
         model,
       })
+      // Remove old messages that have been summarized (head and hidden) to prevent context buildup
+      if (!input.overflow) {
+        const messageIDsToRemove = new Set<MessageID>()
+        const messageIDsToPreserve = new Set<MessageID>()
+        // Add head messages (to be summarized in this compaction)
+        for (const msg of selected.head) {
+          messageIDsToRemove.add(msg.info.id)
+        }
+        // Add previously summarized messages (hidden)
+        for (const index of hidden) {
+          messageIDsToRemove.add(history[index].info.id)
+        }
+        // Preserve the parent message (needed as parent of the new compaction message)
+        messageIDsToPreserve.add(input.parentID)
+        // Remove messages marked for removal but not preserved
+        for (const msgID of messageIDsToRemove) {
+          if (!messageIDsToPreserve.has(msgID)) {
+            yield* session.removeMessage({ sessionID: input.sessionID, messageID: msgID })
+          }
+        }
+      }
       // Allow plugins to inject context or replace compaction prompt.
       const compacting = yield* plugin.trigger(
         "experimental.session.compacting",
