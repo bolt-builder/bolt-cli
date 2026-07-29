@@ -31,9 +31,9 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 
   <content_rating type="oars-1.1" />
 
-  <url type="bugtracker">https://github.com/anomalyco/opencode/issues</url>
+  <url type="bugtracker">https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues</url>
   <url type="homepage">https://opencode.ai</url>
-  <url type="vcs-browser">https://github.com/anomalyco/opencode</url>
+  <url type="vcs-browser">https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym</url>
 
   <screenshots>
     <screenshot type="default">

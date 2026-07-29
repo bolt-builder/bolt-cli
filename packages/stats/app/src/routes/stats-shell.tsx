@@ -8,7 +8,7 @@ import { route, type Locale } from "../lib/language"
 export type HeaderLink = { href: string; label: string }
 
 export const githubLink = {
-  href: "https://github.com/anomalyco/opencode",
+  href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym",
   apiHref: "https://api.github.com/repos/anomalyco/opencode",
   fallbackStars: "150K",
 }

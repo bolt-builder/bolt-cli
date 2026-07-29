@@ -207,12 +207,12 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       {
         type: "item",
         label: "Share Feedback",
-        href: "https://github.com/anomalyco/opencode/issues/new?template=feature_request.yml",
+        href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues/new?template=feature_request.yml",
       },
       {
         type: "item",
         label: "Report a Bug",
-        href: "https://github.com/anomalyco/opencode/issues/new?template=bug_report.yml",
+        href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues/new?template=bug_report.yml",
       },
     ],
   },
