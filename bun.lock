@@ -559,7 +559,7 @@
     },
     "packages/opencode": {
       "name": "Bolt",
-      "version": "1.18.9",
+      "version": "0.0.1",
       "bin": {
         "bolt": "./bin/bolt",
       },
