@@ -1,12 +1,15 @@
 import { EOL } from "os"
 import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
-
 const wordmark = [
-  `⠀                                ▄     `,
-  `█▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
-  `█  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀`,
-  `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
+  ` /$$$$$$$   /$$$$$$  /$$   /$$$$$$$$         /$$$$$$  /$$       /$$$$$$ `,
+  `| $$__  $$ /$$__  $$| $$  |__  $$__/        /$$__  $$| $$      |_  $$_/ `,
+  `| $$  \\ $$| $$  \\ $$| $$     | $$          | $$  \\__/| $$        | $$   `,
+  `| $$$$$$$ | $$  | $$| $$     | $$          | $$      | $$        | $$   `,
+  `| $$__  $$| $$  | $$| $$     | $$          | $$      | $$        | $$   `,
+  `| $$  \\ $$| $$  | $$| $$     | $$          | $$    $$| $$        | $$   `,
+  `| $$$$$$$/|  $$$$$$/| $$$$$$$| $$          |  $$$$$$/| $$$$$$$$ /$$$$$$ `,
+  `|_______/  \\______/ |________|__/           \\______/ |________/|______/ `,
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
@@ -58,11 +61,11 @@ export function logo(pad?: string) {
 
   const result: string[] = []
   const reset = "\x1b[0m"
-  const left = {
-    fg: "\x1b[90m",
-    shadow: "\x1b[38;5;235m",
-    bg: "\x1b[48;5;235m",
-  }
+const left = {
+  fg: TEXT_INFO,
+  shadow: "\x1b[38;5;235m",
+  bg: "\x1b[48;5;235m",
+}
   const right = {
     fg: reset,
     shadow: "\x1b[38;5;238m",
