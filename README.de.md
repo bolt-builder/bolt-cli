@@ -43,7 +43,7 @@
 
 ## Bolt CLI
 
-Bolt CLI ist ein Fork von [OpenCode](https://github.com/anomalyco/opencode) — dem Open-Source KI-Coding-Agenten, der in deinem Terminal läuft. Er liest deine Codebasis, versteht, woran du baust, und hilft dir, schneller zu shippen.
+Bolt CLI ist ein Fork von [OpenCode](https://github.com/bolt-builder/bolt-cli) — dem Open-Source KI-Coding-Agenten, der in deinem Terminal läuft. Er liest deine Codebasis, versteht, woran du baust, und hilft dir, schneller zu shippen.
 
 ### Installation
 
@@ -96,7 +96,7 @@ Interesse an Beiträgen? Lies unseren [Contributing-Guide](./CONTRIBUTING.md) vo
 
 ### Credits
 
-Bolt CLI ist ein Community-Fork von [OpenCode](https://github.com/anomalyco/opencode) von [anomalyco](https://github.com/anomalyco). Alle Credits für die ursprüngliche Arbeit gebühren dem OpenCode-Team.
+Bolt CLI ist ein Community-Fork von [OpenCode](https://github.com/bolt-builder/bolt-cli) von [anomalyco](https://github.com/anomalyco). Alle Credits für die ursprüngliche Arbeit gebühren dem OpenCode-Team.
 
 ---
 

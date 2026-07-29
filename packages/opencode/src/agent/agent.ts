@@ -14,6 +14,13 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_CODE_REVIEW from "./prompt/code-review.txt"
+import PROMPT_DEBUG from "./prompt/debug.txt"
+import PROMPT_REFACTOR from "./prompt/refactor.txt"
+import PROMPT_DOCS from "./prompt/docs.txt"
+import PROMPT_SECURITY from "./prompt/security.txt"
+import PROMPT_MIGRATE from "./prompt/migrate.txt"
+import PROMPT_PERF from "./prompt/perf.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -295,6 +302,167 @@ const layer = Layer.effect(
               user,
             ),
             prompt: PROMPT_SUMMARY,
+          },
+          "code-review": {
+            name: "code-review",
+            description: "Reviews code changes for correctness, style, and security issues",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                webfetch: "allow",
+                websearch: "allow",
+                edit: { "*": "deny" },
+                write: { "*": "deny" },
+                bash: { "*": "deny" },
+                task: { "*": "deny" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_CODE_REVIEW,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          debug: {
+            name: "debug",
+            description: "Debugs failing tests, crashes, and logic errors",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { "general": "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_DEBUG,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          refactor: {
+            name: "refactor",
+            description: "Safe refactoring with test verification at each step",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                todowrite: "allow",
+                task: { "general": "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_REFACTOR,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          docs: {
+            name: "docs",
+            description: "Writes and updates documentation, READMEs, and code comments",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                write: "allow",
+                edit: "allow",
+              }),
+              user,
+            ),
+            prompt: PROMPT_DOCS,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          security: {
+            name: "security",
+            description: "Security audit - finds vulnerabilities, secrets, and insecure patterns",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                webfetch: "allow",
+                websearch: "allow",
+                edit: { "*": "deny" },
+                write: { "*": "deny" },
+                bash: { "*": "deny" },
+                task: { "*": "deny" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_SECURITY,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          migrate: {
+            name: "migrate",
+            description: "Handles framework upgrades, dependency migrations, and breaking changes",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { "general": "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_MIGRATE,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          perf: {
+            name: "perf",
+            description: "Performance analysis and optimization",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { "general": "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_PERF,
+            mode: "primary",
+            native: true,
+            options: {},
           },
         }
 

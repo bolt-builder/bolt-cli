@@ -113,4 +113,8 @@ for (const item of targets) {
       2,
     ),
   )
+
+  if (item.os === "darwin") {
+    await $`codesign --sign - ./dist/${name}/bin/${binary}`
+  }
 }

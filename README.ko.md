@@ -43,7 +43,7 @@
 
 ## Bolt CLI
 
-Bolt CLI는 [OpenCode](https://github.com/anomalyco/opencode)의 포크입니다 — 터미널에서 실행되는 오픈소스 AI 코딩 에이전트입니다. 코드베이스를 읽고, 무엇을 만들고 있는지 이해하며, 더 빠르게 출시할 수 있도록 도와줍니다.
+Bolt CLI는 [OpenCode](https://github.com/bolt-builder/bolt-cli)의 포크입니다 — 터미널에서 실행되는 오픈소스 AI 코딩 에이전트입니다. 코드베이스를 읽고, 무엇을 만들고 있는지 이해하며, 더 빠르게 출시할 수 있도록 도와줍니다.
 
 ### 설치
 
@@ -96,7 +96,7 @@ Bolt CLI에는 내장 에이전트가 포함되어 있습니다. `Tab`으로 전
 
 ### 크레딧
 
-Bolt CLI는 [anomalyco](https://github.com/anomalyco)의 [OpenCode](https://github.com/anomalyco/opencode) 커뮤니티 포크입니다. 원본 작업의 모든 크레딧은 OpenCode 팀에 있습니다.
+Bolt CLI는 [anomalyco](https://github.com/anomalyco)의 [OpenCode](https://github.com/bolt-builder/bolt-cli) 커뮤니티 포크입니다. 원본 작업의 모든 크레딧은 OpenCode 팀에 있습니다.
 
 ---
 

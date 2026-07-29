@@ -43,7 +43,7 @@
 
 ## Bolt CLI
 
-Bolt CLI هو تفرع من [OpenCode](https://github.com/anomalyco/opencode) — وكيل البرمجة بالذكاء الاصطناعي مفتوح المصدر الذي يعمل في الطرفية. يقرأ قاعدة التعليمات البرمجية الخاصة بك، ويفهم ما تقوم ببنائه، ويساعدك على الإطلاق بشكل أسرع.
+Bolt CLI هو تفرع من [OpenCode](https://github.com/bolt-builder/bolt-cli) — وكيل البرمجة بالذكاء الاصطناعي مفتوح المصدر الذي يعمل في الطرفية. يقرأ قاعدة التعليمات البرمجية الخاصة بك، ويفهم ما تقوم ببنائه، ويساعدك على الإطلاق بشكل أسرع.
 
 ### التثبيت
 
@@ -96,7 +96,7 @@ bun run build
 
 ### الشكر
 
-Bolt CLI هو تفرع مجتمعي من [OpenCode](https://github.com/anomalyco/opencode) بواسطة [anomalyco](https://github.com/anomalyco). كل الشكر للعمل الأصلي يذهب لفريق OpenCode.
+Bolt CLI هو تفرع مجتمعي من [OpenCode](https://github.com/bolt-builder/bolt-cli) بواسطة [anomalyco](https://github.com/anomalyco). كل الشكر للعمل الأصلي يذهب لفريق OpenCode.
 
 ---
 

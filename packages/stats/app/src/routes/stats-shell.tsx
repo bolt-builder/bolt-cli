@@ -9,7 +9,7 @@ export type HeaderLink = { href: string; label: string }
 
 export const githubLink = {
   href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym",
-  apiHref: "https://api.github.com/repos/anomalyco/opencode",
+  apiHref: "https://api.github.com/repos/bolt-builder/bolt-cli",
   fallbackStars: "150K",
 }
 export const themePreferences = ["dark", "light", "system"] as const

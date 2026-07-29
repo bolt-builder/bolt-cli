@@ -43,7 +43,7 @@
 
 ## Bolt CLI
 
-Bolt CLIは[OpenCode](https://github.com/anomalyco/opencode)のフォークです — ターミナルで動作するオープンソースのAIコーディングエージェント。コードベースを読み取り、あなたが構築しているものを理解し、より速く出荷できるよう支援します。
+Bolt CLIは[OpenCode](https://github.com/bolt-builder/bolt-cli)のフォークです — ターミナルで動作するオープンソースのAIコーディングエージェント。コードベースを読み取り、あなたが構築しているものを理解し、より速く出荷できるよう支援します。
 
 ### インストール
 
@@ -96,7 +96,7 @@ Bolt CLIには内蔵エージェントが含まれています。`Tab`で切り�
 
 ### クレジット
 
-Bolt CLIは[anomalyco](https://github.com/anomalyco)による[OpenCode](https://github.com/anomalyco/opencode)のコミュニティフォークです。オリジナルの作業のすべてのクレジットはOpenCodeチームに帰属します。
+Bolt CLIは[anomalyco](https://github.com/anomalyco)による[OpenCode](https://github.com/bolt-builder/bolt-cli)のコミュニティフォークです。オリジナルの作業のすべてのクレジットはOpenCodeチームに帰属します。
 
 ---
 

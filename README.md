@@ -6,98 +6,159 @@
     </picture>
   </a>
 </p>
-<p align="center">⚡ The open source AI coding agent — forked from OpenCode.</p>
-<p align="center">
-  <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
-  <a href="https://github.com/Bolt-builder/bolt-cli"><img alt="GitHub" src="https://img.shields.io/github/stars/Bolt-builder/bolt-cli?style=flat-square" /></a>
-</p>
 
-<p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.gr.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a>
-</p>
 
-[![Bolt CLI Terminal UI](images/demo.png)](https://github.com/Bolt-builder/bolt-cli)
 
----
 
-## Bolt CLI
+#bolt
 
-Bolt CLI is a fork of [OpenCode](https://github.com/anomalyco/opencode) — the open source AI coding agent that runs in your terminal. It reads your codebase, understands what you're building, and helps you ship faster.
+Terminal-based AI coding agent. Reads your codebase, understands what you're building, and ships code — all from the command line.
 
-### Installation
+Built with [Effect](https://effect.website), [OpenTUI](https://github.com/opentui/opentui), and [SolidJS](https://www.solidjs.com).
+
+## Install
 
 ```bash
-# Quick install
+# Quick install (macOS / Linux)
 curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/dev/install | bash
 
-# From npm
-npm i -g opencode-ai@latest       # or bun/pnpm/yarn
+# npm / bun / pnpm / yarn
+npm i -g bolt-ai@latest
+```
 
-# From source
+## Quick start
+
+```bash
+# Open the TUI in the current directory
+bolt
+
+# Run a prompt directly (non-interactive)
+bolt run "explain this codebase"
+
+# Attach to an existing session
+bolt attach
+
+# Start a session with a specific agent
+bolt run --agent ask "what does this project do?"
+```
+
+## CLI commands
+
+| Command       | Description                                      |
+| ------------- | ------------------------------------------------ |
+| `bolt`    | Launch the interactive TUI                        |
+| `run`         | Run a non-interactive prompt                      |
+| `attach`      | Attach to a running session                       |
+| `session`     | Manage sessions (list, tail, delete)              |
+| `agent`       | List and configure agents                         |
+| `providers`   | Configure LLM providers                           |
+| `models`      | List available models                             |
+| `mcp`         | Manage MCP servers                                |
+| `serve`       | Start the API server                              |
+| `web`         | Start the web UI                                  |
+| `upgrade`     | Upgrade to the latest version                     |
+| `uninstall`   | Remove bolt                                   |
+| `generate`    | Generate shell completions                        |
+| `export`      | Export session history                            |
+| `import`      | Import session history                            |
+| `plugin`      | Manage plugins                                    |
+| `github`      | GitHub integration (PR, issues)                   |
+| `pr`          | Create PR from a session                          |
+| `stats`       | Show usage statistics                             |
+| `account`     | Manage accounts                                   |
+| `debug`       | Debug information                                 |
+| `db`          | Database operations                               |
+| `acp`         | Agent-to-agent communication protocol commands    |
+
+## Configuration
+
+Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first run).
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    // Provider config goes here
+  }
+}
+```
+
+### Environment variables
+
+| Variable                   | Description                        |
+| -------------------------- | ---------------------------------- |
+| `bolt_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
+| `bolt_PRINT_LOGS`      | Print logs to stderr                |
+| `bolt_PURE`            | Run without external plugins        |
+| `bolt_BIN_PATH`        | Override binary path                |
+
+## Agents
+
+Built-in agents. Switch with `Tab` in the TUI.
+
+| Agent   | Access | Description                                         |
+| ------- | ------ | --------------------------------------------------- |
+| `code`  | Full   | Default — reads, writes, runs code                   |
+| `ask`   | Read   | Questions and research — no file edits               |
+| `plan`  | Read   | Analysis — asks before bash commands                 |
+
+Use `@general` to invoke the subagent for complex multi-step tasks.
+
+## Development
+
+```bash
+# Clone and build
 git clone https://github.com/Bolt-builder/bolt-cli.git
 cd bolt-cli
 bun install
-bun run build
+
+# Start the TUI in dev mode (from packages/bolt)
+cd packages/bolt
+bun dev
+
+# Run tests
+bun test
+
+# Type-check
+bun typecheck
 ```
 
-### Desktop App (BETA)
+### Project structure
 
-Download directly from the [releases page](https://github.com/Bolt-builder/bolt-cli/releases).
+```
+src/
+├── cli/          # CLI commands and UI
+├── session/      # Session management and LLM integration
+├── server/       # API server
+├── agent/        # Agent system
+├── config/       # Configuration modules
+├── provider/     # LLM provider integrations
+├── tool/         # Tool system
+├── plugin/       # Plugin system
+├── mcp/          # MCP server management
+├── project/      # Project bootstrap
+├── auth/         # Authentication
+├── git/          # Git integration
+├── image/        # Image handling
+├── effect/       # Effect runtime utilities
+├── storage/      # Database (Drizzle ORM)
+├── sync/         # Sync engine
+└── bus/          # Event bus
+```
 
-| Platform              | Download                         |
-| --------------------- | -------------------------------- |
-| macOS (Apple Silicon) | `Bolt-Desktop-mac-arm64.dmg`     |
-| macOS (Intel)         | `Bolt-Desktop-mac-x64.dmg`       |
-| Windows               | `Bolt-Desktop-windows-x64.exe`   |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`   |
+### Running the TUI headlessly
 
-### Agents
+Use `tmux` to inspect the TUI output during development:
 
-Bolt CLI includes built-in agents. Switch between them with `Tab`.
+```bash
+tmux new-session -d -s bolt-dev 'bun dev'
+tmux capture-pane -pt bolt-dev
+tmux kill-session -t bolt-dev
+```
 
-| Agent   | Access  | Description                                          |
-| ------- | ------- | ---------------------------------------------------- |
-| `code`  | Full    | Default agent for development — reads, writes, runs  |
-| `ask`   | Read    | Questions and research — no file edits allowed       |
-| `plan`  | Read    | Analysis and exploration — asks before bash commands |
+## License
 
-Also included: `general` subagent for complex multistep tasks. Invoke with `@general`.
-
-Learn more about [agents](https://opencode.ai/docs/agents).
-
-### Documentation
-
-For configuration and usage, check out the [OpenCode docs](https://opencode.ai/docs).
-
-### Contributing
-
-Interested in contributing? Read our [contributing guide](./CONTRIBUTING.md) before submitting a PR.
-
-### Credits
-
-Bolt CLI is a community fork of [OpenCode](https://github.com/anomalyco/opencode) by [anomalyco](https://github.com/anomalyco). All credit for the original work goes to the OpenCode team.
+MIT © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
 
 ---
 
-**Community** [OpenCode Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
