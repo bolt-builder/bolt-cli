@@ -37,7 +37,7 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
-[![Bolt CLI Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://github.com/Bolt-builder/bolt-cli)
+[![Bolt CLI Terminal UI](images/demo.png)](https://github.com/Bolt-builder/bolt-cli)
 
 ---
 
