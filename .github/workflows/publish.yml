@@ -353,7 +353,14 @@ jobs:
 
       - name: Package
         if: needs.version.outputs.release
-        run: npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
+        shell: bash
+        run: |
+          if [ -z "$CSC_LINK" ]; then
+            unset CSC_LINK
+            unset CSC_KEY_PASSWORD
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+          fi
+          npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
