@@ -24,7 +24,9 @@ on:
         required: false
         type: string
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.version || github.event.inputs.bump || github.sha }}
+  cancel-in-progress: true
 
 permissions:
   id-token: write
