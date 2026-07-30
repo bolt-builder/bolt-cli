@@ -10,6 +10,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -32,18 +34,18 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The triage agent needs the opencode gateway; skip when the key is not configured.
       - name: Setup Bun
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         uses: ./.github/actions/setup-bun
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Triage issue
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
