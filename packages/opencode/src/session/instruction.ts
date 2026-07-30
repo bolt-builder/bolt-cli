@@ -4,6 +4,8 @@ import path from "path"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { Effect, Layer, Context } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
+import { CompatRules } from "@/compat/rules"
+import { CompatSettings } from "@/compat/settings"
 import { Config } from "@/config/config"
 import { InstanceState } from "@/effect/instance-state"
 import { RuntimeFlags } from "@/effect/runtime-flags"
@@ -162,9 +164,24 @@ const layer: Layer.Layer<
       const files = yield* Effect.forEach(Array.from(paths), read, { concurrency: 8 })
       const remote = yield* Effect.forEach(urls, fetch, { concurrency: 4 })
 
+      // Rules files written for other coding agents, skipping anything already
+      // discovered above and any duplicate content (e.g. GEMINI.md mirroring AGENTS.md).
+      const compat: CompatRules.Entry[] = []
+      if (CompatSettings.settings(config.compat).rules && !Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+        const ctx = yield* InstanceState.context
+        const entries = yield* CompatRules.discover(fs, { directory: ctx.directory, worktree: ctx.worktree })
+        const seen = new Set(files.map((item) => item.trim()).filter(Boolean))
+        for (const entry of entries) {
+          if (paths.has(entry.path) || seen.has(entry.content)) continue
+          seen.add(entry.content)
+          compat.push(entry)
+        }
+      }
+
       return [
         ...Array.from(paths).flatMap((item, i) => (files[i] ? [`Instructions from: ${item}\n${files[i]}`] : [])),
         ...urls.flatMap((item, i) => (remote[i] ? [`Instructions from: ${item}\n${remote[i]}`] : [])),
+        ...compat.map((entry) => `Instructions from: ${entry.path}\n${entry.content}`),
       ]
     })
 
