@@ -1,5 +1,7 @@
 "use server"
 
+export * as MemoryTool from "./tool"
+
 import { ToolFailure } from "@opencode-ai/llm"
 import { Effect, Layer, Schema } from "effect"
 import { makeLocationNode } from "../effect/app-node"
