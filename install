@@ -20,9 +20,9 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-    curl -fsSL https://opencode.ai/install | bash
-    curl -fsSL https://opencode.ai/install | bash -s -- --version 1.0.180
-    ./install --binary /path/to/opencode
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --version 0.0.1
+    ./install --binary /path/to/bolt
 EOF
 }
 
@@ -165,7 +165,8 @@ else
       target="$target-musl"
     fi
 
-    filename="$APP-$target$archive_ext"
+    # release assets are named bolt-cli-<os>-<arch>[...] by packages/opencode/script/build.ts
+    filename="bolt-cli-$target$archive_ext"
 
 
     if [ "$os" = "linux" ]; then
@@ -340,8 +341,12 @@ download_and_install() {
         unzip -q "$tmp_dir/$filename" -d "$tmp_dir"
     fi
 
-    mv "$tmp_dir/bolt" "$INSTALL_DIR"
-    chmod 755 "${INSTALL_DIR}/bolt"
+    binary="bolt"
+    if [ "$os" = "windows" ]; then
+        binary="bolt.exe"
+    fi
+    mv "$tmp_dir/$binary" "$INSTALL_DIR"
+    chmod 755 "${INSTALL_DIR}/$binary"
     rm -rf "$tmp_dir"
 }
 
@@ -455,6 +460,6 @@ echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
 echo -e "bolt          ${MUTED}# Run command${NC}"
 echo -e ""
-echo -e "${MUTED}For more information visit ${NC}https://opencode.ai/docs until the CLI is fully documented and hostes our own documentation/"
+echo -e "${MUTED}For more information visit ${NC}https://github.com/bolt-builder/bolt-cli"
 echo -e ""
 echo -e ""
