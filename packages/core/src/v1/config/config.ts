@@ -7,6 +7,7 @@ import { ConfigReference } from "../../config/reference"
 import { ConfigAgentV1 } from "./agent"
 import { ConfigAttachmentV1 } from "./attachment"
 import { ConfigCommandV1 } from "./command"
+import { ConfigCompatV1 } from "./compat"
 import { ConfigFormatterV1 } from "./formatter"
 import { ConfigLayoutV1 } from "./layout"
 import { ConfigLSPV1 } from "./lsp"
@@ -123,6 +124,10 @@ export const Info = Schema.Struct({
   }),
   instructions: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Additional instruction files or patterns to include",
+  }),
+  compat: Schema.optional(Schema.Union([Schema.Boolean, ConfigCompatV1.Info])).annotate({
+    description:
+      "Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules and mcp imports individually. Rules import defaults to true, mcp import to false.",
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
