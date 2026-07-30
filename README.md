@@ -54,10 +54,10 @@ Bolt reads your codebase, understands what you're building, and ships code with 
 
 ```bash
 # Quick install (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/dev/install | bash
+curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/install | bash
 
 # Or with npm / bun / pnpm / yarn
-npm i -g bolt-ai@latest
+npm i -g @bolt-builder/bolt-cli
 ```
 
 Then, from any project:
