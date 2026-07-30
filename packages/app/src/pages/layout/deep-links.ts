@@ -1,7 +1,8 @@
 export const deepLinkEvent = "opencode:deep-link"
 
 const parseUrl = (input: string) => {
-  if (!input.startsWith("opencode://")) return
+  // the desktop app registers the bolt:// scheme; opencode:// stays accepted for old links
+  if (!input.startsWith("bolt://") && !input.startsWith("opencode://")) return
   if (typeof URL.canParse === "function" && !URL.canParse(input)) return
   try {
     return new URL(input)
