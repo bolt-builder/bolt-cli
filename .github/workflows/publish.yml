@@ -388,7 +388,15 @@ jobs:
             unset CSC_KEY_PASSWORD
             export CSC_IDENTITY_AUTO_DISCOVERY=false
           fi
-          npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
+          # macOS dmgbuild flakes with "hdiutil: couldn't eject - Resource busy" when
+          # Spotlight/XProtect briefly holds the mounted DMG volume; retry up to 3 times.
+          for attempt in 1 2 3; do
+            if npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts; then
+              exit 0
+            fi
+            echo "::warning::electron-builder package attempt $attempt failed, retrying"
+          done
+          exit 1
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
