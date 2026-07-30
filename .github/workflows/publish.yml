@@ -388,7 +388,18 @@ jobs:
             unset CSC_KEY_PASSWORD
             export CSC_IDENTITY_AUTO_DISCOVERY=false
           fi
-          npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
+          # macOS dmgbuild flakes with "hdiutil: couldn't eject - Resource busy" when
+          # Spotlight/XProtect briefly holds the mounted DMG volume; retry up to 3 times.
+          for attempt in 1 2 3; do
+            if npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::electron-builder package attempt $attempt failed, retrying"
+            fi
+          done
+          echo "::error::electron-builder packaging failed after 3 attempts"
+          exit 1
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
@@ -544,25 +555,6 @@ jobs:
           opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
-      - name: Cache apt packages (AUR)
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-aur-${{ hashFiles('.github/workflows/publish.yml') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-aur-
-
-      - name: Setup SSH for AUR
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pacman-package-manager
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          git config --global user.email "opencode@sst.dev"
-          git config --global user.name "opencode"
-          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
-
       - name: Upload desktop release assets
         if: needs.version.outputs.release
         env:
@@ -583,7 +575,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
           OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
-          AUR_KEY: ${{ secrets.AUR_KEY }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ needs.version.outputs.repo }}
           NPM_CONFIG_PROVENANCE: false
