@@ -57,7 +57,7 @@ function lang(outputs = ["{}"]): LanguageModelV3 {
   } as unknown as LanguageModelV3
 }
 
-function provider(input: { outputs?: string[]; seen?: string[] } = {}): Provider.Interface {
+function provider(input: { outputs?: string[]; seen?: string[]; language?: LanguageModelV3 } = {}): Provider.Interface {
   const base = mdl()
   const mem = mdl(ModelV2.ID.make("memory-config-model"))
   const info = {
@@ -78,7 +78,7 @@ function provider(input: { outputs?: string[]; seen?: string[] } = {}): Provider
     },
     getLanguage: (model) => {
       input.seen?.push(model.id)
-      return Effect.succeed(lang(input.outputs))
+      return Effect.succeed(input.language ?? lang(input.outputs))
     },
     closest: () => Effect.succeed({ providerID: pid, modelID: base.id }),
     getSmallModel: () => Effect.succeed(mem),
@@ -299,42 +299,22 @@ describe("memory host", () => {
     expect(seen).toEqual(["memory-config-model", "fake-memory-model"])
   })
 
-  test("model port clears its timeout after successful output", async () => {
-    const set = globalThis.setTimeout
-    const clear = globalThis.clearTimeout
-    const handles = new Set<ReturnType<typeof setTimeout>>()
-    const cleared = new Set<ReturnType<typeof setTimeout>>()
+  test("model port returns output within the timeout and fails hung models with the capture timeout", async () => {
+    const port = MemoryHost.modelPort({ provider: provider({ outputs: ["{}"] }) })
+    const resolved = await Effect.runPromise(port.resolve({ session: ref }))
+    const result = await port.run({
+      handle: resolved.handle,
+      system: "system",
+      prompt: "prompt",
+      timeoutMs: 30_000,
+    })
+    expect(result.text).toBe("{}")
 
-    ;(globalThis as { setTimeout: typeof setTimeout }).setTimeout = ((...args: Parameters<typeof setTimeout>) => {
-      const handle = set(...args)
-      if (args[1] === 30_000) handles.add(handle)
-      return handle
-    }) as typeof setTimeout
-    ;(globalThis as { clearTimeout: typeof clearTimeout }).clearTimeout = ((
-      handle?: Parameters<typeof clearTimeout>[0],
-    ) => {
-      if (handle && handles.has(handle as ReturnType<typeof setTimeout>)) {
-        cleared.add(handle as ReturnType<typeof setTimeout>)
-      }
-      return clear(handle)
-    }) as typeof clearTimeout
-
-    try {
-      const port = MemoryHost.modelPort({ provider: provider({ outputs: ["{}"] }) })
-      const resolved = await Effect.runPromise(port.resolve({ session: ref }))
-
-      await port.run({
-        handle: resolved.handle,
-        system: "system",
-        prompt: "prompt",
-        timeoutMs: 30_000,
-      })
-    } finally {
-      ;(globalThis as { setTimeout: typeof setTimeout }).setTimeout = set
-      ;(globalThis as { clearTimeout: typeof clearTimeout }).clearTimeout = clear
-    }
-
-    expect(handles.size).toBe(1)
-    expect(cleared.size).toBe(1)
+    const hanging = { ...(lang() as object), doGenerate: () => new Promise(() => {}) } as unknown as LanguageModelV3
+    const hung = MemoryHost.modelPort({ provider: provider({ language: hanging }) })
+    const stalled = await Effect.runPromise(hung.resolve({ session: ref }))
+    await expect(
+      hung.run({ handle: stalled.handle, system: "system", prompt: "prompt", timeoutMs: 25 }),
+    ).rejects.toThrow("memory model timed out")
   })
 })
