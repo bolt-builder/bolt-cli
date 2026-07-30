@@ -578,6 +578,9 @@ jobs:
 
       - run: ./script/publish.ts
         env:
+          # npm auth: setup-node writes ~/.npmrc reading $NODE_AUTH_TOKEN; without this the
+          # placeholder token is used and every npm publish fails with E404.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           OPENCODE_VERSION: ${{ needs.version.outputs.version }}
           OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
           AUR_KEY: ${{ secrets.AUR_KEY }}
