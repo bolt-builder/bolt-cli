@@ -39,7 +39,7 @@ export const Info = Schema.Struct({
 export type Info = Schema.Schema.Type<typeof Info>
 
 export function userAgent(client = "cli") {
-  return `opencode/${InstallationChannel}/${InstallationVersion}/${client}`
+  return `bolt/${InstallationChannel}/${InstallationVersion}/${client}`
 }
 
 export const USER_AGENT = userAgent()
@@ -144,7 +144,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
+        const response = yield* httpOk.execute(
+          HttpClientRequest.get("https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install"),
+        )
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -172,7 +174,8 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         }
       }),
       method: Effect.fn("Installation.method")(function* () {
-        if (process.execPath.includes(path.join(".opencode", "bin"))) return "curl" as Method
+        if (process.execPath.includes(path.join(".bolt", "bin")) || process.execPath.includes(path.join(".opencode", "bin")))
+          return "curl" as Method
         if (process.execPath.includes(path.join(".local", "bin"))) return "curl" as Method
         const exec = process.execPath.toLowerCase()
 
@@ -181,9 +184,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
           { name: "yarn", command: () => text(["yarn", "global", "list"]) },
           { name: "pnpm", command: () => text(["pnpm", "list", "-g", "--depth=0"]) },
           { name: "bun", command: () => text(["bun", "pm", "ls", "-g"]) },
-          { name: "brew", command: () => text(["brew", "list", "--formula", "opencode"]) },
-          { name: "scoop", command: () => text(["scoop", "list", "opencode"]) },
-          { name: "choco", command: () => text(["choco", "list", "--limit-output", "opencode"]) },
+          { name: "brew", command: () => text(["brew", "list", "--formula", "bolt"]) },
+          { name: "scoop", command: () => text(["scoop", "list", "bolt"]) },
+          { name: "choco", command: () => text(["choco", "list", "--limit-output", "bolt"]) },
         ]
 
         checks.sort((a, b) => {
@@ -197,7 +200,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         for (const check of checks) {
           const output = yield* check.command()
           const installedName =
-            check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "opencode" : "opencode-ai"
+            check.name === "brew" || check.name === "choco" || check.name === "scoop"
+              ? "bolt"
+              : "@bolt-builder/bolt-cli"
           if (output.includes(installedName)) {
             return check.name
           }
@@ -227,7 +232,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              `${yield* NpmConfig.registry(process.cwd())}/opencode-ai/${InstallationChannel}`,
+              `${yield* NpmConfig.registry(process.cwd())}/@bolt-builder/bolt-cli/${InstallationChannel}`,
             ).pipe(HttpClientRequest.acceptJson),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
@@ -269,13 +274,13 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
             upgradeResult = yield* upgradeCurl(target)
             break
           case "npm":
-            upgradeResult = yield* run(["npm", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["npm", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "pnpm":
-            upgradeResult = yield* run(["pnpm", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["pnpm", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "bun":
-            upgradeResult = yield* run(["bun", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["bun", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "brew": {
             const formula = yield* getBrewFormula()
