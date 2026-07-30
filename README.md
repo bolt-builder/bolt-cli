@@ -64,6 +64,8 @@ Then, from any project:
 
 ```bash
 # Open the TUI in the current directory
+bolt
+
 # Run a prompt directly (non-interactive)
 bolt run "explain this codebase"
 
@@ -112,6 +114,17 @@ Bolt also ships as a desktop app: multi-window and multi-tab session management,
 > The desktop app is still being rebranded from its OpenCode origins, so current builds ship under the old name and icons. The Bolt identity lands as part of the roadmap below.
 
 ## Configuration
+
+Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first run).
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    // Provider config goes here
+  },
+}
+```
 
 ### Environment variables
 
@@ -348,6 +361,11 @@ We'd love your help, whether it's a bug fix, a new provider, or better docs. Rea
 
 ```bash
 # Clone and build
+git clone https://github.com/Bolt-builder/bolt-cli.git
+cd bolt-cli
+bun install
+
+# Start the TUI in dev mode (from packages/bolt)
 cd packages/bolt
 bun dev
 
