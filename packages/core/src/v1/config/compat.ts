@@ -11,5 +11,13 @@ export const Info = Schema.Struct({
     description:
       "Import MCP server definitions from other coding agents' config files (.mcp.json, .cursor/mcp.json, .vscode/mcp.json, ~/.codex/config.toml, and others). Defaults to false because imported servers execute commands defined in repository files.",
   }),
+  commands: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Import custom commands and workflows from other coding agents (.claude/commands, .cursor/commands, .roo/commands, .kilocode/workflows, .windsurf/workflows, ~/.codex/prompts). Defaults to true.",
+  }),
+  agents: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Import custom modes from Roo Code and Kilo Code (.roomodes, .kilocodemodes) as agents. Defaults to true.",
+  }),
 }).annotate({ identifier: "CompatConfig" })
 export type Info = Schema.Schema.Type<typeof Info>
