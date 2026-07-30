@@ -7,7 +7,6 @@
   </a>
 </p>
 
-#bolt
 
 Terminal-based AI coding agent. Reads your codebase, understands what you're building, and ships code — all from the command line.
 
