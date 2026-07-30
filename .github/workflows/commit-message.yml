@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   rewrite:
-    if: github.event.head_commit.author.name != 'bolt-cli[bot]'
+    if: github.event.head_commit.author.name != 'bolt-cli-bot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
