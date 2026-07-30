@@ -5,16 +5,19 @@ An AgentField agent created with `af init`.
 ## Quick Start
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Start the AgentField server** (in another terminal):
+
    ```bash
    af server
    ```
 
 3. **Run the agent:**
+
    ```bash
    npm run dev
    ```
@@ -24,6 +27,7 @@ An AgentField agent created with `af init`.
 ## Test the Agent
 
 ### Echo Reasoner (No AI Required)
+
 ```bash
 curl -X POST http://localhost:8080/api/v1/execute/bolt-cli.demo_echo \
   -H "Content-Type: application/json" \

@@ -1,11 +1,11 @@
-import { AgentRouter } from '@agentfield/sdk';
-import { z } from 'zod';
+import { AgentRouter } from "@agentfield/sdk"
+import { z } from "zod"
 
 // Group related reasoners with a router
-export const reasonersRouter = new AgentRouter({ prefix: 'demo', tags: ['example'] });
+export const reasonersRouter = new AgentRouter({ prefix: "demo", tags: ["example"] })
 
 reasonersRouter.reasoner<{ message: string }, { original: string; echoed: string; length: number }>(
-  'echo',
+  "echo",
   async (ctx) => {
     /**
      * Simple echo reasoner - works without AI configured.
@@ -15,14 +15,14 @@ reasonersRouter.reasoner<{ message: string }, { original: string; echoed: string
      *   -H "Content-Type: application/json" \
      *   -d '{"input": {"message": "Hello World"}}'
      */
-    const message = ctx.input.message ?? '';
+    const message = ctx.input.message ?? ""
     return {
       original: message,
       echoed: message,
-      length: message.length
-    };
-  }
-);
+      length: message.length,
+    }
+  },
+)
 
 // 🔧 Uncomment when AI is configured in main.ts:
 // const sentimentSchema = z.object({

@@ -1,13 +1,13 @@
-import 'dotenv/config';
-import { Agent } from '@agentfield/sdk';
-import { reasonersRouter } from './reasoners.js';
+import "dotenv/config"
+import { Agent } from "@agentfield/sdk"
+import { reasonersRouter } from "./reasoners.js"
 
 async function main() {
   const agent = new Agent({
     nodeId: process.env.AGENT_ID ?? "bolt-cli",
-    agentFieldUrl: process.env.AGENTFIELD_URL ?? 'http://localhost:8080',
+    agentFieldUrl: process.env.AGENTFIELD_URL ?? "http://localhost:8080",
     port: Number(process.env.PORT ?? 8001),
-    version: '1.0.0',
+    version: "1.0.0",
     devMode: true,
 
     // 🔧 Uncomment to enable AI features:
@@ -19,19 +19,19 @@ async function main() {
     //   // temperature: 0.7,
     //   // maxTokens: 4096
     // },
-  });
+  })
 
-  agent.includeRouter(reasonersRouter);
+  agent.includeRouter(reasonersRouter)
 
-  await agent.serve();
+  await agent.serve()
   // eslint-disable-next-line no-console
-  console.log(`Agent "${agent.config.nodeId}" listening on http://localhost:${agent.config.port}`);
+  console.log(`Agent "${agent.config.nodeId}" listening on http://localhost:${agent.config.port}`)
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((err) => {
     // eslint-disable-next-line no-console
-    console.error(err);
-    process.exit(1);
-  });
+    console.error(err)
+    process.exit(1)
+  })
 }
