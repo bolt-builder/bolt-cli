@@ -1693,6 +1693,132 @@
         ]
       }
     },
+    "/experimental/job": {
+      "get": {
+        "tags": ["experimental"],
+        "operationId": "experimental.job.list",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Background jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJobList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Get all background jobs tracked by this server process.",
+        "summary": "List background jobs",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.experimental.job.list({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/experimental/job/{jobID}/cancel": {
+      "post": {
+        "tags": ["experimental"],
+        "operationId": "experimental.job.cancel",
+        "parameters": [
+          {
+            "name": "jobID",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled background job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackgroundJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Cancel a running background job and return its final state.",
+        "summary": "Cancel background job",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.experimental.job.cancel({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/experimental/resource": {
       "get": {
         "tags": ["experimental"],
@@ -2274,6 +2400,71 @@
           {
             "lang": "js",
             "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.instance.dispose({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/instance/reload": {
+      "post": {
+        "tags": ["instance"],
+        "operationId": "instance.reload",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Instance reloaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "description": "Instance reloaded"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ConflictError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Dispose and re-bootstrap the current instance, reloading config, skills, agents, and commands from disk. Returns 409 if a session is actively running.",
+        "summary": "Reload instance",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.instance.reload({\n  ...\n})"
           }
         ]
       }
@@ -3595,6 +3786,2044 @@
           {
             "lang": "js",
             "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.mcp.disconnect({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/status": {
+      "get": {
+        "tags": ["memory"],
+        "operationId": "memory.status",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "exists": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "boolean"
+                        },
+                        "index": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["state", "index"],
+                      "additionalProperties": false
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "estimatedTokens": {
+                          "type": "number"
+                        },
+                        "preview": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["bytes", "estimatedTokens", "preview"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["root", "state", "exists", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory status"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return memory state, index preview, and token estimate for the active workspace.",
+        "summary": "Get memory status",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.status({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/show": {
+      "get": {
+        "tags": ["memory"],
+        "operationId": "memory.show",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory source and index",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "sources": {
+                      "type": "object",
+                      "properties": {
+                        "project": {
+                          "type": "string"
+                        },
+                        "environment": {
+                          "type": "string"
+                        },
+                        "corrections": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["project", "environment", "corrections"],
+                      "additionalProperties": false
+                    },
+                    "index": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "string"
+                    },
+                    "changes": {
+                      "type": "string"
+                    },
+                    "decisions": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["root", "state", "sources", "index", "items", "changes", "decisions"],
+                  "additionalProperties": false,
+                  "description": "Memory source and index"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Return source memory files, generated index, recent decision summary, and memory save decisions.",
+        "summary": "Show memory",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.show({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/enable": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.enable",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "tokens": {
+                          "type": "number"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["text", "bytes", "tokens", "truncated"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["root", "state", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory enabled"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Scaffold and enable project memory for the active workspace.",
+        "summary": "Enable memory",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.enable({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/disable": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.disable",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory disabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["root", "state"],
+                  "additionalProperties": false,
+                  "description": "Memory disabled"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Disable project memory without deleting local memory files.",
+        "summary": "Disable memory",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.disable({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/configure": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.configure",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["root", "state"],
+                  "additionalProperties": false,
+                  "description": "Memory configured"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Update project memory settings such as automatic project fact capture.",
+        "summary": "Configure memory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "autoConsolidate": {
+                    "type": "boolean"
+                  },
+                  "verbose": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.configure({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/rebuild": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.rebuild",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory rebuilt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "number",
+                          "enum": [1]
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "scope": {
+                          "type": "string",
+                          "enum": ["project"]
+                        },
+                        "autoInject": {
+                          "type": "boolean"
+                        },
+                        "autoConsolidate": {
+                          "type": "boolean"
+                        },
+                        "verbose": {
+                          "type": "boolean"
+                        },
+                        "capture": {
+                          "type": "object",
+                          "properties": {
+                            "mode": {
+                              "type": "string",
+                              "enum": ["selective"]
+                            },
+                            "turnClose": {
+                              "type": "boolean"
+                            },
+                            "explicit": {
+                              "type": "boolean"
+                            },
+                            "maxOpsPerRun": {
+                              "type": "number"
+                            },
+                            "minIntervalMs": {
+                              "type": "number"
+                            },
+                            "timeoutMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["mode", "turnClose", "explicit", "maxOpsPerRun", "minIntervalMs", "timeoutMs"],
+                          "additionalProperties": false
+                        },
+                        "limits": {
+                          "type": "object",
+                          "properties": {
+                            "maxProjectIndexBytes": {
+                              "type": "number"
+                            },
+                            "maxSessionFiles": {
+                              "type": "number"
+                            },
+                            "maxRecentSessions": {
+                              "type": "number"
+                            },
+                            "maxConsolidationInputBytes": {
+                              "type": "number"
+                            },
+                            "maxLineChars": {
+                              "type": "number"
+                            },
+                            "maxSessionLineChars": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "maxProjectIndexBytes",
+                            "maxSessionFiles",
+                            "maxRecentSessions",
+                            "maxConsolidationInputBytes",
+                            "maxLineChars",
+                            "maxSessionLineChars"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "lastInjectedAt": {
+                              "type": "number"
+                            },
+                            "lastInjectedBytes": {
+                              "type": "number"
+                            },
+                            "lastInjectedTokens": {
+                              "type": "number"
+                            },
+                            "lastInjectedSessionID": {
+                              "type": "string"
+                            },
+                            "lastTypedConsolidationAt": {
+                              "type": "number"
+                            },
+                            "lastSessionSavedAt": {
+                              "type": "number"
+                            },
+                            "lastConsolidationCost": {
+                              "type": "number"
+                            },
+                            "lastConsolidationTokens": {
+                              "type": "number"
+                            },
+                            "lastOperationCount": {
+                              "type": "number"
+                            },
+                            "lastRecallAt": {
+                              "type": "number"
+                            },
+                            "lastRecallCount": {
+                              "type": "number"
+                            },
+                            "lastRecallSessionID": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "lastInjectedAt",
+                            "lastInjectedBytes",
+                            "lastInjectedTokens",
+                            "lastInjectedSessionID",
+                            "lastTypedConsolidationAt",
+                            "lastSessionSavedAt",
+                            "lastConsolidationCost",
+                            "lastConsolidationTokens",
+                            "lastOperationCount",
+                            "lastRecallAt",
+                            "lastRecallCount",
+                            "lastRecallSessionID"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "enabled",
+                        "scope",
+                        "autoInject",
+                        "autoConsolidate",
+                        "verbose",
+                        "capture",
+                        "limits",
+                        "stats"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "tokens": {
+                          "type": "number"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["text", "bytes", "tokens", "truncated"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["root", "state", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory rebuilt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Regenerate the memory index from source memory files.",
+        "summary": "Rebuild memory index",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.rebuild({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/remember": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.remember",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory operation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operationCount": {
+                      "type": "number"
+                    },
+                    "added": {
+                      "type": "number"
+                    },
+                    "removed": {
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "enum": ["self_referential", "out_of_scope", "secret"]
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["reason"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "tokens": {
+                          "type": "number"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["text", "bytes", "tokens", "truncated"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["operationCount", "added", "removed", "skipped", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory operation result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Persist explicit user-provided memory text through the deterministic operation pipeline.",
+        "summary": "Remember text",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 12000
+                  },
+                  "key": {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  "file": {
+                    "type": "string",
+                    "enum": ["project.md", "environment.md", "corrections.md"]
+                  },
+                  "section": {
+                    "type": "string",
+                    "maxLength": 80,
+                    "pattern": "^[^\\x00-\\x1f\\x7f]*$"
+                  },
+                  "sessionID": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.remember({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/correct": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.correct",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory correction result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operationCount": {
+                      "type": "number"
+                    },
+                    "added": {
+                      "type": "number"
+                    },
+                    "removed": {
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "enum": ["self_referential", "out_of_scope", "secret"]
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["reason"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "tokens": {
+                          "type": "number"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["text", "bytes", "tokens", "truncated"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["operationCount", "added", "removed", "skipped", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory correction result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Persist explicit corrective memory under corrections.md.",
+        "summary": "Remember correction",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 12000
+                  },
+                  "key": {
+                    "type": "string",
+                    "maxLength": 256
+                  },
+                  "sessionID": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": ["text"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.correct({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/forget": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.forget",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory forget result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "operationCount": {
+                      "type": "number"
+                    },
+                    "added": {
+                      "type": "number"
+                    },
+                    "removed": {
+                      "type": "number"
+                    },
+                    "skipped": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "reason": {
+                            "type": "string",
+                            "enum": ["self_referential", "out_of_scope", "secret"]
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["reason"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "index": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string"
+                        },
+                        "bytes": {
+                          "type": "number"
+                        },
+                        "tokens": {
+                          "type": "number"
+                        },
+                        "truncated": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": ["text", "bytes", "tokens", "truncated"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["operationCount", "added", "removed", "skipped", "index"],
+                  "additionalProperties": false,
+                  "description": "Memory forget result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Remove memory lines by exact key, id, or normalized key text and rebuild the index.",
+        "summary": "Forget memory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 12000
+                  },
+                  "sessionID": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "required": ["query"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.forget({\n  ...\n})"
+          }
+        ]
+      }
+    },
+    "/memory/purge": {
+      "post": {
+        "tags": ["memory"],
+        "operationId": "memory.purge",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory purged",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "root": {
+                      "type": "string"
+                    },
+                    "purged": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": ["root", "purged"],
+                  "additionalProperties": false,
+                  "description": "Memory purged"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "MemoryApiClientError | InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/MemoryApiClientError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MemoryApiServerError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryApiServerError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Delete all project memory files for the active workspace.",
+        "summary": "Purge memory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "confirm": {
+                    "type": "boolean",
+                    "enum": [true]
+                  }
+                },
+                "required": ["confirm"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.memory.purge({\n  ...\n})"
           }
         ]
       }
@@ -22198,6 +24427,47 @@
         "required": ["id", "slug", "projectID", "directory", "title", "version", "time", "project"],
         "additionalProperties": false
       },
+      "BackgroundJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["running", "completed", "error", "cancelled"]
+          },
+          "started_at": {
+            "type": "number"
+          },
+          "completed_at": {
+            "type": "number"
+          },
+          "output": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": ["id", "type", "status", "started_at"],
+        "additionalProperties": false
+      },
+      "BackgroundJobList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/BackgroundJob"
+        }
+      },
       "McpResource": {
         "type": "object",
         "properties": {
@@ -22368,6 +24638,23 @@
           }
         },
         "required": ["path", "added", "removed", "status"],
+        "additionalProperties": false
+      },
+      "ConflictError": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["ConflictError"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          }
+        },
+        "required": ["_tag", "message"],
         "additionalProperties": false
       },
       "Path": {
@@ -22711,6 +24998,54 @@
           }
         },
         "required": ["_tag", "name", "message"],
+        "additionalProperties": false
+      },
+      "MemoryApiClientError": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["MemoryApiClientError"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["name", "data"],
+        "additionalProperties": false
+      },
+      "MemoryApiServerError": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": ["MemoryApiServerError"]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["name", "data"],
         "additionalProperties": false
       },
       "Project": {
@@ -23580,23 +25915,6 @@
           }
         },
         "required": ["text"],
-        "additionalProperties": false
-      },
-      "ConflictError": {
-        "type": "object",
-        "properties": {
-          "_tag": {
-            "type": "string",
-            "enum": ["ConflictError"]
-          },
-          "message": {
-            "type": "string"
-          },
-          "resource": {
-            "type": "string"
-          }
-        },
-        "required": ["_tag", "message"],
         "additionalProperties": false
       },
       "ServiceUnavailableError": {
@@ -36828,6 +39146,10 @@
     {
       "name": "mcp",
       "description": "Experimental HttpApi MCP routes."
+    },
+    {
+      "name": "memory",
+      "description": "Project memory routes."
     },
     {
       "name": "project",

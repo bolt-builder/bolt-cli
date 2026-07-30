@@ -54,7 +54,7 @@ export function capturePlan(input: {
         ? "trivial"
         : interval && (input.reason === undefined || input.reason === "completed")
           ? "interval"
-        : "no_work"
+          : "no_work"
   return {
     completed,
     session,

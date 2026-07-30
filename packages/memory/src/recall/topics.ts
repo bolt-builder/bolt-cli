@@ -82,7 +82,12 @@ export namespace MemoryTopics {
     for (const raw of tokens) {
       // Emit the whole compound (separators folded to _, trimmed) plus each camelCase/`_.-` part so
       // getUserName matches "user".
-      push(raw.replaceAll(/[_.-]+/g, "_").replaceAll(/^_+|_+$/g, "").toLowerCase())
+      push(
+        raw
+          .replaceAll(/[_.-]+/g, "_")
+          .replaceAll(/^_+|_+$/g, "")
+          .toLowerCase(),
+      )
       for (const part of parts(raw)) push(part)
     }
     return cfg.max === undefined ? result : result.slice(0, cfg.max)

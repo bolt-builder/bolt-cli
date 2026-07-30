@@ -680,7 +680,10 @@ const scenarios: Scenario[] = [
     .at((ctx) => ({ path: "/memory/configure", headers: ctx.headers(), body: { autoConsolidate: true } }))
     .json(200, (body: any) => {
       object(body)
-      check(isRecord(body.state) && body.state.autoConsolidate === true, "memory configure should persist the auto-save flag")
+      check(
+        isRecord(body.state) && body.state.autoConsolidate === true,
+        "memory configure should persist the auto-save flag",
+      )
     }),
   http.protected
     .post("/memory/rebuild", "memory.rebuild")

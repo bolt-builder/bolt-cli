@@ -286,7 +286,12 @@ export namespace MemoryTool {
       const result = yield* catalog(input.memory, { root: live.root, query })
       const safe = { ...result, output: block(result.output) }
       yield* catalogAudit(input.memory, { root: live.root, current: live.current, query, result: safe })
-      yield* input.memory.recordRecall({ root: live.root, sessionID: live.current, now: Date.now(), count: result.count })
+      yield* input.memory.recordRecall({
+        root: live.root,
+        sessionID: live.current,
+        now: Date.now(),
+        count: result.count,
+      })
       return {
         title: `Bolt memory catalog: ${result.count} entr${result.count === 1 ? "y" : "ies"}`,
         output: safe.output,
@@ -335,8 +340,20 @@ export namespace MemoryTool {
             : "missing_session_digest"
           : undefined
       const output = hits.length ? result!.block : miss({ params: input.params, current: live.current })
-      yield* audit(input.memory, { root: live.root, params: input.params, current: live.current, hits, skipped, output })
-      yield* input.memory.recordRecall({ root: live.root, sessionID: live.current, now: Date.now(), count: hits.length })
+      yield* audit(input.memory, {
+        root: live.root,
+        params: input.params,
+        current: live.current,
+        hits,
+        skipped,
+        output,
+      })
+      yield* input.memory.recordRecall({
+        root: live.root,
+        sessionID: live.current,
+        now: Date.now(),
+        count: hits.length,
+      })
 
       if (hits.length === 0) {
         return {

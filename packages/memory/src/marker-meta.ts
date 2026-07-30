@@ -70,7 +70,12 @@ export namespace MemoryMarkerMeta {
   }
 
   function items(input: string) {
-    return list(input.split("\n").map(item).filter((value) => value !== undefined))
+    return list(
+      input
+        .split("\n")
+        .map(item)
+        .filter((value) => value !== undefined),
+    )
   }
 
   export function snippets(input: Decoded | undefined, verbose: boolean) {

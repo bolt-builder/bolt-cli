@@ -99,7 +99,9 @@ function DialogProcessList(props: { api: TuiPluginApi }) {
       title="Background Processes"
       options={options()}
       skipFilter={options().length === 0}
-      emptyView={<text fg={state.error() ? theme().error : theme().textMuted}>{state.error() ?? "No background processes"}</text>}
+      emptyView={
+        <text fg={state.error() ? theme().error : theme().textMuted}>{state.error() ?? "No background processes"}</text>
+      }
       onSelect={(option) => {
         props.api.ui.dialog.replace(() => (
           <DialogProcessDetail

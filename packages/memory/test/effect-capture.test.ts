@@ -49,7 +49,12 @@ function session(turn: MemoryPorts.TurnView | undefined): MemoryPorts.SessionPor
 
 /** Model port that answers digest/typed calls from canned JSON, keyed by system prompt so it is
  * order-independent (digest and typed run concurrently). */
-function model(input: { digest: string; typed: string; fallback?: string; onRun?: (system: string) => void }): MemoryPorts.ModelPort {
+function model(input: {
+  digest: string
+  typed: string
+  fallback?: string
+  onRun?: (system: string) => void
+}): MemoryPorts.ModelPort {
   return {
     resolve: () => Effect.succeed({ handle: {}, ...(input.fallback ? { fallback: { reason: input.fallback } } : {}) }),
     run: async ({ system }) => {
@@ -209,7 +214,9 @@ describe("MemoryCapture (fake ports)", () => {
       await BoltMemory.configure({ root: t.root, settings: { autoConsolidate: true } })
       await BoltMemory.apply({
         root: t.root,
-        ops: [{ action: "add", file: "project.md", section: "Facts", key: "deploy_target", text: "Deploy to staging." }],
+        ops: [
+          { action: "add", file: "project.md", section: "Facts", key: "deploy_target", text: "Deploy to staging." },
+        ],
       })
 
       const result = await run({
@@ -627,7 +634,9 @@ describe("MemoryCapture (fake ports)", () => {
       await BoltMemory.configure({ root: t.root, settings: { autoConsolidate: true } })
       await BoltMemory.apply({
         root: t.root,
-        ops: [{ action: "add", file: "project.md", section: "Facts", key: "deploy_target", text: "Deploy to staging." }],
+        ops: [
+          { action: "add", file: "project.md", section: "Facts", key: "deploy_target", text: "Deploy to staging." },
+        ],
       })
 
       // P1.7: existing_memory / recent_memory_digests must precede latest_assistant so cap() sheds the
