@@ -8,7 +8,7 @@ import { InstructionContext } from "../instruction-context"
 import { SystemContextRegistry } from "./registry"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
-import { MemoryContext } from "../memory/context"
+import { MemoryContext } from "../memory"
 
 const builtIns = Layer.effectDiscard(
   Effect.gen(function* () {

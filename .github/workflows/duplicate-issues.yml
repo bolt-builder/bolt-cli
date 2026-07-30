@@ -35,16 +35,28 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # The duplicate/compliance agent needs the opencode gateway; skip when the key is not configured.
+      # duplicate checking requires an opencode API key; skip gracefully when the secret is not configured
+      - name: Check opencode API key
+        id: opencode
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -n "$OPENCODE_API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping duplicate check: OPENCODE_API_KEY secret is not configured"
+          fi
+
       - uses: ./.github/actions/setup-bun
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Check duplicates and compliance
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
@@ -171,16 +183,28 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # The compliance recheck agent needs the opencode gateway; skip when the key is not configured.
+      # compliance rechecking requires an opencode API key; skip gracefully when the secret is not configured
+      - name: Check opencode API key
+        id: opencode
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -n "$OPENCODE_API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping compliance recheck: OPENCODE_API_KEY secret is not configured"
+          fi
+
       - uses: ./.github/actions/setup-bun
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Recheck compliance
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
