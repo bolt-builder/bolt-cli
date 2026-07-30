@@ -394,8 +394,11 @@ jobs:
             if npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts; then
               exit 0
             fi
-            echo "::warning::electron-builder package attempt $attempt failed, retrying"
+            if [ "$attempt" -lt 3 ]; then
+              echo "::warning::electron-builder package attempt $attempt failed, retrying"
+            fi
           done
+          echo "::error::electron-builder packaging failed after 3 attempts"
           exit 1
         working-directory: packages/desktop
         timeout-minutes: 60
