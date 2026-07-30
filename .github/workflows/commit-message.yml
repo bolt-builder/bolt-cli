@@ -36,7 +36,7 @@ jobs:
           DIFF=$(git diff HEAD~1 HEAD --stat && echo "---" && git diff HEAD~1 HEAD | head -c 6000)
           PROMPT="Write a single concise git commit message (under 72 chars, imperative mood, no quotes, no markdown) summarizing this diff:\n\n${DIFF}"
 
-          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}" \
+          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "$(jq -n --arg p "$PROMPT" '{contents:[{parts:[{text:$p}]}]}')")
 
