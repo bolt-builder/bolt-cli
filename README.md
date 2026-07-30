@@ -9,6 +9,15 @@
 
 Terminal-based AI coding agent. Reads your codebase, understands what you're building, and ships code — all from the command line.
 
+<p align="center">
+  <a href="https://github.com/Bolt-builder/bolt-cli">
+    <picture>
+      <source srcset="images/demo.svg" media="(prefers-color-scheme: dark)">
+      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="Bolt CLI demo">
+    </picture>
+  </a>
+</p>
+
 Built with [Effect](https://effect.website), [OpenTUI](https://github.com/opentui/opentui), and [SolidJS](https://www.solidjs.com).
 
 ## Install
