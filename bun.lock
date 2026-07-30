@@ -323,6 +323,7 @@
         "@opencode-ai/effect-drizzle-sqlite": "workspace:*",
         "@opencode-ai/effect-sqlite-node": "workspace:*",
         "@opencode-ai/llm": "workspace:*",
+        "@opencode-ai/memory": "workspace:*",
         "@opencode-ai/plugin": "workspace:*",
         "@opencode-ai/schema": "workspace:*",
         "@openrouter/ai-sdk-provider": "2.9.0",
@@ -557,6 +558,20 @@
         "@typescript/native-preview": "catalog:",
       },
     },
+    "packages/memory": {
+      "name": "@opencode-ai/memory",
+      "version": "0.0.1",
+      "dependencies": {
+        "effect": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@tsconfig/node22": "catalog:",
+        "@types/node": "catalog:",
+        "@typescript/native-preview": "catalog:",
+        "typescript": "catalog:",
+      },
+    },
     "packages/opencode": {
       "name": "@bolt-builder/bolt-cli",
       "version": "0.0.1",
@@ -662,6 +677,7 @@
         "@opencode-ai/core": "workspace:",
         "@opencode-ai/http-recorder": "workspace:",
         "@opencode-ai/llm": "workspace:",
+        "@opencode-ai/memory": "workspace:*",
         "@opencode-ai/plugin": "workspace:",
         "@opencode-ai/protocol": "workspace:",
         "@opencode-ai/schema": "workspace:",
@@ -951,6 +967,7 @@
       "version": "1.18.10",
       "dependencies": {
         "@opencode-ai/core": "workspace:*",
+        "@opencode-ai/memory": "workspace:*",
         "@opencode-ai/plugin": "workspace:*",
         "@opencode-ai/sdk": "workspace:*",
         "@opencode-ai/ui": "workspace:*",
@@ -1975,6 +1992,8 @@
     "@opencode-ai/httpapi-codegen": ["@opencode-ai/httpapi-codegen@workspace:packages/httpapi-codegen"],
 
     "@opencode-ai/llm": ["@opencode-ai/llm@workspace:packages/llm"],
+
+    "@opencode-ai/memory": ["@opencode-ai/memory@workspace:packages/memory"],
 
     "@opencode-ai/plugin": ["@opencode-ai/plugin@workspace:packages/plugin"],
 

@@ -3,6 +3,7 @@ import fs from "fs/promises"
 import { xdgData, xdgCache, xdgConfig, xdgState } from "xdg-basedir"
 import os from "os"
 import { Context, Effect, Layer } from "effect"
+import { MemoryPaths } from "@opencode-ai/memory/effect/paths"
 import { Flock } from "./util/flock"
 import { Flag } from "./flag/flag"
 import { makeGlobalNode } from "./effect/app-node"
@@ -31,6 +32,9 @@ const paths = {
 export const Path = paths
 
 Flock.setGlobal({ state })
+
+// Project memory lives under the shared data dir instead of the package default.
+MemoryPaths.configure(() => ({ data: Path.data }))
 
 await Promise.all([
   fs.mkdir(Path.data, { recursive: true }),

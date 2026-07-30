@@ -14,6 +14,7 @@ import {
   WorkspaceRoutingQueryFields,
 } from "../middleware/workspace-routing"
 import { described } from "./metadata"
+import { ConflictError } from "../errors"
 
 const PathInfo = Schema.Struct({
   home: Schema.String,
@@ -42,6 +43,7 @@ export class ApiVcsApplyError extends Schema.ErrorClass<ApiVcsApplyError>("VcsAp
 
 export const InstancePaths = {
   dispose: "/instance/dispose",
+  reload: "/instance/reload",
   path: "/path",
   vcs: "/vcs",
   vcsStatus: "/vcs/status",
@@ -67,6 +69,18 @@ export const InstanceApi = HttpApi.make("instance")
             identifier: "instance.dispose",
             summary: "Dispose instance",
             description: "Clean up and dispose the current OpenCode instance, releasing all resources.",
+          }),
+        ),
+        HttpApiEndpoint.post("reload", InstancePaths.reload, {
+          query: WorkspaceRoutingQuery,
+          success: described(Schema.Boolean, "Instance reloaded"),
+          error: ConflictError,
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "instance.reload",
+            summary: "Reload instance",
+            description:
+              "Dispose and re-bootstrap the current instance, reloading config, skills, agents, and commands from disk. Returns 409 if a session is actively running.",
           }),
         ),
         HttpApiEndpoint.get("path", InstancePaths.path, {
