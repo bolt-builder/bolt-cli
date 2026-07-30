@@ -12,9 +12,7 @@ jobs:
       pull-requests: write
     steps:
     - name: 'Auto-assign issue'
-      # v1 predates pull_request support and the numOfAssignee input, so it
-      # fails on every PR with "Couldn't find issue info in current context".
-      uses: pozil/auto-assign-issue@v2
+      uses: pozil/auto-assign-issue@v4.0.1
       with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: DevFlex-AI
