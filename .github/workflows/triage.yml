@@ -34,7 +34,7 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # The triage agent needs the opencode gateway; skip when the key is not configured.
+      # triage requires an opencode API key; skip gracefully when the secret is not configured
       - name: Setup Bun
         if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         uses: ./.github/actions/setup-bun
