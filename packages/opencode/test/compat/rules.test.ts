@@ -79,6 +79,39 @@ describe("CompatRules.discover", () => {
     }),
   )
 
+  it.effect("honors windsurf trigger modes and strips frontmatter", () =>
+    Effect.gen(function* () {
+      const { dir, entries } = yield* setup({
+        ".windsurf/rules/always.md": "---\ntrigger: always_on\n---\nalways body",
+        ".windsurf/rules/manual.md": "---\ntrigger: manual\n---\nmanual body",
+        ".windsurf/rules/scoped.md": "---\ntrigger: glob\nglobs: '*.ts'\n---\nscoped body",
+        ".windsurf/rules/model.md": "---\ntrigger: model_decision\ndescription: when relevant\n---\nmodel body",
+        ".windsurf/rules/plain.md": "plain body",
+      })
+      const byPath = Object.fromEntries(entries.map((entry) => [path.relative(dir, entry.path), entry.content]))
+      expect(byPath).toEqual({
+        ".windsurf/rules/always.md": "always body",
+        ".windsurf/rules/plain.md": "plain body",
+      })
+    }),
+  )
+
+  it.effect("honors continue alwaysApply and globs scoping", () =>
+    Effect.gen(function* () {
+      const { dir, entries } = yield* setup({
+        ".continue/rules/always.md": "---\nalwaysApply: true\n---\nalways body",
+        ".continue/rules/manual.md": "---\nalwaysApply: false\n---\nmanual body",
+        ".continue/rules/scoped.md": "---\nglobs: '**/*.ts'\n---\nscoped body",
+        ".continue/rules/plain.md": "plain body",
+      })
+      const byPath = Object.fromEntries(entries.map((entry) => [path.relative(dir, entry.path), entry.content]))
+      expect(byPath).toEqual({
+        ".continue/rules/always.md": "always body",
+        ".continue/rules/plain.md": "plain body",
+      })
+    }),
+  )
+
   it.effect("honors kiro steering inclusion modes", () =>
     Effect.gen(function* () {
       const { dir, entries } = yield* setup({
