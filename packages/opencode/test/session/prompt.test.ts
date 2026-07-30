@@ -578,7 +578,7 @@ it.instance("legacy prompt emits message events without session.next events", ()
       expect(second.info.model).toEqual(ref)
     }
     expect(yield* sessions.get(chat.id)).toMatchObject({
-      agent: "build",
+      agent: "code",
       model: { providerID: ref.providerID, id: ref.modelID },
     })
     expect(seen).toContain(Session.Event.Updated.type)
@@ -1034,7 +1034,7 @@ it.instance(
       const tool = yield* pollWithTimeout(
         Effect.gen(function* () {
           const msgs = yield* MessageV2.filterCompactedEffect(chat.id)
-          const assistant = msgs.findLast((item) => item.info.role === "assistant" && item.info.agent === "build")
+          const assistant = msgs.findLast((item) => item.info.role === "assistant" && item.info.agent === "code")
           const tool = assistant?.parts.find(
             (part): part is SessionV1.ToolPart => part.type === "tool" && part.tool === "task",
           )
@@ -2365,7 +2365,7 @@ noLLMServer.instance(
         const err = Cause.squash(exit.cause)
         expect(NamedError.Unknown.isInstance(err)).toBe(true)
         if (NamedError.Unknown.isInstance(err)) {
-          expect(err.data.message).toContain("build")
+          expect(err.data.message).toContain("code")
         }
       }
     }),
