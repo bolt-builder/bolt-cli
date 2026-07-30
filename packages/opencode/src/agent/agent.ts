@@ -522,14 +522,7 @@ const layer = Layer.effect(
           const configuredDefault = cfg.default_agent
             ? yield* get(cfg.default_agent)
             : Object.values(agents).find((x) => x.mode !== "subagent" && x.hidden !== true)
-          return pipe(
-            agents,
-            values(),
-            sortBy(
-              [(x) => x === configuredDefault, "desc"],
-              [(x) => x.name, "asc"],
-            ),
-          )
+          return pipe(agents, values(), sortBy([(x) => x === configuredDefault, "desc"], [(x) => x.name, "asc"]))
         })
 
         const defaultInfo = Effect.fnUntraced(function* () {
