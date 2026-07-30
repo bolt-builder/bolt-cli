@@ -39,7 +39,7 @@ function text(parts: SessionV1.Part[]) {
 function output(parts: SessionV1.Part[]) {
   return parts
     .flatMap((part) => {
-      if (part.type === "text") return [part.text.trim()]
+      if (part.type === "text") return [MemoryRedact.text(part.text.trim())]
       if (part.type === "tool") return [toolSummary(part)]
       return []
     })
@@ -156,11 +156,11 @@ function recalled(turn: Turn) {
 // --- Model resolution + invocation (host provider/`ai` -> port ModelHandle) --------------------
 
 function isOpenAI(model: Provider.Model) {
-  return model.providerID === "openai" && model.api.npm === "@ai-sdk/openai"
+  return model.providerID === "openai" || model.api.npm === "@ai-sdk/openai"
 }
 
 function options(model: Provider.Model) {
-  if (model.providerID === "openai" || model.api.npm === "@ai-sdk/openai") return { store: false }
+  if (isOpenAI(model)) return { store: false }
   return ProviderTransform.smallOptions(model)
 }
 
@@ -291,18 +291,14 @@ export function modelPort(input: { provider: Provider.Interface }): MemoryPorts.
         const parsed = MemoryConfig.parse(configured)
         const fallback = () =>
           input.provider.getModel(ProviderV2.ID.make(session.providerID), ModelV2.ID.make(session.modelID))
-        const source = yield* Effect.gen(function* () {
-          if (configured && !parsed)
-            return { model: yield* fallback(), reason: "invalid model" }
-          if (parsed)
-            return yield* input.provider
+        const source = parsed
+          ? yield* input.provider
               .getModel(ProviderV2.ID.make(parsed.providerID), ModelV2.ID.make(parsed.modelID))
               .pipe(
-                Effect.map((model) => ({ model, reason: undefined })),
+                Effect.map((model) => ({ model, reason: undefined as string | undefined })),
                 Effect.catch(() => Effect.map(fallback(), (model) => ({ model, reason: "model unavailable" }))),
               )
-          return { model: yield* fallback(), reason: undefined }
-        })
+          : { model: yield* fallback(), reason: configured ? "invalid model" : undefined }
         if (source.reason)
           yield* Effect.logWarning("memory model config ignored", { reason: source.reason, model: configured })
         const language = yield* input.provider.getLanguage(source.model)

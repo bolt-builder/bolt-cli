@@ -1344,7 +1344,7 @@ const layer = Layer.effect(
     const loop: (input: LoopInput) => Effect.Effect<SessionV1.WithParts> = Effect.fn("SessionPrompt.loop")(function* (
       input: LoopInput,
     ) {
-      MemoryHost.open({ sessionID: input.sessionID })
+      yield* Effect.sync(() => MemoryHost.open({ sessionID: input.sessionID }))
       return yield* state.ensureRunning(input.sessionID, lastAssistant(input.sessionID), runLoop(input.sessionID)).pipe(
         Effect.onExit((exit) =>
           MemoryHost.close({
@@ -1353,7 +1353,12 @@ const layer = Layer.effect(
             sessions,
             summary,
             provider,
-          }).pipe(Effect.ignore, Effect.forkIn(scope)),
+          }).pipe(
+            Effect.catchCause((cause) =>
+              Effect.logWarning("memory turn close failed", { "session.id": input.sessionID, cause }),
+            ),
+            Effect.forkIn(scope),
+          ),
         ),
       )
     })

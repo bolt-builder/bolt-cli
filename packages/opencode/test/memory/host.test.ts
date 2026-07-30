@@ -42,10 +42,10 @@ function lang(outputs = ["{}"]): LanguageModelV3 {
       const text = outputs[idx++] ?? outputs.at(-1) ?? "{}"
       return {
         content: [{ type: "text", text }],
-        finishReason: { unified: "stop" },
+        finishReason: { unified: "stop", raw: "stop" },
         usage: {
-          inputTokens: { total: 12 },
-          outputTokens: { total: 8 },
+          inputTokens: { total: 12, noCache: 12, cacheRead: 0, cacheWrite: 0 },
+          outputTokens: { total: 8, text: 8, reasoning: 0 },
           raw: {},
         },
         warnings: [],
@@ -240,7 +240,13 @@ describe("memory host", () => {
         id: final,
         parentID: uid,
         time: 6,
-        parts: [text(sessionID, final, "Run bun test from packages/opencode for CLI memory tests.")],
+        parts: [
+          text(
+            sessionID,
+            final,
+            "Run bun test from packages/opencode for CLI memory tests. The key was OPENAI_API_KEY=sk-proj-abcdefghijklmnopqrstuvwxyz1234567890",
+          ),
+        ],
       }),
     ]
 
@@ -253,7 +259,7 @@ describe("memory host", () => {
 
     expect(view).toMatchObject({
       user: "remember the package test command with [redacted]",
-      assistant: "Run bun test from packages/opencode for CLI memory tests.",
+      assistant: "Run bun test from packages/opencode for CLI memory tests. The key was [redacted]",
       lastAssistantID: final,
       sessionModel: ref,
       recalledMemory: true,
@@ -263,6 +269,7 @@ describe("memory host", () => {
     expect(view?.recent).toContain("command=[redacted]")
     expect(view?.recent).not.toContain("sk-proj-abcdefghijklmnopqrstuvwxyz1234567890")
     expect(view?.user).not.toContain("sk-proj-abcdefghijklmnopqrstuvwxyz1234567890")
+    expect(view?.assistant).not.toContain("sk-proj-abcdefghijklmnopqrstuvwxyz1234567890")
     expect(seen).toEqual([uid, recall, shell, final])
   })
 
