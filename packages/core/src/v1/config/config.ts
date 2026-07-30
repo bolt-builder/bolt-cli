@@ -127,7 +127,7 @@ export const Info = Schema.Struct({
   }),
   compat: Schema.optional(Schema.Union([Schema.Boolean, ConfigCompatV1.Info])).annotate({
     description:
-      "Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules and mcp imports individually. Rules import defaults to true, mcp import to false.",
+      "Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules, mcp, commands, and agents individually. Rules, commands, and agents default to true; mcp defaults to false.",
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
