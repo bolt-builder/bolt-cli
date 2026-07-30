@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, mock, test } from "bun:test"
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test"
 import type { AsyncStorage } from "@solid-primitives/storage"
 import { createEffect, createRoot } from "solid-js"
 import { ServerScope } from "@/utils/server-scope"
@@ -16,8 +16,17 @@ const storage: AsyncStorage = {
   length: Promise.resolve(0),
 }
 
+// Module mocks leak into later test files, so snapshot the real router before
+// mocking and restore it once this file finishes.
+const router = { ...(await import("@solidjs/router")) }
+
+afterAll(() => {
+  mock.module("@solidjs/router", () => router)
+})
+
 beforeAll(async () => {
   mock.module("@solidjs/router", () => ({
+    ...router,
     useParams: () => ({}),
     useSearchParams: () => [{}],
     useLocation: () => ({ pathname: "", query: {} }),
