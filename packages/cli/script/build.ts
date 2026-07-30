@@ -117,7 +117,8 @@ for (const item of targets) {
     ),
   )
 
-  if (item.os === "darwin") {
+  // codesign only exists on macOS; release builds cross-compile darwin targets on Linux
+  if (item.os === "darwin" && process.platform === "darwin") {
     await $`codesign --sign - ./dist/${name}/bin/${binary}`
   }
 }
