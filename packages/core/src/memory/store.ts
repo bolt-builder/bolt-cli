@@ -1,14 +1,10 @@
-"use server"
+export * as MemoryStore from "./store"
 
 import crypto from "crypto"
-import path from "path"
-import os from "os"
 import { Context, Effect, Layer, Schema } from "effect"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
 import { makeLocationNode } from "../effect/app-node"
-
-export * as MemoryStore from "./store"
 
 export const MEMORY_PATH = Global.Path.config + "/memory.md"
 export const MAX_PROMPT_BYTES = 4 * 1024
@@ -30,7 +26,7 @@ export interface Interface {
   readonly remove: (id: string) => Effect.Effect<void, FSUtil.Error, never>
 }
 
-const escapeMeta = (value: string) => JSON.stringify(value).slice(1, -1).replace(/"/g, '\\"')
+const escapeMeta = (value: string) => JSON.stringify(value).slice(1, -1)
 const normalize = (value: string) => value.replace(/\r?\n/g, "\n").trim()
 
 const renderEntry = (entry: MemoryEntry) =>
@@ -46,7 +42,7 @@ const parseEntries = Effect.fn("Memory.parseEntries")(function* (text: string) {
       continue
     }
     const id = typeof decoded.id === "string" ? decoded.id : undefined
-    const createdAt = typeof decoded.created_at === "string" ? decoded.created_at : undefined
+    const createdAt = typeof decoded.createdAt === "string" ? decoded.createdAt : undefined
     if (!id || !createdAt) continue
     const category = typeof decoded.category === "string" && decoded.category.length > 0 ? decoded.category : undefined
     const content = normalize(match[2])
@@ -74,7 +70,7 @@ const layer = Layer.effect(
       return yield* parseEntries(trimmed).pipe(
         Effect.catch((error) =>
           Effect.gen(function* () {
-            Effect.logWarning(`Memory parse warning: ${String(error)}`)
+            yield* Effect.logWarning(`Memory parse warning: ${String(error)}`)
             return [] as ReadonlyArray<MemoryEntry>
           }),
         ),
@@ -89,8 +85,10 @@ const layer = Layer.effect(
         category: input.category,
         content,
       }
+      const raw = yield* fs.readFileStringSafe(MEMORY_PATH).pipe(Effect.catch(() => Effect.succeed(undefined)))
+      const existing = (raw ?? "").trim()
       const block = renderEntry(entry)
-      yield* writeAtomic(MEMORY_PATH, block + "\n")
+      yield* writeAtomic(MEMORY_PATH, existing ? existing + "\n\n" + block : block)
       return entry
     })
 

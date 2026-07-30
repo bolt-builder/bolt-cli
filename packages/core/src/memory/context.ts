@@ -1,7 +1,5 @@
 export * as MemoryContext from "./context"
 
-"use server"
-
 import { Effect, Layer, Schema } from "effect"
 import { SystemContext } from "../system-context/index"
 import { SystemContextRegistry } from "../system-context/registry"

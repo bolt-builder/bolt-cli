@@ -1,9 +1,5 @@
 export * as MemoryTool from "./tool"
 
-"use server"
-
-export * as MemoryTool from "./tool"
-
 import { ToolFailure } from "@opencode-ai/llm"
 import { Effect, Layer, Schema } from "effect"
 import { makeLocationNode } from "../effect/app-node"
@@ -97,7 +93,11 @@ const layer = Layer.effectDiscard(
                   return { action: "search" as const, entries: matched }
                 }
               }
-            }).pipe(Effect.mapError(() => new ToolFailure({ message: `Unable to perform memory ${input.action}` }))),
+            }).pipe(
+              Effect.mapError((error) =>
+                error instanceof ToolFailure ? error : new ToolFailure({ message: `Unable to perform memory ${input.action}`, error }),
+              ),
+            ),
         }),
       })
       .pipe(Effect.orDie)
