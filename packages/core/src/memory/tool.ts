@@ -1,3 +1,5 @@
+export * as MemoryTool from "./tool"
+
 "use server"
 
 import { ToolFailure } from "@opencode-ai/llm"
