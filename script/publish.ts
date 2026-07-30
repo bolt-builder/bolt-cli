@@ -44,7 +44,19 @@ await $`bun ./packages/opencode/script/publish.ts`
 console.log("\n=== preview cli / sdk / plugin / ui: skipped (@opencode-ai scope not owned) ===\n")
 
 if (Script.release) {
-  await $`bun ./packages/desktop/scripts/finalize-latest-json.ts`
+  // latest.json signs update artifacts with the Tauri updater key. When
+  // TAURI_SIGNING_PRIVATE_KEY is missing or invalid, skip the desktop updater
+  // feed instead of failing the whole release: the release still ships, the
+  // desktop app just won't see this version via auto-update.
+  const feed = await $`bun ./packages/desktop/scripts/finalize-latest-json.ts`.nothrow()
+  if (feed.exitCode !== 0) {
+    console.warn(feed.stdout.toString())
+    console.warn(feed.stderr.toString())
+    console.warn(
+      "::warning::skipping desktop updater feed: finalize-latest-json failed (missing or invalid TAURI_SIGNING_PRIVATE_KEY?)",
+    )
+  }
+  // latest.yml uses electron-updater's embedded sha512 checksums and needs no signing key.
   await $`bun ./packages/desktop/scripts/finalize-latest-yml.ts`
 }
 
