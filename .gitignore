@@ -36,3 +36,4 @@ tsconfig.tsbuildinfo
 .kombai/
 .kilo/
 .kilo/plans
+bolt-cli/.env.example
