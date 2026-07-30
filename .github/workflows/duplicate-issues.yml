@@ -11,6 +11,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -56,7 +58,6 @@ jobs:
       - name: Check duplicates and compliance
         if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
             {
@@ -158,6 +159,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -203,7 +206,6 @@ jobs:
       - name: Recheck compliance
         if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
             {
