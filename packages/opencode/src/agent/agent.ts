@@ -519,12 +519,14 @@ const layer = Layer.effect(
 
         const list = Effect.fnUntraced(function* () {
           const cfg = yield* config.get()
-          const configuredDefault = cfg.default_agent ? yield* get(cfg.default_agent) : undefined
+          const configuredDefault = cfg.default_agent
+            ? yield* get(cfg.default_agent)
+            : Object.values(agents).find((x) => x.mode !== "subagent" && x.hidden !== true)
           return pipe(
             agents,
             values(),
             sortBy(
-              [(x) => (configuredDefault ? x === configuredDefault : x.name === "code"), "desc"],
+              [(x) => x === configuredDefault, "desc"],
               [(x) => x.name, "asc"],
             ),
           )
