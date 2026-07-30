@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@opencode-ai/client",
+  "version": "1.17.13",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/client"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/promise/index.js",
+      "types": "./dist/promise/index.d.ts"
+    },
+    "./promise": {
+      "import": "./dist/promise/index.js",
+      "types": "./dist/promise/index.d.ts"
+    },
+    "./promise/api": {
+      "import": "./dist/promise/api.js",
+      "types": "./dist/promise/api.d.ts"
+    }
+  }
+}
