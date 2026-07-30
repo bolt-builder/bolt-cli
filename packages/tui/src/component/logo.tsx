@@ -53,7 +53,7 @@ export function Logo() {
           <box flexDirection="row" gap={1}>
             <box flexDirection="row">{renderLine(line, RGBA.fromHex("#3b82f6"), false)}</box>
             {/* Safely access logo.right with fallback to empty string */}
-            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", RGBA.fromHex("#ef4444"), true)}</box>
+            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", RGBA.fromHex("#f03939"), true)}</box>
           </box>
         )}
       </For>
