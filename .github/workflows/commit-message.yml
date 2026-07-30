@@ -5,6 +5,9 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+
 jobs:
   rewrite:
     if: github.event.head_commit.author.name != 'bolt-cli[bot]'
