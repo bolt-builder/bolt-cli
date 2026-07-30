@@ -48,7 +48,7 @@ it.instance("returns default native agents when no config", () =>
   Effect.gen(function* () {
     const agents = yield* load((svc) => svc.list())
     const names = agents.map((a) => a.name)
-    expect(names).toContain("build")
+    expect(names).toContain("code")
     expect(names).toContain("plan")
     expect(names).toContain("general")
     expect(names).toContain("explore")
@@ -646,17 +646,17 @@ it.instance(
   },
 )
 
-it.instance("defaultAgent returns build when no default_agent config", () =>
+it.instance("defaultAgent returns code when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultAgent())
-    expect(agent).toBe("build")
+    expect(agent).toBe("code")
   }),
 )
 
-it.instance("defaultInfo returns resolved build agent when no default_agent config", () =>
+it.instance("defaultInfo returns resolved code agent when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultInfo())
-    expect(agent.name).toBe("build")
+    expect(agent.name).toBe("code")
     expect(agent.mode).toBe("primary")
   }),
 )
@@ -749,6 +749,14 @@ it.instance(
       agent: {
         build: { disable: true },
         plan: { disable: true },
+        ask: { disable: true },
+        "code-review": { disable: true },
+        debug: { disable: true },
+        refactor: { disable: true },
+        docs: { disable: true },
+        security: { disable: true },
+        migrate: { disable: true },
+        perf: { disable: true },
       },
     },
   },

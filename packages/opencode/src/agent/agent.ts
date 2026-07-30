@@ -511,17 +511,22 @@ const layer = Layer.effect(
           )
         }
 
+        // Config keys and display names can diverge (the built-in "build" key is named "code"),
+        // and callers resolve agents by the name stored on messages, so fall back to name lookup.
         const get = Effect.fnUntraced(function* (agent: string) {
-          return agents[agent]
+          return agents[agent] ?? Object.values(agents).find((a) => a.name === agent)
         })
 
         const list = Effect.fnUntraced(function* () {
           const cfg = yield* config.get()
+          const configuredDefault = cfg.default_agent
+            ? yield* get(cfg.default_agent)
+            : Object.values(agents).find((x) => x.mode !== "subagent" && x.hidden !== true)
           return pipe(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "build"), "desc"],
+              [(x) => x === configuredDefault, "desc"],
               [(x) => x.name, "asc"],
             ),
           )
@@ -530,7 +535,7 @@ const layer = Layer.effect(
         const defaultInfo = Effect.fnUntraced(function* () {
           const c = yield* config.get()
           if (c.default_agent) {
-            const agent = agents[c.default_agent]
+            const agent = yield* get(c.default_agent)
             if (!agent) throw new Error(`default agent "${c.default_agent}" not found`)
             if (agent.mode === "subagent") throw new Error(`default agent "${c.default_agent}" is a subagent`)
             if (agent.hidden === true) throw new Error(`default agent "${c.default_agent}" is hidden`)
