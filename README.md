@@ -53,8 +53,6 @@ Bolt reads your codebase, understands what you're building, and ships code with 
 ## Get started in 30 seconds
 
 ```bash
-# Quick install (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/Bolt-builder/bolt-cli/install | bash
 
 # Or with npm / bun / pnpm / yarn
 npm i -g @bolt-builder/bolt-cli
