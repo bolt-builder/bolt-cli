@@ -28,6 +28,13 @@ jobs:
 
             // Check if author is a team member or bot
             if (login === 'opencode-agent[bot]') return;
+
+            // Skip locked PRs (e.g. pull[bot] sync PRs); comments cannot be created on them
+            if (pr.locked) {
+              console.log(`Skipping: PR #${pr.number} is locked`);
+              return;
+            }
+
             const { data: file } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -175,6 +182,13 @@ jobs:
 
             // Check if author is a team member or bot
             if (login === 'opencode-agent[bot]') return;
+
+            // Skip locked PRs (e.g. pull[bot] sync PRs); comments cannot be created on them
+            if (pr.locked) {
+              console.log(`Skipping: PR #${pr.number} is locked`);
+              return;
+            }
+
             const { data: file } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
