@@ -17,12 +17,10 @@
   },
   "bin": {
     "bolt": "./bin/bolt"
-  },    
+  },
   "exports": {
     "./": "./src/index.ts"
-
-     },
-
+  },
   "imports": {
     "#db": {
       "bun": "./src/storage/db.bun.ts",
