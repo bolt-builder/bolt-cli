@@ -12,7 +12,9 @@ import { MemoryStore, MemoryEntrySchema } from "./store"
 export const name = "memory"
 
 export const Input = Schema.Struct({
-  action: Schema.Literals(["add", "list", "delete", "search"]).annotate({ description: "The memory operation to perform" }),
+  action: Schema.Literals(["add", "list", "delete", "search"]).annotate({
+    description: "The memory operation to perform",
+  }),
   category: Schema.optional(Schema.String).annotate({ description: "Category filter for list or search" }),
   content: Schema.optional(Schema.String).annotate({ description: "Content to remember (for add)" }),
   id: Schema.optional(Schema.String).annotate({ description: "Entry ID (for delete)" }),
@@ -33,7 +35,10 @@ export const Output = Schema.Struct({
 
 export const toModelOutput = (input: { input: typeof Input.Type; output: typeof Output.Type }) => {
   const entries = input.output.entries
-  const text = entries.length === 0 ? "No memory entries found." : entries.map((e) => `[${e.category ?? "memory"}] ${e.content}`).join("\n")
+  const text =
+    entries.length === 0
+      ? "No memory entries found."
+      : entries.map((e) => `[${e.category ?? "memory"}] ${e.content}`).join("\n")
   return [{ type: "text" as const, text }]
 }
 
@@ -70,9 +75,7 @@ const layer = Layer.effectDiscard(
                 }
                 case "list": {
                   const entries = yield* memory.read()
-                  const filtered = input.category
-                    ? entries.filter((e) => e.category === input.category)
-                    : entries
+                  const filtered = input.category ? entries.filter((e) => e.category === input.category) : entries
                   return { action: "list" as const, entries: filtered }
                 }
                 case "delete": {
@@ -95,7 +98,9 @@ const layer = Layer.effectDiscard(
               }
             }).pipe(
               Effect.mapError((error) =>
-                error instanceof ToolFailure ? error : new ToolFailure({ message: `Unable to perform memory ${input.action}`, error }),
+                error instanceof ToolFailure
+                  ? error
+                  : new ToolFailure({ message: `Unable to perform memory ${input.action}`, error }),
               ),
             ),
         }),

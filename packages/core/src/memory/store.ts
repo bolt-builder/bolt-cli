@@ -95,8 +95,14 @@ const layer = Layer.effect(
     const remove = Effect.fn("MemoryStore.delete")(function* (id: string) {
       const raw = yield* fs.readFileStringSafe(MEMORY_PATH).pipe(Effect.catch(() => Effect.succeed(undefined)))
       const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-      const pattern = new RegExp(`<!--\\s*entry\\s+\\{[^}]*"id":"${escaped}"[^}]*\\}\\s*-->[\\s\\S]*?<!--\\s*\\/entry\\s*-->`, "g")
-      const next = (raw ?? "").replace(pattern, "").replace(/\n{3,}/g, "\n\n").trim()
+      const pattern = new RegExp(
+        `<!--\\s*entry\\s+\\{[^}]*"id":"${escaped}"[^}]*\\}\\s*-->[\\s\\S]*?<!--\\s*\\/entry\\s*-->`,
+        "g",
+      )
+      const next = (raw ?? "")
+        .replace(pattern, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
       if (next !== (raw ?? "").trim()) {
         yield* writeAtomic(MEMORY_PATH, next ? next + "\n" : "")
       }
