@@ -10,6 +10,10 @@ import { Language, type Node } from "web-tree-sitter"
 
 import { FSUtil } from "@opencode-ai/core/fs-util"
 import { fileURLToPath } from "url"
+import { eq } from "drizzle-orm"
+import { Database } from "@opencode-ai/core/database/database"
+import { Sandbox } from "@opencode-ai/core/sandbox"
+import { SessionTable } from "@opencode-ai/core/session/sql"
 import { Config } from "@/config/config"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { Shell } from "@opencode-ai/core/shell"
@@ -344,6 +348,7 @@ export const ShellTool = Tool.define(
     const trunc = yield* Truncate.Service
     const plugin = yield* Plugin.Service
     const flags = yield* RuntimeFlags.Service
+    const { db } = yield* Database.Service
     const defaultTimeoutMs = flags.bashDefaultTimeoutMs ?? 2 * 60 * 1000
 
     const cygpath = Effect.fn("ShellTool.cygpath")(function* (shell: string, text: string) {
@@ -432,6 +437,7 @@ export const ShellTool = Tool.define(
         cwd: string
         env: NodeJS.ProcessEnv
         timeout: number
+        wrapped?: Sandbox.Wrapped
       },
       ctx: Tool.Context,
     ) {
@@ -481,7 +487,16 @@ export const ShellTool = Tool.define(
       const code: number | null = yield* Effect.scoped(
         Effect.gen(function* () {
           yield* Effect.addFinalizer(closeSink)
-          const handle = yield* spawner.spawn(cmd(input.shell, input.command, input.cwd, input.env))
+          const handle = yield* spawner.spawn(
+            input.wrapped
+              ? ChildProcess.make(input.wrapped.exe, input.wrapped.args, {
+                  cwd: input.cwd,
+                  env: input.env,
+                  stdin: "ignore",
+                  detached: process.platform !== "win32",
+                })
+              : cmd(input.shell, input.command, input.cwd, input.env),
+          )
 
           yield* Effect.forkScoped(
             Stream.runForEach(Stream.decodeText(handle.all), (chunk) => {
@@ -628,6 +643,20 @@ export const ShellTool = Tool.define(
                 }),
               )
 
+              const row = yield* db
+                .select({ metadata: SessionTable.metadata })
+                .from(SessionTable)
+                .where(eq(SessionTable.id, ctx.sessionID))
+                .get()
+                .pipe(Effect.orDie)
+              const wrapped = Sandbox.enabled(row?.metadata)
+                ? yield* Sandbox.wrap({
+                    command: params.command,
+                    shell,
+                    writable: Sandbox.writable([instanceCtx.worktree, instanceCtx.directory, cwd]),
+                  }).pipe(Effect.catchTag("SandboxUnsupportedError", (error) => Effect.die(new Error(error.message))))
+                : undefined
+
               return yield* run(
                 {
                   shell,
@@ -635,6 +664,7 @@ export const ShellTool = Tool.define(
                   cwd,
                   env: yield* shellEnv(ctx, cwd),
                   timeout,
+                  ...(wrapped ? { wrapped } : {}),
                 },
                 ctx,
               )
