@@ -113,7 +113,6 @@ Bolt also ships as a desktop app: multi-window and multi-tab session management,
 
 ## Configuration
 
-
 ### Environment variables
 
 | Variable                   | Description                         |
