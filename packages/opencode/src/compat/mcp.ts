@@ -17,7 +17,7 @@ const files = [
   ".gemini/settings.json",
 ]
 
-export const discover = Effect.fnUntraced(function* (
+export const discover = Effect.fn("CompatMCP.discover")(function* (
   fs: FSUtil.Interface,
   opts: { directory: string; worktree?: string; home: string },
 ) {

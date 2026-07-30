@@ -15,7 +15,7 @@ const sources = [
   { tool: "windsurf", root: ".windsurf/workflows/" },
 ]
 
-export const discover = Effect.fnUntraced(function* (
+export const discover = Effect.fn("CompatCommand.discover")(function* (
   fs: FSUtil.Interface,
   opts: { directory: string; worktree?: string; home: string },
 ) {

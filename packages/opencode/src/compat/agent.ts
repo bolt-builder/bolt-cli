@@ -7,7 +7,7 @@ import type { ConfigAgentV1 } from "@opencode-ai/core/v1/config/agent"
 //   customInstructions?, groups? }] } in YAML or JSON. Modes map onto primary agents.
 const files = [".roomodes", ".kilocodemodes"]
 
-export const discover = Effect.fnUntraced(function* (
+export const discover = Effect.fn("CompatAgent.discover")(function* (
   fs: FSUtil.Interface,
   opts: { directory: string; worktree?: string },
 ) {
