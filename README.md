@@ -38,6 +38,10 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
+<p align="center">
+    <img href="./images/demo.svg"></img>
+</p>
+
 ---
 
 ## Why Bolt?
