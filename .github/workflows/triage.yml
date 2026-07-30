@@ -10,8 +10,6 @@ jobs:
     permissions:
       contents: read
       issues: write
-    env:
-      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -35,17 +33,30 @@ jobs:
           fi
 
       # triage requires an opencode API key; skip gracefully when the secret is not configured
+      - name: Check opencode API key
+        id: opencode
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -n "$OPENCODE_API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping triage: OPENCODE_API_KEY secret is not configured"
+          fi
+
       - name: Setup Bun
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         uses: ./.github/actions/setup-bun
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Triage issue
-        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}

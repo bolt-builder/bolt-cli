@@ -145,8 +145,15 @@ jobs:
           opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
+      # skip signing entirely unless the full Azure Trusted Signing configuration is present
       - name: Azure login
-        if: env.AZURE_CLIENT_ID != ''
+        if: >-
+          env.AZURE_CLIENT_ID != '' &&
+          env.AZURE_TENANT_ID != '' &&
+          env.AZURE_SUBSCRIPTION_ID != '' &&
+          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
+          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
+          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
@@ -154,7 +161,13 @@ jobs:
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
       - uses: azure/artifact-signing-action@b443cf8ea4124818d2ea9f043cba29fc3ec47b16 # v1.2.0
-        if: env.AZURE_TRUSTED_SIGNING_ENDPOINT != ''
+        if: >-
+          env.AZURE_CLIENT_ID != '' &&
+          env.AZURE_TENANT_ID != '' &&
+          env.AZURE_SUBSCRIPTION_ID != '' &&
+          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
+          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
+          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         with:
           endpoint: ${{ env.AZURE_TRUSTED_SIGNING_ENDPOINT }}
           signing-account-name: ${{ env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
@@ -175,7 +188,13 @@ jobs:
           exclude-interactive-browser-credential: true
 
       - name: Verify Windows CLI signatures
-        if: env.AZURE_TRUSTED_SIGNING_ENDPOINT != ''
+        if: >-
+          env.AZURE_CLIENT_ID != '' &&
+          env.AZURE_TENANT_ID != '' &&
+          env.AZURE_SUBSCRIPTION_ID != '' &&
+          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
+          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
+          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         shell: pwsh
         run: |
           $files = @(
@@ -296,8 +315,16 @@ jobs:
         with:
           install-flags: ${{ matrix.settings.bun_install_flags }}
 
+      # skip signing entirely unless the full Azure Trusted Signing configuration is present
       - name: Azure login
-        if: runner.os == 'Windows' && env.AZURE_CLIENT_ID != ''
+        if: >-
+          runner.os == 'Windows' &&
+          env.AZURE_CLIENT_ID != '' &&
+          env.AZURE_TENANT_ID != '' &&
+          env.AZURE_SUBSCRIPTION_ID != '' &&
+          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
+          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
+          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
@@ -405,7 +432,14 @@ jobs:
           tar -czf "$OUT_NAME" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
 
       - name: Verify signed Windows Electron artifacts
-        if: runner.os == 'Windows' && env.AZURE_TRUSTED_SIGNING_ENDPOINT != ''
+        if: >-
+          runner.os == 'Windows' &&
+          env.AZURE_CLIENT_ID != '' &&
+          env.AZURE_TENANT_ID != '' &&
+          env.AZURE_SUBSCRIPTION_ID != '' &&
+          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
+          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
+          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         shell: pwsh
         run: |
           $files = @()
