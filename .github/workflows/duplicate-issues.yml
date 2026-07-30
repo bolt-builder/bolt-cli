@@ -11,6 +11,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -33,17 +35,17 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The duplicate/compliance agent needs the opencode gateway; skip when the key is not configured.
       - uses: ./.github/actions/setup-bun
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Check duplicates and compliance
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
             {
@@ -145,6 +147,8 @@ jobs:
     permissions:
       contents: read
       issues: write
+    env:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -167,17 +171,17 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # The compliance recheck agent needs the opencode gateway; skip when the key is not configured.
       - uses: ./.github/actions/setup-bun
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Recheck compliance
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && env.OPENCODE_API_KEY != ''
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENCODE_PERMISSION: |
             {
