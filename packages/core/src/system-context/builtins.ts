@@ -8,6 +8,7 @@ import { InstructionContext } from "../instruction-context"
 import { SystemContextRegistry } from "./registry"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
+import { MemoryContext } from "../memory/context"
 
 const builtIns = Layer.effectDiscard(
   Effect.gen(function* () {
@@ -46,5 +47,5 @@ const builtIns = Layer.effectDiscard(
 export const node = makeLocationNode({
   name: "system-context-builtins",
   layer: builtIns,
-  deps: [Location.node, SystemContextRegistry.node, InstructionContext.node, FSUtil.node, Global.node],
+  deps: [Location.node, SystemContextRegistry.node, InstructionContext.node, FSUtil.node, Global.node, MemoryContext.node],
 })
