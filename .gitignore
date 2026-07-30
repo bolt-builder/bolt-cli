@@ -34,3 +34,5 @@ logs/
 tsconfig.tsbuildinfo
 .kombai/canvas/bolt-cli-home-refresh.canvas
 .kombai/
+.kilo/
+.kilo/plans
