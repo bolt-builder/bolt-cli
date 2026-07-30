@@ -7,7 +7,6 @@
   </a>
 </p>
 
-
 Terminal-based AI coding agent. Reads your codebase, understands what you're building, and ships code — all from the command line.
 
 Built with [Effect](https://effect.website), [OpenTUI](https://github.com/opentui/opentui), and [SolidJS](https://www.solidjs.com).
