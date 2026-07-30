@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/memory": "workspace:*",
     "@opencode-ai/plugin": "workspace:*",
     "@opencode-ai/sdk": "workspace:*",
     "@opencode-ai/ui": "workspace:*",

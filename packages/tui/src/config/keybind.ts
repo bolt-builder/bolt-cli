@@ -156,6 +156,7 @@ export const Definitions = {
   prompt_stash: keybind("none", "Stash prompt"),
   prompt_stash_pop: keybind("none", "Pop stashed prompt"),
   prompt_stash_list: keybind("none", "List stashed prompts"),
+  prompt_vim_toggle: keybind("none", "Toggle vim modal editing in the prompt input"),
   workspace_set: keybind("none", "Set workspace"),
 
   input_clear: keybind("ctrl+c", "Clear input field"),
@@ -360,6 +361,7 @@ export const CommandMap = {
   prompt_stash: "prompt.stash",
   prompt_stash_pop: "prompt.stash.pop",
   prompt_stash_list: "prompt.stash.list",
+  prompt_vim_toggle: "prompt.vim.toggle",
   workspace_set: "workspace.set",
   input_clear: "prompt.clear",
   input_paste: "prompt.paste",

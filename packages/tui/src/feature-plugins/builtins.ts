@@ -8,8 +8,12 @@ import SidebarLsp from "./sidebar/lsp"
 import SidebarMcp from "./sidebar/mcp"
 import SidebarTodo from "./sidebar/todo"
 import DiffViewer from "./system/diff-viewer"
+import Memory from "./system/memory"
 import Notifications from "./system/notifications"
 import PluginManager from "./system/plugins"
+import Process from "./system/process"
+import Reload from "./system/reload"
+import Sandbox from "./system/sandbox"
 import WhichKey from "./system/which-key"
 
 export type BuiltinTuiPlugin = Omit<TuiPluginModule, "id"> & {
@@ -32,5 +36,9 @@ export function createBuiltinPlugins(options: { experimentalEventSystem: boolean
     PluginManager,
     WhichKey,
     DiffViewer,
+    Process,
+    Sandbox,
+    Memory,
+    Reload,
   ]
 }

@@ -35,6 +35,7 @@
     "@opencode-ai/core": "workspace:",
     "@opencode-ai/http-recorder": "workspace:",
     "@opencode-ai/llm": "workspace:",
+    "@opencode-ai/memory": "workspace:*",
     "@opencode-ai/plugin": "workspace:",
     "@opencode-ai/protocol": "workspace:",
     "@opencode-ai/schema": "workspace:",
