@@ -44,25 +44,19 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
-  const leftWidth = glyphs.left[0]!.length
-  const totalWidth = leftWidth + 1 + glyphs.right[0]!.length
+  const leftWidth = glyphs.left[0].length
+  const totalWidth = leftWidth + 1 + glyphs.right[0].length
 
   if (!process.stdout.isTTY && !process.stderr.isTTY) {
-    return glyphs.left.map((row, index) => (pad ?? "") + row + " " + (glyphs.right[index] ?? "")).join(EOL)
+    return glyphs.left.map((row, index) => `${pad ?? ""}${row} ${glyphs.right[index] ?? ""}`).join(EOL)
   }
 
   const reset = "\x1b[0m"
   const shadow = "\x1b[38;5;236m"
-  const fg = (rgb: readonly [number, number, number]) => `\x1b[38;2;${rgb[0]};${rgb[1]};${rgb[2]}m`
+  const color = (rgb: readonly number[]) => `\x1b[38;2;${rgb.join(";")}m`
   const gradient = (column: number) => {
-    const t = column / (totalWidth - 1)
-    return fg(
-      [0, 1, 2].map((i) => Math.round(GRADIENT_FROM[i]! + (GRADIENT_TO[i]! - GRADIENT_FROM[i]!) * t)) as unknown as [
-        number,
-        number,
-        number,
-      ],
-    )
+    const ratio = column / (totalWidth - 1)
+    return color(GRADIENT_FROM.map((from, channel) => Math.round(from + (GRADIENT_TO[channel] - from) * ratio)))
   }
 
   const draw = (line: string, offset: number, bold: boolean) => {

@@ -23,9 +23,9 @@ export function SessionHeader(props: { sessionID: string; width: number }) {
   const gradient = (column: number) => tint(theme.accent, theme.primary, column / (BRAND.length - 1))
 
   const label = (title: string, max: number) => {
-    const match = title.match(/@(\w+) subagent/)
-    const text = match ? Locale.titlecase(match[1]!) : title
-    return text.length > max ? text.slice(0, max - 1) + "…" : text
+    const name = title.match(/@(\w+) subagent/)?.[1]
+    const text = name ? Locale.titlecase(name) : title
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text
   }
 
   return (
