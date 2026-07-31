@@ -82,12 +82,13 @@ function start() {
   return undefined
 }
 
-// Stops the recorder and returns the captured audio as base64 WAV, or
-// undefined when nothing was captured. Leaves status at "transcribing" on
-// success so the caller can run transcription and must call reset() after.
-async function stop() {
+// Stops the recorder and returns the captured audio as base64 WAV, or an
+// error describing why there is nothing to transcribe. Leaves status at
+// "transcribing" on success so the caller can run transcription and must
+// call reset() after.
+async function stop(): Promise<{ audio?: string; error?: string }> {
   const current = active
-  if (!current) return undefined
+  if (!current) return { error: "No audio captured" }
   active = undefined
   setStatus("transcribing")
   // SIGINT lets sox/arecord/ffmpeg finalize the WAV header before exiting.
@@ -101,9 +102,50 @@ async function stop() {
   await rm(current.file, { force: true }).catch(() => undefined)
   if (!bytes || bytes.byteLength === 0) {
     setStatus("idle")
+    return { error: "No audio captured" }
+  }
+  // Gate obviously useless takes before the paid transcription call:
+  // accidental taps and silent recordings both transcribe to nothing.
+  const measured = measure(bytes)
+  if (measured && measured.duration < 0.4) {
+    setStatus("idle")
+    return { error: "Recording too short, ignored" }
+  }
+  if (measured && measured.peak < 0.01) {
+    setStatus("idle")
+    return { error: "No speech detected" }
+  }
+  return { audio: Buffer.from(bytes).toString("base64") }
+}
+
+// Reads duration and peak amplitude from a 16-bit PCM WAV. Returns undefined
+// on anything unexpected so analysis failures never block transcription.
+export function measure(bytes: ArrayBuffer) {
+  const view = new DataView(bytes)
+  if (bytes.byteLength < 44) return undefined
+  if (view.getUint32(0, false) !== 0x52494646 || view.getUint32(8, false) !== 0x57415645) return undefined
+  const chunk = (id: number) => {
+    for (let offset = 12; offset + 8 <= bytes.byteLength; ) {
+      const size = view.getUint32(offset + 4, true)
+      if (view.getUint32(offset, false) === id) return { offset: offset + 8, size }
+      offset += 8 + size + (size % 2)
+    }
     return undefined
   }
-  return Buffer.from(bytes).toString("base64")
+  const fmt = chunk(0x666d7420)
+  const data = chunk(0x64617461)
+  if (!fmt || !data || fmt.size < 16) return undefined
+  const channels = view.getUint16(fmt.offset + 2, true)
+  const rate = view.getUint32(fmt.offset + 4, true)
+  const bits = view.getUint16(fmt.offset + 14, true)
+  if (bits !== 16 || channels === 0 || rate === 0) return undefined
+  if (data.offset % 2 !== 0) return undefined
+  const size = Math.min(data.size, bytes.byteLength - data.offset)
+  const count = Math.floor(size / 2)
+  const duration = count / channels / rate
+  const samples = new Int16Array(bytes, data.offset, count)
+  const peak = samples.reduce((max, sample) => Math.max(max, Math.abs(sample)), 0)
+  return { duration, peak: peak / 32768 }
 }
 
 function reset() {

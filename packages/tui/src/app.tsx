@@ -610,13 +610,13 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             if (error) toast.show({ message: error, variant: "warning" })
             return
           }
-          const audio = await voice.stop()
-          if (!audio) {
-            toast.show({ message: "No audio captured", variant: "warning" })
+          const stopped = await voice.stop()
+          if (!stopped.audio) {
+            toast.show({ message: stopped.error ?? "No audio captured", variant: "warning" })
             return
           }
           const result = await sdk.client.voice
-            .transcribe({ voiceTranscribeInput: { audio, mime: "audio/wav" } })
+            .transcribe({ voiceTranscribeInput: { audio: stopped.audio, mime: "audio/wav" } })
             .catch(() => undefined)
           voice.reset()
           if (!result || result.error) {
