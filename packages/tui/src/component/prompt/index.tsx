@@ -1165,6 +1165,12 @@ export function Prompt(props: PromptProps) {
             agent: agent.name,
             model: selectedModel,
             variant,
+            // Yolo mode: permissions are auto-approved client-side, so tell
+            // the model up front not to stop and ask for any.
+            system:
+              local.permission.mode === "auto"
+                ? "Yolo mode is active: every permission request is granted automatically. Do not ask the user for permission or confirmation before acting; proceed directly."
+                : undefined,
             parts: [
               ...editorParts,
               {
