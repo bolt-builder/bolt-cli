@@ -1,59 +1,35 @@
-import { RGBA, TextAttributes } from "@opentui/core"
-import { For, type JSX } from "solid-js"
+import { For } from "solid-js"
 import { tint, useTheme } from "../context/theme"
 import { logo } from "../logo"
 
+const DIAG = "╱"
+const LEFT_FIELD_WIDTH = 6
+const RIGHT_FIELD_WIDTH = 15
+
 export function Logo() {
   const { theme } = useTheme()
+  const width = logo.wordmark[0]?.length ?? 1
 
-  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
-    const shadow = tint(theme.background, fg, 0.25)
-    const attrs = bold ? TextAttributes.BOLD : undefined
-    return Array.from(line).map((char) => {
-      if (char === "_") {
-        return (
-          <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
-            {" "}
-          </text>
-        )
-      }
-      if (char === "^") {
-        return (
-          <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
-            ▀
-          </text>
-        )
-      }
-      if (char === "~") {
-        return (
-          <text fg={shadow} attributes={attrs} selectable={false}>
-            ▀
-          </text>
-        )
-      }
-      if (char === ",") {
-        return (
-          <text fg={shadow} attributes={attrs} selectable={false}>
-            ▄
-          </text>
-        )
-      }
-      return (
-        <text fg={fg} attributes={attrs} selectable={false}>
-          {char}
-        </text>
-      )
-    })
-  }
+  // Per-column horizontal gradient across the wordmark, secondary to primary.
+  const gradient = (column: number) => tint(theme.secondary, theme.primary, width <= 1 ? 1 : column / (width - 1))
 
   return (
     <box>
-      <For each={logo.left}>
-        {(line, index) => (
-          <box flexDirection="row" gap={1}>
-            <box flexDirection="row">{renderLine(line, RGBA.fromHex("#0062ff"), false)}</box>
-            {/* Safely access logo.right with fallback to empty string */}
-            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", RGBA.fromHex("#ff0000"), true)}</box>
+      <For each={logo.wordmark}>
+        {(line, row) => (
+          <box flexDirection="row">
+            <text fg={theme.primary} selectable={false}>
+              {DIAG.repeat(LEFT_FIELD_WIDTH) + " "}
+            </text>
+            {Array.from(line).map((char, column) => (
+              <text fg={gradient(column)} selectable={false}>
+                {char}
+              </text>
+            ))}
+            {/* The right field steps down one cell per row, like a wind-swept flag. */}
+            <text fg={theme.primary} selectable={false}>
+              {" " + DIAG.repeat(RIGHT_FIELD_WIDTH - row())}
+            </text>
           </box>
         )}
       </For>
