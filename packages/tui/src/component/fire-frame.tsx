@@ -1,32 +1,35 @@
-import { createEffect, createMemo, createSignal, onCleanup, Index } from "solid-js"
-import { advance, cells, seed, side, type Cell } from "../ui/fire"
+import { createEffect, createSignal, onCleanup, Index } from "solid-js"
+import { cells, ignite, type Cell } from "../ui/fire"
 
 const INTERVAL = 90
 
-// Drives the fire border around the chatbox: two independent DOOM-fire grids.
-// The top strip is rendered tips-first so flames lick upward; the bottom strip
-// is rendered reversed so flames lick downward. The fire always faces outward.
+// Drives the fire bar above the chatbox: a DOOM-fire heat grid rendered
+// tips-first so the flames lick upward, with the hot source row hugging the
+// box. The wasm engine loads asynchronously; until it is ready (or while
+// inactive) the grid is empty and nothing renders.
 export function createFire(width: () => number, active: () => boolean) {
-  const blank = () => ({ top: seed(width()), bottom: seed(width()) })
-  const [state, setState] = createSignal(blank())
+  const [grid, setGrid] = createSignal<Cell[][]>([])
   createEffect(() => {
-    if (!active()) return
-    setState(blank())
-    const timer = setInterval(
-      () =>
-        setState((prev) => {
-          const fresh = (prev.top[0]?.length ?? 0) === width() ? prev : blank()
-          return { top: advance(fresh.top), bottom: advance(fresh.bottom) }
-        }),
-      INTERVAL,
-    )
-    onCleanup(() => clearInterval(timer))
+    if (!active()) {
+      setGrid([])
+      return
+    }
+    const cols = width()
+    let dead = false
+    let timer: ReturnType<typeof setInterval> | undefined
+    ignite(cols).then((engine) => {
+      if (dead) return
+      timer = setInterval(() => {
+        engine.advance()
+        setGrid(cells(engine.grid(), cols))
+      }, INTERVAL)
+    })
+    onCleanup(() => {
+      dead = true
+      if (timer) clearInterval(timer)
+    })
   })
-  return {
-    top: createMemo(() => cells(state().top)),
-    bottom: createMemo(() => cells(state().bottom).toReversed()),
-    side: createMemo(() => side(state().top)),
-  }
+  return grid
 }
 
 export function FireStrip(props: { rows: Cell[][] }) {
