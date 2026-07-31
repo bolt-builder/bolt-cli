@@ -39,7 +39,8 @@
 </p>
 
 <p align="center">
-    <img  alt="demo" src="https://github.com/user-attachments/assets/758d3a26-01d3-4cdd-a8e8-45de82d3534a" />
+<img width="640" height="360" alt="Screen Recording 2026-07-31 at 1" src="https://github.com/user-attachments/assets/0f1bf910-a295-4781-a142-478bddd653c0" />
+</img>
 </p>
 
 ---
