@@ -94,7 +94,7 @@ const [store, setStore] = createStore<State>({
   themes: allThemes(),
   mode: "dark",
   lock: undefined,
-  active: "opencode",
+  active: "bolt",
   ready: false,
 })
 
@@ -119,8 +119,8 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         if (!lock && pick(kv.get("theme_mode")) !== undefined) kv.set("theme_mode", undefined)
         draft.mode = mode
         draft.lock = lock
-        const active = config.theme ?? kv.get("theme", "opencode")
-        draft.active = typeof active === "string" ? active : "opencode"
+        const active = config.theme ?? kv.get("theme", "bolt")
+        draft.active = typeof active === "string" ? active : "bolt"
         draft.ready = false
       }),
     )
@@ -141,7 +141,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
             }, {}),
           )
         })
-        .catch(() => setStore("active", "opencode"))
+        .catch(() => setStore("active", "bolt"))
     }
 
     onMount(() => {
@@ -160,7 +160,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
           if (!colors.palette[0]) {
             if (hasResolvedSystemTheme) return
             setSystemTheme(undefined)
-            if (store.active === "system") setStore("active", "opencode")
+            if (store.active === "system") setStore("active", "bolt")
             return
           }
           const next = store.lock ?? terminalMode(colors) ?? mode
@@ -175,7 +175,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         .catch(() => {
           if (hasResolvedSystemTheme) return
           setSystemTheme(undefined)
-          if (store.active === "system") setStore("active", "opencode")
+          if (store.active === "system") setStore("active", "bolt")
         })
     }
 
@@ -265,7 +265,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       }
 
       return (
-        resolveTheme(store.themes.opencode, store.mode) || {
+        resolveTheme(store.themes.bolt, store.mode) || {
           background: { r: 0, g: 0, b: 0, a: 255 },
           text: { r: 255, g: 255, b: 255, a: 255 },
           textMuted: { r: 128, g: 128, b: 128, a: 255 },
@@ -273,7 +273,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       )
     })
 
-    const defaultTheme = () => resolveTheme(store.themes.opencode, store.mode)
+    const defaultTheme = () => resolveTheme(store.themes.bolt, store.mode)
 
     createEffect(() => renderer.setBackgroundColor(values().background))
 
