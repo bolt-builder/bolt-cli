@@ -31,7 +31,7 @@ const MAX_SUBMATCHES = 100
 function boltignore(cwd: string) {
   const base = root(cwd)
   const file = path.join(base, ".boltignore")
-  if (!fs.existsSync(file)) return { cwd, args: [], search: ".", prefix: "" }
+  if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) return { cwd, args: [], search: ".", prefix: "" }
   const search = path.relative(base, cwd)
   return {
     cwd: base,
@@ -54,7 +54,7 @@ function root(cwd: string) {
 // Whether a .boltignore governs this directory. Search backends without
 // ignore-file support (fff) must fall back to ripgrep when this is true.
 export function ignored(cwd: string) {
-  return fs.existsSync(path.join(root(cwd), ".boltignore"))
+  return fs.statSync(path.join(root(cwd), ".boltignore"), { throwIfNoEntry: false })?.isFile() === true
 }
 
 // -g globs follow .gitignore rules relative to the ripgrep working directory:
