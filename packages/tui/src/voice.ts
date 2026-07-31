@@ -22,12 +22,31 @@ function locate() {
   return undefined
 }
 
+// Cap recording length so an unattended session cannot grow unbounded: 5
+// minutes of 16 kHz mono 16-bit WAV is ~9.6 MB, well within the server's
+// 25 MB transcription payload limit.
+const MAX_SECONDS = 300
+
 function args(command: string, file: string) {
-  if (command === "rec") return ["-q", "-c", "1", "-r", "16000", file]
-  if (command === "sox") return ["-q", "-d", "-c", "1", "-r", "16000", file]
-  if (command === "arecord") return ["-q", "-f", "S16_LE", "-r", "16000", "-c", "1", file]
+  if (command === "rec") return ["-q", "-c", "1", "-r", "16000", file, "trim", "0", String(MAX_SECONDS)]
+  if (command === "sox") return ["-q", "-d", "-c", "1", "-r", "16000", file, "trim", "0", String(MAX_SECONDS)]
+  if (command === "arecord")
+    return ["-q", "-f", "S16_LE", "-r", "16000", "-c", "1", "-d", String(MAX_SECONDS), file]
   const input = process.platform === "darwin" ? ["-f", "avfoundation", "-i", ":0"] : ["-f", "alsa", "-i", "default"]
-  return ["-hide_banner", "-loglevel", "error", ...input, "-ac", "1", "-ar", "16000", "-y", file]
+  return [
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    ...input,
+    "-ac",
+    "1",
+    "-ar",
+    "16000",
+    "-t",
+    String(MAX_SECONDS),
+    "-y",
+    file,
+  ]
 }
 
 // Starts push-to-talk recording via the first available recorder binary.
@@ -47,8 +66,11 @@ function start() {
       }
       resolve()
     })
-    child.once("exit", () => {
-      if (active?.child === child) {
+    child.once("exit", (code) => {
+      // Exit code 0 means the recorder finished on its own (duration cap
+      // reached) and finalized the WAV; keep the take so /voice stop can
+      // still transcribe it. Any other exit is a crash; recover to idle.
+      if (code !== 0 && active?.child === child) {
         active = undefined
         setStatus("idle")
       }
