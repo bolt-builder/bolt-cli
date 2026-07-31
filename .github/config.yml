@@ -22,7 +22,6 @@ newIssueWelcomeMessage: >
   I'll get to this as soon as I can. Thanks again for being here this early —
   seriously, it matters.
 
-
 # Message shown when someone opens their very first pull request on the repo
 newPRWelcomeMessage: >
   Whoa, a pull request! Thank you for this. 🎉
@@ -45,7 +44,6 @@ newPRWelcomeMessage: >
 
 
   Welcome to Bolt. Glad you're here.
-
 
 # Message shown when someone's first PR gets merged
 firstPRMergeComment: >
