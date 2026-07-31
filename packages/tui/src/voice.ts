@@ -30,8 +30,7 @@ const MAX_SECONDS = 300
 function args(command: string, file: string) {
   if (command === "rec") return ["-q", "-c", "1", "-r", "16000", file, "trim", "0", String(MAX_SECONDS)]
   if (command === "sox") return ["-q", "-d", "-c", "1", "-r", "16000", file, "trim", "0", String(MAX_SECONDS)]
-  if (command === "arecord")
-    return ["-q", "-f", "S16_LE", "-r", "16000", "-c", "1", "-d", String(MAX_SECONDS), file]
+  if (command === "arecord") return ["-q", "-f", "S16_LE", "-r", "16000", "-c", "1", "-d", String(MAX_SECONDS), file]
   const input = process.platform === "darwin" ? ["-f", "avfoundation", "-i", ":0"] : ["-f", "alsa", "-i", "default"]
   return [
     "-hide_banner",

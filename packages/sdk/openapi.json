@@ -11504,6 +11504,86 @@
         ]
       }
     },
+    "/voice/transcribe": {
+      "post": {
+        "tags": ["voice"],
+        "operationId": "voice.transcribe",
+        "parameters": [
+          {
+            "name": "directory",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "name": "workspace",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transcribed text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceTranscribeResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "InvalidRequestError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidRequestError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "UpstreamError",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpstreamError"
+                }
+              }
+            }
+          }
+        },
+        "description": "Transcribe recorded audio to text using the configured speech-to-text provider.",
+        "summary": "Transcribe audio",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceTranscribeInput"
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.voice.transcribe({\n  ...\n})"
+          }
+        ]
+      }
+    },
     "/experimental/workspace/adapter": {
       "get": {
         "tags": ["workspace"],
@@ -25730,6 +25810,73 @@
         "required": ["type", "properties"],
         "additionalProperties": false
       },
+      "VoiceTranscribeInput": {
+        "type": "object",
+        "properties": {
+          "audio": {
+            "type": "string",
+            "description": "Base64-encoded audio data"
+          },
+          "mime": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          }
+        },
+        "required": ["audio"],
+        "additionalProperties": false
+      },
+      "VoiceTranscribeResult": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "UpstreamError": {
+        "type": "object",
+        "properties": {
+          "_tag": {
+            "type": "string",
+            "enum": ["UpstreamError"]
+          },
+          "message": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "enum": ["NaN"]
+              },
+              {
+                "type": "string",
+                "enum": ["Infinity"]
+              },
+              {
+                "type": "string",
+                "enum": ["-Infinity"]
+              },
+              {
+                "type": "string",
+                "enum": ["Infinity", "-Infinity", "NaN"]
+              }
+            ]
+          }
+        },
+        "required": ["_tag", "message"],
+        "additionalProperties": false
+      },
       "Workspace": {
         "type": "object",
         "properties": {
@@ -39215,6 +39362,10 @@
     {
       "name": "tui",
       "description": "Experimental HttpApi TUI routes."
+    },
+    {
+      "name": "voice",
+      "description": "Voice transcription routes."
     },
     {
       "name": "workspace",

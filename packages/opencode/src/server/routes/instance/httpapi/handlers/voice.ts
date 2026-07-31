@@ -11,9 +11,7 @@ import { TranscribeInput } from "../groups/voice"
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024
 const MAX_AUDIO_BASE64_LENGTH = Math.ceil(MAX_AUDIO_BYTES / 3) * 4
 
-const transcribe = Effect.fn("VoiceHttpApi.transcribe")(function* (ctx: {
-  payload: typeof TranscribeInput.Type
-}) {
+const transcribe = Effect.fn("VoiceHttpApi.transcribe")(function* (ctx: { payload: typeof TranscribeInput.Type }) {
   if (ctx.payload.audio.length > MAX_AUDIO_BASE64_LENGTH)
     return yield* new InvalidRequestError({ message: "audio exceeds the 25 MB limit", field: "audio" })
   const audio = decodeAudio(ctx.payload.audio)

@@ -58,7 +58,8 @@ const layer = Layer.effectDiscard(
               if (!MemoryControls.contribute(row?.metadata))
                 return {
                   title: "Bolt memory: off for this session",
-                  output: "Memory contribution is turned off for this session. Turn it back on with /memory contribute on.",
+                  output:
+                    "Memory contribution is turned off for this session. Turn it back on with /memory contribute on.",
                   metadata: { sources: [] },
                 }
               // The engine reports disabled memory as a regular tool result, so only an

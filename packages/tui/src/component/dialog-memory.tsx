@@ -129,7 +129,10 @@ export function DialogMemoryHelp(props: { reason?: string; sessionID?: string })
       return
     }
     const meta = current.data?.metadata
-    const result = await sdk.client.session.update({ sessionID: id, metadata: { ...meta, [key]: meta?.[key] === false } })
+    const result = await sdk.client.session.update({
+      sessionID: id,
+      metadata: { ...meta, [key]: meta?.[key] === false },
+    })
     if (!result.error) return
     toast.show({ variant: "error", message: `Memory toggle failed: ${errorMessage(result.error)}` })
   }
