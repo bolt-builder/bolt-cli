@@ -54,7 +54,6 @@ import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
 
-import { DialogPrompt } from "../../ui/dialog-prompt"
 import { DialogTodos } from "../../component/dialog-todos"
 
 import { Sidebar } from "./sidebar"
@@ -256,6 +255,49 @@ export function Session() {
   // Side questions asked via /btw, rendered inline at the end of the transcript.
   const [asides, setAsides] = createSignal<{ id: number; question: string; answer?: string; error?: string }[]>([])
   let serial = 0
+  const aside = async (question: string) => {
+    const label = question.length > 40 ? `${question.slice(0, 40)}...` : question
+    const id = serial++
+    const patch = (delta: { answer?: string; error?: string }) =>
+      setAsides((list) => list.map((item) => (item.id === id ? { ...item, ...delta } : item)))
+    setAsides((list) => [...list, { id, question }])
+    // Fork the session so the side question sees the conversation so far;
+    // the fork runs on its own per-session runner, so the original run
+    // keeps streaming untouched.
+    const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch((error) => {
+      patch({ error: error instanceof Error ? error.message : "failed to fork the session" })
+    })
+    const forkID = fork?.data?.id
+    if (!forkID) {
+      if (fork) patch({ error: "failed to fork the session" })
+      return
+    }
+    // Best-effort rename; a failed title update should not block the side question.
+    void sdk.client.session.update({ sessionID: forkID, title: `btw: ${label}` }).catch(() => undefined)
+    const result = await sdk.client.session
+      .prompt({
+        sessionID: forkID,
+        parts: [
+          {
+            type: "text",
+            text: `The user has a side question about the work above. Answer it directly and concisely. Do not modify any files or continue the task; the original session is handling it.\n\n${question}`,
+          },
+        ],
+      })
+      .catch((error) => {
+        patch({ error: error instanceof Error ? error.message : "no answer came back" })
+      })
+    if (!result) return
+    const answer = (result.data?.parts ?? [])
+      .flatMap((part) => (part.type === "text" ? [part.text] : []))
+      .join("\n\n")
+      .trim()
+    if (!answer) {
+      patch({ error: "no answer came back" })
+      return
+    }
+    patch({ answer })
+  }
   const thinking = useThinkingMode()
   const thinkingMode = thinking.mode
   const showThinking = createMemo(() => true)
@@ -578,53 +620,9 @@ export function Session() {
         name: "btw",
         aliases: ["aside"],
       },
-      run: async () => {
-        const question = await DialogPrompt.show(dialog, "Side Question", {
-          placeholder: "Ask without interrupting the running task",
-        })
-        if (!question?.trim()) return
+      run: () => {
         dialog.clear()
-        const label = question.length > 40 ? `${question.slice(0, 40)}...` : question
-        const id = serial++
-        const patch = (delta: { answer?: string; error?: string }) =>
-          setAsides((list) => list.map((item) => (item.id === id ? { ...item, ...delta } : item)))
-        setAsides((list) => [...list, { id, question }])
-        // Fork the session so the side question sees the conversation so far;
-        // the fork runs on its own per-session runner, so the original run
-        // keeps streaming untouched.
-        const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch((error) => {
-          patch({ error: error instanceof Error ? error.message : "failed to fork the session" })
-        })
-        const forkID = fork?.data?.id
-        if (!forkID) {
-          if (fork) patch({ error: "failed to fork the session" })
-          return
-        }
-        // Best-effort rename; a failed title update should not block the side question.
-        void sdk.client.session.update({ sessionID: forkID, title: `btw: ${label}` }).catch(() => undefined)
-        const result = await sdk.client.session
-          .prompt({
-            sessionID: forkID,
-            parts: [
-              {
-                type: "text",
-                text: `The user has a side question about the work above. Answer it directly and concisely. Do not modify any files or continue the task; the original session is handling it.\n\n${question}`,
-              },
-            ],
-          })
-          .catch((error) => {
-            patch({ error: error instanceof Error ? error.message : "no answer came back" })
-          })
-        if (!result) return
-        const answer = (result.data?.parts ?? [])
-          .flatMap((part) => (part.type === "text" ? [part.text] : []))
-          .join("\n\n")
-          .trim()
-        if (!answer) {
-          patch({ error: "no answer came back" })
-          return
-        }
-        patch({ answer })
+        prompt?.aside?.()
       },
     },
     {
@@ -1420,6 +1418,10 @@ export function Session() {
                       disabled={disabled()}
                       onSubmit={() => {
                         toBottom()
+                      }}
+                      onAside={(question) => {
+                        toBottom()
+                        void aside(question)
                       }}
                       sessionID={route.sessionID}
                       right={<pluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />}
