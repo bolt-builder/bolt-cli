@@ -15,7 +15,8 @@ permissions:
 
 jobs:
   deploy:
-    if: github.repository == 'bolt-builder/bolt-cli' && (github.ref_name == 'dev' || github.ref_name == 'production')
+    # Skip when AWS deploy credentials are not configured for this repo.
+    if: github.repository == 'bolt-builder/bolt-cli' && (github.ref_name == 'dev' || github.ref_name == 'production') && vars.AWS_DEPLOY_ROLE_ARN != ''
     runs-on: blacksmith-4vcpu-ubuntu-2404
     environment: ${{ github.ref_name }}
     steps:
