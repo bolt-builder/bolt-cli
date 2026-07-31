@@ -12,19 +12,57 @@
 //   respawns the instance when that happens
 import wasm from "@seomis/doom-fire/doom_fire_bg.wasm" with { type: "file" }
 
-export const GLYPHS = [" ", "·", "░", "▒", "▓", "█"]
+// The classic 36-color DOOM fire palette, black ember to white-hot core,
+// indexed directly by heat.
+export const PALETTE = [
+  "#070707",
+  "#1f0707",
+  "#2f0f07",
+  "#470f07",
+  "#571707",
+  "#671f07",
+  "#771f07",
+  "#8f2707",
+  "#9f2f07",
+  "#af3f07",
+  "#bf4707",
+  "#c74707",
+  "#df4f07",
+  "#df5707",
+  "#df5707",
+  "#d75f07",
+  "#d75f07",
+  "#d7670f",
+  "#cf6f0f",
+  "#cf770f",
+  "#cf7f0f",
+  "#cf8717",
+  "#c78717",
+  "#c78f17",
+  "#c7971f",
+  "#bf9f1f",
+  "#bf9f1f",
+  "#bfa727",
+  "#bfa727",
+  "#bfaf2f",
+  "#b7af2f",
+  "#b7b72f",
+  "#b7b737",
+  "#cfcf6f",
+  "#dfdf9f",
+  "#ffffff",
+]
 
-// Red-dominant palette, dark ember to bright flame tip.
-export const PALETTE = ["#1a0500", "#4a0e00", "#7f1500", "#b71c00", "#e53500", "#ff5a00", "#ff8c00", "#ffb84d"]
-
-export const ROWS = 3
+// Simulation rows; rendered as ROWS / 2 text rows of half-block pixels.
+export const ROWS = 6
 
 // Heat values run 0..MAX, matching the 36-color palette of the original.
 export const MAX = 35
 
 export interface Cell {
   char: string
-  color: string
+  fg?: string
+  bg?: string
 }
 
 interface Api {
@@ -88,21 +126,21 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
   }
 }
 
-export function cell(heat: number): Cell {
-  const ratio = Math.min(1, Math.max(0, heat / MAX))
-  const index = (() => {
-    if (ratio < 0.05) return 0
-    if (ratio < 0.15) return 1
-    if (ratio < 0.35) return 2
-    if (ratio < 0.6) return 3
-    if (ratio < 0.85) return 4
-    return 5
-  })()
-  const color = PALETTE[Math.min(PALETTE.length - 1, Math.floor(ratio * PALETTE.length))]
-  return { char: GLYPHS[index], color }
+// Pairs vertically adjacent heat cells into one half-block character, so each
+// text row carries two pixel rows and the fire renders as pixels instead of
+// glyph soup. Zero heat stays transparent so the flame tips fade into the
+// terminal background.
+export function cell(top: number, bottom: number): Cell {
+  const paint = (heat: number) => PALETTE[Math.min(PALETTE.length - 1, Math.max(0, heat))]
+  if (top === 0 && bottom === 0) return { char: " " }
+  if (bottom === 0) return { char: "▀", fg: paint(top) }
+  if (top === 0) return { char: "▄", fg: paint(bottom) }
+  return { char: "▀", fg: paint(top), bg: paint(bottom) }
 }
 
 export function cells(grid: Uint8Array, width: number): Cell[][] {
-  const rows = width > 0 ? Math.floor(grid.length / width) : 0
-  return Array.from({ length: rows }, (_, y) => Array.from(grid.subarray(y * width, (y + 1) * width), cell))
+  const rows = width > 0 ? Math.floor(grid.length / width / 2) : 0
+  return Array.from({ length: rows }, (_, y) =>
+    Array.from({ length: width }, (_, x) => cell(grid[y * 2 * width + x], grid[(y * 2 + 1) * width + x])),
+  )
 }
