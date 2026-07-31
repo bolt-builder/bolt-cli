@@ -2,7 +2,9 @@ name: Auto Assign
 on:
   issues:
     types: [opened]
-  pull_request:
+  # pull_request_target so the token keeps write permissions on fork PRs;
+  # safe because this workflow never checks out or runs PR code.
+  pull_request_target:
     types: [opened]
 jobs:
   run:
