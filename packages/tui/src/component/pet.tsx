@@ -304,7 +304,7 @@ export function createStrip(
 ) {
   const [tick, setTick] = createSignal(0)
   const [crew, setCrew] = createSignal<Critter[]>([])
-  const [treat, setTreat] = createSignal<Treat | undefined>(undefined)
+  const [treat, setTreat] = createSignal<Treat>()
 
   // Reconcile spawned critters with the persisted list, keeping positions of
   // the ones already on screen so spawning never teleports the others.
