@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { cell, cells, ignite, GLYPHS, MAX, PALETTE, ROWS } from "../../src/ui/fire"
+import { cell, cells, ignite, MAX, PALETTE, ROWS } from "../../src/ui/fire"
 
 describe("fire", () => {
   test("ignite produces a grid of width * rows heat values in range", async () => {
@@ -31,16 +31,6 @@ describe("fire", () => {
     expect(engine.grid().length).toBe(60 * ROWS)
   })
 
-  test("cell maps zero heat to blank and max heat to the brightest glyph", () => {
-    expect(cell(0).char).toBe(" ")
-    expect(cell(MAX).char).toBe(GLYPHS[GLYPHS.length - 1])
-    expect(cell(MAX).color).toBe(PALETTE[PALETTE.length - 1])
-    for (let heat = 0; heat <= MAX; heat++) {
-      expect(GLYPHS).toContain(cell(heat).char)
-      expect(PALETTE).toContain(cell(heat).color)
-    }
-  })
-
   test("narrow grids still burn despite the upstream 35-column seeding quirk", async () => {
     const engine = await ignite(20)
     for (let i = 0; i < 30; i++) engine.advance()
@@ -49,11 +39,22 @@ describe("fire", () => {
     expect(Math.max(...grid)).toBeGreaterThan(MAX / 2)
   })
 
-  test("cells splits the flat grid into rows of rendered cells", async () => {
+  test("cell pairs two pixel rows into one half-block character", () => {
+    expect(cell(0, 0)).toEqual({ char: " " })
+    expect(cell(MAX, 0)).toEqual({ char: "▀", fg: PALETTE[MAX] })
+    expect(cell(0, MAX)).toEqual({ char: "▄", fg: PALETTE[MAX] })
+    expect(cell(10, MAX)).toEqual({ char: "▀", fg: PALETTE[10], bg: PALETTE[MAX] })
+    expect(PALETTE.length).toBe(MAX + 1)
+  })
+
+  test("cells folds the flat grid into half-height rows of rendered cells", async () => {
     const engine = await ignite(20)
     for (let i = 0; i < 10; i++) engine.advance()
     const rows = cells(engine.grid(), 20)
-    expect(rows.length).toBe(ROWS)
-    for (const row of rows) expect(row.length).toBe(20)
+    expect(rows.length).toBe(ROWS / 2)
+    for (const row of rows) {
+      expect(row.length).toBe(20)
+      for (const item of row) expect([" ", "▀", "▄"]).toContain(item.char)
+    }
   })
 })
