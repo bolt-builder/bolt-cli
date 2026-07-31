@@ -136,8 +136,8 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ### Environment variables
 
-| Variable              | Description                         |
-| ---------------------- | ------------------------------------ |
+| Variable               | Description                         |
+| ---------------------- | ----------------------------------- |
 | `BOLT_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
 | `BOLT_PRINT_LOGS`      | Print logs to stderr                |
 | `BOLT_PURE`            | Run without external plugins        |
@@ -148,7 +148,7 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 <summary><strong>All CLI commands</strong></summary>
 
 | Command      | Description                                              |
-| ------------ | ---------------------------------------------------------- |
+| ------------ | -------------------------------------------------------- |
 | `bolt`       | Launch the interactive TUI                               |
 | `run`        | Run a non-interactive prompt                             |
 | `attach`     | Attach the TUI to a running server                       |
@@ -159,18 +159,18 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 | `mcp`        | Manage MCP servers (add, list, auth, logout, debug)      |
 | `serve`      | Start the headless API server                            |
 | `web`        | Start the server and open the web UI                     |
-| `upgrade`    | Upgrade to the latest version                             |
-| `uninstall`  | Remove bolt                                               |
-| `completion` | Generate shell completions                                |
+| `upgrade`    | Upgrade to the latest version                            |
+| `uninstall`  | Remove bolt                                              |
+| `completion` | Generate shell completions                               |
 | `export`     | Export session history (with optional `--sanitize`)      |
 | `import`     | Import a session from a file or share URL                |
-| `plugin`     | Install and manage plugins                                |
+| `plugin`     | Install and manage plugins                               |
 | `github`     | GitHub Actions agent (install, run)                      |
 | `pr`         | Check out a GitHub PR into a local branch                |
-| `stats`      | Show token usage and cost statistics                      |
-| `db`         | Query the local session database                          |
-| `debug`      | Troubleshooting tools (config, lsp, snapshots, and more)  |
-| `acp`        | Agent Client Protocol server for editors (e.g. Zed)       |
+| `stats`      | Show token usage and cost statistics                     |
+| `db`         | Query the local session database                         |
+| `debug`      | Troubleshooting tools (config, lsp, snapshots, and more) |
+| `acp`        | Agent Client Protocol server for editors (e.g. Zed)      |
 
 </details>
 
@@ -276,10 +276,10 @@ bun test
 bun typecheck
 
 ```
+
 ## Enjoying Bolt?
 
 Consider giving it a star ⭐ — it helps other developers discover the project, and it's the easiest way to support the work if you can't contribute code right now.
-
 
 ## License
 
