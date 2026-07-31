@@ -123,6 +123,27 @@ export function Home() {
   return (
     <HomeSessionDestinationProvider>
       <box flexDirection="row" flexGrow={1} minHeight={0}>
+        <Show when={sidebarVisible()}>
+          <Switch>
+            <Match when={wide()}>
+              <SessionSidebar />
+            </Match>
+            <Match when={!wide()}>
+              <box
+                position="absolute"
+                top={0}
+                left={0}
+                right={0}
+                bottom={0}
+                alignItems="flex-start"
+                backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
+              >
+                <box position="absolute" top={0} left={0} right={0} bottom={0} onMouseDown={() => toggleSidebar()} />
+                <SessionSidebar overlay />
+              </box>
+            </Match>
+          </Switch>
+        </Show>
         <box
           flexGrow={1}
           minHeight={0}
@@ -148,27 +169,6 @@ export function Home() {
           <box flexGrow={1} minHeight={0} />
           <Toast />
         </box>
-        <Show when={sidebarVisible()}>
-          <Switch>
-            <Match when={wide()}>
-              <SessionSidebar />
-            </Match>
-            <Match when={!wide()}>
-              <box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                alignItems="flex-end"
-                backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
-              >
-                <box position="absolute" top={0} left={0} right={0} bottom={0} onMouseDown={() => toggleSidebar()} />
-                <SessionSidebar overlay />
-              </box>
-            </Match>
-          </Switch>
-        </Show>
       </box>
       <box width="100%" flexShrink={0}>
         <pluginRuntime.Slot name="home_footer" mode="single_winner" />
