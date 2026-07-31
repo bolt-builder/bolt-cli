@@ -39,7 +39,7 @@
 </p>
 
 <p align="center">
-<img width="640" height="360" alt="Screen Recording 2026-07-31 at 1" src="https://github.com/user-attachments/assets/0f1bf910-a295-4781-a142-478bddd653c0" />
+<img width="640" height="360" alt="Demo" src="./images/demo.gif" />
 </img>
 </p>
 
