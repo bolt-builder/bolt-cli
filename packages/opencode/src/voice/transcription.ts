@@ -1,7 +1,13 @@
 import { Auth } from "@/auth"
 import { Env } from "@/env"
+import { FSUtil } from "@opencode-ai/core/fs-util"
+import { Global } from "@opencode-ai/core/global"
+import { AppProcess } from "@opencode-ai/core/process"
+import { rm } from "node:fs/promises"
+import path from "node:path"
 import { Effect, Schema } from "effect"
 import { HttpBody, HttpClient, HttpClientRequest } from "effect/unstable/http"
+import { ChildProcess } from "effect/unstable/process"
 
 export class NoCredentialError extends Schema.TaggedErrorClass<NoCredentialError>()("VoiceNoCredentialError", {
   message: Schema.String,
@@ -24,18 +30,27 @@ const EXTENSIONS: Record<string, string> = {
   "audio/flac": "flac",
 }
 
-// Single speech-to-text entrypoint. Alternative transcription providers can be
-// added by branching here on the resolved credential/provider instead of
-// touching the HTTP surface or the TUI.
+// Default location for the local whisper.cpp model installed by
+// `install --voice` (large-v3-turbo q5, ~0.6 GB). Override with
+// OPENCODE_VOICE_MODEL.
+const MODEL = path.join(Global.Path.data, "models", "ggml-large-v3-turbo-q5_0.bin")
+
+// Single speech-to-text entrypoint. Prefers a local whisper.cpp install
+// (free, offline, no credential) and falls back to the OpenAI API.
+// Alternative transcription providers can be added by branching here instead
+// of touching the HTTP surface or the TUI.
 export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (input: {
   audio: Uint8Array
   mime: string
   language?: string
 }) {
+  const local = yield* resolveLocal(input.mime)
+  if (local) return yield* transcribeLocal(local, input)
   const key = yield* resolveOpenaiKey()
   if (!key)
     return yield* new NoCredentialError({
-      message: "Voice input needs an OpenAI credential. Run `opencode auth login` and add an OpenAI API key.",
+      message:
+        "Voice input needs a local whisper model or an OpenAI credential. Re-run the installer with --voice for offline transcription, or run `opencode auth login` and add an OpenAI API key.",
     })
   const form = new FormData()
   form.append("model", "whisper-1")
@@ -76,6 +91,54 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
   if (decoded._tag === "None")
     return yield* new TranscribeError({ message: "Transcription returned an unexpected response shape" })
   return decoded.value
+})
+
+// whisper-cli only decodes WAV without ffmpeg support compiled in, so the
+// local path is limited to the recorder's native format; anything else falls
+// through to the OpenAI API.
+const resolveLocal = Effect.fnUntraced(function* (mime: string) {
+  if (!mime.includes("wav")) return undefined
+  const env = yield* Env.Service
+  const binary =
+    (yield* env.get("OPENCODE_VOICE_WHISPER")) ?? Bun.which("whisper-cli") ?? Bun.which("whisper-cpp") ?? undefined
+  if (!binary) return undefined
+  const model = (yield* env.get("OPENCODE_VOICE_MODEL")) ?? MODEL
+  const fsys = yield* FSUtil.Service
+  if (!(yield* fsys.isFile(model))) return undefined
+  return { binary, model }
+})
+
+const transcribeLocal = Effect.fn("VoiceTranscription.local")(function* (
+  found: { binary: string; model: string },
+  input: { audio: Uint8Array; mime: string; language?: string },
+) {
+  const fsys = yield* FSUtil.Service
+  const file = path.join(Global.Path.tmp, `voice-${Date.now()}.wav`)
+  yield* fsys
+    .writeWithDirs(file, input.audio)
+    .pipe(Effect.mapError(() => new TranscribeError({ message: "Failed to stage audio for local transcription" })))
+  const proc = yield* AppProcess.Service
+  const result = yield* proc
+    .run(
+      ChildProcess.make(
+        found.binary,
+        ["-m", found.model, "-f", file, "--no-timestamps", "--no-prints", "--language", input.language ?? "auto"],
+        { stdin: "ignore", stdout: "pipe", stderr: "pipe" },
+      ),
+    )
+    .pipe(
+      Effect.mapError((error) => new TranscribeError({ message: `Local transcription failed: ${error}` })),
+      Effect.timeoutOrElse({
+        duration: "120 seconds",
+        orElse: () => Effect.fail(new TranscribeError({ message: "Local transcription timed out after 120 seconds" })),
+      }),
+      Effect.ensuring(Effect.promise(() => rm(file, { force: true })).pipe(Effect.ignore)),
+    )
+  if (result.exitCode !== 0)
+    return yield* new TranscribeError({
+      message: `Local transcription failed: ${result.stderr.toString("utf8").trim() || `exit ${result.exitCode}`}`,
+    })
+  return { text: result.stdout.toString("utf8").trim() }
 })
 
 const resolveOpenaiKey = Effect.fnUntraced(function* () {
