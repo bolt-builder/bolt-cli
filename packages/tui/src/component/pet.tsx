@@ -171,6 +171,13 @@ export const SPECIES: Record<string, Species> = {
 
 export const PETS_KEY = "pets"
 
+// KV values are parsed JSON with no runtime validation, so a malformed store
+// (a string, an object, junk entries) must degrade to fewer pets, not a crash.
+export function roster(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((name): name is string => typeof name === "string" && SPECIES[name] !== undefined)
+}
+
 // One styled run of a strip row. Rows are run-length encoded so a mostly
 // empty 200-column row costs a few spans instead of one span per cell;
 // re-rendering per-cell spans on every tick is what makes a TUI drop frames.
@@ -290,7 +297,7 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
   const kv = useKV()
   const sync = useSync()
   const { theme } = useTheme()
-  const list = createMemo(() => (kv.get(PETS_KEY, []) as string[]).filter((name) => SPECIES[name] !== undefined))
+  const list = createMemo(() => roster(kv.get(PETS_KEY, [])))
   const state = createMemo<State>(() => {
     const id = props.sessionID ?? ""
     if ((sync.data.permission[id] ?? []).length) return "attention"

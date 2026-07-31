@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { SPECIES, W, H, compose, type Seg } from "../../src/component/pet"
+import { SPECIES, W, H, compose, roster, type Seg } from "../../src/component/pet"
 
 const expand = (row: Seg[]) => row.flatMap((seg) => seg.text.split("").map((char) => ({ char, fg: seg.fg })))
 
@@ -57,5 +57,13 @@ describe("pet sprites", () => {
       const marked = species.states.attention.some((frame) => frame.some((row) => row.includes("!")))
       expect(marked).toBe(true)
     }
+  })
+
+  test("roster normalizes malformed persisted values", () => {
+    expect(roster(undefined)).toEqual([])
+    expect(roster(null)).toEqual([])
+    expect(roster("cat")).toEqual([])
+    expect(roster({ cat: 1 })).toEqual([])
+    expect(roster([1, "cat", null, "unicorn", "dog"])).toEqual(["cat", "dog"])
   })
 })

@@ -1,12 +1,18 @@
 /** @jsxImportSource @opentui/solid */
-import { expect, test } from "bun:test"
+import { afterEach, expect, test } from "bun:test"
 import { createTestRenderer } from "@opentui/core/testing"
 import { render } from "@opentui/solid"
 import { createSignal, Index, Show } from "solid-js"
 import { createStrip, type Seg } from "../../src/component/pet"
 
+// Destroy the renderer even when an assertion throws mid-test; otherwise the
+// strip's setInterval keeps ticking and the process never settles.
+let cleanup: (() => void) | undefined
+afterEach(() => cleanup?.())
+
 test("animated pet strip keeps rendering fast frames", async () => {
   const setup = await createTestRenderer({ width: 120, height: 30, useThread: false })
+  cleanup = () => setup.renderer.destroy()
   const [state, setState] = createSignal<"idle" | "busy" | "attention">("idle")
   const [list, setList] = createSignal<string[]>([])
   let rows!: () => Seg[][]
@@ -73,6 +79,4 @@ test("animated pet strip keeps rendering fast frames", async () => {
   console.log("10 pets busy worst render ms:", worst.toFixed(1))
   expect(worst).toBeLessThan(100)
   expect(setup.captureCharFrame()).toContain("▀")
-
-  setup.renderer.destroy()
 }, 30000)

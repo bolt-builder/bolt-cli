@@ -3,7 +3,7 @@ import { useKV } from "../context/kv"
 import { DialogSelect } from "../ui/dialog-select"
 import { useDialog } from "../ui/dialog"
 import { useToast } from "../ui/toast"
-import { PETS_KEY, SPECIES } from "./pet"
+import { PETS_KEY, roster, SPECIES } from "./pet"
 
 const CAP = 24
 
@@ -11,7 +11,7 @@ export function DialogPets() {
   const kv = useKV()
   const dialog = useDialog()
   const toast = useToast()
-  const list = createMemo(() => (kv.get(PETS_KEY, []) as string[]).filter((name) => SPECIES[name] !== undefined))
+  const list = createMemo(() => roster(kv.get(PETS_KEY, [])))
 
   const options = createMemo(() => {
     const counts = new Map<string, number>()
