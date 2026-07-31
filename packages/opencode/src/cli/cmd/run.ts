@@ -167,6 +167,11 @@ export const RunCommand = effectCmd({
         alias: ["m"],
         describe: "model to use in the format of provider/model",
       })
+      .option("best-of", {
+        type: "string",
+        describe:
+          "comma-separated provider/model list: run the same task on every model in parallel, rank the results with a judge (--model, or the first entry), keep the winner",
+      })
       .option("agent", {
         type: "string",
         describe: "agent to use",
@@ -427,6 +432,12 @@ export const RunCommand = effectCmd({
         process.exit(1)
       }
 
+      if (args["best-of"]) {
+        if (interactive) die("--best-of cannot be used with --mini")
+        if (args.command) die("--best-of cannot be used with --command")
+        if (args.session || args.continue || args.fork) die("--best-of always runs in fresh sessions")
+      }
+
       const rules: PermissionV1.Ruleset = interactive
         ? []
         : [
@@ -668,6 +679,24 @@ export const RunCommand = effectCmd({
       }
 
       async function execute(sdk: OpencodeClient) {
+        if (args["best-of"]) {
+          const { parseCandidates, runBestOf } = await import("./run/best-of")
+          const candidates = parseCandidates(args["best-of"])
+          if (typeof candidates === "string") return die(candidates)
+          const exit = await runBestOf({
+            sdk: args.attach ? attachSDK(directory) : sdk,
+            candidates,
+            judge: pick(args.model) ?? candidates[0],
+            message,
+            parts: [...files, { type: "text", text: message }],
+            agent: args.agent,
+            variant: args.variant,
+            permission: [...rules],
+            json: args.format === "json",
+          })
+          if (exit) process.exitCode = exit
+          return
+        }
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
@@ -986,6 +1015,8 @@ export async function runMini(input: MiniCommandInput) {
     fork: input.fork,
     share: undefined,
     model: input.model,
+    "best-of": undefined,
+    bestOf: undefined,
     agent: input.agent,
     format: "default",
     file: undefined,
