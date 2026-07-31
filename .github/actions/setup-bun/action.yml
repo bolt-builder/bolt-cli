@@ -58,11 +58,21 @@ runs:
         # Workaround for patched peer variants
         # e.g. ./patches/ for standard-openapi
         # https://github.com/oven-sh/bun/issues/28147
+        flags="${{ inputs.install-flags }}"
         if [ "$RUNNER_OS" = "Windows" ]; then
-          bun install --linker hoisted ${{ inputs.install-flags }}
-        else
-          bun install ${{ inputs.install-flags }}
+          flags="--linker hoisted $flags"
         fi
+        # Retry: installs run native install scripts (node-gyp fetches headers over
+        # the network) and transient ETIMEDOUT/registry errors otherwise fail the job.
+        for attempt in 1 2 3; do
+          bun install $flags && exit 0
+          if [ "$attempt" -lt 3 ]; then
+            echo "::warning::bun install failed (attempt ${attempt}/3), retrying..."
+            sleep $((attempt * 15))
+          fi
+        done
+        echo "::error::bun install failed after 3 attempts"
+        exit 1
       shell: bash
 
     - name: Save Bun dependencies
