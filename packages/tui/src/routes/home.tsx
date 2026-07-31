@@ -55,9 +55,14 @@ export function Home() {
     batch(() => {
       const isVisible = sidebarVisible()
       setSidebarPref(() => (isVisible ? "hide" : "auto"))
-      setSidebarOpen(!isVisible)
+      // On wide terminals the "auto" preference alone shows the sidebar; only
+      // narrow terminals need the transient open signal for the overlay.
+      setSidebarOpen(isVisible ? false : !wide())
     })
   }
+  // Dismissing the transient overlay must not touch the persisted preference,
+  // otherwise the automatic sidebar stops appearing on wide terminals.
+  const dismissSidebar = () => setSidebarOpen(false)
 
   useBindings(() => ({
     commands: [
@@ -85,7 +90,7 @@ export function Home() {
         key: "escape",
         desc: "Close sidebar",
         group: "Home",
-        cmd: () => toggleSidebar(),
+        cmd: () => dismissSidebar(),
       },
     ],
   }))
@@ -135,10 +140,11 @@ export function Home() {
                 left={0}
                 right={0}
                 bottom={0}
+                zIndex={1001}
                 alignItems="flex-start"
                 backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
               >
-                <box position="absolute" top={0} left={0} right={0} bottom={0} onMouseDown={() => toggleSidebar()} />
+                <box position="absolute" top={0} left={0} right={0} bottom={0} onMouseDown={() => dismissSidebar()} />
                 <SessionSidebar overlay />
               </box>
             </Match>

@@ -499,6 +499,7 @@ export function Autocomplete(props: {
       return prev
     }
 
+    const query = store.visible + removeLineRange(searchValue)
     const fuzziedNonFiles = fuzzysort
       .go(removeLineRange(searchValue), nonFileOptions, {
         keys: [
@@ -520,6 +521,12 @@ export function Autocomplete(props: {
         },
       })
       .map((arr) => arr.obj)
+      // Rank an exact name match first so `/compact` selects it over `/compact-view`.
+      // Stable sort preserves fuzzy order for everything else; aliases don't count.
+      .sort(
+        (a, b) =>
+          Number((b.value ?? b.display).trimEnd() === query) - Number((a.value ?? a.display).trimEnd() === query),
+      )
 
     return [...fuzziedNonFiles, ...fileOptions].slice(0, 10)
   })
