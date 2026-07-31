@@ -53,6 +53,7 @@ import { DialogConfirm } from "../../ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
+import { DialogPrompt } from "../../ui/dialog-prompt"
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
 import { filetype } from "../../util/filetype"
@@ -549,6 +550,54 @@ export function Session() {
             sessionID={route.sessionID}
           />
         ))
+      },
+    },
+    {
+      title: "Ask a side question",
+      value: "session.btw",
+      category: "Session",
+      slash: {
+        name: "btw",
+        aliases: ["aside"],
+      },
+      run: async () => {
+        const question = await DialogPrompt.show(dialog, "Side Question", {
+          placeholder: "Ask without interrupting the running task",
+        })
+        if (!question?.trim()) return
+        dialog.clear()
+        const label = question.length > 40 ? question.slice(0, 40) + "..." : question
+        // Fork the session so the side question sees the conversation so far;
+        // the fork runs on its own per-session runner, so the original run
+        // keeps streaming untouched.
+        const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch(() => undefined)
+        const id = fork?.data?.id
+        if (!id) {
+          toast.show({ variant: "error", message: "btw: failed to fork the session", duration: 5000 })
+          return
+        }
+        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` })
+        toast.show({ variant: "info", message: `btw: thinking about "${label}"`, duration: 5000 })
+        const result = await sdk.client.session
+          .prompt({
+            sessionID: id,
+            parts: [
+              {
+                type: "text",
+                text: `The user has a side question about the work above. Answer it directly and concisely. Do not modify any files or continue the task; the original session is handling it.\n\n${question}`,
+              },
+            ],
+          })
+          .catch(() => undefined)
+        const answer = (result?.data?.parts ?? [])
+          .flatMap((part) => (part.type === "text" ? [part.text] : []))
+          .join("\n\n")
+          .trim()
+        if (!answer) {
+          toast.show({ variant: "error", message: "btw: no answer came back", duration: 5000 })
+          return
+        }
+        void DialogAlert.show(dialog, `btw: ${label}`, answer)
       },
     },
     {
