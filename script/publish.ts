@@ -61,7 +61,10 @@ if (Script.release) {
 }
 
 if (Script.release && !Script.preview) {
-  await $`git commit -am "release: ${tag}"`
+  // When dev already carries the release versions (e.g. a rerun after a
+  // partially failed publish), prepareReleaseFiles leaves the tree clean and
+  // an unconditional `git commit` would fail with "nothing to commit".
+  if (await $`git status --porcelain --untracked-files=no`.text()) await $`git commit -am "release: ${tag}"`
   await $`git tag -d ${tag}`.nothrow()
   await $`git tag ${tag}`
   await $`git push origin refs/tags/${tag} --force-with-lease --no-verify`
@@ -69,7 +72,7 @@ if (Script.release && !Script.preview) {
   await $`git fetch origin`
   await $`git checkout -B dev origin/dev`
   await prepareReleaseFiles()
-  await $`git commit -am "sync release versions for ${tag}"`
+  if (await $`git status --porcelain --untracked-files=no`.text()) await $`git commit -am "sync release versions for ${tag}"`
   await $`git push origin HEAD:dev --no-verify`
 }
 
