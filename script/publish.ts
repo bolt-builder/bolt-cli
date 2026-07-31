@@ -72,8 +72,11 @@ if (Script.release && !Script.preview) {
   await $`git fetch origin`
   await $`git checkout -B dev origin/dev`
   await prepareReleaseFiles()
+  // [skip ci] keeps this push from re-triggering the publish workflow: dev is
+  // a publish trigger branch, so without it every release spawns a follow-up
+  // publish run that can race the next dispatched release on the tag push.
   if (await $`git status --porcelain --untracked-files=no`.text())
-    await $`git commit -am "sync release versions for ${tag}"`
+    await $`git commit -am "sync release versions for ${tag} [skip ci]"`
   await $`git push origin HEAD:dev --no-verify`
 }
 
