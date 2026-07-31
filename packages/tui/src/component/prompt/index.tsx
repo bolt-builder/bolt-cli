@@ -21,6 +21,7 @@ import { EmptyBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
+import { voice } from "../../voice"
 import { createFire, FireStrip } from "../fire-frame"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
@@ -106,6 +107,8 @@ export type PromptRef = {
   // Optional so plugin-provided prompt replacements without side-question
   // support still satisfy the ref.
   aside?(): void
+  // Optional for the same reason; inserts text at the cursor without submitting.
+  insert?(text: string): void
 }
 
 const money = new Intl.NumberFormat("en-US", {
@@ -654,6 +657,10 @@ export function Prompt(props: PromptProps) {
     },
     aside() {
       setStore("mode", "btw")
+      input.focus()
+    },
+    insert(text) {
+      input.insertText(text)
       input.focus()
     },
   }
@@ -1641,6 +1648,17 @@ export function Prompt(props: PromptProps) {
         </box>
         <box width="100%" flexDirection="row" justifyContent="space-between">
           <Switch>
+            <Match when={voice.status() !== "idle"}>
+              <box marginLeft={1} flexDirection="row" gap={1}>
+                <Show
+                  when={voice.status() === "recording"}
+                  fallback={<Spinner color={theme.accent}>transcribing</Spinner>}
+                >
+                  <text fg={theme.error}>● recording</text>
+                  <text fg={theme.textMuted}>/voice to stop</text>
+                </Show>
+              </box>
+            </Match>
             <Match when={status().type !== "idle"}>
               <box
                 flexDirection="row"

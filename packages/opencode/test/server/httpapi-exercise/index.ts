@@ -293,6 +293,10 @@ const scenarios: Scenario[] = [
       body: { method: "bad" },
     }))
     .status(400),
+  http.protected
+    .post("/voice/transcribe", "voice.transcribe")
+    .at((ctx) => ({ path: "/voice/transcribe", headers: ctx.headers(), body: { audio: "" } }))
+    .status(400),
   http.protected.get("/permission", "permission.list").json(200, array),
   http.protected
     .post("/permission/{requestID}/reply", "permission.reply.invalid")

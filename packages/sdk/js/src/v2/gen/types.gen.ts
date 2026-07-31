@@ -2701,6 +2701,26 @@ export type EventTuiSessionSelect = {
   }
 }
 
+export type VoiceTranscribeInput = {
+  /**
+   * Base64-encoded audio data
+   */
+  audio: string
+  mime?: string
+  language?: string
+}
+
+export type VoiceTranscribeResult = {
+  text: string
+}
+
+export type UpstreamError = {
+  _tag: "UpstreamError"
+  message: string
+  service?: string
+  status?: number | "NaN" | "Infinity" | "-Infinity" | "Infinity" | "-Infinity" | "NaN"
+}
+
 export type Workspace = {
   id: string
   type: string
@@ -11789,6 +11809,38 @@ export type TuiControlResponseResponses = {
 }
 
 export type TuiControlResponseResponse = TuiControlResponseResponses[keyof TuiControlResponseResponses]
+
+export type VoiceTranscribeData = {
+  body?: VoiceTranscribeInput
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/voice/transcribe"
+}
+
+export type VoiceTranscribeErrors = {
+  /**
+   * InvalidRequestError
+   */
+  400: InvalidRequestError
+  /**
+   * UpstreamError
+   */
+  502: UpstreamError
+}
+
+export type VoiceTranscribeError = VoiceTranscribeErrors[keyof VoiceTranscribeErrors]
+
+export type VoiceTranscribeResponses = {
+  /**
+   * Transcribed text
+   */
+  200: VoiceTranscribeResult
+}
+
+export type VoiceTranscribeResponse = VoiceTranscribeResponses[keyof VoiceTranscribeResponses]
 
 export type ExperimentalWorkspaceAdapterListData = {
   body?: never

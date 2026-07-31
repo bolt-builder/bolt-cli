@@ -18,10 +18,14 @@ Options:
     -v, --version <version> Install a specific version (e.g., 1.0.180)
     -b, --binary <path>     Install from a local binary instead of downloading
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
+        --no-voice          Skip /voice input setup (sox recorder plus whisper-cpp
+                            and a local model, ~0.6 GB, for offline transcription
+                            without an OpenAI key). Installed by default.
 
 Examples:
     curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
     curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --version 0.0.1
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --no-voice
     ./install --binary /path/to/bolt
 EOF
 }
@@ -29,6 +33,7 @@ EOF
 requested_version=${VERSION:-}
 no_modify_path=false
 binary_path=""
+install_voice=true
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -56,6 +61,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-modify-path)
             no_modify_path=true
+            shift
+            ;;
+        --no-voice)
+            install_voice=false
             shift
             ;;
         *)
@@ -446,6 +455,79 @@ fi
 if [ -n "${GITHUB_ACTIONS-}" ] && [ "${GITHUB_ACTIONS}" == "true" ]; then
     echo "$INSTALL_DIR" >> $GITHUB_PATH
     print_message info "Added $INSTALL_DIR to \$GITHUB_PATH"
+fi
+
+pkg_install() {
+    local sudo_cmd=""
+    # sudo -n keeps a piped `curl | bash` install from hanging on a password prompt.
+    if [ "$(id -u)" != "0" ] && command -v sudo >/dev/null 2>&1; then
+        sudo_cmd="sudo -n"
+    fi
+    if command -v brew >/dev/null 2>&1; then
+        brew install "$1"
+    elif command -v apt-get >/dev/null 2>&1; then
+        $sudo_cmd apt-get install -y "$1"
+    elif command -v dnf >/dev/null 2>&1; then
+        $sudo_cmd dnf install -y "$1"
+    elif command -v pacman >/dev/null 2>&1; then
+        $sudo_cmd pacman -S --noconfirm "$1"
+    elif command -v apk >/dev/null 2>&1; then
+        $sudo_cmd apk add "$1"
+    else
+        return 1
+    fi
+}
+
+install_voice_deps() {
+    case "$(uname -s)" in
+        Darwin*|Linux*) ;;
+        *)
+            print_message warning "Voice setup is only supported on macOS and Linux, skipping."
+            return 0
+            ;;
+    esac
+
+    # Recorder binary for push-to-talk capture.
+    if command -v rec >/dev/null 2>&1 || command -v sox >/dev/null 2>&1 || command -v arecord >/dev/null 2>&1 || command -v ffmpeg >/dev/null 2>&1; then
+        print_message info "${MUTED}Audio recorder already installed${NC}"
+    else
+        print_message info "${MUTED}Installing ${NC}sox${MUTED} (audio recorder for /voice)${NC}"
+        if ! pkg_install sox; then
+            print_message warning "Could not install sox automatically. Install sox, arecord, or ffmpeg manually to use /voice."
+        fi
+    fi
+
+    # Local whisper.cpp so /voice works offline without an OpenAI key.
+    if ! command -v whisper-cli >/dev/null 2>&1 && ! command -v whisper-cpp >/dev/null 2>&1; then
+        print_message info "${MUTED}Installing ${NC}whisper-cpp${MUTED} (local transcription)${NC}"
+        if ! pkg_install whisper-cpp; then
+            print_message warning "Could not install whisper-cpp automatically. Build it from https://github.com/ggml-org/whisper.cpp or configure an OpenAI key; /voice will fall back to OpenAI."
+            return 0
+        fi
+    fi
+
+    # Model path must match the server default in packages/opencode/src/voice/transcription.ts.
+    local model_dir="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/models"
+    local model="$model_dir/ggml-large-v3-turbo-q5_0.bin"
+    if [ -f "$model" ]; then
+        print_message info "${MUTED}Voice model already downloaded${NC}"
+        return 0
+    fi
+    mkdir -p "$model_dir"
+    print_message info "${MUTED}Downloading ${NC}whisper large-v3-turbo q5 (~0.6 GB)${MUTED} for offline voice input${NC}"
+    if ! curl -# -f -L -o "$model.part" "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin"; then
+        rm -f "$model.part"
+        print_message warning "Model download failed; /voice will fall back to OpenAI (requires an API key)."
+        return 0
+    fi
+    mv "$model.part" "$model"
+    print_message info "${MUTED}Voice model installed at ${NC}$model"
+}
+
+# Voice setup is on by default but skipped in CI, where a 0.6 GB model
+# download and system packages are wasted work.
+if [[ "$install_voice" == "true" && "${GITHUB_ACTIONS-}" != "true" && "${CI-}" != "true" ]]; then
+    install_voice_deps || true
 fi
 
 echo -e ""
