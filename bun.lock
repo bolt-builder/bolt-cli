@@ -955,7 +955,7 @@
         "@types/react": "18.0.25",
         "react": "18.2.0",
         "react-dom": "18.2.0",
-        "solid-js": "catalog:",
+        "solid-js": "1.9.10",
         "storybook": "^10.2.13",
         "storybook-solidjs-vite": "^10.0.9",
         "typescript": "catalog:",
