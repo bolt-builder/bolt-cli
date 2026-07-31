@@ -53,6 +53,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { eq } from "drizzle-orm"
 import { SessionTable } from "@opencode-ai/core/session/sql"
+import { MemoryHost } from "@/memory/host"
 import { SessionReminders } from "./reminders"
 import { SessionTools } from "./tools"
 import { LLMEvent } from "@opencode-ai/llm"
@@ -1343,7 +1344,23 @@ const layer = Layer.effect(
     const loop: (input: LoopInput) => Effect.Effect<SessionV1.WithParts> = Effect.fn("SessionPrompt.loop")(function* (
       input: LoopInput,
     ) {
-      return yield* state.ensureRunning(input.sessionID, lastAssistant(input.sessionID), runLoop(input.sessionID))
+      yield* Effect.sync(() => MemoryHost.open({ sessionID: input.sessionID }))
+      return yield* state.ensureRunning(input.sessionID, lastAssistant(input.sessionID), runLoop(input.sessionID)).pipe(
+        Effect.onExit((exit) =>
+          MemoryHost.close({
+            sessionID: input.sessionID,
+            reason: Exit.isSuccess(exit) ? "completed" : Cause.hasInterruptsOnly(exit.cause) ? "interrupted" : "error",
+            sessions,
+            summary,
+            provider,
+          }).pipe(
+            Effect.catchCause((cause) =>
+              Effect.logWarning("memory turn close failed", { "session.id": input.sessionID, cause }),
+            ),
+            Effect.forkIn(scope),
+          ),
+        ),
+      )
     })
 
     const shell: (input: ShellInput) => Effect.Effect<SessionV1.WithParts, Session.BusyError> = Effect.fn(
