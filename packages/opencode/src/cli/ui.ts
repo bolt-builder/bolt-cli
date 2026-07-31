@@ -44,34 +44,49 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
-  const rows = glyphs.wordmark
+  const leftWidth = glyphs.left[0]!.length
+  const totalWidth = leftWidth + 1 + glyphs.right[0]!.length
+
   if (!process.stdout.isTTY && !process.stderr.isTTY) {
-    return rows.map((row) => (pad ?? "") + row).join(EOL)
+    return glyphs.left.map((row, index) => (pad ?? "") + row + " " + (glyphs.right[index] ?? "")).join(EOL)
   }
 
   const reset = "\x1b[0m"
+  const shadow = "\x1b[38;5;236m"
   const fg = (rgb: readonly [number, number, number]) => `\x1b[38;2;${rgb[0]};${rgb[1]};${rgb[2]}m`
-  const mix = (t: number) =>
-    [0, 1, 2].map((i) => Math.round(GRADIENT_FROM[i]! + (GRADIENT_TO[i]! - GRADIENT_FROM[i]!) * t)) as unknown as [
-      number,
-      number,
-      number,
-    ]
-  const field = fg([0x1e, 0x3a, 0x5f])
-  const width = rows[0]!.length
+  const gradient = (column: number) => {
+    const t = column / (totalWidth - 1)
+    return fg(
+      [0, 1, 2].map((i) => Math.round(GRADIENT_FROM[i]! + (GRADIENT_TO[i]! - GRADIENT_FROM[i]!) * t)) as unknown as [
+        number,
+        number,
+        number,
+      ],
+    )
+  }
 
-  const result: string[] = []
-  rows.forEach((row, index) => {
-    if (pad) result.push(pad)
-    result.push(field, "╱".repeat(6), reset, " ")
-    Array.from(row).forEach((char, column) => {
+  const draw = (line: string, offset: number, bold: boolean) => {
+    const parts: string[] = []
+    Array.from(line).forEach((char, column) => {
       if (char === " ") {
-        result.push(" ")
+        parts.push(" ")
         return
       }
-      result.push(fg(mix(column / (width - 1))), char)
+      if (char === "_") {
+        parts.push(shadow, "_", reset)
+        return
+      }
+      parts.push(gradient(offset + column), bold ? "\x1b[1m" : "", char, reset)
     })
-    result.push(reset, " ", field, "╱".repeat(15 - index), reset)
+    return parts.join("")
+  }
+
+  const result: string[] = []
+  glyphs.left.forEach((row, index) => {
+    if (pad) result.push(pad)
+    result.push(draw(row, 0, false))
+    result.push(" ")
+    result.push(draw(glyphs.right[index] ?? "", leftWidth + 1, true))
     result.push(EOL)
   })
   return result.join("").trimEnd()

@@ -1463,95 +1463,85 @@ export function Prompt(props: PromptProps) {
             flexGrow={1}
             width="100%"
           >
-            <box flexDirection="row" gap={1} width="100%">
-              <text
-                flexShrink={0}
-                selectable={false}
-                fg={store.mode === "shell" ? theme.warning : fadeColor(theme.success, 0.7)}
-              >
-                {store.mode === "shell" ? " ! " : ":::"}
-              </text>
-              <textarea
-                flexGrow={1}
-                flexShrink={1}
-                placeholder={placeholderText()}
-                placeholderColor={theme.textMuted}
-                textColor={leader() ? theme.textMuted : theme.text}
-                focusedTextColor={leader() ? theme.textMuted : theme.text}
-                minHeight={1}
-                maxHeight={maxHeight()}
-                onContentChange={() => {
-                  const value = input.plainText
-                  setStore("prompt", "input", value)
-                  auto()?.onInput(value)
-                  syncExtmarksWithPromptParts()
-                  setCursorVersion((value) => value + 1)
-                }}
-                onCursorChange={() => setCursorVersion((value) => value + 1)}
-                onKeyDown={(e: KeyEvent) => {
-                  if (props.disabled) {
-                    e.preventDefault()
-                    return
-                  }
-                  // route keys through the vim layer when enabled
-                  if (vim.vimOnKey(e)) {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    return
-                  }
-                }}
-                onSubmit={() => {
-                  // IME: double-defer so the last composed character (e.g. Korean
-                  // hangul) is flushed to plainText before we read it for submission.
-                  setTimeout(() => setTimeout(() => submit(), 0), 0)
-                }}
-                onPaste={async (event: PasteEvent) => {
-                  if (props.disabled) {
-                    event.preventDefault()
-                    return
-                  }
-
-                  // Normalize line endings at the boundary
-                  // Windows ConPTY/Terminal often sends CR-only newlines in bracketed paste
-                  // Replace CRLF first, then any remaining CR
-                  const normalizedText = decodePasteBytes(event.bytes).replace(/\r\n/g, "\n").replace(/\r/g, "\n")
-                  const pastedContent = normalizedText.trim()
-
-                  // Windows Terminal <1.25 can surface image-only clipboard as an
-                  // empty bracketed paste. Windows Terminal 1.25+ does not.
-                  if (!pastedContent) {
-                    keymap.dispatchCommand("prompt.paste")
-                    return
-                  }
-
-                  // Once we cross an async boundary below, the terminal may perform its
-                  // default paste unless we suppress it first and handle insertion ourselves.
+            <textarea
+              width="100%"
+              placeholder={placeholderText()}
+              placeholderColor={theme.textMuted}
+              textColor={leader() ? theme.textMuted : theme.text}
+              focusedTextColor={leader() ? theme.textMuted : theme.text}
+              minHeight={1}
+              maxHeight={maxHeight()}
+              onContentChange={() => {
+                const value = input.plainText
+                setStore("prompt", "input", value)
+                auto()?.onInput(value)
+                syncExtmarksWithPromptParts()
+                setCursorVersion((value) => value + 1)
+              }}
+              onCursorChange={() => setCursorVersion((value) => value + 1)}
+              onKeyDown={(e: KeyEvent) => {
+                if (props.disabled) {
+                  e.preventDefault()
+                  return
+                }
+                // route keys through the vim layer when enabled
+                if (vim.vimOnKey(e)) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  return
+                }
+              }}
+              onSubmit={() => {
+                // IME: double-defer so the last composed character (e.g. Korean
+                // hangul) is flushed to plainText before we read it for submission.
+                setTimeout(() => setTimeout(() => submit(), 0), 0)
+              }}
+              onPaste={async (event: PasteEvent) => {
+                if (props.disabled) {
                   event.preventDefault()
+                  return
+                }
 
-                  await pasteInputText(normalizedText)
-                }}
-                ref={(r: TextareaRenderable) => {
-                  input = r
-                  Object.assign(r, {
-                    getClipboardText: (text: string) => expandPastedTextPlaceholders(text, store.prompt.parts),
-                  })
-                  setInputTarget(r)
-                  if (promptPartTypeId === 0) {
-                    promptPartTypeId = input.extmarks.registerType("prompt-part")
-                  }
-                  props.ref?.(ref)
-                  setTimeout(() => {
-                    // setTimeout is a workaround and needs to be addressed properly
-                    if (!input || input.isDestroyed) return
-                    input.cursorColor = theme.text
-                  }, 0)
-                }}
-                onMouseDown={(r: MouseEvent) => r.target?.focus()}
-                focusedBackgroundColor={theme.backgroundElement}
-                cursorColor={props.disabled ? theme.backgroundElement : theme.text}
-                syntaxStyle={syntax()}
-              />
-            </box>
+                // Normalize line endings at the boundary
+                // Windows ConPTY/Terminal often sends CR-only newlines in bracketed paste
+                // Replace CRLF first, then any remaining CR
+                const normalizedText = decodePasteBytes(event.bytes).replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+                const pastedContent = normalizedText.trim()
+
+                // Windows Terminal <1.25 can surface image-only clipboard as an
+                // empty bracketed paste. Windows Terminal 1.25+ does not.
+                if (!pastedContent) {
+                  keymap.dispatchCommand("prompt.paste")
+                  return
+                }
+
+                // Once we cross an async boundary below, the terminal may perform its
+                // default paste unless we suppress it first and handle insertion ourselves.
+                event.preventDefault()
+
+                await pasteInputText(normalizedText)
+              }}
+              ref={(r: TextareaRenderable) => {
+                input = r
+                Object.assign(r, {
+                  getClipboardText: (text: string) => expandPastedTextPlaceholders(text, store.prompt.parts),
+                })
+                setInputTarget(r)
+                if (promptPartTypeId === 0) {
+                  promptPartTypeId = input.extmarks.registerType("prompt-part")
+                }
+                props.ref?.(ref)
+                setTimeout(() => {
+                  // setTimeout is a workaround and needs to be addressed properly
+                  if (!input || input.isDestroyed) return
+                  input.cursorColor = theme.text
+                }, 0)
+              }}
+              onMouseDown={(r: MouseEvent) => r.target?.focus()}
+              focusedBackgroundColor={theme.backgroundElement}
+              cursorColor={props.disabled ? theme.backgroundElement : theme.text}
+              syntaxStyle={syntax()}
+            />
             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
               <box flexDirection="row" gap={1}>
                 <Show when={local.agent.current()} fallback={<box height={1} />}>

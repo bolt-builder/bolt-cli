@@ -4,11 +4,10 @@ import { useSync } from "../../context/sync"
 import { tint, useTheme } from "../../context/theme"
 import { Locale } from "../../util/locale"
 
-const DIAG = "╱"
-const BRAND = "BOLT"
+const BRAND = "BOLT CLI"
 
-// Three-line Crush-style session header: a gradient brand row filled with
-// diagonals, the current session line, and a subagent activity line.
+// Three-line session header: a gradient brand row with a thin rule, the
+// current session line, and a subagent activity line.
 export function SessionHeader(props: { sessionID: string; width: number }) {
   const { theme } = useTheme()
   const sync = useSync()
@@ -21,8 +20,7 @@ export function SessionHeader(props: { sessionID: string; width: number }) {
   })
   const working = (id: string) => (sync.data.session_status[id]?.type ?? "idle") !== "idle"
 
-  const gradient = (column: number) => tint(theme.secondary, theme.primary, column / (BRAND.length - 1))
-  const field = tint(theme.background, theme.primary, 0.55)
+  const gradient = (column: number) => tint(theme.accent, theme.primary, column / (BRAND.length - 1))
 
   const label = (title: string, max: number) => {
     const match = title.match(/@(\w+) subagent/)
@@ -33,15 +31,13 @@ export function SessionHeader(props: { sessionID: string; width: number }) {
   return (
     <box flexShrink={0} paddingTop={1}>
       <box flexDirection="row" gap={1}>
-        <box flexDirection="row">
+        <text selectable={false}>
           {Array.from(BRAND).map((char, column) => (
-            <text fg={gradient(column)} attributes={TextAttributes.BOLD} selectable={false}>
-              {char}
-            </text>
+            <span style={{ fg: gradient(column), attributes: TextAttributes.BOLD }}>{char}</span>
           ))}
-        </box>
-        <text fg={field} selectable={false} wrapMode="none">
-          {DIAG.repeat(Math.max(0, props.width - BRAND.length - 1))}
+        </text>
+        <text fg={theme.border} selectable={false} wrapMode="none">
+          {"─".repeat(Math.max(0, props.width - BRAND.length - 1))}
         </text>
       </box>
       <box flexDirection="row" gap={1}>
@@ -57,7 +53,7 @@ export function SessionHeader(props: { sessionID: string; width: number }) {
         when={subagents().length > 0}
         fallback={
           <text fg={theme.textMuted} wrapMode="none">
-            {DIAG} no subagent work
+            no subagent work
           </text>
         }
       >
