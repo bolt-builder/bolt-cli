@@ -5,6 +5,7 @@ import {
   MouseEvent,
   PasteEvent,
   decodePasteBytes,
+  rgbToHex,
   type KeyEvent,
   type Renderable,
 } from "@opentui/core"
@@ -20,6 +21,7 @@ import { EmptyBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
+import { createFire, FireStrip } from "../fire-frame"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -1384,6 +1386,12 @@ export function Prompt(props: PromptProps) {
     animationsEnabled,
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
+  const fire = createMemo(() => animationsEnabled() && status().type !== "idle")
+  const flames = createFire(
+    () => dimensions().width,
+    fire,
+    () => rgbToHex(theme.primary),
+  )
 
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
@@ -1425,6 +1433,9 @@ export function Prompt(props: PromptProps) {
   return (
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
+        <Show when={fire()}>
+          <FireStrip rows={flames()} />
+        </Show>
         <box
           width="100%"
           border={["left"]}

@@ -56,6 +56,7 @@
     "@opentui/core": "catalog:",
     "@opentui/keymap": "catalog:",
     "@opentui/solid": "catalog:",
+    "@seomis/doom-fire": "0.1.0",
     "clipboardy": "4.0.0",
     "diff": "catalog:",
     "effect": "catalog:",
@@ -63,8 +64,8 @@
     "open": "10.1.2",
     "opentui-spinner": "catalog:",
     "remeda": "catalog:",
-    "strip-ansi": "7.1.2",
-    "solid-js": "catalog:"
+    "solid-js": "catalog:",
+    "strip-ansi": "7.1.2"
   },
   "devDependencies": {
     "@tsconfig/bun": "catalog:",
