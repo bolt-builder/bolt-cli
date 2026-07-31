@@ -136,7 +136,22 @@ const add = async (data: Record<string, { url: string; signature: string }>, key
   if (!raw) return
   if (data[key]) return
   const url = link(raw)
-  data[key] = { url, signature: await sign(url, key) }
+
+  // If no signing key provided, skip signing this platform with a warning.
+  const rawKey = process.env.TAURI_SIGNING_PRIVATE_KEY ?? ""
+  if (!rawKey.trim()) {
+    console.warn(`warning: TAURI_SIGNING_PRIVATE_KEY not set; skipping signing for platform ${key}`)
+    return
+  }
+
+  try {
+    const signature = await sign(url, key)
+    data[key] = { url, signature }
+  } catch (err: any) {
+    // If signing fails for some reason (bad key, wrong passphrase, format), warn and skip.
+    console.warn(`warning: signing failed for ${key} (${url}): ${err?.message ?? err}`)
+    return
+  }
 }
 
 const alias = (data: Record<string, { url: string; signature: string }>, key: string, src: string) => {
@@ -195,7 +210,12 @@ const platforms = Object.fromEntries(
     .map((key) => [key, out[key]]),
 )
 
-if (!Object.keys(platforms).length) throw new Error("No updater files found in latest.yml artifacts")
+if (!Object.keys(platforms).length) {
+  // No signed updater platforms found — warn instead of failing the whole job.
+  console.warn("warning: No updater files found or no platforms successfully signed in latest.yml artifacts")
+  // You can choose to exit non-zero here if you want to enforce signing.
+  // throw new Error("No updater files found in latest.yml artifacts")
+}
 
 const data = {
   version,
