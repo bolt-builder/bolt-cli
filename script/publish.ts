@@ -72,7 +72,8 @@ if (Script.release && !Script.preview) {
   await $`git fetch origin`
   await $`git checkout -B dev origin/dev`
   await prepareReleaseFiles()
-  if (await $`git status --porcelain --untracked-files=no`.text()) await $`git commit -am "sync release versions for ${tag}"`
+  if (await $`git status --porcelain --untracked-files=no`.text())
+    await $`git commit -am "sync release versions for ${tag}"`
   await $`git push origin HEAD:dev --no-verify`
 }
 
