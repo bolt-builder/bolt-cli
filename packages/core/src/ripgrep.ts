@@ -1,5 +1,7 @@
 export * as Ripgrep from "./ripgrep"
 
+import fs from "node:fs"
+import path from "node:path"
 import { Context, Effect, Fiber, Layer, Schema, Stream } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 import { Entry, Match } from "@opencode-ai/schema/filesystem"
@@ -18,6 +20,23 @@ import { RipgrepBinary } from "./ripgrep/binary"
 const ERROR_BYTES = 8 * 1024
 const MAX_RECORD_BYTES = 64 * 1024
 const MAX_SUBMATCHES = 100
+
+// Extra agent-only ignore rules: .boltignore uses .gitignore syntax and hides
+// committed files from search without touching .gitignore. Collected from the
+// search cwd up to the repo root so subdirectory searches still respect it.
+function ignores(cwd: string) {
+  const found: string[] = []
+  let dir = cwd
+  while (true) {
+    const file = path.join(dir, ".boltignore")
+    if (fs.existsSync(file)) found.push(`--ignore-file=${file}`)
+    if (fs.existsSync(path.join(dir, ".git"))) break
+    const parent = path.dirname(dir)
+    if (parent === dir) break
+    dir = parent
+  }
+  return found
+}
 
 const RawMatch = Schema.Struct({
   type: Schema.Literal("match"),
@@ -160,6 +179,7 @@ const layer = Layer.effect(
           args: [
             "--no-config",
             "--files",
+            ...ignores(input.cwd),
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
             `--glob=${input.pattern}`,
@@ -192,6 +212,7 @@ const layer = Layer.effect(
           args: [
             "--no-config",
             "--files",
+            ...ignores(input.cwd),
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
             ...(input.pattern === "*" ? [] : [`--glob=${input.pattern}`]),
@@ -223,6 +244,7 @@ const layer = Layer.effect(
             "--json",
             "--hidden",
             "--no-messages",
+            ...ignores(input.cwd),
             ...(input.include ? [`--glob=${input.include}`] : []),
             "--glob=!**/.git/**",
             "--",
