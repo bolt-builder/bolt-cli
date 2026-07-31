@@ -10,6 +10,10 @@
 //   dimensions instead of asking the wasm
 // - fire_update_cells occasionally traps on an out-of-bounds drift, so advance
 //   respawns the instance when that happens
+// The reference pulls the ambient *.wasm module declaration into any program
+// that compiles this file; packages importing tui sources (like cli) don't
+// include tui's wasm.d.ts on their own.
+/// <reference path="../wasm.d.ts" />
 import wasm from "@seomis/doom-fire/doom_fire_bg.wasm" with { type: "file" }
 
 // The classic 36-color DOOM fire palette, black ember to white-hot core,
