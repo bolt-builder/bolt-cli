@@ -37,3 +37,5 @@ tsconfig.tsbuildinfo
 .kilo/
 .kilo/plans
 bolt-cli/.env.example
+tauri_key
+tauri_key.pub
