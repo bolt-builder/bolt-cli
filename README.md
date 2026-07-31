@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/Bolt-builder/bolt-cli">
-    <img src="images/logo-ornate-dark.svg" alt="Bolt CLI logo">
+    <img width="576" height="186" alt="image" src="https://github.com/user-attachments/assets/05ada17d-5f43-4ed8-9696-3fc84e46f066" />
   </a>
 </p>
 
