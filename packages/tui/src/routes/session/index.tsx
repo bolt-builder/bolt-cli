@@ -566,7 +566,7 @@ export function Session() {
         })
         if (!question?.trim()) return
         dialog.clear()
-        const label = question.length > 40 ? question.slice(0, 40) + "..." : question
+        const label = question.length > 40 ? `${question.slice(0, 40)}...` : question
         // Fork the session so the side question sees the conversation so far;
         // the fork runs on its own per-session runner, so the original run
         // keeps streaming untouched.
