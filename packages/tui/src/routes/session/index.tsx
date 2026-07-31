@@ -59,6 +59,7 @@ import { DialogTodos } from "../../component/dialog-todos"
 
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
+import { SessionHeader } from "./header.tsx"
 import { filetype } from "../../util/filetype"
 import parsers from "../../parsers-config"
 import { errorMessage } from "../../util/error"
@@ -1244,6 +1245,7 @@ export function Session() {
         <box flexDirection="row" flexGrow={1} minHeight={0}>
           <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
             <Show when={session()}>
+              <SessionHeader sessionID={route.sessionID} width={contentWidth()} />
               <scrollbox
                 ref={(r) => (scroll = r)}
                 viewportOptions={{

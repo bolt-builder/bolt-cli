@@ -1,16 +1,11 @@
 import { EOL } from "os"
 import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
-const wordmark = [
-  ` /$$$$$$$   /$$$$$$  /$$   /$$$$$$$$         /$$$$$$  /$$       /$$$$$$ `,
-  `| $$__  $$ /$$__  $$| $$  |__  $$__/        /$$__  $$| $$      |_  $$_/ `,
-  `| $$  \\ $$| $$  \\ $$| $$     | $$          | $$  \\__/| $$        | $$   `,
-  `| $$$$$$$ | $$  | $$| $$     | $$          | $$      | $$        | $$   `,
-  `| $$__  $$| $$  | $$| $$     | $$          | $$      | $$        | $$   `,
-  `| $$  \\ $$| $$  | $$| $$     | $$          | $$    $$| $$        | $$   `,
-  `| $$$$$$$/|  $$$$$$/| $$$$$$$| $$          |  $$$$$$/| $$$$$$$$ /$$$$$$ `,
-  `|_______/  \\______/ |________|__/           \\______/ |________/|______/ `,
-]
+
+// Gradient endpoints for the wordmark, matching the bolt theme's accent
+// (#63d9ff) and primary (#2d7bff) colors.
+const GRADIENT_FROM = [0x63, 0xd9, 0xff] as const
+const GRADIENT_TO = [0x2d, 0x7b, 0xff] as const
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
 
@@ -49,58 +44,34 @@ export function empty() {
 }
 
 export function logo(pad?: string) {
+  const rows = glyphs.wordmark
   if (!process.stdout.isTTY && !process.stderr.isTTY) {
-    const result = []
-    for (const row of wordmark) {
-      if (pad) result.push(pad)
-      result.push(row)
-      result.push(EOL)
-    }
-    return result.join("").trimEnd()
+    return rows.map((row) => (pad ?? "") + row).join(EOL)
   }
 
-  const result: string[] = []
   const reset = "\x1b[0m"
-  const left = {
-    fg: Style.TEXT_INFO,
-    shadow: "\x1b[38;5;235m",
-    bg: "\x1b[48;5;235m",
-  }
-  const right = {
-    fg: reset,
-    shadow: "\x1b[38;5;238m",
-    bg: "\x1b[48;5;238m",
-  }
-  const gap = " "
-  const draw = (line: string, fg: string, shadow: string, bg: string) => {
-    const parts: string[] = []
-    for (const char of line) {
-      if (char === "_") {
-        parts.push(bg, " ", reset)
-        continue
-      }
-      if (char === "^") {
-        parts.push(fg, bg, "▀", reset)
-        continue
-      }
-      if (char === "~") {
-        parts.push(shadow, "▀", reset)
-        continue
-      }
-      if (char === " ") {
-        parts.push(" ")
-        continue
-      }
-      parts.push(fg, char, reset)
-    }
-    return parts.join("")
-  }
-  glyphs.left.forEach((row, index) => {
+  const fg = (rgb: readonly [number, number, number]) => `\x1b[38;2;${rgb[0]};${rgb[1]};${rgb[2]}m`
+  const mix = (t: number) =>
+    [0, 1, 2].map((i) => Math.round(GRADIENT_FROM[i]! + (GRADIENT_TO[i]! - GRADIENT_FROM[i]!) * t)) as unknown as [
+      number,
+      number,
+      number,
+    ]
+  const field = fg([0x1e, 0x3a, 0x5f])
+  const width = rows[0]!.length
+
+  const result: string[] = []
+  rows.forEach((row, index) => {
     if (pad) result.push(pad)
-    result.push(draw(row, left.fg, left.shadow, left.bg))
-    result.push(gap)
-    const other = glyphs.right[index] ?? ""
-    result.push(draw(other, right.fg, right.shadow, right.bg))
+    result.push(field, "╱".repeat(6), reset, " ")
+    Array.from(row).forEach((char, column) => {
+      if (char === " ") {
+        result.push(" ")
+        return
+      }
+      result.push(fg(mix(column / (width - 1))), char)
+    })
+    result.push(reset, " ", field, "╱".repeat(15 - index), reset)
     result.push(EOL)
   })
   return result.join("").trimEnd()

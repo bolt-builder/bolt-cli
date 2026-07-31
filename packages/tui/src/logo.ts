@@ -1,11 +1,7 @@
 // Half-block letterforms spelling "BOLT", drawn Crush-style with a
 // three-row-tall alphabet built from ▄ ▀ █ cells.
 export const logo = {
-  wordmark: [
-    "█▀▀▀▄ ▄▀▀▀▄ █     ▀▀█▀▀",
-    "█▀▀▀▄ █   █ █       █  ",
-    "▀▀▀▀▀  ▀▀▀  ▀▀▀▀▀   ▀  ",
-  ],
+  wordmark: ["█▀▀▀▄ ▄▀▀▀▄ █     ▀▀█▀▀", "█▀▀▀▄ █   █ █       █  ", "▀▀▀▀▀  ▀▀▀  ▀▀▀▀▀   ▀  "],
 }
 
 export const go = {
