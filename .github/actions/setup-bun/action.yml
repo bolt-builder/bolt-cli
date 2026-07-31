@@ -60,7 +60,8 @@ runs:
         # https://github.com/oven-sh/bun/issues/28147
         flags="${{ inputs.install-flags }}"
         if [ "$RUNNER_OS" = "Windows" ]; then
-          flags="--linker hoisted $flags"
+          # Appended after caller flags so the enforced linker wins (bun uses the last --linker value)
+          flags="$flags --linker hoisted"
         fi
         # Retry: installs run native install scripts (node-gyp fetches headers over
         # the network) and transient ETIMEDOUT/registry errors otherwise fail the job.
