@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test"
-import { SPECIES, W, H, compose } from "../../src/component/pet"
+import { SPECIES, W, H, compose, type Seg } from "../../src/component/pet"
+
+const expand = (row: Seg[]) => row.flatMap((seg) => seg.text.split("").map((char) => ({ char, fg: seg.fg })))
 
 describe("pet sprites", () => {
   test("every frame is a full-size grid of known palette pixels", () => {
@@ -24,17 +26,25 @@ describe("pet sprites", () => {
     const rows = compose([{ species: "cat", x: 0, dir: 1 as const }], 0, "idle", 40, "#fbbf24")
     expect(rows.length).toBeGreaterThan(0)
     expect(rows.length).toBeLessThanOrEqual(H / 2)
-    for (const row of rows) expect(row.length).toBe(40)
-    const chars = new Set(rows.flat().map((px) => px.char))
+    for (const row of rows) expect(expand(row).length).toBe(40)
+    const chars = new Set(rows.flatMap(expand).map((px) => px.char))
     expect(chars.has("▀")).toBe(true)
-    expect(rows[0].some((px) => px.char !== " ")).toBe(true)
+    expect(expand(rows[0]).some((px) => px.char !== " ")).toBe(true)
+  })
+
+  test("compose run-length encodes rows instead of one span per cell", () => {
+    const rows = compose([{ species: "cat", x: 10, dir: 1 as const }], 0, "idle", 200, "#fbbf24")
+    for (const row of rows) {
+      expect(expand(row).length).toBe(200)
+      expect(row.length).toBeLessThan(40)
+    }
   })
 
   test("compose mirrors a pet walking left", () => {
     const right = compose([{ species: "cat", x: 0, dir: 1 as const }], 0, "idle", W, "#fbbf24")
     const left = compose([{ species: "cat", x: 0, dir: -1 as const }], 0, "idle", W, "#fbbf24")
-    const flip = right.map((row) => row.slice().reverse().map((px) => ({ char: px.char === "▀" ? "▀" : px.char, fg: px.fg, bg: px.bg })))
-    expect(left.map((row) => row.map((px) => px.fg))).toEqual(flip.map((row) => row.map((px) => px.fg)))
+    const colors = (rows: Seg[][]) => rows.map((row) => expand(row).map((px) => px.fg))
+    expect(colors(left)).toEqual(colors(right).map((row) => row.slice().reverse()))
   })
 
   test("attention frames flash the alert overlay", () => {

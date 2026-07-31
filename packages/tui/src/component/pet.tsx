@@ -1,5 +1,5 @@
 import { rgbToHex } from "@opentui/core"
-import { createEffect, createMemo, createSignal, onCleanup, Index, Show } from "solid-js"
+import { batch, createEffect, createMemo, createSignal, onCleanup, Index, Show } from "solid-js"
 import { useKV } from "../context/kv"
 import { useSync } from "../context/sync"
 import { useTheme } from "../context/theme"
@@ -171,8 +171,11 @@ export const SPECIES: Record<string, Species> = {
 
 export const PETS_KEY = "pets"
 
-export interface Px {
-  char: string
+// One styled run of a strip row. Rows are run-length encoded so a mostly
+// empty 200-column row costs a few spans instead of one span per cell;
+// re-rendering per-cell spans on every tick is what makes a TUI drop frames.
+export interface Seg {
+  text: string
   fg?: string
   bg?: string
 }
@@ -183,7 +186,7 @@ interface Critter {
   dir: 1 | -1
 }
 
-export function compose(crew: Critter[], frame: number, state: State, cols: number, warn: string): Px[][] {
+export function compose(crew: Critter[], frame: number, state: State, cols: number, warn: string): Seg[][] {
   const grid = Array.from({ length: H }, () => new Array<string | undefined>(cols).fill(undefined))
   for (const critter of crew) {
     const species = SPECIES[critter.species]
@@ -202,29 +205,32 @@ export function compose(crew: Critter[], frame: number, state: State, cols: numb
       }
     }
   }
-  const rows: Px[][] = []
+  const rows: Seg[][] = []
   for (let r = 0; r < H; r += 2) {
-    const line: Px[] = []
+    const line: Seg[] = []
+    let text = ""
+    let fg: string | undefined
+    let bg: string | undefined
+    const flush = () => {
+      if (text) line.push({ text, fg, bg })
+      text = ""
+    }
     for (let c = 0; c < cols; c++) {
       const top = grid[r][c]
       const bottom = grid[r + 1][c]
-      if (top && bottom) {
-        line.push({ char: "▀", fg: top, bg: bottom })
-        continue
-      }
-      if (top) {
-        line.push({ char: "▀", fg: top })
-        continue
-      }
-      if (bottom) {
-        line.push({ char: "▄", fg: bottom })
-        continue
-      }
-      line.push({ char: " " })
+      const char = top ? "▀" : bottom ? "▄" : " "
+      const nextFg = top ?? bottom
+      const nextBg = top ? bottom : undefined
+      if (text && (nextFg !== fg || nextBg !== bg)) flush()
+      fg = nextFg
+      bg = nextBg
+      text += char
     }
+    flush()
     rows.push(line)
   }
-  while (rows.length && rows[0].every((px) => px.char === " ")) rows.shift()
+  const blank = (row: Seg[]) => row.every((seg) => !seg.fg && !seg.bg && seg.text.trim() === "")
+  while (rows.length && blank(rows[0])) rows.shift()
   return rows
 }
 
@@ -262,8 +268,10 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
     if (!animated() || !list().length) return
     const pace = state() === "busy" ? 200 : state() === "attention" ? 350 : 600
     const timer = setInterval(() => {
-      setTick((n) => n + 1)
-      setCrew((prev) => prev.map((critter) => wander(critter, state(), props.width)))
+      batch(() => {
+        setTick((n) => n + 1)
+        setCrew((prev) => prev.map((critter) => wander(critter, state(), props.width)))
+      })
     }, pace)
     onCleanup(() => clearInterval(timer))
   })
@@ -280,7 +288,7 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
           {(row) => (
             <box height={1} width="100%" overflow="hidden">
               <text>
-                <Index each={row()}>{(px) => <span style={{ fg: px().fg, bg: px().bg }}>{px().char}</span>}</Index>
+                <Index each={row()}>{(seg) => <span style={{ fg: seg().fg, bg: seg().bg }}>{seg().text}</span>}</Index>
               </text>
             </box>
           )}
