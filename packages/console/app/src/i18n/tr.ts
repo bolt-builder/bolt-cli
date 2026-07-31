@@ -343,7 +343,7 @@ export const dict = {
   "go.faq.a4.p3": "yönetebilirsiniz. İstediğiniz zaman iptal edin.",
   "go.faq.q5": "Veri ve gizlilik ne olacak?",
   "go.faq.a5.body":
-    "Bu plan öncelikle uluslararası kullanıcılar için tasarlanmış olup, istikrarlı küresel erişim için modeller ABD, AB ve Singapur'da barındırılmaktadır. Sağlayıcılarımız sıfır saklama politikası izler ve verilerinizi model eğitimi için kullanmaz.",
+    "Plan, öncelikle uluslararası kullanıcılar için tasarlanmıştır ve dünya genelinde istikrarlı erişim sağlar. Verileriniz model eğitimi için kullanılmaz.",
   "go.faq.a5.beforeExceptions":
     "Go modelleri ABD'de barındırılmaktadır. Sağlayıcılar sıfır saklama politikası izler ve verilerinizi model eğitimi için kullanmaz; şu",
   "go.faq.a5.exceptionsLink": "aşağıdaki istisnalar",
@@ -382,7 +382,7 @@ export const dict = {
     "Aylık ${{amount}} harcama limitinize ulaştınız. Limitlerinizi buradan yönetin: {{membersUrl}}",
   "zen.api.error.modelDisabled": "Model devre dışı",
   "zen.api.error.regionNotAllowed":
-    "Bu model Çin'de barındırılıyor. Bu modeli kullanmak istiyorsanız ayarlarınızdan etkinleştirin: {{consoleGoUrl}}",
+    "Bu modelin en son sürümü yalnızca Çin'de barındırılıyor ve kullanabilmek için açıkça onay vermeniz gerekiyor: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "{{model}} için ücretsiz promosyon sona erdi. OpenCode Go'ya abone olarak modeli kullanmaya devam edebilirsiniz - {{link}}",
 
@@ -674,7 +674,7 @@ export const dict = {
   "workspace.lite.promo.price": "İlk ay $5",
   "workspace.lite.promo.modelsTitle": "Neler Dahil",
   "workspace.lite.promo.footer":
-    "Plan öncelikle uluslararası kullanıcılar için tasarlanmıştır; modeller istikrarlı küresel erişim için ABD, AB ve Singapur'da barındırılmaktadır. Erken kullanımdan öğrendikçe ve geri bildirim topladıkça fiyatlandırma ve kullanım limitleri değişebilir.",
+    "Plan öncelikle uluslararası kullanıcılar için tasarlanmıştır ve istikrarlı küresel erişim sağlar. Erken kullanım ve geri bildirimlerden öğrendiklerimiz doğrultusunda fiyatlandırma ve kullanım limitleri değişebilir.",
   "workspace.lite.promo.subscribe": "Go'ya Abone Ol",
   "workspace.lite.promo.subscribing": "Yönlendiriliyor...",
   "workspace.lite.promo.otherMethods": "Diğer ödeme yöntemleri",

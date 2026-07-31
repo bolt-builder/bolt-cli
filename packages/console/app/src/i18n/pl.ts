@@ -341,7 +341,7 @@ export const dict = {
   "go.faq.a4.p3": "Anuluj w dowolnym momencie.",
   "go.faq.q5": "A co z danymi i prywatnością?",
   "go.faq.a5.body":
-    "Plan został zaprojektowany głównie dla użytkowników międzynarodowych, z modelami hostowanymi w USA, UE i Singapurze, aby zapewnić stabilny globalny dostęp. Nasi dostawcy stosują politykę zerowej retencji i nie używają Twoich danych do trenowania modeli.",
+    "Plan jest przeznaczony przede wszystkim dla użytkowników międzynarodowych i zapewnia stabilny dostęp na całym świecie. Twoje dane nie będą używane do trenowania modeli.",
   "go.faq.a5.beforeExceptions":
     "Modele Go są hostowane w USA. Dostawcy stosują politykę zerowej retencji i nie używają Twoich danych do trenowania modeli, z",
   "go.faq.a5.exceptionsLink": "następującymi wyjątkami",
@@ -380,7 +380,7 @@ export const dict = {
     "Osiągnąłeś swój miesięczny limit wydatków w wysokości ${{amount}}. Zarządzaj swoimi limitami tutaj: {{membersUrl}}",
   "zen.api.error.modelDisabled": "Model jest wyłączony",
   "zen.api.error.regionNotAllowed":
-    "Ten model jest hostowany w Chinach. Jeśli chcesz korzystać z tego modelu, włącz go w swoich ustawieniach: {{consoleGoUrl}}",
+    "Najnowsza wersja tego modelu jest dostępna wyłącznie jako usługa hostowana w Chinach i wymaga jawnej zgody użytkownika: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "Bezpłatna promocja {{model}} dobiegła końca. Możesz dalej korzystać z modelu, subskrybując OpenCode Go - {{link}}",
 
@@ -672,7 +672,7 @@ export const dict = {
   "workspace.lite.promo.price": "$5 za pierwszy miesiąc",
   "workspace.lite.promo.modelsTitle": "Co zawiera",
   "workspace.lite.promo.footer":
-    "Plan został zaprojektowany głównie dla użytkowników międzynarodowych, z modelami hostowanymi w USA, UE i Singapurze, aby zapewnić stabilny globalny dostęp. Ceny i limity użycia mogą ulec zmianie w miarę analizy wczesnego użycia i zbierania opinii.",
+    "Plan został opracowany przede wszystkim z myślą o użytkownikach z całego świata i zapewnia stabilny globalny dostęp. Ceny i limity użycia mogą ulec zmianie w miarę zdobywania doświadczeń na podstawie początkowego korzystania z usługi i otrzymywanych opinii.",
   "workspace.lite.promo.subscribe": "Subskrybuj Go",
   "workspace.lite.promo.subscribing": "Przekierowywanie...",
   "workspace.lite.promo.otherMethods": "Inne metody płatności",

@@ -340,7 +340,7 @@ export const dict = {
   "go.faq.a4.p3": "Annuller til enhver tid.",
   "go.faq.q5": "Hvad med data og privatliv?",
   "go.faq.a5.body":
-    "Planen er primært designet til internationale brugere, med modeller hostet i USA, EU og Singapore for stabil global adgang. Vores udbydere følger en nulopbevaringspolitik og bruger ikke dine data til modeltræning.",
+    "Planen er primært udviklet til internationale brugere og giver stabil adgang i hele verden. Dine data bruges ikke til modeltræning.",
   "go.faq.a5.beforeExceptions":
     "Go-modeller hostes i USA. Udbydere følger en nulopbevaringspolitik og bruger ikke dine data til modeltræning, med de",
   "go.faq.a5.exceptionsLink": "følgende undtagelser",
@@ -378,7 +378,7 @@ export const dict = {
     "Du har nået din månedlige forbrugsgrænse på ${{amount}}. Administrer dine grænser her: {{membersUrl}}",
   "zen.api.error.modelDisabled": "Modellen er deaktiveret",
   "zen.api.error.regionNotAllowed":
-    "Denne model hostes i Kina. Hvis du vil bruge denne model, skal du aktivere den i dine indstillinger: {{consoleGoUrl}}",
+    "Den nyeste version af denne model er kun tilgængelig som hostet i Kina og kræver, at du aktivt tilvælger den: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "Den gratis kampagne for {{model}} er afsluttet. Du kan fortsætte med at bruge modellen ved at abonnere på OpenCode Go - {{link}}",
 
@@ -670,7 +670,7 @@ export const dict = {
   "workspace.lite.promo.price": "$5 for den første måned",
   "workspace.lite.promo.modelsTitle": "Hvad er inkluderet",
   "workspace.lite.promo.footer":
-    "Planen er primært designet til internationale brugere, med modeller hostet i USA, EU og Singapore for stabil global adgang. Priser og forbrugsgrænser kan ændre sig, efterhånden som vi lærer af tidlig brug og feedback.",
+    "Planen er primært udviklet til internationale brugere og giver stabil adgang i hele verden. Priser og forbrugsgrænser kan ændre sig, efterhånden som vi lærer af de første brugserfaringer og tilbagemeldinger.",
   "workspace.lite.promo.subscribe": "Abonner på Go",
   "workspace.lite.promo.subscribing": "Omdirigerer...",
   "workspace.lite.promo.otherMethods": "Andre betalingsmetoder",

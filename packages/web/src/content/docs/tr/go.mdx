@@ -11,7 +11,7 @@ OpenCode Go, popüler açık kodlama modellerine güvenilir erişim sağlayan d�
 
 Go, OpenCode'daki diğer sağlayıcılar gibi çalışır. OpenCode Go'ya abone olur ve API anahtarınızı alırsınız. Bu **tamamen isteğe bağlıdır** ve OpenCode'u kullanmak için bunu kullanmanıza gerek yoktur.
 
-Dünya çapında istikrarlı erişim için ABD, AB ve Singapur'da barındırılan modellerle temel olarak uluslararası kullanıcılar için tasarlanmıştır.
+Öncelikle uluslararası kullanıcılar için tasarlanmıştır ve dünya genelinde istikrarlı erişim sağlar.
 
 ---
 
@@ -86,9 +86,9 @@ Aşağıdaki tablo, tipik Go kullanım modellerine dayalı tahmini bir istek say
 | Model             | 5 saatte bir istek | haftalık istek | aylık istek |
 | ----------------- | ------------------ | -------------- | ----------- |
 | Grok 4.5          | 120                | 300            | 600         |
+| GPT 5.6 Luna      | 2,050              | 5,100          | 10,250      |
 | GLM-5.2           | 880                | 2,150          | 4,300       |
 | GLM-5.1           | 880                | 2,150          | 4,300       |
-| GPT 5.6 Luna      | 2,050              | 5,100          | 10,250      |
 | Kimi K3           | 110                | 250            | 490         |
 | Kimi K2.7 Code    | 1,350              | 3,380          | 6,750       |
 | Kimi K2.6         | 1,150              | 2,880          | 5,750       |
@@ -126,10 +126,10 @@ Tahminler ayrıca 1M token başına aşağıdaki fiyatlara ve her modelle birlik
 | Model                        | Input  | Output | Cached Read | Cached Write | Kullanım |
 | ---------------------------- | ------ | ------ | ----------- | ------------ | -------- |
 | Grok 4.5                     | $2.00  | $6.00  | $0.30       | -            | $15      |
-| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60      |
-| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60      |
 | GPT 5.6 Luna (≤ 272K tokens) | $0.20  | $1.20  | $0.02       | $0.25        | $15      |
 | GPT 5.6 Luna (> 272K tokens) | $0.40  | $1.80  | $0.04       | $0.50        | $15      |
+| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60      |
+| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60      |
 | Kimi K3                      | $3.00  | $15.00 | $0.30       | -            | $15      |
 | Kimi K2.7 Code               | $0.95  | $4.00  | $0.19       | -            | $60      |
 | Kimi K2.6                    | $0.95  | $4.00  | $0.16       | -            | $60      |
@@ -182,9 +182,9 @@ Go modellerine aşağıdaki API uç noktaları aracılığıyla da erişebilirsi
 | Model             | Model ID          | Uç Nokta                                         | AI SDK Paketi               |
 | ----------------- | ----------------- | ------------------------------------------------ | --------------------------- |
 | Grok 4.5          | grok-4.5          | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
+| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.2           | glm-5.2           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | GLM-5.1           | glm-5.1           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | Kimi K3           | kimi-k3           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.7 Code    | kimi-k2.7-code    | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.6         | kimi-k2.6         | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
@@ -216,7 +216,7 @@ https://opencode.ai/zen/go/v1/models
 
 ## Gizlilik
 
-Plan, öncelikle uluslararası kullanıcılar için tasarlanmıştır; dünya genelinde istikrarlı erişim sağlamak için modeller US, EU ve Singapore'da barındırılır. Sağlayıcılarımız sıfır veri saklama politikası uygular ve verilerinizi model eğitimi için kullanmaz.
+Plan, öncelikle uluslararası kullanıcılar için tasarlanmıştır ve dünya genelinde istikrarlı erişim sağlar. Verileriniz model eğitimi için kullanılmaz.
 
 ---
 

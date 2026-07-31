@@ -343,7 +343,7 @@ export const dict = {
   "go.faq.a4.p3": "Cancele a qualquer momento.",
   "go.faq.q5": "E sobre dados e privacidade?",
   "go.faq.a5.body":
-    "O plano é projetado principalmente para usuários internacionais, com modelos hospedados nos EUA, UE e Singapura para acesso global estável. Nossos provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelos.",
+    "O plano foi desenvolvido principalmente para usuários internacionais e oferece acesso global estável. Seus dados não serão usados para treinamento de modelos.",
   "go.faq.a5.beforeExceptions":
     "Os modelos Go são hospedados nos EUA. Os provedores seguem uma política de retenção zero e não usam seus dados para treinamento de modelos, com as",
   "go.faq.a5.exceptionsLink": "seguintes exceções",
@@ -382,7 +382,7 @@ export const dict = {
     "Você atingiu seu limite de gastos mensais de ${{amount}}. Gerencie seus limites aqui: {{membersUrl}}",
   "zen.api.error.modelDisabled": "O modelo está desabilitado",
   "zen.api.error.regionNotAllowed":
-    "Este modelo está hospedado na China. Se você quiser usar este modelo, ative-o nas suas configurações: {{consoleGoUrl}}",
+    "A versão mais recente deste modelo está disponível apenas com hospedagem na China e requer adesão explícita: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "A promoção gratuita do {{model}} terminou. Você pode continuar usando o modelo assinando o OpenCode Go - {{link}}",
 
@@ -674,7 +674,7 @@ export const dict = {
   "workspace.lite.promo.price": "$5 no primeiro mês",
   "workspace.lite.promo.modelsTitle": "O que está incluído",
   "workspace.lite.promo.footer":
-    "O plano é projetado principalmente para usuários internacionais, com modelos hospedados nos EUA, UE e Singapura para acesso global estável. Preços e limites de uso podem mudar conforme aprendemos com o uso inicial e feedback.",
+    "O plano foi desenvolvido principalmente para usuários internacionais e oferece acesso global estável. Os preços e limites de uso podem mudar à medida que aprendemos com o uso inicial e o feedback recebido.",
   "workspace.lite.promo.subscribe": "Assinar Go",
   "workspace.lite.promo.subscribing": "Redirecionando...",
   "workspace.lite.promo.otherMethods": "Outros métodos de pagamento",
