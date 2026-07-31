@@ -22,19 +22,23 @@ const MAX_RECORD_BYTES = 64 * 1024
 const MAX_SUBMATCHES = 100
 
 // Extra agent-only ignore rules: .boltignore uses .gitignore syntax and hides
-// committed files from search without touching .gitignore. Collected from the
-// search cwd up to the repo root so subdirectory searches still respect it.
+// committed files from search without touching .gitignore. We only use the
+// .boltignore from the repository root to preserve correct semantics for
+// root-anchored patterns like /src/generated/ (which must resolve from the
+// repo root, not from nested search directories).
 function ignores(cwd: string) {
   const found: string[] = []
   let dir = cwd
+  // Find the repository root
   while (true) {
-    const file = path.join(dir, ".boltignore")
-    if (fs.existsSync(file)) found.push(`--ignore-file=${file}`)
     if (fs.existsSync(path.join(dir, ".git"))) break
     const parent = path.dirname(dir)
     if (parent === dir) break
     dir = parent
   }
+  // Only collect .boltignore from the repository root
+  const file = path.join(dir, ".boltignore")
+  if (fs.existsSync(file)) found.push(`--ignore-file=${file}`)
   return found
 }
 

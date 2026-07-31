@@ -73,15 +73,15 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
           const ignored = ignore()
           const gitignore = yield* raw
             .readFileString(path.join(location.project.directory, ".gitignore"))
-            .pipe(Effect.catch(() => Effect.succeed("")))
+            .pipe(Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed("")))
           if (gitignore) ignored.add(gitignore)
           const ignorefile = yield* raw
             .readFileString(path.join(location.project.directory, ".ignore"))
-            .pipe(Effect.catch(() => Effect.succeed("")))
+            .pipe(Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed("")))
           if (ignorefile) ignored.add(ignorefile)
           const boltignore = yield* raw
             .readFileString(path.join(location.project.directory, ".boltignore"))
-            .pipe(Effect.catch(() => Effect.succeed("")))
+            .pipe(Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed("")))
           if (boltignore) ignored.add(boltignore)
           return (yield* fs.list({ path: RelativePath.make(ctx.query.path) })).map((item) => ({
             name: path.basename(item.path),
