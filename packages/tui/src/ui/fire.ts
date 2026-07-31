@@ -1,10 +1,16 @@
-// DOOM-style fire simulation for the animated fire border around the chatbox.
-// Pure logic only; rendering lives in component/fire-frame.tsx.
+// Fire bar above the chatbox while the agent works. The heat field comes from
+// @seomis/doom-fire, a Rust/wasm port of the PSX DOOM fire algorithm
+// (http://fabiensanglard.net/doom_fire_psx/); this module only loads the wasm
+// and maps heat values to glyphs and colors.
 //
-// The grid is oriented source-last: grid[rows - 1] is the constantly hot source
-// row (the edge touching the chatbox) and grid[0] holds the ragged flame tips.
-// Callers render the grid as-is for flames pointing up (top strip) and reversed
-// for flames pointing down (bottom strip), so the fire always faces outward.
+// Package quirks handled here:
+// - the wasm-bindgen glue imports "./doom_fire_bg" without an extension, which
+//   Bun cannot resolve, so we instantiate the .wasm directly
+// - fire_get_width/fire_get_height are swapped upstream, so we track our own
+//   dimensions instead of asking the wasm
+// - fire_update_cells occasionally traps on an out-of-bounds drift, so advance
+//   respawns the instance when that happens
+import wasm from "@seomis/doom-fire/doom_fire_bg.wasm" with { type: "file" }
 
 export const GLYPHS = [" ", "·", "░", "▒", "▓", "█"]
 
@@ -13,56 +19,90 @@ export const PALETTE = ["#1a0500", "#4a0e00", "#7f1500", "#b71c00", "#e53500", "
 
 export const ROWS = 3
 
+// Heat values run 0..MAX, matching the 36-color palette of the original.
+export const MAX = 35
+
 export interface Cell {
   char: string
   color: string
 }
 
-export function seed(width: number, rows: number = ROWS): number[][] {
-  const cols = Math.max(0, width)
-  return Array.from({ length: Math.max(1, rows) }, (_, y) =>
-    Array.from({ length: cols }, () => (y === Math.max(1, rows) - 1 ? 1 : 0)),
-  )
+interface Api {
+  memory: WebAssembly.Memory
+  fire_new(width: number, rows: number, heat: number): number
+  fire_update_cells(ptr: number): void
+  fire_get_cells(ptr: number): number
 }
 
-export function advance(grid: number[][], rng: () => number = Math.random): number[][] {
-  const rows = grid.length
-  const width = grid[0]?.length ?? 0
-  return grid.map((row, y) => {
-    // Source row: stays near max heat with a subtle flicker.
-    if (y === rows - 1) return row.map(() => 0.85 + rng() * 0.15)
-    // Every other row pulls heat from below with lateral drift and decay,
-    // which is what produces the ragged, licking flame tips.
-    return row.map((_, x) => {
-      const drift = Math.floor(rng() * 3) - 1
-      const source = grid[y + 1][Math.min(width - 1, Math.max(0, x + drift))] ?? 0
-      const decay = rng() * 0.55
-      return Math.max(0, source - decay)
+export interface Engine {
+  advance(): void
+  grid(): Uint8Array
+}
+
+let compiled: WebAssembly.Module | undefined
+
+async function module() {
+  if (compiled) return compiled
+  compiled = new WebAssembly.Module(await Bun.file(wasm).bytes())
+  return compiled
+}
+
+// The grid is row-major with stride `width`: row 0 holds the ragged flame tips
+// and row `rows - 1` is the constantly hot source hugging the chatbox.
+export async function ignite(width: number, rows: number = ROWS): Promise<Engine> {
+  const mod = await module()
+  // Upstream seeds no fire on grids narrower than 35 columns, so simulate at
+  // least that wide and slice each row down to the requested width.
+  const sim = Math.max(width, MAX)
+  const spawn = () => {
+    const instance = new WebAssembly.Instance(mod, {
+      "./doom_fire": {
+        __wbg_floor_12e75d22951301da: Math.floor,
+        __wbg_random_ae55f5b83bdab2a0: Math.random,
+        __wbindgen_throw: () => {
+          throw new Error("doom-fire panic")
+        },
+      },
     })
-  })
+    const api = instance.exports as unknown as Api
+    return { api, ptr: api.fire_new(sim, rows, MAX) }
+  }
+  let state = spawn()
+  return {
+    advance() {
+      try {
+        state.api.fire_update_cells(state.ptr)
+      } catch (err) {
+        // Known upstream panic; a fresh instance reseeds and keeps burning.
+        state = spawn()
+      }
+    },
+    // Reconstructed per read: the buffer detaches when wasm memory grows.
+    grid() {
+      const raw = new Uint8Array(state.api.memory.buffer, state.api.fire_get_cells(state.ptr), sim * rows)
+      if (sim === width) return raw
+      const out = new Uint8Array(width * rows)
+      for (let y = 0; y < rows; y++) out.set(raw.subarray(y * sim, y * sim + width), y * width)
+      return out
+    },
+  }
 }
 
 export function cell(heat: number): Cell {
+  const ratio = Math.min(1, Math.max(0, heat / MAX))
   const index = (() => {
-    if (heat < 0.05) return 0
-    if (heat < 0.15) return 1
-    if (heat < 0.35) return 2
-    if (heat < 0.6) return 3
-    if (heat < 0.85) return 4
+    if (ratio < 0.05) return 0
+    if (ratio < 0.15) return 1
+    if (ratio < 0.35) return 2
+    if (ratio < 0.6) return 3
+    if (ratio < 0.85) return 4
     return 5
   })()
-  const color = PALETTE[Math.min(PALETTE.length - 1, Math.floor(heat * PALETTE.length))]
+  const color = PALETTE[Math.min(PALETTE.length - 1, Math.floor(ratio * PALETTE.length))]
   return { char: GLYPHS[index], color }
 }
 
-export function cells(grid: number[][]): Cell[][] {
-  return grid.map((row) => row.map(cell))
-}
-
-export function side(grid: number[][]): string {
-  const source = grid[grid.length - 1] ?? []
-  if (source.length === 0) return PALETTE[5]
-  const mean = source.reduce((sum, value) => sum + value, 0) / source.length
-  const index = Math.min(PALETTE.length - 1, 4 + Math.floor(mean * 3))
-  return PALETTE[index]
+export function cells(grid: Uint8Array, width: number): Cell[][] {
+  const rows = width > 0 ? Math.floor(grid.length / width) : 0
+  return Array.from({ length: rows }, (_, y) => Array.from(grid.subarray(y * width, (y + 1) * width), cell))
 }
