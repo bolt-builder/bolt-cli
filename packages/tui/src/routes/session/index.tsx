@@ -1477,10 +1477,8 @@ export function Session() {
                     right={0}
                     bottom={0}
                     onMouseDown={() => {
-                      batch(() => {
-                        setSidebar(() => "hide")
-                        setSidebarOpen(false)
-                      })
+                      // Dismiss only the transient overlay; keep the persisted preference.
+                      setSidebarOpen(false)
                     }}
                   />
                   <Sidebar sessionID={route.sessionID} />
