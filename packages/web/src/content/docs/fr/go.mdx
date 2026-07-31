@@ -11,7 +11,7 @@ OpenCode Go est un abonnement à bas coût — **5 $ pour votre premier mois**, 
 
 Go fonctionne comme n'importe quel autre fournisseur dans OpenCode. Vous vous abonnez à OpenCode Go et obtenez votre clé d'API. C'est **totalement facultatif** et vous n'avez pas besoin de l'utiliser pour utiliser OpenCode.
 
-Il est conçu principalement pour les utilisateurs internationaux, avec des modèles hébergés aux États-Unis, dans l'UE et à Singapour pour un accès mondial stable.
+Il est conçu principalement pour les utilisateurs internationaux et offre un accès mondial stable.
 
 ---
 
@@ -86,9 +86,9 @@ Le tableau ci-dessous fournit une estimation du nombre de requêtes basée sur d
 | Model             | requêtes par 5 heures | requêtes par semaine | requêtes par mois |
 | ----------------- | --------------------- | -------------------- | ----------------- |
 | Grok 4.5          | 120                   | 300                  | 600               |
+| GPT 5.6 Luna      | 2,050                 | 5,100                | 10,250            |
 | GLM-5.2           | 880                   | 2,150                | 4,300             |
 | GLM-5.1           | 880                   | 2,150                | 4,300             |
-| GPT 5.6 Luna      | 2,050                 | 5,100                | 10,250            |
 | Kimi K3           | 110                   | 250                  | 490               |
 | Kimi K2.7 Code    | 1,350                 | 3,380                | 6,750             |
 | Kimi K2.6         | 1,150                 | 2,880                | 5,750             |
@@ -126,10 +126,10 @@ Les estimations sont également basées sur les prix suivants par 1M tokens et s
 | Modèle                       | Input  | Output | Cached Read | Cached Write | Utilisation |
 | ---------------------------- | ------ | ------ | ----------- | ------------ | ----------- |
 | Grok 4.5                     | $2.00  | $6.00  | $0.30       | -            | $15         |
-| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60         |
-| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60         |
 | GPT 5.6 Luna (≤ 272K tokens) | $0.20  | $1.20  | $0.02       | $0.25        | $15         |
 | GPT 5.6 Luna (> 272K tokens) | $0.40  | $1.80  | $0.04       | $0.50        | $15         |
+| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60         |
+| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60         |
 | Kimi K3                      | $3.00  | $15.00 | $0.30       | -            | $15         |
 | Kimi K2.7 Code               | $0.95  | $4.00  | $0.19       | -            | $60         |
 | Kimi K2.6                    | $0.95  | $4.00  | $0.16       | -            | $60         |
@@ -182,9 +182,9 @@ Vous pouvez également accéder aux modèles Go via les points de terminaison d'
 | Modèle            | ID de modèle      | Point de terminaison                             | Package AI SDK              |
 | ----------------- | ----------------- | ------------------------------------------------ | --------------------------- |
 | Grok 4.5          | grok-4.5          | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
+| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.2           | glm-5.2           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | GLM-5.1           | glm-5.1           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | Kimi K3           | kimi-k3           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.7 Code    | kimi-k2.7-code    | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.6         | kimi-k2.6         | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
@@ -216,7 +216,7 @@ https://opencode.ai/zen/go/v1/models
 
 ## Confidentialité
 
-Cette offre est conçue avant tout pour les utilisateurs internationaux, avec des modèles hébergés aux US, dans l’EU et à Singapore afin d’assurer un accès mondial stable. Nos fournisseurs appliquent une politique de rétention zéro et n’utilisent pas vos données pour l’entraînement des modèles.
+Cette offre est conçue principalement pour les utilisateurs internationaux et offre un accès mondial stable. Vos données ne seront pas utilisées pour l’entraînement des modèles.
 
 ---
 

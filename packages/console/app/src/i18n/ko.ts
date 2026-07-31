@@ -335,7 +335,7 @@ export const dict = {
   "go.faq.a4.p3": "언제든지 취소할 수 있습니다.",
   "go.faq.q5": "데이터와 프라이버시는 어떤가요?",
   "go.faq.a5.body":
-    "이 플랜은 주로 글로벌 사용자를 위해 설계되었으며, 안정적인 글로벌 액세스를 위해 미국, EU, 싱가포르에 모델이 호스팅되어 있습니다. 당사의 제공자들은 데이터 보존 금지 정책을 따르며 모델 학습에 데이터를 사용하지 않습니다.",
+    "이 플랜은 주로 전 세계 사용자를 위해 설계되었으며, 안정적인 글로벌 액세스를 제공합니다. 데이터는 모델 학습에 사용되지 않습니다.",
   "go.faq.a5.beforeExceptions":
     "Go 모델은 미국에서 호스팅됩니다. 제공자들은 데이터 보존 금지 정책을 따르며 모델 학습에 데이터를 사용하지 않습니다. 단,",
   "go.faq.a5.exceptionsLink": "다음 예외",
@@ -373,7 +373,7 @@ export const dict = {
     "월간 지출 한도인 ${{amount}}에 도달했습니다. 한도 관리를 여기서 하세요: {{membersUrl}}",
   "zen.api.error.modelDisabled": "모델이 비활성화되었습니다",
   "zen.api.error.regionNotAllowed":
-    "이 모델은 중국에서 호스팅됩니다. 이 모델을 사용하려면 설정에서 활성화하세요: {{consoleGoUrl}}",
+    "이 모델의 최신 버전은 중국에서 호스팅되는 경우에만 사용할 수 있으며, 명시적으로 사용에 동의해야 합니다: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "{{model}}의 무료 프로모션이 종료되었습니다. OpenCode Go를 구독하면 모델을 계속 사용할 수 있습니다 - {{link}}",
 
@@ -664,7 +664,7 @@ export const dict = {
   "workspace.lite.promo.price": "첫 달 $5",
   "workspace.lite.promo.modelsTitle": "포함 내역",
   "workspace.lite.promo.footer":
-    "이 플랜은 주로 글로벌 사용자를 위해 설계되었으며, 안정적인 글로벌 액세스를 위해 미국, EU 및 싱가포르에 모델이 호스팅되어 있습니다. 가격 및 사용 한도는 초기 사용을 통해 학습하고 피드백을 수집함에 따라 변경될 수 있습니다.",
+    "이 플랜은 주로 해외 사용자를 위해 설계되었으며, 전 세계에서 안정적으로 이용할 수 있습니다. 초기 이용 현황과 피드백을 반영하는 과정에서 가격과 사용 한도가 변경될 수 있습니다.",
   "workspace.lite.promo.subscribe": "Go 구독하기",
   "workspace.lite.promo.subscribing": "리디렉션 중...",
   "workspace.lite.promo.otherMethods": "기타 결제 수단",

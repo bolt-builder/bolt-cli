@@ -11,7 +11,7 @@ OpenCode Go คือการสมัครสมาชิกในราค�
 
 Go ทำงานเหมือนกับผู้ให้บริการ (provider) รายอื่นๆ ใน OpenCode คุณสามารถสมัครสมาชิก OpenCode Go และรับ API key ของคุณ บริการนี้เป็น**ทางเลือกเพิ่มเติม** และคุณไม่จำเป็นต้องใช้มันเพื่อใช้งาน OpenCode
 
-บริการนี้ออกแบบมาเพื่อผู้ใช้ในระดับสากลเป็นหลัก โดยมีโมเดลโฮสต์อยู่ในสหรัฐอเมริกา สหภาพยุโรป และสิงคโปร์ เพื่อการเข้าถึงทั่วโลกที่เสถียร
+บริการนี้ออกแบบมาโดยเน้นผู้ใช้ในต่างประเทศเป็นหลัก และให้บริการได้อย่างเสถียรทั่วโลก
 
 ---
 
@@ -86,9 +86,9 @@ OpenCode Go มีขีดจำกัดดังต่อไปนี้:
 | Model             | requests ต่อ 5 ชั่วโมง | requests ต่อสัปดาห์ | requests ต่อเดือน |
 | ----------------- | ---------------------- | ------------------- | ----------------- |
 | Grok 4.5          | 120                    | 300                 | 600               |
+| GPT 5.6 Luna      | 2,050                  | 5,100               | 10,250            |
 | GLM-5.2           | 880                    | 2,150               | 4,300             |
 | GLM-5.1           | 880                    | 2,150               | 4,300             |
-| GPT 5.6 Luna      | 2,050                  | 5,100               | 10,250            |
 | Kimi K3           | 110                    | 250                 | 490               |
 | Kimi K2.7 Code    | 1,350                  | 3,380               | 6,750             |
 | Kimi K2.6         | 1,150                  | 2,880               | 5,750             |
@@ -126,10 +126,10 @@ OpenCode Go มีขีดจำกัดดังต่อไปนี้:
 | Model                        | Input  | Output | Cached Read | Cached Write | Usage |
 | ---------------------------- | ------ | ------ | ----------- | ------------ | ----- |
 | Grok 4.5                     | $2.00  | $6.00  | $0.30       | -            | $15   |
-| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60   |
-| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60   |
 | GPT 5.6 Luna (≤ 272K tokens) | $0.20  | $1.20  | $0.02       | $0.25        | $15   |
 | GPT 5.6 Luna (> 272K tokens) | $0.40  | $1.80  | $0.04       | $0.50        | $15   |
+| GLM-5.2                      | $1.40  | $4.40  | $0.26       | -            | $60   |
+| GLM-5.1                      | $1.40  | $4.40  | $0.26       | -            | $60   |
 | Kimi K3                      | $3.00  | $15.00 | $0.30       | -            | $15   |
 | Kimi K2.7 Code               | $0.95  | $4.00  | $0.19       | -            | $60   |
 | Kimi K2.6                    | $0.95  | $4.00  | $0.16       | -            | $60   |
@@ -182,9 +182,9 @@ OpenCode Go มีขีดจำกัดดังต่อไปนี้:
 | Model             | Model ID          | Endpoint                                         | AI SDK Package              |
 | ----------------- | ----------------- | ------------------------------------------------ | --------------------------- |
 | Grok 4.5          | grok-4.5          | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
+| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.2           | glm-5.2           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | GLM-5.1           | glm-5.1           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
-| GPT 5.6 Luna      | gpt-5.6-luna      | `https://opencode.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | Kimi K3           | kimi-k3           | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.7 Code    | kimi-k2.7-code    | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
 | Kimi K2.6         | kimi-k2.6         | `https://opencode.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
@@ -216,7 +216,7 @@ https://opencode.ai/zen/go/v1/models
 
 ## Privacy
 
-แพลนนี้ออกแบบมาสำหรับผู้ใช้ทั่วโลกเป็นหลัก โดยโฮสต์โมเดลไว้ใน US, EU และ Singapore เพื่อให้เข้าถึงได้อย่างเสถียรจากทั่วโลก ผู้ให้บริการของเราปฏิบัติตามนโยบาย zero-retention และไม่นำข้อมูลของคุณไปใช้ในการฝึกโมเดล
+แพลนนี้ออกแบบมาโดยเน้นผู้ใช้ในต่างประเทศเป็นหลัก และให้บริการได้อย่างเสถียรทั่วโลก ข้อมูลของคุณจะไม่ถูกนำไปใช้ในการฝึกโมเดล
 
 ---
 

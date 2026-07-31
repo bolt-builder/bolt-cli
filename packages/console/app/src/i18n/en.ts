@@ -270,6 +270,7 @@ export const dict = {
   "go.graph.freePill": "Big Pickle and free models",
   "go.graph.go": "Go",
   "go.graph.label": "Requests per 5 hour",
+  "go.graph.tick": "{{n}}x",
   "go.graph.usageLimits": "Usage limits",
   "go.graph.aria": "Requests per 5h: {{free}} vs {{go}}",
 
@@ -337,7 +338,7 @@ export const dict = {
   "go.faq.a4.p3": "Cancel any time.",
   "go.faq.q5": "What about data and privacy?",
   "go.faq.a5.body":
-    "The plan is designed primarily for international users, with models hosted in the US, EU, and Singapore for stable global access. Our providers follow a zero-retention policy and do not use your data for model training.",
+    "The plan is designed primarily for international users and provides stable global access. Your data will not be used for model training.",
 
   "go.faq.a5.beforeExceptions":
     "Go models are hosted in the US. Providers follow a zero-retention policy and do not use your data for model training, with the",
@@ -376,7 +377,7 @@ export const dict = {
     "You have reached your monthly spending limit of ${{amount}}. Manage your limits here: {{membersUrl}}",
   "zen.api.error.modelDisabled": "Model is disabled",
   "zen.api.error.regionNotAllowed":
-    "This model is hosted in China. If you would like to use this model, enable it in your settings: {{consoleGoUrl}}",
+    "The latest version of this model is only available hosted in China and requires explicit opt in: {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "Free promotion has ended for {{model}}. You can continue using the model by subscribing to OpenCode Go - {{link}}",
 
@@ -668,7 +669,7 @@ export const dict = {
   "workspace.lite.promo.price": "$5 for your first month",
   "workspace.lite.promo.modelsTitle": "What's Included",
   "workspace.lite.promo.footer":
-    "The plan is designed primarily for international users, with models hosted in the US, EU, and Singapore for stable global access. Pricing and usage limits may change as we learn from early usage and feedback.",
+    "The plan is designed primarily for international users and provides stable global access. Pricing and usage limits may change as we learn from early usage and feedback.",
   "workspace.lite.promo.subscribe": "Subscribe to Go",
   "workspace.lite.promo.subscribing": "Redirecting...",
   "workspace.lite.promo.otherMethods": "Other payment methods",

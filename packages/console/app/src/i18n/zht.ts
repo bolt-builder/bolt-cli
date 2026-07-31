@@ -324,8 +324,7 @@ export const dict = {
   "go.faq.a4.p2.accountLink": "帳戶",
   "go.faq.a4.p3": "中管理訂閱。隨時取消。",
   "go.faq.q5": "資料與隱私怎麼辦？",
-  "go.faq.a5.body":
-    "該方案主要面向國際用戶設計，模型託管在美國、歐盟和新加坡，以確保全球穩定存取。我們的供應商遵循零留存政策，不會將你的資料用於模型訓練。",
+  "go.faq.a5.body": "此方案主要為國際使用者設計，提供穩定的全球存取服務。你的資料不會用於模型訓練。",
   "go.faq.a5.beforeExceptions": "Go 模型託管在美國。供應商遵循零留存政策，不會將你的資料用於模型訓練，但有",
   "go.faq.a5.exceptionsLink": "以下例外",
   "go.faq.q6": "我可以儲值額度嗎？",
@@ -360,7 +359,7 @@ export const dict = {
     "你的工作區已達到每月支出限額 ${{amount}}。請在此處管理你的限額：{{billingUrl}}",
   "zen.api.error.userMonthlyLimitReached": "你已達到每月支出限額 ${{amount}}。請在此處管理你的限額：{{membersUrl}}",
   "zen.api.error.modelDisabled": "模型已停用",
-  "zen.api.error.regionNotAllowed": "此模型部署於中國。如果你想使用此模型，請在設定中啟用它：{{consoleGoUrl}}",
+  "zen.api.error.regionNotAllowed": "此模型的最新版本僅於中國託管，且需明確選擇啟用：{{consoleGoUrl}}",
   "zen.api.error.trialEnded": "{{model}} 的限免活动已結束。您可以訂閱 OpenCode Go 繼續使用該模型 - {{link}}",
 
   "black.meta.title": "OpenCode Black | 存取全球最佳編碼模型",
@@ -646,7 +645,7 @@ export const dict = {
   "workspace.lite.promo.price": "首月 $5",
   "workspace.lite.promo.modelsTitle": "包含模型",
   "workspace.lite.promo.footer":
-    "該計畫主要面向國際用戶設計，模型部署在美國、歐盟和新加坡，以確保全球範圍內的穩定存取體驗。定價和使用額度可能會根據早期用戶的使用情況和回饋持續調整與優化。",
+    "此方案主要為國際使用者設計，提供穩定的全球存取服務。隨著我們從初期使用情況和回饋中持續了解需求，價格和使用額度可能會有所調整。",
   "workspace.lite.promo.subscribe": "訂閱 Go",
   "workspace.lite.promo.subscribing": "重新導向中...",
   "workspace.lite.promo.otherMethods": "其他付款方式",

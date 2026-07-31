@@ -344,7 +344,7 @@ export const dict = {
   "go.faq.a4.p3": "Annulez à tout moment.",
   "go.faq.q5": "Et pour les données et la confidentialité ?",
   "go.faq.a5.body":
-    "Le plan est conçu principalement pour les utilisateurs internationaux, avec des modèles hébergés aux États-Unis, dans l'UE et à Singapour pour un accès mondial stable. Nos fournisseurs suivent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles.",
+    "Le forfait est principalement conçu pour les utilisateurs internationaux et offre un accès mondial stable. Vos données ne serviront pas à entraîner les modèles.",
   "go.faq.a5.beforeExceptions":
     "Les modèles Go sont hébergés aux États-Unis. Les fournisseurs suivent une politique de rétention zéro et n'utilisent pas vos données pour l'entraînement des modèles, avec les",
   "go.faq.a5.exceptionsLink": "exceptions suivantes",
@@ -382,7 +382,7 @@ export const dict = {
     "Vous avez atteint votre limite de dépense mensuelle de {{amount}} $. Gérez vos limites ici : {{membersUrl}}",
   "zen.api.error.modelDisabled": "Le modèle est désactivé",
   "zen.api.error.regionNotAllowed":
-    "Ce modèle est hébergé en Chine. Si vous souhaitez utiliser ce modèle, activez-le dans vos paramètres : {{consoleGoUrl}}",
+    "La dernière version de ce modèle est uniquement disponible avec un hébergement en Chine et nécessite votre consentement explicite : {{consoleGoUrl}}",
   "zen.api.error.trialEnded":
     "La promotion gratuite de {{model}} est terminée. Vous pouvez continuer à utiliser le modèle en vous abonnant à OpenCode Go - {{link}}",
 
@@ -680,7 +680,7 @@ export const dict = {
   "workspace.lite.promo.price": "$5 le premier mois",
   "workspace.lite.promo.modelsTitle": "Ce qui est inclus",
   "workspace.lite.promo.footer":
-    "Le plan est conçu principalement pour les utilisateurs internationaux, avec des modèles hébergés aux États-Unis, dans l'UE et à Singapour pour un accès mondial stable. Les tarifs et les limites d'utilisation peuvent changer à mesure que nous apprenons des premières utilisations et des commentaires.",
+    "Ce forfait est principalement conçu pour les utilisateurs internationaux et offre un accès mondial stable. Les tarifs et les limites d'utilisation peuvent évoluer à mesure que nous tirons les enseignements des premières utilisations et des retours reçus.",
   "workspace.lite.promo.subscribe": "S'abonner à Go",
   "workspace.lite.promo.subscribing": "Redirection...",
   "workspace.lite.promo.otherMethods": "Autres méthodes de paiement",
