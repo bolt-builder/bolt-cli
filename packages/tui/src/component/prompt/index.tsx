@@ -1398,6 +1398,10 @@ export function Prompt(props: PromptProps) {
     fire,
     () => rgbToHex(theme.primary),
   )
+  // The autocomplete popup floats over the fire strip; blank the flames while
+  // it is open (keeping the rows so the layout does not jump) so the list is
+  // readable, and let them roar back when it closes.
+  const calm = createMemo(() => (auto()?.visible ? flames().map((row) => row.map(() => ({ char: " " }))) : flames()))
 
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
@@ -1440,7 +1444,7 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <Show when={fire()}>
-          <FireStrip rows={flames()} />
+          <FireStrip rows={calm()} />
         </Show>
         <box
           width="100%"
