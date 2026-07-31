@@ -1867,6 +1867,13 @@ export type McpRemoteConfig = {
   timeout?: number
 }
 
+export type CompatConfig = {
+  rules?: boolean
+  mcp?: boolean
+  commands?: boolean
+  agents?: boolean
+}
+
 /**
  * @deprecated Always uses stretch layout.
  */
@@ -1998,6 +2005,10 @@ export type Config = {
             }
       }
   instructions?: Array<string>
+  /**
+   * Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules, mcp, commands, and agents individually. Rules, commands, and agents default to true; mcp defaults to false.
+   */
+  compat?: boolean | CompatConfig
   layout?: LayoutConfig
   permission?: PermissionConfig
   tools?: {

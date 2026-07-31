@@ -93,9 +93,14 @@ describe("CompatMCP.discover", () => {
       const { fs, dir, home } = yield* setup({})
       yield* fs.writeWithDirs(
         path.join(home, ".codex", "config.toml"),
-        ['[mcp_servers.codex]', 'command = "npx"', 'args = ["-y", "server"]', "", "[mcp_servers.codex.env]", 'KEY = "value"'].join(
-          "\n",
-        ),
+        [
+          "[mcp_servers.codex]",
+          'command = "npx"',
+          'args = ["-y", "server"]',
+          "",
+          "[mcp_servers.codex.env]",
+          'KEY = "value"',
+        ].join("\n"),
       )
       const found = yield* CompatMCP.discover(fs, { directory: dir, worktree: dir, home })
       expect(found).toEqual({

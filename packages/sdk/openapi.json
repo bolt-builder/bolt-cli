@@ -23299,6 +23299,24 @@
         "required": ["type", "url"],
         "additionalProperties": false
       },
+      "CompatConfig": {
+        "type": "object",
+        "properties": {
+          "rules": {
+            "type": "boolean"
+          },
+          "mcp": {
+            "type": "boolean"
+          },
+          "commands": {
+            "type": "boolean"
+          },
+          "agents": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "LayoutConfig": {
         "type": "string",
         "enum": ["auto", "stretch"],
@@ -23684,6 +23702,17 @@
             "items": {
               "type": "string"
             }
+          },
+          "compat": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "$ref": "#/components/schemas/CompatConfig"
+              }
+            ],
+            "description": "Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules, mcp, commands, and agents individually. Rules, commands, and agents default to true; mcp defaults to false."
           },
           "layout": {
             "$ref": "#/components/schemas/LayoutConfig"
