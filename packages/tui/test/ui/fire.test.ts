@@ -6,10 +6,10 @@ describe("fire", () => {
     const engine = await ignite(40)
     const grid = engine.grid()
     expect(grid.length).toBe(40 * ROWS)
-    for (const heat of grid) {
+    grid.forEach((heat) => {
       expect(heat).toBeGreaterThanOrEqual(0)
       expect(heat).toBeLessThanOrEqual(MAX)
-    }
+    })
   })
 
   test("source row stays hot and tips stay cooler", async () => {
@@ -52,9 +52,9 @@ describe("fire", () => {
     for (let i = 0; i < 10; i++) engine.advance()
     const rows = cells(engine.grid(), 20)
     expect(rows.length).toBe(ROWS / 2)
-    for (const row of rows) {
+    rows.forEach((row) => {
       expect(row.length).toBe(20)
-      for (const item of row) expect([" ", "▀", "▄"]).toContain(item.char)
-    }
+      row.forEach((item) => expect([" ", "▀", "▄"]).toContain(item.char))
+    })
   })
 })
