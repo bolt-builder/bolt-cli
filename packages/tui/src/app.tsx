@@ -807,7 +807,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
       },
       {
         name: "pet.switch",
-        title: "Choose a pet",
+        title: "Spawn pets",
         slashName: "pets",
         slashAliases: ["pet"],
         run: () => {

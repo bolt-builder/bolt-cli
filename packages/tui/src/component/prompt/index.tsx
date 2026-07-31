@@ -22,7 +22,7 @@ import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
 import { createFire, FireStrip } from "../fire-frame"
-import { Pet } from "../pet"
+import { PetStrip } from "../pet"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -1456,6 +1456,9 @@ export function Prompt(props: PromptProps) {
           above the anchor, so keeping the fire out of it lets the palette sit
           flush against the input and cover the flames instead of floating
           above the whole strip. */}
+      <Show when={props.visible !== false}>
+        <PetStrip sessionID={props.sessionID} width={dimensions().width} />
+      </Show>
       <Show when={props.visible !== false && fire()}>
         <FireStrip rows={flames()} />
       </Show>
@@ -1607,7 +1610,6 @@ export function Prompt(props: PromptProps) {
                 </Show>
               </box>
               <box flexDirection="row" gap={1} alignItems="center">
-                <Pet sessionID={props.sessionID} />
                 <Show when={hasRightContent()}>{props.right}</Show>
               </box>
             </box>
