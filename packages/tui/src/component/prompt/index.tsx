@@ -1429,12 +1429,12 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <Show when={fire()}>
-          <FireStrip rows={flames.top()} />
+          <FireStrip rows={flames()} />
         </Show>
         <box
           width="100%"
-          border={fire() ? ["left", "right"] : ["left"]}
-          borderColor={fire() ? flames.side() : borderHighlight()}
+          border={["left"]}
+          borderColor={borderHighlight()}
           customBorderChars={{
             ...SplitBorder.customBorderChars,
             bottomLeft: "╹",
@@ -1581,37 +1581,32 @@ export function Prompt(props: PromptProps) {
             </box>
           </box>
         </box>
-        <Show when={fire()}>
-          <FireStrip rows={flames.bottom()} />
-        </Show>
-        <Show when={!fire()}>
+        <box
+          height={1}
+          border={["left"]}
+          borderColor={borderHighlight()}
+          customBorderChars={{
+            ...EmptyBorder,
+            vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
+          }}
+        >
           <box
             height={1}
-            border={["left"]}
-            borderColor={borderHighlight()}
-            customBorderChars={{
-              ...EmptyBorder,
-              vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
-            }}
-          >
-            <box
-              height={1}
-              border={["bottom"]}
-              borderColor={theme.backgroundElement}
-              customBorderChars={
-                theme.backgroundElement.a !== 0
-                  ? {
-                      ...EmptyBorder,
-                      horizontal: "▀",
-                    }
-                  : {
-                      ...EmptyBorder,
-                      horizontal: " ",
-                    }
-              }
-            />
-          </box>
-        </Show>
+            border={["bottom"]}
+            borderColor={theme.backgroundElement}
+            customBorderChars={
+              theme.backgroundElement.a !== 0
+                ? {
+                    ...EmptyBorder,
+                    horizontal: "▀",
+                  }
+                : {
+                    ...EmptyBorder,
+                    horizontal: " ",
+                  }
+            }
+          />
+        </box>
         <box width="100%" flexDirection="row" justifyContent="space-between">
           <Switch>
             <Match when={status().type !== "idle"}>
