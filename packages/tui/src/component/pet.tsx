@@ -170,6 +170,7 @@ export const SPECIES: Record<string, Species> = {
 }
 
 export const PETS_KEY = "pets"
+export const TREAT_KEY = "pet_treat"
 
 // KV values are parsed JSON with no runtime validation, so a malformed store
 // (a string, an object, junk entries) must degrade to fewer pets, not a crash.
@@ -191,14 +192,47 @@ interface Critter {
   species: string
   x: number
   dir: 1 | -1
+  mood?: { kind: "love" | "munch"; until: number }
 }
 
-export function compose(crew: Critter[], frame: number, state: State, cols: number, warn: string): Seg[][] {
+export interface Treat {
+  x: number
+  until: number
+}
+
+const HEART = "#f472b6"
+const HEARTS = ["hh..hh", ".hhhh."]
+const COOKIE = { colors: { t: "#c98a3d", k: "#7a4a1d" }, rows: [".tttt.", "ttktkt", ".tttt."] }
+const LOVE_MS = 2500
+const TREAT_MS = 7000
+
+export function compose(
+  crew: Critter[],
+  frame: number,
+  state: State,
+  cols: number,
+  warn: string,
+  play?: { now: number; treat?: Treat },
+): Seg[][] {
   const grid = Array.from({ length: H }, () => new Array<string | undefined>(cols).fill(undefined))
+  if (play?.treat && play.treat.until > play.now) {
+    for (let r = 0; r < COOKIE.rows.length; r++) {
+      const row = COOKIE.rows[r]
+      for (let c = 0; c < row.length; c++) {
+        const ch = row[c] as keyof typeof COOKIE.colors | "."
+        if (ch === ".") continue
+        const col = play.treat.x + c
+        if (col < 0 || col >= cols) continue
+        grid[H - COOKIE.rows.length + r][col] = COOKIE.colors[ch]
+      }
+    }
+  }
   for (const critter of crew) {
     const species = SPECIES[critter.species]
     if (!species) continue
-    const frames = species.states[state]
+    const mood = play && critter.mood && critter.mood.until > play.now ? critter.mood.kind : undefined
+    const frames =
+      mood === "love" ? species.states.attention : mood === "munch" ? species.states.busy : species.states[state]
     const art = frames[frame % frames.length]
     const x = Math.round(critter.x)
     for (let r = 0; r < H; r++) {
@@ -206,9 +240,23 @@ export function compose(crew: Critter[], frame: number, state: State, cols: numb
       for (let c = 0; c < W; c++) {
         const ch = critter.dir < 0 ? row[W - 1 - c] : row[c]
         if (ch === ".") continue
+        // A petted pet borrows the wide-eyed attention frames; hearts replace
+        // the alarm overlay.
+        if (ch === "!" && mood) continue
         const col = x + c
         if (col < 0 || col >= cols) continue
         grid[r][col] = ch === "!" ? warn : species.colors[ch]
+      }
+    }
+    if (mood && frame % 2 === 0) {
+      for (let r = 0; r < HEARTS.length; r++) {
+        const row = HEARTS[r]
+        for (let c = 0; c < row.length; c++) {
+          if (row[c] === ".") continue
+          const col = x + 5 + c
+          if (col < 0 || col >= cols) continue
+          grid[r][col] = HEART
+        }
       }
     }
   }
@@ -256,6 +304,7 @@ export function createStrip(
 ) {
   const [tick, setTick] = createSignal(0)
   const [crew, setCrew] = createSignal<Critter[]>([])
+  const [treat, setTreat] = createSignal<Treat | undefined>(undefined)
 
   // Reconcile spawned critters with the persisted list, keeping positions of
   // the ones already on screen so spawning never teleports the others.
@@ -271,26 +320,54 @@ export function createStrip(
     )
   })
 
+  // Petted or feeding pets animate at play speed even while the session idles.
+  const lively = createMemo(() => treat() !== undefined || crew().some((critter) => critter.mood !== undefined))
+  const pace = createMemo(() => {
+    if (lively() || state() === "busy") return 250
+    if (state() === "attention") return 400
+    return 800
+  })
+
   createEffect(() => {
     if (!animated() || !list().length) return
-    const pace = state() === "busy" ? 250 : state() === "attention" ? 400 : 800
+    const wait = pace()
     const timer = setInterval(() => {
+      const now = Date.now()
       batch(() => {
         setTick((n) => n + 1)
-        setCrew((prev) => prev.map((critter) => wander(critter, state(), width())))
+        setTreat((prev) => (prev && prev.until > now ? prev : undefined))
+        setCrew((prev) => prev.map((critter) => wander(critter, state(), width(), now, treat())))
       })
-    }, pace)
+    }, wait)
     onCleanup(() => clearInterval(timer))
   })
 
-  return createMemo(
+  const rows = createMemo(
     () => {
       if (!list().length || width() < W) return []
-      return compose(crew(), Math.floor(tick() / 2), state(), width(), warn())
+      return compose(crew(), Math.floor(tick() / 2), state(), width(), warn(), { now: Date.now(), treat: treat() })
     },
     [],
     { equals: same },
   )
+
+  return {
+    rows,
+    // Pet whatever is under the given column: wide eyes and hearts.
+    poke(x: number) {
+      const until = Date.now() + LOVE_MS
+      setCrew((prev) =>
+        prev.map((critter) =>
+          x >= critter.x && x < critter.x + W ? { ...critter, mood: { kind: "love", until } } : critter,
+        ),
+      )
+    },
+    // Drop a cookie somewhere; everyone scampers over to munch it.
+    feed() {
+      const max = Math.max(0, width() - COOKIE.rows[0].length)
+      setTreat({ x: Math.round(Math.random() * max), until: Date.now() + TREAT_MS })
+    },
+  }
 }
 
 export function PetStrip(props: { sessionID?: string; width: number }) {
@@ -305,7 +382,7 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
     if (status.type !== "idle") return "busy"
     return "idle"
   })
-  const rows = createStrip(
+  const strip = createStrip(
     () => props.width,
     state,
     list,
@@ -313,10 +390,18 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
     () => rgbToHex(theme.warning),
   )
 
+  // The /feed command talks to the strip through a KV nonce; stale values
+  // from previous runs are ignored.
+  createEffect(() => {
+    const nonce = kv.get(TREAT_KEY, 0) as number
+    if (!nonce || Date.now() - nonce > 5000) return
+    strip.feed()
+  })
+
   return (
-    <Show when={rows().length}>
-      <box width="100%" overflow="hidden">
-        <Index each={rows()}>
+    <Show when={strip.rows().length}>
+      <box width="100%" overflow="hidden" onMouseDown={(evt) => strip.poke(evt.x)}>
+        <Index each={strip.rows()}>
           {(row) => (
             <box height={1} width="100%" overflow="hidden">
               <text>
@@ -339,8 +424,17 @@ function same(a: Seg[][], b: Seg[][]): boolean {
   )
 }
 
-function wander(critter: Critter, state: State, width: number): Critter {
-  if (state === "attention") return critter
+function wander(critter: Critter, state: State, width: number, now: number, treat?: Treat): Critter {
+  const mood = critter.mood && critter.mood.until > now ? critter.mood : undefined
+  // Being petted trumps everything: sit still and soak up the hearts.
+  if (mood?.kind === "love") return { ...critter, mood }
+  if (treat) {
+    const delta = treat.x + 3 - (critter.x + W / 2)
+    if (Math.abs(delta) <= 4) return { ...critter, mood: { kind: "munch", until: treat.until } }
+    const dir = (delta > 0 ? 1 : -1) as 1 | -1
+    return { species: critter.species, x: critter.x + dir * 2, dir }
+  }
+  if (state === "attention") return { ...critter, mood }
   const max = Math.max(0, width - W)
   const flip = state === "busy" ? 0.03 : 0.05
   const dir = Math.random() < flip ? ((critter.dir * -1) as 1 | -1) : critter.dir
