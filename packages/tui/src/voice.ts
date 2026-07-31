@@ -33,7 +33,7 @@ function args(command: string, file: string) {
 // Starts push-to-talk recording via the first available recorder binary.
 // Returns an error message when recording cannot start.
 function start() {
-  if (status() !== "idle") return
+  if (status() !== "idle") return undefined
   const command = locate()
   if (!command) return "No audio recorder found. Install sox (`rec`), `arecord`, or `ffmpeg` to use voice input."
   const file = path.join(os.tmpdir(), `opencode-voice-${Date.now()}.wav`)
@@ -76,7 +76,7 @@ async function stop() {
   const bytes = await Bun.file(current.file)
     .arrayBuffer()
     .catch(() => undefined)
-  await rm(current.file, { force: true }).catch(() => {})
+  await rm(current.file, { force: true }).catch(() => undefined)
   if (!bytes || bytes.byteLength === 0) {
     setStatus("idle")
     return undefined
