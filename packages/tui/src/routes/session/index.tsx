@@ -253,6 +253,9 @@ export function Session() {
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "auto")
   const [sidebarOpen, setSidebarOpen] = createSignal(false)
   const [conceal, setConceal] = createSignal(true)
+  // Side questions asked via /btw, rendered inline at the end of the transcript.
+  const [asides, setAsides] = createSignal<{ id: number; question: string; answer?: string; error?: string }[]>([])
+  let serial = 0
   const thinking = useThinkingMode()
   const thinkingMode = thinking.mode
   const showThinking = createMemo(() => true)
@@ -582,27 +585,26 @@ export function Session() {
         if (!question?.trim()) return
         dialog.clear()
         const label = question.length > 40 ? `${question.slice(0, 40)}...` : question
+        const id = serial++
+        const patch = (delta: { answer?: string; error?: string }) =>
+          setAsides((list) => list.map((item) => (item.id === id ? { ...item, ...delta } : item)))
+        setAsides((list) => [...list, { id, question }])
         // Fork the session so the side question sees the conversation so far;
         // the fork runs on its own per-session runner, so the original run
         // keeps streaming untouched.
         const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch((error) => {
-          toast.show({
-            variant: "error",
-            message: error instanceof Error ? `btw: ${error.message}` : "btw: failed to fork the session",
-            duration: 5000,
-          })
+          patch({ error: error instanceof Error ? error.message : "failed to fork the session" })
         })
-        const id = fork?.data?.id
-        if (!id) {
-          if (fork) toast.show({ variant: "error", message: "btw: failed to fork the session", duration: 5000 })
+        const forkID = fork?.data?.id
+        if (!forkID) {
+          if (fork) patch({ error: "failed to fork the session" })
           return
         }
         // Best-effort rename; a failed title update should not block the side question.
-        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` }).catch(() => undefined)
-        toast.show({ variant: "info", message: `btw: thinking about "${label}"`, duration: 5000 })
+        void sdk.client.session.update({ sessionID: forkID, title: `btw: ${label}` }).catch(() => undefined)
         const result = await sdk.client.session
           .prompt({
-            sessionID: id,
+            sessionID: forkID,
             parts: [
               {
                 type: "text",
@@ -611,11 +613,7 @@ export function Session() {
             ],
           })
           .catch((error) => {
-            toast.show({
-              variant: "error",
-              message: error instanceof Error ? `btw: ${error.message}` : "btw: no answer came back",
-              duration: 5000,
-            })
+            patch({ error: error instanceof Error ? error.message : "no answer came back" })
           })
         if (!result) return
         const answer = (result.data?.parts ?? [])
@@ -623,10 +621,10 @@ export function Session() {
           .join("\n\n")
           .trim()
         if (!answer) {
-          toast.show({ variant: "error", message: "btw: no answer came back", duration: 5000 })
+          patch({ error: "no answer came back" })
           return
         }
-        void DialogAlert.show(dialog, `btw: ${label}`, answer)
+        patch({ answer })
       },
     },
     {
@@ -1357,6 +1355,36 @@ export function Session() {
                         />
                       </Match>
                     </Switch>
+                  )}
+                </For>
+                <For each={asides()}>
+                  {(item) => (
+                    <box
+                      marginTop={1}
+                      flexShrink={0}
+                      border={["left"]}
+                      customBorderChars={SplitBorder.customBorderChars}
+                      borderColor={theme.backgroundPanel}
+                    >
+                      <box paddingTop={1} paddingBottom={1} paddingLeft={2} backgroundColor={theme.backgroundPanel}>
+                        <text fg={theme.textMuted}>
+                          btw: <span style={{ fg: theme.text }}>{item.question}</span>
+                        </text>
+                        <box marginTop={1}>
+                          <Switch>
+                            <Match when={item.error}>
+                              <text fg={theme.error}>{item.error}</text>
+                            </Match>
+                            <Match when={item.answer}>
+                              <text fg={theme.text}>{item.answer}</text>
+                            </Match>
+                            <Match when={true}>
+                              <text fg={theme.textMuted}>thinking...</text>
+                            </Match>
+                          </Switch>
+                        </box>
+                      </box>
+                    </box>
                   )}
                 </For>
               </scrollbox>
