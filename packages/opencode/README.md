@@ -157,7 +157,7 @@ tmux kill-session -t opencode-dev
 
 ## License
 
-MIT © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
+PolyForm NonCommercial 1.0.0 © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
 
 ---
 
