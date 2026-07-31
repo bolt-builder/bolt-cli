@@ -380,6 +380,8 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
   const toast = useToast()
   const themeState = useTheme()
   const { theme, mode, setMode, locked, lock, unlock } = themeState
+  // Agent to restore when /plan toggles plan mode back off.
+  let prior: string | undefined
   const sync = useSync()
   const project = useProject()
   const exit = useExit()
@@ -684,6 +686,23 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         slashName: "agents",
         run: () => {
           dialog.replace(() => <DialogAgent />)
+        },
+      },
+      {
+        name: "agent.plan",
+        title: "Toggle plan mode",
+        category: "Agent",
+        slashName: "plan",
+        run: () => {
+          const current = local.agent.current()?.name
+          if (current === "plan") {
+            local.agent.set(prior ?? "build")
+            toast.show({ variant: "info", message: `Plan mode off, back to ${prior ?? "build"}`, duration: 3000 })
+            return
+          }
+          prior = current
+          local.agent.set("plan")
+          toast.show({ variant: "info", message: "Plan mode on, the agent will propose before changing files", duration: 3000 })
         },
       },
       {
