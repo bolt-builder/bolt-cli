@@ -54,7 +54,7 @@ export const PALETTE = [
 ]
 
 // Display rows; rendered as ROWS / 2 text rows of half-block pixels.
-export const ROWS = 6
+export const ROWS = 8
 
 // The wasm needs vertical room to develop the classic gradient: flames only
 // climb a couple of rows above the source before dying, so a 6-row grid never
