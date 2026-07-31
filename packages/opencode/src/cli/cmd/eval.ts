@@ -250,6 +250,10 @@ export const EvalCommand = effectCmd({
 
       const results: CaseResult[] = []
       for (const [index, item] of cases.entries()) {
+        if (!json) {
+          const model = item.model ?? args.model
+          UI.println(`${UI.Style.TEXT_DIM}● ${item.name} running${model ? ` on ${model}` : ""}…${UI.Style.TEXT_NORMAL}`)
+        }
         const result = await execute(item, discovered.files[index])
         if (!args.keep) await rm(result.workspace, { recursive: true, force: true }).catch(() => {})
         report(result)
