@@ -69,6 +69,24 @@ describe("Ripgrep", () => {
     ),
   )
 
+  it.live("ignored reports whether a .boltignore governs a directory", () =>
+    Effect.acquireUseRelease(
+      Effect.promise(() => tmpdir()),
+      (tmp) =>
+        Effect.gen(function* () {
+          yield* Effect.promise(() => fs.mkdir(path.join(tmp.path, "src"), { recursive: true }))
+          yield* Effect.promise(() => Bun.$`git init -q ${tmp.path}`)
+          expect(Ripgrep.ignored(tmp.path)).toBe(false)
+          expect(Ripgrep.ignored(path.join(tmp.path, "src"))).toBe(false)
+          yield* Effect.promise(() => fs.writeFile(path.join(tmp.path, ".boltignore"), "hidden.txt\n"))
+          expect(Ripgrep.ignored(tmp.path)).toBe(true)
+          // Subdirectories resolve the .boltignore at the repository root.
+          expect(Ripgrep.ignored(path.join(tmp.path, "src"))).toBe(true)
+        }),
+      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
+    ),
+  )
+
   it.live("never includes git metadata", () =>
     Effect.acquireUseRelease(
       Effect.promise(() => tmpdir()),

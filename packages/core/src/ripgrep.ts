@@ -29,24 +29,32 @@ const MAX_SUBMATCHES = 100
 // directory) to keep root-anchored rules like `/src/generated/` correctly
 // scoped. User globs and output paths are translated between the two bases.
 function boltignore(cwd: string) {
-  const root = (() => {
-    let dir = cwd
-    while (true) {
-      if (fs.existsSync(path.join(dir, ".git"))) return dir
-      const parent = path.dirname(dir)
-      if (parent === dir) return cwd
-      dir = parent
-    }
-  })()
-  const file = path.join(root, ".boltignore")
+  const base = root(cwd)
+  const file = path.join(base, ".boltignore")
   if (!fs.existsSync(file)) return { cwd, args: [], search: ".", prefix: "" }
-  const search = path.relative(root, cwd)
+  const search = path.relative(base, cwd)
   return {
-    cwd: root,
+    cwd: base,
     args: [`--ignore-file=${file}`],
     search: search || ".",
     prefix: search ? `${search.replaceAll("\\", "/")}/` : "",
   }
+}
+
+function root(cwd: string) {
+  let dir = cwd
+  while (true) {
+    if (fs.existsSync(path.join(dir, ".git"))) return dir
+    const parent = path.dirname(dir)
+    if (parent === dir) return cwd
+    dir = parent
+  }
+}
+
+// Whether a .boltignore governs this directory. Search backends without
+// ignore-file support (fff) must fall back to ripgrep when this is true.
+export function ignored(cwd: string) {
+  return fs.existsSync(path.join(root(cwd), ".boltignore"))
 }
 
 // -g globs follow .gitignore rules relative to the ripgrep working directory:
