@@ -13,6 +13,7 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
 </p>
 
+
 <p align="center">
   <a href="README.md">English</a> |
   <a href="README.zh.md">简体中文</a> |
@@ -38,9 +39,11 @@
   <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
+
 <p align="center">
-    <img href="./images/demo.svg"></img>
+    <img  alt="demo" src="https://github.com/user-attachments/assets/758d3a26-01d3-4cdd-a8e8-45de82d3534a" />
 </p>
+
 
 ---
 
