@@ -702,7 +702,11 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           }
           prior = current
           local.agent.set("plan")
-          toast.show({ variant: "info", message: "Plan mode on, the agent will propose before changing files", duration: 3000 })
+          toast.show({
+            variant: "info",
+            message: "Plan mode on, the agent will propose before changing files",
+            duration: 3000,
+          })
         },
       },
       {
