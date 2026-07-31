@@ -2,7 +2,7 @@
   "name": "Bolt",
   "displayName": "Bolt",
   "description": "Bolt for VS Code",
-  "version": "1.18.10",
+  "version": "1.19.0",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
