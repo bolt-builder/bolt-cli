@@ -1,16 +1,21 @@
 export * as BashTool from "./bash"
 
 import path from "path"
+import { eq } from "drizzle-orm"
 import { ToolFailure } from "@opencode-ai/llm"
 import { Duration, Effect, Layer, Schema } from "effect"
 import { ChildProcess } from "effect/unstable/process"
 import { Config } from "../config"
+import { Database } from "../database/database"
 import { makeLocationNode } from "../effect/app-node"
 import { FSUtil } from "../fs-util"
+import { Location } from "../location"
 import { LocationMutation } from "../location-mutation"
 import { AppProcess } from "../process"
 import { PermissionV2 } from "../permission"
+import { Sandbox } from "../sandbox"
 import { PositiveInt } from "../schema"
+import { SessionTable } from "../session/sql"
 import { ToolRegistry } from "./registry"
 import { Tool } from "./tool"
 import { Tools } from "./tools"
@@ -102,6 +107,8 @@ const layer = Layer.effectDiscard(
     const appProcess = yield* AppProcess.Service
     const config = yield* Config.Service
     const permission = yield* PermissionV2.Service
+    const location = yield* Location.Service
+    const { db } = yield* Database.Service
 
     yield* tools
       .register({
@@ -155,13 +162,38 @@ const layer = Layer.effectDiscard(
               const shell =
                 Object.assign({}, ...entries.flatMap((entry) => (entry.type === "document" ? [entry.info] : [])))
                   .shell ?? defaultShell()
-              const command = ChildProcess.make(input.command, [], {
-                cwd: target.canonical,
-                shell,
-                stdin: "ignore",
-                detached: process.platform !== "win32",
-                forceKillAfter: Duration.seconds(3),
-              })
+              const row = yield* db
+                .select({ metadata: SessionTable.metadata })
+                .from(SessionTable)
+                .where(eq(SessionTable.id, context.sessionID))
+                .get()
+                .pipe(Effect.orDie)
+              const sandboxed = Sandbox.enabled(row?.metadata)
+              const wrapped = sandboxed
+                ? yield* Sandbox.wrap({
+                    command: input.command,
+                    shell,
+                    writable: Sandbox.writable([location.project.directory, location.directory, target.canonical]),
+                  }).pipe(
+                    Effect.catchTag("SandboxUnsupportedError", (error) =>
+                      Effect.fail(new ToolFailure({ message: error.message })),
+                    ),
+                  )
+                : undefined
+              const command = wrapped
+                ? ChildProcess.make(wrapped.exe, wrapped.args, {
+                    cwd: target.canonical,
+                    stdin: "ignore",
+                    detached: process.platform !== "win32",
+                    forceKillAfter: Duration.seconds(3),
+                  })
+                : ChildProcess.make(input.command, [], {
+                    cwd: target.canonical,
+                    shell,
+                    stdin: "ignore",
+                    detached: process.platform !== "win32",
+                    forceKillAfter: Duration.seconds(3),
+                  })
               const timeout = input.timeout ?? DEFAULT_TIMEOUT_MS
               const result = yield* appProcess
                 .run(command, {
@@ -193,7 +225,13 @@ const layer = Layer.effectDiscard(
                 truncated: result.outputTruncated === true,
                 ...(warnings.length ? { warnings } : {}),
               }
-            }).pipe(Effect.mapError(() => new ToolFailure({ message: `Unable to execute command: ${input.command}` }))),
+            }).pipe(
+              Effect.mapError((error) =>
+                error instanceof ToolFailure
+                  ? error
+                  : new ToolFailure({ message: `Unable to execute command: ${input.command}` }),
+              ),
+            ),
         }),
       })
       .pipe(Effect.orDie)
@@ -203,5 +241,14 @@ const layer = Layer.effectDiscard(
 export const node = makeLocationNode({
   name: "tool/bash",
   layer,
-  deps: [ToolRegistry.node, LocationMutation.node, FSUtil.node, AppProcess.node, Config.node, PermissionV2.node],
+  deps: [
+    ToolRegistry.node,
+    LocationMutation.node,
+    FSUtil.node,
+    AppProcess.node,
+    Config.node,
+    PermissionV2.node,
+    Location.node,
+    Database.node,
+  ],
 })

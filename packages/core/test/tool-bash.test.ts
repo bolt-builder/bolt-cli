@@ -4,8 +4,12 @@ import path from "path"
 import { describe, expect, test } from "bun:test"
 import { Effect, Layer } from "effect"
 import { ChildProcess } from "effect/unstable/process"
+import { Database } from "@opencode-ai/core/database/database"
 import { FSUtil } from "@opencode-ai/core/fs-util"
 import { Config } from "@opencode-ai/core/config"
+import { Project } from "@opencode-ai/core/project"
+import { ProjectTable } from "@opencode-ai/core/project/sql"
+import { SessionTable } from "@opencode-ai/core/session/sql"
 import { AppNodeBuilder } from "@opencode-ai/core/effect/app-node-builder"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { Location } from "@opencode-ai/core/location"
@@ -26,6 +30,7 @@ const sessionID = SessionV2.ID.make("ses_bash_tool_test")
 const assertions: PermissionV2.AssertInput[] = []
 const runs: Array<{
   readonly command: string
+  readonly args?: ReadonlyArray<string>
   readonly cwd?: string
   readonly shell?: string | boolean
   readonly options?: AppProcess.RunOptions
@@ -67,7 +72,13 @@ const appProcess = Layer.succeed(
     run: (command: ChildProcess.Command, options?: AppProcess.RunOptions) =>
       Effect.suspend(() => {
         if (command._tag !== "StandardCommand") throw new Error("expected standard command")
-        runs.push({ command: command.command, cwd: command.options.cwd, shell: command.options.shell, options })
+        runs.push({
+          command: command.command,
+          args: command.args,
+          cwd: command.options.cwd,
+          shell: command.options.shell,
+          options,
+        })
         return runFailure ? Effect.fail(runFailure) : Effect.succeed(result)
       }),
   } as unknown as AppProcess.Interface),
@@ -111,7 +122,7 @@ const withTool = <A, E, R>(
   }).pipe(
     Effect.provide(
       AppNodeBuilder.build(
-        LayerNode.group([ToolRegistry.node, ToolRegistry.toolsNode, LocationMutation.node, BashTool.node]),
+        LayerNode.group([ToolRegistry.node, ToolRegistry.toolsNode, LocationMutation.node, BashTool.node, Database.node]),
         [
           [Location.node, activeLocation],
           [PermissionV2.node, permission],
@@ -411,6 +422,64 @@ describe("BashTool", () => {
               })
             }),
           ),
+        )
+      },
+      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
+    ),
+  )
+
+  it.live("sandboxed session wraps execution or fails closed", () =>
+    Effect.acquireUseRelease(
+      Effect.promise(() => tmpdir()),
+      (tmp) => {
+        reset()
+        return withTool(tmp.path, (registry) =>
+          Effect.gen(function* () {
+            const { db } = yield* Database.Service
+            yield* db
+              .insert(ProjectTable)
+              .values({ id: Project.ID.global, worktree: AbsolutePath.make("/project"), sandboxes: [] })
+              .onConflictDoNothing()
+              .run()
+              .pipe(Effect.orDie)
+            const boxed = SessionV2.ID.make("ses_bash_sandbox_test")
+            yield* db
+              .insert(SessionTable)
+              .values({
+                id: boxed,
+                project_id: Project.ID.global,
+                slug: "sandbox",
+                directory: "/project",
+                title: "sandbox",
+                version: "test",
+                agent: "test",
+                metadata: { sandbox: true },
+              })
+              .onConflictDoNothing()
+              .run()
+              .pipe(Effect.orDie)
+            const settled = yield* settleTool(registry, {
+              sessionID: boxed,
+              ...toolIdentity,
+              call: { type: "tool-call" as const, id: "call-sandbox", name: "bash", input: { command: "pwd" } },
+            })
+            const exe =
+              process.platform === "linux"
+                ? Bun.which("bwrap")
+                : process.platform === "darwin"
+                  ? Bun.which("sandbox-exec")
+                  : null
+            if (exe) {
+              expect(runs).toHaveLength(1)
+              expect(runs[0]?.command).toBe(exe)
+              expect(runs[0]?.shell).toBeUndefined()
+              expect(runs[0]?.args ?? []).toContain("-c")
+              expect(runs[0]?.args ?? []).toContain("pwd")
+              return
+            }
+            expect(runs).toEqual([])
+            expect(settled.result).toMatchObject({ type: "error" })
+          }),
         )
       },
       (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
