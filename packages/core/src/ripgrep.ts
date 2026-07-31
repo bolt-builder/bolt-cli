@@ -45,7 +45,7 @@ function boltignore(cwd: string) {
     cwd: root,
     args: [`--ignore-file=${file}`],
     search: search || ".",
-    prefix: search ? search.replaceAll("\\", "/") + "/" : "",
+    prefix: search ? `${search.replaceAll("\\", "/")}/` : "",
   }
 }
 
@@ -55,8 +55,8 @@ function boltignore(cwd: string) {
 // the search directory.
 function reroot(glob: string, prefix: string): string {
   if (!prefix) return glob
-  if (glob.startsWith("!")) return "!" + reroot(glob.slice(1), prefix)
-  if (glob.startsWith("/")) return "/" + prefix + glob.slice(1)
+  if (glob.startsWith("!")) return `!${reroot(glob.slice(1), prefix)}`
+  if (glob.startsWith("/")) return `/${prefix}${glob.slice(1)}`
   if (glob.slice(0, -1).includes("/")) return prefix + glob
   return glob
 }
