@@ -4,13 +4,16 @@
   </a>
 </p>
 
-<p align="center">Your AI pair programmer that lives in the terminal.</p>
+<p align="center">Your terminal, now with a full AI engineering team inside it."</p>
 
 <p align="center">
   <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
-  <a href="https://www.npmjs.com/package/bolt-ai"><img alt="npm" src="https://img.shields.io/npm/v/bolt-ai?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@bolt-builder/bolt-cli"><img alt="npm" src="https://img.shields.io/npm/v/@bolt-builder/bolt-cli?style=flat-square" /></a>
   <a href="https://github.com/Bolt-builder/bolt-cli"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Bolt-builder/bolt-cli?style=flat-square" /></a>
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
+  <a href="LICENSE"><img alt="License: PolyForm Noncommercial 1.0.0" src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue?style=flat-square" /></a>
+</p>
+<p align="center">
+  <a href="https://www.producthunt.com/products/bolt-cli?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-bolt-cli" target="_blank" rel="noopener noreferrer"><img alt="Bolt cli - The ultimate AI coding agent for your terminal. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1211272&theme=light&t=1785541043666" /></a>
 </p>
 
 <p align="center">
@@ -133,19 +136,19 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ### Environment variables
 
-| Variable                   | Description                         |
-| -------------------------- | ----------------------------------- |
-| `OPENCODE_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
-| `OPENCODE_PRINT_LOGS`      | Print logs to stderr                |
-| `OPENCODE_PURE`            | Run without external plugins        |
-| `OPENCODE_SERVER_PASSWORD` | Basic auth password for the server  |
-| `OPENCODE_SERVER_USERNAME` | Basic auth username for the server  |
+| Variable              | Description                         |
+| ---------------------- | ------------------------------------ |
+| `BOLT_LOG_LEVEL`       | Log level: DEBUG, INFO, WARN, ERROR |
+| `BOLT_PRINT_LOGS`      | Print logs to stderr                |
+| `BOLT_PURE`            | Run without external plugins        |
+| `BOLT_SERVER_PASSWORD` | Basic auth password for the server  |
+| `BOLT_SERVER_USERNAME` | Basic auth username for the server  |
 
 <details>
 <summary><strong>All CLI commands</strong></summary>
 
 | Command      | Description                                              |
-| ------------ | -------------------------------------------------------- |
+| ------------ | ---------------------------------------------------------- |
 | `bolt`       | Launch the interactive TUI                               |
 | `run`        | Run a non-interactive prompt                             |
 | `attach`     | Attach the TUI to a running server                       |
@@ -156,18 +159,18 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 | `mcp`        | Manage MCP servers (add, list, auth, logout, debug)      |
 | `serve`      | Start the headless API server                            |
 | `web`        | Start the server and open the web UI                     |
-| `upgrade`    | Upgrade to the latest version                            |
-| `uninstall`  | Remove bolt                                              |
-| `completion` | Generate shell completions                               |
+| `upgrade`    | Upgrade to the latest version                             |
+| `uninstall`  | Remove bolt                                               |
+| `completion` | Generate shell completions                                |
 | `export`     | Export session history (with optional `--sanitize`)      |
 | `import`     | Import a session from a file or share URL                |
-| `plugin`     | Install and manage plugins                               |
+| `plugin`     | Install and manage plugins                                |
 | `github`     | GitHub Actions agent (install, run)                      |
 | `pr`         | Check out a GitHub PR into a local branch                |
-| `stats`      | Show token usage and cost statistics                     |
-| `db`         | Query the local session database                         |
-| `debug`      | Troubleshooting tools (config, lsp, snapshots, and more) |
-| `acp`        | Agent Client Protocol server for editors (e.g. Zed)      |
+| `stats`      | Show token usage and cost statistics                      |
+| `db`         | Query the local session database                          |
+| `debug`      | Troubleshooting tools (config, lsp, snapshots, and more)  |
+| `acp`        | Agent Client Protocol server for editors (e.g. Zed)       |
 
 </details>
 
@@ -271,8 +274,13 @@ bun test
 
 # Type-check
 bun typecheck
+
 ```
+## Enjoying Bolt?
+
+Consider giving it a star ⭐ — it helps other developers discover the project, and it's the easiest way to support the work if you can't contribute code right now.
+
 
 ## License
 
-PolyForm NonCommerial 1.0.0 Licenese © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
+PolyForm Noncommercial 1.0.0 License © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
