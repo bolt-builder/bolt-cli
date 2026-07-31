@@ -46,6 +46,7 @@ import { DialogMcp } from "./component/dialog-mcp"
 import { DialogStatus } from "./component/dialog-status"
 import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
+import { DialogPets } from "./component/dialog-pets"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
@@ -801,6 +802,16 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         slashName: "debug",
         run: () => {
           dialog.replace(() => <DialogDebug />)
+        },
+        category: "System",
+      },
+      {
+        name: "pet.switch",
+        title: "Choose a pet",
+        slashName: "pets",
+        slashAliases: ["pet"],
+        run: () => {
+          dialog.replace(() => <DialogPets />)
         },
         category: "System",
       },

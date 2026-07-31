@@ -22,6 +22,7 @@ import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
 import { createFire, FireStrip } from "../fire-frame"
+import { Pet } from "../pet"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -1605,11 +1606,10 @@ export function Prompt(props: PromptProps) {
                   )}
                 </Show>
               </box>
-              <Show when={hasRightContent()}>
-                <box flexDirection="row" gap={1} alignItems="center">
-                  {props.right}
-                </box>
-              </Show>
+              <box flexDirection="row" gap={1} alignItems="center">
+                <Pet sessionID={props.sessionID} />
+                <Show when={hasRightContent()}>{props.right}</Show>
+              </box>
             </box>
           </box>
         </box>
