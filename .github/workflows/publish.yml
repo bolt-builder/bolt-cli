@@ -24,7 +24,10 @@ on:
         required: false
         type: string
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.version || inputs.bump }}
+# Serialize all publish runs per ref. Keying on dispatch inputs let a
+# push-triggered run (empty inputs) race a dispatched bump run on the same
+# ref, and the loser's --force-with-lease tag push failed with "stale info".
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
   id-token: write
