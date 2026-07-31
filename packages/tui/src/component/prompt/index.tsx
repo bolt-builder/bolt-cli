@@ -20,7 +20,7 @@ import { EmptyBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
-import { createFire, FireRow } from "../fire-frame"
+import { createFire, FireStrip } from "../fire-frame"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -1429,7 +1429,7 @@ export function Prompt(props: PromptProps) {
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <Show when={fire()}>
-          <FireRow cells={flames.top()} />
+          <FireStrip rows={flames.top()} />
         </Show>
         <box
           width="100%"
@@ -1582,7 +1582,7 @@ export function Prompt(props: PromptProps) {
           </box>
         </box>
         <Show when={fire()}>
-          <FireRow cells={flames.bottom()} />
+          <FireStrip rows={flames.bottom()} />
         </Show>
         <Show when={!fire()}>
           <box
