@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "1.19.1",
+  "version": "1.19.0",
   "name": "@bolt-builder/bolt-cli",
   "type": "module",
   "license": "MIT",
