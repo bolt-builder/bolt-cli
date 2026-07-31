@@ -382,4 +382,4 @@ bun typecheck
 
 ## License
 
-MIT © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
+PolyForm NonCommerial 1.0.0 Licenese © [Bolt CLI](https://github.com/Bolt-builder/bolt-cli)
