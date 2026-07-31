@@ -52,7 +52,16 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
         body: HttpBody.formData(form),
       }),
     )
-    .pipe(Effect.mapError((error) => new TranscribeError({ message: `Transcription request failed: ${error}` })))
+    .pipe(
+      Effect.mapError((error) => new TranscribeError({ message: `Transcription request failed: ${error}` })),
+      // Bound the upstream call so a hung upload cannot pin the TUI in
+      // "transcribing" forever. 60s leaves room for a max-length (5 minute,
+      // ~9.6 MB) recording to upload on slow links.
+      Effect.timeoutOrElse({
+        duration: "60 seconds",
+        orElse: () => Effect.fail(new TranscribeError({ message: "Transcription timed out after 60 seconds" })),
+      }),
+    )
   if (response.status < 200 || response.status >= 300) {
     const body = yield* response.text.pipe(Effect.orElseSucceed(() => ""))
     return yield* new TranscribeError({
@@ -69,18 +78,16 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
   return decoded.value
 })
 
-function resolveOpenaiKey() {
-  return Effect.gen(function* () {
-    const env = yield* Env.Service
-    const fromEnv = yield* env.get("OPENAI_API_KEY")
-    if (fromEnv) return fromEnv
-    const auth = yield* Auth.Service
-    const info = yield* auth.get("openai").pipe(Effect.orElseSucceed(() => undefined))
-    if (info?.type === "api") return info.key
-    if (info?.type === "oauth") return info.access
-    if (info?.type === "wellknown") return info.token
-    return undefined
-  })
-}
+const resolveOpenaiKey = Effect.fnUntraced(function* () {
+  const env = yield* Env.Service
+  const fromEnv = yield* env.get("OPENAI_API_KEY")
+  if (fromEnv) return fromEnv
+  const auth = yield* Auth.Service
+  const info = yield* auth.get("openai").pipe(Effect.orElseSucceed(() => undefined))
+  if (info?.type === "api") return info.key
+  if (info?.type === "oauth") return info.access
+  if (info?.type === "wellknown") return info.token
+  return undefined
+})
 
 export * as VoiceTranscription from "./transcription"
