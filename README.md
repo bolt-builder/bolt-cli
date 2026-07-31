@@ -178,12 +178,11 @@ Where Bolt is headed, for the CLI, the desktop app, and everything around them. 
 
 - [ ] Session sync engine rollout (event-sourced storage, phase 1 shipped)
 - [ ] V2 session core (durable runner and coordinator)
-- [ ] Project memory module
 
 ### Next
 
 <details>
-<summary><strong>CLI and sessions (15)</strong></summary>
+<summary><strong>CLI and sessions (14)</strong></summary>
 
 - [ ] `session tail`: live-follow a running session from another terminal
 - [ ] `session search`: full-text search across all transcripts
@@ -196,7 +195,6 @@ Where Bolt is headed, for the CLI, the desktop app, and everything around them. 
 - [ ] Structured output schemas for `run --format json`
 - [ ] Session templates: reusable prompt, agent, and model presets
 - [ ] Session tags and filters in `session list`
-- [ ] `bolt memory`: view and edit what the agent remembers per project
 - [ ] Skills management: `bolt skill list/add`
 - [ ] Committable permission presets (`.bolt/permissions.jsonc`)
 - [ ] Lifecycle hooks: run shell commands before/after tool calls
@@ -358,6 +356,11 @@ Where Bolt is headed, for the CLI, the desktop app, and everything around them. 
 - [ ] Codebase visualization maps
 - [ ] Time-travel debugging across session checkpoints
 - [ ] AI release manager: cut, verify, and publish releases end to end
+
+### Done
+
+- [x] Project memory module: automatic capture with save and recall tools
+- [x] `bolt memory`: view and edit what the agent remembers per project (`/memory` in the TUI)
 
 ## Contributing
 
