@@ -26,6 +26,10 @@ import { ConfigV1 } from "@opencode-ai/core/v1/config/config"
 import { RemoteAuthError } from "@opencode-ai/core/v1/config/error"
 import { ConfigPermissionV1 } from "@opencode-ai/core/v1/config/permission"
 import { ConfigPluginV1 } from "@opencode-ai/core/v1/config/plugin"
+import { CompatAgent } from "@/compat/agent"
+import { CompatCommand } from "@/compat/command"
+import { CompatMCP } from "@/compat/mcp"
+import { CompatSettings } from "@/compat/settings"
 import { ConfigAgent } from "./agent"
 import { ConfigCommand } from "./command"
 import { ConfigManaged } from "./managed"
@@ -586,6 +590,45 @@ const layer = Layer.effect(
         }
         if (Flag.OPENCODE_DISABLE_PRUNE) {
           result.compaction = { ...result.compaction, prune: false }
+        }
+
+        // Import config written for other coding agents. Runs after every config merge
+        // so explicit bolt/opencode entries always win; the gates themselves live in the
+        // merged config. MCP is opt-in only: imported servers execute commands defined
+        // in repository files.
+        if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+          const compat = CompatSettings.settings(result.compat)
+          if (compat.mcp) {
+            const found = yield* CompatMCP.discover(fs, {
+              directory: ctx.directory,
+              worktree: ctx.worktree,
+              home: Global.Path.home,
+            })
+            for (const [name, entry] of Object.entries(found)) {
+              const existing = result.mcp?.[name]
+              if (existing && "type" in existing) continue
+              // A bare { enabled } entry toggles a server defined elsewhere; keep the toggle.
+              result.mcp = { ...result.mcp, [name]: existing ? { ...entry, enabled: existing.enabled } : entry }
+            }
+          }
+          if (compat.commands) {
+            const found = yield* CompatCommand.discover(fs, {
+              directory: ctx.directory,
+              worktree: ctx.worktree,
+              home: Global.Path.home,
+            })
+            for (const [name, entry] of Object.entries(found)) {
+              if (result.command?.[name]) continue
+              result.command = { ...result.command, [name]: entry }
+            }
+          }
+          if (compat.agents) {
+            const found = yield* CompatAgent.discover(fs, { directory: ctx.directory, worktree: ctx.worktree })
+            for (const [name, entry] of Object.entries(found)) {
+              if (result.agent?.[name]) continue
+              result.agent = { ...result.agent, [name]: entry }
+            }
+          }
         }
 
         return {
