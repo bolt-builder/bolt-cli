@@ -10,7 +10,7 @@ import { SystemContextRegistry } from "./registry"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
 
-const memory = SystemContext.Key.make("core/memory")
+export const memoryKey = SystemContext.Key.make("core/memory")
 
 // Emit the memory guidance once per prompt, ahead of the injected index blocks.
 const guidance = [
@@ -64,7 +64,7 @@ const builtIns = Layer.effectDiscard(
     // record:false keeps startup context building free of stat writes and events.
     const ctx = { directory: location.directory, worktree: location.project.directory }
     yield* registry.register({
-      key: memory,
+      key: memoryKey,
       load: Effect.tryPromise(() => BoltMemory.context({ ctx, record: false })).pipe(
         Effect.map((result) => {
           const text = result.blocks
@@ -73,7 +73,7 @@ const builtIns = Layer.effectDiscard(
             .join("\n\n")
           if (!text) return SystemContext.empty
           return SystemContext.make({
-            key: memory,
+            key: memoryKey,
             codec: Schema.toCodecJson(Schema.String),
             load: Effect.succeed(text),
             baseline: render,

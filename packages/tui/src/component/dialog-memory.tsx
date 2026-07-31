@@ -1,10 +1,12 @@
 import { TextAttributes, type ScrollBoxRenderable } from "@opentui/core"
 import { MEMORY_COMMAND_CATALOG } from "@opencode-ai/memory/commands"
+import { MemoryControls } from "@opencode-ai/memory/controls"
 import { MemoryToken } from "@opencode-ai/memory/token"
 import { createMemo, createResource, For, Match, Show, Switch } from "solid-js"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../config"
 import { useSDK } from "../context/sdk"
+import { useSync } from "../context/sync"
 import { useTheme } from "../context/theme"
 import { useBindings } from "../keymap"
 import { useDialog, type DialogContext } from "../ui/dialog"
@@ -38,9 +40,9 @@ export function showMemoryDialog(dialog: DialogContext) {
   dialog.replace(() => <DialogMemory />)
 }
 
-export function showMemoryHelpDialog(dialog: DialogContext, input?: { reason?: string }) {
+export function showMemoryHelpDialog(dialog: DialogContext, input?: { reason?: string; sessionID?: string }) {
   dialog.setSize("large")
-  dialog.replace(() => <DialogMemoryHelp reason={input?.reason} />)
+  dialog.replace(() => <DialogMemoryHelp reason={input?.reason} sessionID={input?.sessionID} />)
 }
 
 export function showMemoryStatusDialog(dialog: DialogContext) {
@@ -105,25 +107,67 @@ function draft(usage: string) {
   return usage
 }
 
-export function DialogMemoryHelp(props: { reason?: string }) {
+const toggles = ["use", "contribute"] as const
+
+export function DialogMemoryHelp(props: { reason?: string; sessionID?: string }) {
   const sdk = useSDK()
+  const sync = useSync()
   const dialog = useDialog()
   const { theme } = useTheme()
   const toast = useToast()
-  const options: DialogSelectOption<string>[] = MEMORY_COMMAND_CATALOG.map((item) => ({
-    title: item.description,
-    footer: `/memory ${item.usage}`,
-    category: "Memory",
-    value: item.usage,
-  }))
+  const metadata = () => (props.sessionID ? sync.session.get(props.sessionID)?.metadata : undefined)
+
+  async function toggle(key: string) {
+    const id = props.sessionID
+    if (!id) return
+    const meta = metadata()
+    const result = await sdk.client.session.update({ sessionID: id, metadata: { ...meta, [key]: meta?.[key] === false } })
+    if (!result.error) return
+    toast.show({ variant: "error", message: `Memory toggle failed: ${errorMessage(result.error)}` })
+  }
+
+  function mark(on: boolean) {
+    return on ? "[x]" : "[ ]"
+  }
+
+  // Session toggle rows flip in place; catalog rows draft the typed command into the prompt.
+  const options = createMemo<DialogSelectOption<string>[]>(() => [
+    ...(props.sessionID
+      ? [
+          {
+            title: `${mark(MemoryControls.use(metadata()))} Use saved memories in this session`,
+            footer: "/memory use on|off",
+            category: "Session",
+            value: "use",
+            onSelect: () => void toggle(MemoryControls.USE),
+          },
+          {
+            title: `${mark(MemoryControls.contribute(metadata()))} Save new memories from this session`,
+            footer: "/memory contribute on|off",
+            category: "Session",
+            value: "contribute",
+            onSelect: () => void toggle(MemoryControls.CONTRIBUTE),
+          },
+        ]
+      : []),
+    ...MEMORY_COMMAND_CATALOG.filter(
+      (item) => !props.sessionID || !toggles.some((verb) => item.usage.startsWith(`${verb} `)),
+    ).map((item) => ({
+      title: item.description,
+      footer: `/memory ${item.usage}`,
+      category: "Memory",
+      value: item.usage,
+    })),
+  ])
 
   return (
     <DialogSelect
       title="Memory"
-      options={options}
+      options={options()}
       flat
       footer={<Show when={props.reason}>{(reason) => <text fg={theme.error}>{reason()}</text>}</Show>}
       onSelect={async (option) => {
+        if (toggles.some((verb) => option.value === verb)) return
         dialog.clear()
         const result = await sdk.client.tui.appendPrompt({ text: `/memory ${draft(option.value)}` })
         if (!result.error) return

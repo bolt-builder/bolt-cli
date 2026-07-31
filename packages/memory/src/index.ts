@@ -2,6 +2,7 @@ export { digestSchema, mergeOps, parseJson, parseOps, typedSchema } from "./capt
 export { MemoryAutosaveStatus } from "./autosave-status"
 export { MEMORY_COMMAND_CATALOG, MEMORY_USAGE, parseMemoryCommand } from "./commands"
 export type { MemoryOperation, ParsedMemoryCommand } from "./commands"
+export { MemoryControls } from "./controls"
 export { MemoryDecisions } from "./decisions"
 export { MemoryDigest } from "./capture/digest"
 export { MemoryMarkerMeta } from "./marker-meta"

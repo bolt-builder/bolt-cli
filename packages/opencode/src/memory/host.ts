@@ -2,6 +2,7 @@ import { generateText, streamText } from "ai"
 import { Effect } from "effect"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { MemoryConfig } from "@opencode-ai/memory/effect/config"
+import { MemoryControls } from "@opencode-ai/memory/controls"
 import { MemoryError } from "@opencode-ai/memory/effect/errors"
 import type { MemoryPorts } from "@opencode-ai/memory/effect/ports"
 import { MemoryPaths } from "@opencode-ai/memory/effect/paths"
@@ -345,6 +346,9 @@ export const close = Effect.fn("MemoryHost.close")(function* (input: {
   summary: SessionSummary.Interface
   provider: Provider.Interface
 }) {
+  const info = yield* input.sessions.get(input.sessionID)
+  // A session that opted out of contribution via the /memory controls never feeds generation.
+  if (!MemoryControls.contribute(info.metadata)) return
   const ctx = yield* InstanceState.context
   const root = MemoryPaths.root({ ctx })
   return yield* MemoryTurn.close({

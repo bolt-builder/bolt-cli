@@ -1,12 +1,16 @@
 export * as MemoryRecallTool from "./memory-recall"
 
 import { ToolFailure } from "@opencode-ai/llm"
+import { MemoryControls } from "@opencode-ai/memory/controls"
 import { MemoryService } from "@opencode-ai/memory/effect/service"
 import { MemoryTool } from "@opencode-ai/memory/tool"
+import { eq } from "drizzle-orm"
 import { Effect, Layer, Schema } from "effect"
+import { Database } from "../database/database"
 import { makeLocationNode } from "../effect/app-node"
 import { Location } from "../location"
 import { PermissionV2 } from "../permission"
+import { SessionTable } from "../session/sql"
 import { ToolRegistry } from "./registry"
 import { Tool } from "./tool"
 import { Tools } from "./tools"
@@ -32,6 +36,7 @@ const layer = Layer.effectDiscard(
     const tools = yield* Tools.Service
     const location = yield* Location.Service
     const permission = yield* PermissionV2.Service
+    const { db } = yield* Database.Service
     const memory = MemoryService.make()
     const ctx = { directory: location.directory, worktree: location.project.directory }
 
@@ -44,6 +49,18 @@ const layer = Layer.effectDiscard(
           toModelOutput: ({ output }) => [{ type: "text", text: output.output }],
           execute: (input, context) =>
             Effect.gen(function* () {
+              const row = yield* db
+                .select({ metadata: SessionTable.metadata })
+                .from(SessionTable)
+                .where(eq(SessionTable.id, context.sessionID))
+                .get()
+                .pipe(Effect.orDie)
+              if (!MemoryControls.use(row?.metadata))
+                return {
+                  title: "Bolt memory: off for this session",
+                  output: "Memory use is turned off for this session. Turn it back on with /memory use on.",
+                  metadata: { sources: [], count: 0 },
+                }
               // The engine reports disabled memory as a regular tool result, so only an
               // enabled store prompts for approval.
               const enabled = yield* memory.prepare({ ctx }).pipe(
@@ -81,5 +98,5 @@ const layer = Layer.effectDiscard(
 export const node = makeLocationNode({
   name: "tool/memory-recall",
   layer,
-  deps: [ToolRegistry.node, PermissionV2.node, Location.node],
+  deps: [ToolRegistry.node, PermissionV2.node, Location.node, Database.node],
 })

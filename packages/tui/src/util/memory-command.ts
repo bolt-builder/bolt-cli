@@ -8,6 +8,7 @@
  */
 
 import { MEMORY_USAGE, parseMemoryCommand, type ParsedMemoryCommand } from "@opencode-ai/memory/commands"
+import { MemoryControls } from "@opencode-ai/memory/controls"
 import type { OpencodeClient } from "@opencode-ai/sdk/v2"
 import { errorMessage } from "./error"
 
@@ -78,6 +79,22 @@ export async function runMemoryCommand(input: {
       if (!input.inspect) throw new Error("Memory folder inspection is unavailable")
       input.toast.show({ variant: "info", message: `Memory folder: ${status.root}` })
       await input.inspect(status.root)
+      return true
+    }
+    if (parsed.operation === "use" || parsed.operation === "contribute") {
+      if (!input.sessionID) throw new Error("Open a session first.")
+      const key = parsed.operation === "use" ? MemoryControls.USE : MemoryControls.CONTRIBUTE
+      const session = read(await input.client.session.get({ sessionID: input.sessionID }))
+      read(
+        await input.client.session.update({
+          sessionID: input.sessionID,
+          metadata: { ...session.metadata, [key]: parsed.mode === "on" },
+        }),
+      )
+      input.toast.show({
+        variant: "info",
+        message: `Memory ${parsed.operation === "use" ? "use" : "contribution"} ${parsed.mode} for this session`,
+      })
       return true
     }
     if (parsed.operation === "auto") {

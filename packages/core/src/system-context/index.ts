@@ -179,6 +179,11 @@ export function combine(values: ReadonlyArray<SystemContext>): SystemContext {
   return context(sources)
 }
 
+/** Removes one source, e.g. when a session opts out of memory injection. */
+export function omit(value: SystemContext, key: Key): SystemContext {
+  return context(value[ContextTypeId].filter((source) => source.key !== key))
+}
+
 const observe = (value: SystemContext) =>
   Effect.forEach(
     value[ContextTypeId],
