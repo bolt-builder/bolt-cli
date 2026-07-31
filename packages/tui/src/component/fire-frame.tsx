@@ -23,13 +23,25 @@ export function createFire(width: () => number, active: () => boolean, color?: (
     const cols = width()
     let dead = false
     let timer: ReturnType<typeof setInterval> | undefined
-    ignite(cols).then((engine) => {
-      if (dead) return
-      timer = setInterval(() => {
-        engine.advance()
-        setGrid(cells(engine.grid(), cols, colors()))
-      }, INTERVAL)
-    })
+    ignite(cols)
+      .then((engine) => {
+        if (dead) return
+        timer = setInterval(() => {
+          try {
+            engine.advance()
+            setGrid(cells(engine.grid(), cols, colors()))
+          } catch (err) {
+            // Decorative only: if the engine breaks, stop the burn quietly.
+            console.error("doom-fire tick failed", { err })
+            clearInterval(timer)
+            setGrid([])
+          }
+        }, INTERVAL)
+      })
+      .catch((err) => {
+        console.error("doom-fire failed to ignite", { err })
+        setGrid([])
+      })
     onCleanup(() => {
       dead = true
       if (timer) clearInterval(timer)
