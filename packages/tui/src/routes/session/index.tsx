@@ -58,6 +58,7 @@ import { DialogTodos } from "../../component/dialog-todos"
 
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
+import { SessionHeader } from "./header.tsx"
 import { filetype } from "../../util/filetype"
 import parsers from "../../parsers-config"
 import { errorMessage } from "../../util/error"
@@ -317,6 +318,7 @@ export function Session() {
     return false
   })
   const showTimestamps = createMemo(() => timestamps() === "show")
+  const compactMode = createMemo(() => timestamps() === "hide" && !showDetails())
   const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
   const providers = createMemo(() => Model.index(sync.data.provider))
 
@@ -741,11 +743,31 @@ export function Session() {
       title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
       value: "session.sidebar.toggle",
       category: "Session",
+      slash: {
+        name: "sidebar",
+      },
       run: () => {
         batch(() => {
           const isVisible = sidebarVisible()
           setSidebar(() => (isVisible ? "hide" : "auto"))
           setSidebarOpen(!isVisible)
+        })
+        dialog.clear()
+      },
+    },
+    {
+      title: compactMode() ? "Disable compact mode" : "Enable compact mode",
+      value: "session.toggle.compact",
+      category: "Session",
+      slash: {
+        name: "compact-view",
+        aliases: ["density"],
+      },
+      run: () => {
+        batch(() => {
+          const compact = compactMode()
+          setTimestamps(() => (compact ? "show" : "hide"))
+          setShowDetails(() => compact)
         })
         dialog.clear()
       },
@@ -1242,6 +1264,7 @@ export function Session() {
         <box flexDirection="row" flexGrow={1} minHeight={0}>
           <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
             <Show when={session()}>
+              <SessionHeader sessionID={route.sessionID} width={contentWidth()} />
               <scrollbox
                 ref={(r) => (scroll = r)}
                 viewportOptions={{
@@ -1447,6 +1470,19 @@ export function Session() {
                   alignItems="flex-end"
                   backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
                 >
+                  <box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    onMouseDown={() => {
+                      batch(() => {
+                        setSidebar(() => "hide")
+                        setSidebarOpen(false)
+                      })
+                    }}
+                  />
                   <Sidebar sessionID={route.sessionID} />
                 </box>
               </Match>

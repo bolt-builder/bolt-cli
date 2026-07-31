@@ -6,6 +6,7 @@ import SidebarFiles from "./sidebar/files"
 import SidebarFooter from "./sidebar/footer"
 import SidebarLsp from "./sidebar/lsp"
 import SidebarMcp from "./sidebar/mcp"
+import SidebarSessions from "./sidebar/sessions"
 import SidebarTodo from "./sidebar/todo"
 import DiffViewer from "./system/diff-viewer"
 import Memory from "./system/memory"
@@ -27,6 +28,7 @@ export function createBuiltinPlugins(options: { experimentalEventSystem: boolean
     HomeFooter,
     HomeTips,
     SidebarContext,
+    SidebarSessions,
     SidebarMcp,
     SidebarLsp,
     SidebarTodo,

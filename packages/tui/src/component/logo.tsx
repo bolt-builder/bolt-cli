@@ -1,4 +1,4 @@
-import { RGBA, TextAttributes } from "@opentui/core"
+import { TextAttributes } from "@opentui/core"
 import { For, type JSX } from "solid-js"
 import { tint, useTheme } from "../context/theme"
 import { logo } from "../logo"
@@ -6,10 +6,18 @@ import { logo } from "../logo"
 export function Logo() {
   const { theme } = useTheme()
 
-  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
-    const shadow = tint(theme.background, fg, 0.25)
+  const leftWidth = logo.left[0]?.length ?? 0
+  const totalWidth = leftWidth + 1 + (logo.right[0]?.length ?? 0)
+
+  // Horizontal gradient across the whole wordmark, accent to primary.
+  const gradient = (column: number) =>
+    tint(theme.accent, theme.primary, totalWidth <= 1 ? 1 : column / (totalWidth - 1))
+
+  const renderLine = (line: string, offset: number, bold: boolean): JSX.Element[] => {
     const attrs = bold ? TextAttributes.BOLD : undefined
-    return Array.from(line).map((char) => {
+    return Array.from(line).map((char, column) => {
+      const fg = gradient(offset + column)
+      const shadow = tint(theme.background, fg, 0.25)
       if (char === "_") {
         return (
           <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
@@ -51,9 +59,9 @@ export function Logo() {
       <For each={logo.left}>
         {(line, index) => (
           <box flexDirection="row" gap={1}>
-            <box flexDirection="row">{renderLine(line, RGBA.fromHex("#0062ff"), false)}</box>
+            <box flexDirection="row">{renderLine(line, 0, false)}</box>
             {/* Safely access logo.right with fallback to empty string */}
-            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", RGBA.fromHex("#ff0000"), true)}</box>
+            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", leftWidth + 1, true)}</box>
           </box>
         )}
       </For>

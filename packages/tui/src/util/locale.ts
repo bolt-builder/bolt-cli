@@ -27,6 +27,15 @@ export function todayTimeOrDateTime(input: number): string {
   }
 }
 
+export function relative(input: number): string {
+  const diff = Math.max(0, Date.now() - input)
+  if (diff < 60000) return "now"
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d`
+  return new Date(input).toLocaleDateString()
+}
+
 export function number(num: number): string {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + "M"
