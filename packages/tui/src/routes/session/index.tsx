@@ -276,6 +276,7 @@ export function Session() {
     return false
   })
   const showTimestamps = createMemo(() => timestamps() === "show")
+  const compactMode = createMemo(() => timestamps() === "hide" && !showDetails())
   const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
   const providers = createMemo(() => Model.index(sync.data.provider))
 
@@ -744,11 +745,31 @@ export function Session() {
       title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
       value: "session.sidebar.toggle",
       category: "Session",
+      slash: {
+        name: "sidebar",
+      },
       run: () => {
         batch(() => {
           const isVisible = sidebarVisible()
           setSidebar(() => (isVisible ? "hide" : "auto"))
           setSidebarOpen(!isVisible)
+        })
+        dialog.clear()
+      },
+    },
+    {
+      title: compactMode() ? "Disable compact mode" : "Enable compact mode",
+      value: "session.toggle.compact",
+      category: "Session",
+      slash: {
+        name: "compact-view",
+        aliases: ["density"],
+      },
+      run: () => {
+        batch(() => {
+          const compact = compactMode()
+          setTimestamps(() => (compact ? "show" : "hide"))
+          setShowDetails(() => compact)
         })
         dialog.clear()
       },
@@ -1447,6 +1468,19 @@ export function Session() {
                   alignItems="flex-end"
                   backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
                 >
+                  <box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    onMouseDown={() => {
+                      batch(() => {
+                        setSidebar(() => "hide")
+                        setSidebarOpen(false)
+                      })
+                    }}
+                  />
                   <Sidebar sessionID={route.sessionID} />
                 </box>
               </Match>

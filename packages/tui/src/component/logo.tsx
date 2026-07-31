@@ -1,13 +1,20 @@
 import { TextAttributes } from "@opentui/core"
-import { For, type JSX } from "solid-js"
+import { For, Show, type JSX } from "solid-js"
+import { useTerminalDimensions } from "@opentui/solid"
 import { tint, useTheme } from "../context/theme"
 import { logo } from "../logo"
 
+const BRAND = "BOLT CLI"
+
 export function Logo() {
   const { theme } = useTheme()
+  const dimensions = useTerminalDimensions()
 
   const leftWidth = logo.left[0]?.length ?? 0
   const totalWidth = leftWidth + 1 + (logo.right[0]?.length ?? 0)
+
+  // The big art clips below ~80 columns; fall back to a one-line brand row.
+  const compact = () => dimensions().width < totalWidth + 4
 
   // Horizontal gradient across the whole wordmark, accent to primary.
   const gradient = (column: number) =>
@@ -55,16 +62,34 @@ export function Logo() {
   }
 
   return (
-    <box>
-      <For each={logo.left}>
-        {(line, index) => (
-          <box flexDirection="row" gap={1}>
-            <box flexDirection="row">{renderLine(line, 0, false)}</box>
-            {/* Safely access logo.right with fallback to empty string */}
-            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", leftWidth + 1, true)}</box>
-          </box>
-        )}
-      </For>
-    </box>
+    <Show
+      when={!compact()}
+      fallback={
+        <text selectable={false}>
+          {Array.from(BRAND).map((char, column) => (
+            <span
+              style={{
+                fg: tint(theme.accent, theme.primary, column / (BRAND.length - 1)),
+                attributes: TextAttributes.BOLD,
+              }}
+            >
+              {char}
+            </span>
+          ))}
+        </text>
+      }
+    >
+      <box>
+        <For each={logo.left}>
+          {(line, index) => (
+            <box flexDirection="row" gap={1}>
+              <box flexDirection="row">{renderLine(line, 0, false)}</box>
+              {/* Safely access logo.right with fallback to empty string */}
+              <box flexDirection="row">{renderLine(logo.right[index()] ?? "", leftWidth + 1, true)}</box>
+            </box>
+          )}
+        </For>
+      </box>
+    </Show>
   )
 }

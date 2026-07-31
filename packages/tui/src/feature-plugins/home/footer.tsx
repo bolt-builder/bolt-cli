@@ -59,6 +59,22 @@ function Mcp(props: { api: TuiPluginApi }) {
   )
 }
 
+function Lsp(props: { api: TuiPluginApi }) {
+  const theme = () => props.api.theme.current
+  const list = createMemo(() => props.api.state.lsp())
+
+  return (
+    <Show when={list().length > 0}>
+      <box flexShrink={0}>
+        <text fg={theme().text}>
+          <span style={{ fg: theme().success }}>• </span>
+          {list().length} LSP
+        </text>
+      </box>
+    </Show>
+  )
+}
+
 function Version(props: { api: TuiPluginApi }) {
   const theme = () => props.api.theme.current
 
@@ -82,6 +98,7 @@ function View(props: { api: TuiPluginApi }) {
       gap={2}
     >
       <Directory api={props.api} />
+      <Lsp api={props.api} />
       <Mcp api={props.api} />
       <box flexGrow={1} />
       <Version api={props.api} />
