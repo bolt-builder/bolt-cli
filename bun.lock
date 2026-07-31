@@ -974,6 +974,7 @@
         "@opentui/core": "catalog:",
         "@opentui/keymap": "catalog:",
         "@opentui/solid": "catalog:",
+        "@seomis/doom-fire": "0.1.0",
         "clipboardy": "4.0.0",
         "diff": "catalog:",
         "effect": "catalog:",
@@ -2536,6 +2537,8 @@
     "@sentry/solid": ["@sentry/solid@10.36.0", "", { "dependencies": { "@sentry/browser": "10.36.0", "@sentry/core": "10.36.0" }, "peerDependencies": { "@solidjs/router": "^0.13.4 || ^0.14.0 || ^0.15.0", "@tanstack/solid-router": "^1.132.27", "solid-js": "^1.8.4" }, "optionalPeers": ["@solidjs/router", "@tanstack/solid-router"] }, "sha512-AaDqz3JGBrQCm2YVqODVyJHwg7LRTNSJig9mjfProFyvkC7eUXQ/HBJrrhAD1Dct9ufmDH3G+f3/Ut9LgpItSg=="],
 
     "@sentry/vite-plugin": ["@sentry/vite-plugin@4.6.0", "", { "dependencies": { "@sentry/bundler-plugin-core": "4.6.0", "unplugin": "1.0.1" } }, "sha512-fMR2d+EHwbzBa0S1fp45SNUTProxmyFBp+DeBWWQOSP9IU6AH6ea2rqrpMAnp/skkcdW4z4LSRrOEpMZ5rWXLw=="],
+
+    "@seomis/doom-fire": ["@seomis/doom-fire@0.1.0", "", {}, "sha512-fal/Eumrc/TBQGb1x1/sZCB2uzZU16vRBTkDOiohwwQSLOait002Ohq3Sc8tTaDoUyR3Bqp6d+EgNoKhSiExew=="],
 
     "@shikijs/core": ["@shikijs/core@3.9.2", "", { "dependencies": { "@shikijs/types": "3.9.2", "@shikijs/vscode-textmate": "^10.0.2", "@types/hast": "^3.0.4", "hast-util-to-html": "^9.0.5" } }, "sha512-3q/mzmw09B2B6PgFNeiaN8pkNOixWS726IHmJEpjDAcneDPMQmUg2cweT9cWXY4XcyQS3i6mOOUgQz9RRUP6HA=="],
 
