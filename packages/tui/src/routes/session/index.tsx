@@ -570,13 +570,19 @@ export function Session() {
         // Fork the session so the side question sees the conversation so far;
         // the fork runs on its own per-session runner, so the original run
         // keeps streaming untouched.
-        const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch(() => undefined)
+        const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch((error) => {
+          toast.show({
+            variant: "error",
+            message: error instanceof Error ? `btw: ${error.message}` : "btw: failed to fork the session",
+            duration: 5000,
+          })
+        })
         const id = fork?.data?.id
         if (!id) {
-          toast.show({ variant: "error", message: "btw: failed to fork the session", duration: 5000 })
+          if (fork) toast.show({ variant: "error", message: "btw: failed to fork the session", duration: 5000 })
           return
         }
-        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` })
+        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` }).catch(() => {})
         toast.show({ variant: "info", message: `btw: thinking about "${label}"`, duration: 5000 })
         const result = await sdk.client.session
           .prompt({
@@ -588,8 +594,15 @@ export function Session() {
               },
             ],
           })
-          .catch(() => undefined)
-        const answer = (result?.data?.parts ?? [])
+          .catch((error) => {
+            toast.show({
+              variant: "error",
+              message: error instanceof Error ? `btw: ${error.message}` : "btw: no answer came back",
+              duration: 5000,
+            })
+          })
+        if (!result) return
+        const answer = (result.data?.parts ?? [])
           .flatMap((part) => (part.type === "text" ? [part.text] : []))
           .join("\n\n")
           .trim()
