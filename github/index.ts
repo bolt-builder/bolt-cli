@@ -244,7 +244,7 @@ function createOpencode() {
 function assertPayloadKeyword() {
   const payload = useContext().payload as IssueCommentEvent | PullRequestReviewCommentEvent
   const body = payload.comment.body.trim()
-  if (!body.match(/(?:^|\s)(?:\/opencode|\/oc)(?=$|\s)/)) {
+  if (!/(?:^|\s)(?:\/opencode|\/oc)(?=$|\s)/.test(body)) {
     throw new Error("Comments must mention `/opencode` or `/oc`")
   }
 }
