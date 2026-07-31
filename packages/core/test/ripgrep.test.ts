@@ -31,6 +31,34 @@ describe("Ripgrep", () => {
     ),
   )
 
+  it.live("respects .boltignore for find and grep, including from subdirectories", () =>
+    Effect.acquireUseRelease(
+      Effect.promise(() => tmpdir()),
+      (tmp) =>
+        Effect.gen(function* () {
+          yield* Effect.promise(() => fs.mkdir(path.join(tmp.path, "src")))
+          yield* Effect.promise(() => Bun.$`git init -q ${tmp.path}`)
+          yield* Effect.promise(() => fs.writeFile(path.join(tmp.path, ".boltignore"), "hidden.txt\n"))
+          yield* Effect.promise(() => fs.writeFile(path.join(tmp.path, "src", "hidden.txt"), "needle\n"))
+          yield* Effect.promise(() => fs.writeFile(path.join(tmp.path, "src", "shown.txt"), "needle\n"))
+          const ripgrep = yield* Ripgrep.Service
+
+          const files = yield* ripgrep.find({ cwd: tmp.path, pattern: "*", limit: 10 })
+          expect(files.map((item) => item.path)).toContain(RelativePath.make("src/shown.txt"))
+          expect(files.map((item) => item.path)).not.toContain(RelativePath.make("src/hidden.txt"))
+
+          const matches = yield* ripgrep.grep({ cwd: tmp.path, pattern: "needle", limit: 10 })
+          expect(matches.map((item) => item.entry.path)).toContain(RelativePath.make("src/shown.txt"))
+          expect(matches.map((item) => item.entry.path)).not.toContain(RelativePath.make("src/hidden.txt"))
+
+          const nested = yield* ripgrep.find({ cwd: path.join(tmp.path, "src"), pattern: "*", limit: 10 })
+          expect(nested.map((item) => item.path)).toContain(RelativePath.make("shown.txt"))
+          expect(nested.map((item) => item.path)).not.toContain(RelativePath.make("hidden.txt"))
+        }),
+      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
+    ),
+  )
+
   it.live("never includes git metadata", () =>
     Effect.acquireUseRelease(
       Effect.promise(() => tmpdir()),
