@@ -203,11 +203,17 @@ export async function runBestOf(input: {
   order.forEach((label, i) => {
     const item = ranked.get(label)!
     const marker = i === 0 ? UI.Style.TEXT_SUCCESS + "★" : UI.Style.TEXT_DIM + `${i + 1}.`
-    UI.println(`${marker} ${label} · ${format(item.model)} ${UI.Style.TEXT_DIM}${item.sessionID}${UI.Style.TEXT_NORMAL}`)
+    UI.println(
+      `${marker} ${label} · ${format(item.model)} ${UI.Style.TEXT_DIM}${item.sessionID}${UI.Style.TEXT_NORMAL}`,
+    )
   })
   settled
     .filter((item) => item.error !== undefined)
-    .forEach((item) => UI.println(`${UI.Style.TEXT_DANGER_BOLD}✗${UI.Style.TEXT_NORMAL} ${item.label} · ${format(item.model)} ${UI.Style.TEXT_DIM}${item.error}${UI.Style.TEXT_NORMAL}`))
+    .forEach((item) =>
+      UI.println(
+        `${UI.Style.TEXT_DANGER_BOLD}✗${UI.Style.TEXT_NORMAL} ${item.label} · ${format(item.model)} ${UI.Style.TEXT_DIM}${item.error}${UI.Style.TEXT_NORMAL}`,
+      ),
+    )
   UI.empty()
   process.stdout.write((winner.text ?? "") + EOL)
   return 0
