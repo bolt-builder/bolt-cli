@@ -1,4 +1,4 @@
-name: fix-commit-message
+name: check-commit-message
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
           fi
 
           DIFF=$(git diff HEAD~1 HEAD --stat && echo "---" && git diff HEAD~1 HEAD | head -c 6000)
-          PROMPT="Write a single concise git commit message (under 72 chars, imperative mood, no quotes, no markdown) summarizing this diff:\n\n${DIFF}"
+          PROMPT="Write a single concise git commit message (under 72 chars, imperative mood, no quotes, no markdown) summarizing this diff :\n\n${DIFF} and always add a long explantation if it is a big diff."
 
           RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
@@ -54,5 +54,5 @@ jobs:
 
           git config user.name "bolt-cli[bot]"
           git config user.email "bolt-cli[bot]@bolt-cli.ai"
-          git commit --amend --author="bolt-cli[bot] <bolt-cli[bot]@bolt-cli.ai>" -m "$NEW_MSG"
+          git commit --amend --author="bolt-cli-bot[bot] <bolt-cli-bot[bot]@bolt-cli.ai>" -m "$NEW_MSG"
           git push --force origin HEAD:dev
