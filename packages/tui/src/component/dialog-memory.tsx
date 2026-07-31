@@ -117,10 +117,18 @@ export function DialogMemoryHelp(props: { reason?: string; sessionID?: string })
   const toast = useToast()
   const metadata = () => (props.sessionID ? sync.session.get(props.sessionID)?.metadata : undefined)
 
+  // Refetch metadata right before writing: session.update overwrites the full
+  // metadata record, so spreading the cached sync snapshot could revert a
+  // concurrent change made while this dialog stayed open.
   async function toggle(key: string) {
     const id = props.sessionID
     if (!id) return
-    const meta = metadata()
+    const current = await sdk.client.session.get({ sessionID: id })
+    if (current.error) {
+      toast.show({ variant: "error", message: `Memory toggle failed: ${errorMessage(current.error)}` })
+      return
+    }
+    const meta = current.data?.metadata
     const result = await sdk.client.session.update({ sessionID: id, metadata: { ...meta, [key]: meta?.[key] === false } })
     if (!result.error) return
     toast.show({ variant: "error", message: `Memory toggle failed: ${errorMessage(result.error)}` })
