@@ -1028,7 +1028,7 @@ export function Prompt(props: PromptProps) {
         },
         show: () => showMemoryDialog(dialog),
         status: () => showMemoryStatusDialog(dialog),
-        usage: (reason) => showMemoryHelpDialog(dialog, { reason }),
+        usage: (reason) => showMemoryHelpDialog(dialog, { reason, sessionID: props.sessionID }),
       })
       return true
     }

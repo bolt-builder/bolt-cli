@@ -15,6 +15,7 @@
     "./autosave-status": "./src/autosave-status.ts",
     "./capture": "./src/capture/capture.ts",
     "./commands": "./src/commands.ts",
+    "./controls": "./src/controls.ts",
     "./decisions": "./src/decisions.ts",
     "./digest": "./src/capture/digest.ts",
     "./effect": "./src/effect/index.ts",

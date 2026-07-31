@@ -7,6 +7,8 @@ export const MEMORY_COMMAND_CATALOG = [
   { usage: "correct <text>", description: "Save a correction to project memory" },
   { usage: "forget <query>", description: "Remove matching project memory" },
   { usage: "auto on|off", description: "Turn automatic memory saves on or off" },
+  { usage: "use on|off", description: "Use saved memories in this session" },
+  { usage: "contribute on|off", description: "Save new memories from this session" },
   { usage: "inspect", description: "Reveal the project memory folder" },
   { usage: "rebuild", description: "Rebuild the memory index from source files" },
   { usage: "purge confirm", description: "Delete all project memory files" },
@@ -25,6 +27,8 @@ export const MEMORY_OPERATIONS = [
   "forget",
   "purge",
   "auto",
+  "use",
+  "contribute",
 ] as const
 export type MemoryOperation = (typeof MEMORY_OPERATIONS)[number]
 
@@ -58,12 +62,17 @@ type Operation =
     }
   | {
       kind: "operation"
+      operation: "use" | "contribute"
+      mode: "on" | "off"
+    }
+  | {
+      kind: "operation"
       operation: "purge"
       confirm: true
     }
   | {
       kind: "operation"
-      operation: Exclude<MemoryOperation, "remember" | "correct" | "forget" | "purge" | "auto">
+      operation: Exclude<MemoryOperation, "remember" | "correct" | "forget" | "purge" | "auto" | "use" | "contribute">
     }
 
 type Usage = {
@@ -106,6 +115,11 @@ function operation(verb: string, text: string): ParsedMemoryCommand | undefined 
     const mode = text.toLowerCase()
     if (mode === "on" || mode === "off") return { kind: "operation", operation: "auto", mode }
     return usage("Missing auto mode. Run /memory auto on or /memory auto off.")
+  }
+  if (verb === "use" || verb === "contribute") {
+    const mode = text.toLowerCase()
+    if (mode === "on" || mode === "off") return { kind: "operation", operation: verb, mode }
+    return usage(`Missing ${verb} mode. Run /memory ${verb} on or /memory ${verb} off.`)
   }
   if (verb === "remember") {
     if (text) return { kind: "operation", operation: "remember", text }

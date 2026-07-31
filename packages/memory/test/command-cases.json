@@ -133,5 +133,45 @@
     "input": "/memory wat",
     "result": "usage",
     "reason": "Unknown memory action"
+  },
+  {
+    "name": "use on operation",
+    "input": "/memory use on",
+    "result": "operation",
+    "operation": "use",
+    "mode": "on"
+  },
+  {
+    "name": "use off operation",
+    "input": "/memory use off",
+    "result": "operation",
+    "operation": "use",
+    "mode": "off"
+  },
+  {
+    "name": "use without mode",
+    "input": "/memory use",
+    "result": "usage",
+    "reason": "Missing use mode. Run /memory use on or /memory use off."
+  },
+  {
+    "name": "contribute on operation",
+    "input": "/memory contribute on",
+    "result": "operation",
+    "operation": "contribute",
+    "mode": "on"
+  },
+  {
+    "name": "contribute off operation",
+    "input": "/memory contribute off",
+    "result": "operation",
+    "operation": "contribute",
+    "mode": "off"
+  },
+  {
+    "name": "contribute without mode",
+    "input": "/memory contribute maybe",
+    "result": "usage",
+    "reason": "Missing contribute mode. Run /memory contribute on or /memory contribute off."
   }
 ]
