@@ -952,7 +952,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           local.permission.mode === "auto" ? "Disable auto-approve permissions" : "Enable auto-approve permissions",
         category: "System",
         slashName: "auto-approve",
-        slashAliases: ["autoapprove", "approve-all", "approveall"],
+        slashAliases: ["autoapprove", "approve-all", "approveall", "yolo"],
         run: () => {
           local.permission.toggle()
           dialog.clear()
