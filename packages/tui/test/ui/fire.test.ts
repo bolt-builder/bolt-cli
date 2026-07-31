@@ -1,60 +1,59 @@
 import { describe, expect, test } from "bun:test"
-import { advance, cell, cells, seed, side, GLYPHS, PALETTE, ROWS } from "../../src/ui/fire"
-
-function rng(values: number[]) {
-  let index = 0
-  return () => values[index++ % values.length]
-}
+import { cell, cells, ignite, GLYPHS, MAX, PALETTE, ROWS } from "../../src/ui/fire"
 
 describe("fire", () => {
-  test("seed produces a grid with a hot source row and cold tips", () => {
-    const grid = seed(4)
-    expect(grid).toHaveLength(ROWS)
-    for (const row of grid) expect(row).toHaveLength(4)
-    expect(grid[ROWS - 1]).toEqual([1, 1, 1, 1])
-    expect(grid[0]).toEqual([0, 0, 0, 0])
-    expect(seed(0).every((row) => row.length === 0)).toBe(true)
-    expect(seed(-3).every((row) => row.length === 0)).toBe(true)
-  })
-
-  test("advance keeps heat within bounds and the source row hot", () => {
-    const grid = Array.from({ length: 20 }).reduce<number[][]>((acc) => advance(acc), seed(6))
-    for (const row of grid) {
-      for (const value of row) {
-        expect(value).toBeGreaterThanOrEqual(0)
-        expect(value).toBeLessThanOrEqual(1)
-      }
+  test("ignite produces a grid of width * rows heat values in range", async () => {
+    const engine = await ignite(40)
+    const grid = engine.grid()
+    expect(grid.length).toBe(40 * ROWS)
+    for (const heat of grid) {
+      expect(heat).toBeGreaterThanOrEqual(0)
+      expect(heat).toBeLessThanOrEqual(MAX)
     }
-    for (const value of grid[grid.length - 1]) expect(value).toBeGreaterThanOrEqual(0.85)
   })
 
-  test("heat decays away from the source so tips are ragged", () => {
-    // rng cycles: drift pick, decay for every non-source cell; 0.5 keeps it deterministic-ish
-    const grid = advance(advance(seed(4), rng([0.5])), rng([0.5]))
-    const mean = (row: number[]) => row.reduce((sum, value) => sum + value, 0) / row.length
-    expect(mean(grid[0])).toBeLessThan(mean(grid[grid.length - 1]))
+  test("source row stays hot and tips stay cooler", async () => {
+    const engine = await ignite(40)
+    for (let i = 0; i < 30; i++) engine.advance()
+    const grid = engine.grid()
+    const source = grid.subarray(40 * (ROWS - 1))
+    const tips = grid.subarray(0, 40)
+    expect(Math.max(...source)).toBeGreaterThan(MAX / 2)
+    const mean = (row: Uint8Array) => row.reduce((sum, heat) => sum + heat, 0) / row.length
+    expect(mean(source)).toBeGreaterThan(mean(tips))
   })
 
-  test("cell maps heat to glyph and color from the palettes", () => {
-    expect(cell(0)).toEqual({ char: " ", color: PALETTE[0] })
-    expect(cell(1).char).toBe("█")
-    expect(GLYPHS).toContain(cell(0.5).char)
-    expect(PALETTE).toContain(cell(0.5).color)
+  test("advance survives the upstream panic by respawning", async () => {
+    const engine = await ignite(60)
+    // The upstream wasm traps nondeterministically; hundreds of advances make
+    // hitting it near-certain, and advance must recover every time.
+    for (let i = 0; i < 2000; i++) engine.advance()
+    expect(engine.grid().length).toBe(60 * ROWS)
   })
 
-  test("cells maps a whole grid", () => {
-    const grid = cells([
-      [0, 1],
-      [1, 0],
-    ])
-    expect(grid).toHaveLength(2)
-    expect(grid[0][0].char).toBe(" ")
-    expect(grid[0][1].char).toBe("█")
-    expect(grid[1][0].color).toBe(PALETTE[PALETTE.length - 1])
+  test("cell maps zero heat to blank and max heat to the brightest glyph", () => {
+    expect(cell(0).char).toBe(" ")
+    expect(cell(MAX).char).toBe(GLYPHS[GLYPHS.length - 1])
+    expect(cell(MAX).color).toBe(PALETTE[PALETTE.length - 1])
+    for (let heat = 0; heat <= MAX; heat++) {
+      expect(GLYPHS).toContain(cell(heat).char)
+      expect(PALETTE).toContain(cell(heat).color)
+    }
   })
 
-  test("side flickers within the bright end of the palette", () => {
-    expect(PALETTE.indexOf(side(seed(3)))).toBeGreaterThanOrEqual(4)
-    expect(side([[]])).toBe(PALETTE[5])
+  test("narrow grids still burn despite the upstream 35-column seeding quirk", async () => {
+    const engine = await ignite(20)
+    for (let i = 0; i < 30; i++) engine.advance()
+    const grid = engine.grid()
+    expect(grid.length).toBe(20 * ROWS)
+    expect(Math.max(...grid)).toBeGreaterThan(MAX / 2)
+  })
+
+  test("cells splits the flat grid into rows of rendered cells", async () => {
+    const engine = await ignite(20)
+    for (let i = 0; i < 10; i++) engine.advance()
+    const rows = cells(engine.grid(), 20)
+    expect(rows.length).toBe(ROWS)
+    for (const row of rows) expect(row.length).toBe(20)
   })
 })
