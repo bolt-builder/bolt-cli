@@ -53,8 +53,15 @@ export const PALETTE = [
   "#ffffff",
 ]
 
-// Simulation rows; rendered as ROWS / 2 text rows of half-block pixels.
+// Display rows; rendered as ROWS / 2 text rows of half-block pixels.
 export const ROWS = 6
+
+// The wasm needs vertical room to develop the classic gradient: flames only
+// climb a couple of rows above the source before dying, so a 6-row grid never
+// gets past flat orange. Simulate DEPTH times as many rows and vertically
+// sample the live flame band down to the display rows, keeping the full
+// white-hot-to-ember arc and the ragged flickering tips.
+const DEPTH = 4
 
 // Heat values run 0..MAX, matching the 36-color palette of the original.
 export const MAX = 35
@@ -92,6 +99,7 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
   // Upstream seeds no fire on grids narrower than 35 columns, so simulate at
   // least that wide and slice each row down to the requested width.
   const sim = Math.max(width, MAX)
+  const depth = rows * DEPTH
   const spawn = () => {
     const instance = new WebAssembly.Instance(mod, {
       "./doom_fire": {
@@ -103,9 +111,12 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
       },
     })
     const api = instance.exports as unknown as Api
-    return { api, ptr: api.fire_new(sim, rows, MAX) }
+    return { api, ptr: api.fire_new(sim, depth, MAX) }
   }
   let state = spawn()
+  // The flame body lives in the lower half of the tall grid; sample display
+  // rows from just above it (occasional ragged tips) down to the source.
+  const start = Math.floor(depth * 0.45)
   return {
     advance() {
       try {
@@ -117,10 +128,12 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
     },
     // Reconstructed per read: the buffer detaches when wasm memory grows.
     grid() {
-      const raw = new Uint8Array(state.api.memory.buffer, state.api.fire_get_cells(state.ptr), sim * rows)
-      if (sim === width) return raw
+      const raw = new Uint8Array(state.api.memory.buffer, state.api.fire_get_cells(state.ptr), sim * depth)
       const out = new Uint8Array(width * rows)
-      for (let y = 0; y < rows; y++) out.set(raw.subarray(y * sim, y * sim + width), y * width)
+      for (let y = 0; y < rows; y++) {
+        const src = Math.round(start + (y * (depth - 1 - start)) / (rows - 1))
+        out.set(raw.subarray(src * sim, src * sim + width), y * width)
+      }
       return out
     },
   }
