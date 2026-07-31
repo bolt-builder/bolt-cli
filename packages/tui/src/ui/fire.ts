@@ -66,6 +66,30 @@ const DEPTH = 4
 // Heat values run 0..MAX, matching the 36-color palette of the original.
 export const MAX = 35
 
+// Builds a 36-color fire ramp from a single base color so the flames match
+// the active theme: embers stay near black, the body burns in shades of the
+// base color, and the hottest cells blow out toward white. The eased splits
+// mirror the shape of the classic DOOM ramp (long dark tail, short white
+// core), which keeps dark bases like deep blue or green reading as fire.
+export function palette(base: string): string[] {
+  const n = parseInt(base.slice(1, 7), 16)
+  const rgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  const mix = (from: number[], to: number[], t: number) =>
+    "#" +
+    from
+      .map((v, i) =>
+        Math.round(v + (to[i] - v) * t)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  return Array.from({ length: MAX + 1 }, (_, i) => {
+    const t = i / MAX
+    if (t < 0.55) return mix([7, 7, 7], rgb, Math.pow(t / 0.55, 1.3))
+    return mix(rgb, [255, 255, 255], Math.pow((t - 0.55) / 0.45, 1.6))
+  })
+}
+
 export interface Cell {
   char: string
   fg?: string
@@ -143,17 +167,17 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
 // text row carries two pixel rows and the fire renders as pixels instead of
 // glyph soup. Zero heat stays transparent so the flame tips fade into the
 // terminal background.
-export function cell(top: number, bottom: number): Cell {
-  const paint = (heat: number) => PALETTE[Math.min(PALETTE.length - 1, Math.max(0, heat))]
+export function cell(top: number, bottom: number, colors: string[] = PALETTE): Cell {
+  const paint = (heat: number) => colors[Math.min(colors.length - 1, Math.max(0, heat))]
   if (top === 0 && bottom === 0) return { char: " " }
   if (bottom === 0) return { char: "▀", fg: paint(top) }
   if (top === 0) return { char: "▄", fg: paint(bottom) }
   return { char: "▀", fg: paint(top), bg: paint(bottom) }
 }
 
-export function cells(grid: Uint8Array, width: number): Cell[][] {
+export function cells(grid: Uint8Array, width: number, colors: string[] = PALETTE): Cell[][] {
   const rows = width > 0 ? Math.floor(grid.length / width / 2) : 0
   return Array.from({ length: rows }, (_, y) =>
-    Array.from({ length: width }, (_, x) => cell(grid[y * 2 * width + x], grid[(y * 2 + 1) * width + x])),
+    Array.from({ length: width }, (_, x) => cell(grid[y * 2 * width + x], grid[(y * 2 + 1) * width + x], colors)),
   )
 }
