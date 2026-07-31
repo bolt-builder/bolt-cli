@@ -22,20 +22,51 @@ const MAX_RECORD_BYTES = 64 * 1024
 const MAX_SUBMATCHES = 100
 
 // Extra agent-only ignore rules: .boltignore uses .gitignore syntax and hides
-// committed files from search without touching .gitignore. Collected from the
-// search cwd up to the repo root so subdirectory searches still respect it.
-function ignores(cwd: string) {
-  const found: string[] = []
-  let dir = cwd
-  while (true) {
-    const file = path.join(dir, ".boltignore")
-    if (fs.existsSync(file)) found.push(`--ignore-file=${file}`)
-    if (fs.existsSync(path.join(dir, ".git"))) break
-    const parent = path.dirname(dir)
-    if (parent === dir) break
-    dir = parent
+// committed files from search without touching .gitignore. It lives at the
+// repository root only. Ripgrep resolves --ignore-file patterns relative to
+// its working directory, so when a search starts below the root the process
+// runs from the root instead (with the walk confined to the requested
+// directory) to keep root-anchored rules like `/src/generated/` correctly
+// scoped. User globs and output paths are translated between the two bases.
+function boltignore(cwd: string) {
+  const root = (() => {
+    let dir = cwd
+    while (true) {
+      if (fs.existsSync(path.join(dir, ".git"))) return dir
+      const parent = path.dirname(dir)
+      if (parent === dir) return cwd
+      dir = parent
+    }
+  })()
+  const file = path.join(root, ".boltignore")
+  if (!fs.existsSync(file)) return { cwd, args: [], search: ".", prefix: "" }
+  const search = path.relative(root, cwd)
+  return {
+    cwd: root,
+    args: [`--ignore-file=${file}`],
+    search: search || ".",
+    prefix: search ? `${search.replaceAll("\\", "/")}/` : "",
   }
-  return found
+}
+
+// -g globs follow .gitignore rules relative to the ripgrep working directory:
+// slash-less globs match basenames at any depth and survive re-basing, while
+// globs with a non-trailing slash are anchored and must be re-anchored onto
+// the search directory.
+function reroot(glob: string, prefix: string): string {
+  if (!prefix) return glob
+  if (glob.startsWith("!")) return `!${reroot(glob.slice(1), prefix)}`
+  if (glob.startsWith("/")) return `/${prefix}${glob.slice(1)}`
+  if (glob.slice(0, -1).includes("/")) return prefix + glob
+  return glob
+}
+
+// Normalizes a ripgrep output path and re-bases it from the process working
+// directory back onto the requested search cwd.
+function rebase(line: string, prefix: string) {
+  const normalized = line.replace(/^(?:\.[\\/])+/u, "").replaceAll("\\", "/")
+  const stripped = prefix && normalized.startsWith(prefix) ? normalized.slice(prefix.length) : normalized
+  return stripped.replace(/^\/+/u, "")
 }
 
 const RawMatch = Schema.Struct({
@@ -171,28 +202,23 @@ const layer = Layer.effect(
     }
 
     return Service.of({
-      glob: (input) =>
-        run<string>({
-          cwd: input.cwd,
+      glob: (input) => {
+        const scoped = boltignore(input.cwd)
+        return run<string>({
+          cwd: scoped.cwd,
           limit: input.limit,
           signal: input.signal,
           args: [
             "--no-config",
             "--files",
-            ...ignores(input.cwd),
+            ...scoped.args,
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
-            `--glob=${input.pattern}`,
+            `--glob=${reroot(input.pattern, scoped.prefix)}`,
             "--glob=!**/.git/**",
-            ".",
+            scoped.search,
           ],
-          parse: (line) =>
-            Effect.succeed(
-              line
-                .replace(/^(?:\.[\\/])+/u, "")
-                .replace(/^[\\/]+/u, "")
-                .replaceAll("\\", "/"),
-            ),
+          parse: (line) => Effect.succeed(rebase(line, scoped.prefix)),
         }).pipe(
           Effect.map((result) =>
             result.items.map((relative) =>
@@ -203,53 +229,57 @@ const layer = Layer.effect(
             ),
           ),
           Effect.catchTag("Ripgrep.InvalidPatternError", (cause) => Effect.fail(failure(cause.message, cause))),
-        ),
-      find: (input) =>
-        run<Entry>({
-          cwd: input.cwd,
+        )
+      },
+      find: (input) => {
+        const scoped = boltignore(input.cwd)
+        return run<Entry>({
+          cwd: scoped.cwd,
           limit: input.limit,
           signal: input.signal,
           args: [
             "--no-config",
             "--files",
-            ...ignores(input.cwd),
+            ...scoped.args,
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
-            ...(input.pattern === "*" ? [] : [`--glob=${input.pattern}`]),
+            ...(input.pattern === "*" ? [] : [`--glob=${reroot(input.pattern, scoped.prefix)}`]),
             "--glob=!**/.git/**",
-            ".",
+            scoped.search,
           ],
-          parse: (line) => {
-            const relative = line
-              .replace(/^(?:\.[\\/])+/u, "")
-              .replace(/^[\\/]+/u, "")
-              .replaceAll("\\", "/")
-            return Effect.succeed(
+          parse: (line) =>
+            Effect.succeed(
               Entry.make({
-                path: RelativePath.make(relative),
+                path: RelativePath.make(rebase(line, scoped.prefix)),
                 type: "file",
               }),
-            )
-          },
+            ),
           onItem: input.onEntry,
         }).pipe(
           Effect.map((result) => result.items),
           Effect.catchTag("Ripgrep.InvalidPatternError", (cause) => Effect.fail(failure(cause.message, cause))),
-        ),
-      grep: (input) =>
-        run<RawMatchData>({
-          ...input,
+        )
+      },
+      grep: (input) => {
+        const scoped = boltignore(input.cwd)
+        const target =
+          input.file && path.isAbsolute(input.file) ? input.file : path.join(scoped.search, input.file ?? ".")
+        return run<RawMatchData>({
+          cwd: scoped.cwd,
+          limit: input.limit,
+          signal: input.signal,
+          pattern: input.pattern,
           args: [
             "--no-config",
             "--json",
             "--hidden",
             "--no-messages",
-            ...ignores(input.cwd),
-            ...(input.include ? [`--glob=${input.include}`] : []),
+            ...scoped.args,
+            ...(input.include ? [`--glob=${reroot(input.include, scoped.prefix)}`] : []),
             "--glob=!**/.git/**",
             "--",
             input.pattern,
-            input.file ?? ".",
+            target,
           ],
           parse: (line) =>
             (Buffer.byteLength(line, "utf8") > MAX_RECORD_BYTES
@@ -275,10 +305,7 @@ const layer = Layer.effect(
         }).pipe(
           Effect.map((result) =>
             result.items.map((match) => {
-              const relative = match.path.text
-                .replace(/^(?:\.[\\/])+/u, "")
-                .replace(/^[\\/]+/u, "")
-                .replaceAll("\\", "/")
+              const relative = rebase(match.path.text, scoped.prefix)
               return Match.make({
                 entry: Entry.make({
                   path: RelativePath.make(relative),
@@ -295,7 +322,8 @@ const layer = Layer.effect(
               })
             }),
           ),
-        ),
+        )
+      },
     })
   }),
 )

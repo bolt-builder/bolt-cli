@@ -71,6 +71,15 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
           const raw = yield* FSUtil.Service
           const location = yield* Location.Service
           const ignored = ignore()
+          // .boltignore comes first so .gitignore/.ignore rules keep higher
+          // precedence, mirroring ripgrep's lowest-priority --ignore-file
+          // semantics. Only a missing file means an empty policy; any other
+          // read failure dies instead of silently exposing excluded files.
+          const boltignore = yield* raw.readFileString(path.join(location.project.directory, ".boltignore")).pipe(
+            Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed("")),
+            Effect.orDie,
+          )
+          if (boltignore) ignored.add(boltignore)
           const gitignore = yield* raw
             .readFileString(path.join(location.project.directory, ".gitignore"))
             .pipe(Effect.catch(() => Effect.succeed("")))
@@ -79,10 +88,6 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
             .readFileString(path.join(location.project.directory, ".ignore"))
             .pipe(Effect.catch(() => Effect.succeed("")))
           if (ignorefile) ignored.add(ignorefile)
-          const boltignore = yield* raw
-            .readFileString(path.join(location.project.directory, ".boltignore"))
-            .pipe(Effect.catch(() => Effect.succeed("")))
-          if (boltignore) ignored.add(boltignore)
           return (yield* fs.list({ path: RelativePath.make(ctx.query.path) })).map((item) => ({
             name: path.basename(item.path),
             path: item.path,
