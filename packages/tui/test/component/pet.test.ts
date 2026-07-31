@@ -27,18 +27,18 @@ describe("pet sprites", () => {
     // app to relayout on every animation tick.
     for (const state of ["idle", "busy", "attention"] as const) {
       for (const frame of [0, 1]) {
-        const rows = compose([{ species: "blob", x: 0, dir: 1 as const }], frame, state, 40, "#fbbf24")
+        const rows = compose([{ id: 1, species: "blob", x: 0, dir: 1 as const }], frame, state, 40, "#fbbf24")
         expect(rows.length).toBe(H / 2)
         for (const row of rows) expect(expand(row).length).toBe(40)
       }
     }
-    const rows = compose([{ species: "cat", x: 0, dir: 1 as const }], 0, "idle", 40, "#fbbf24")
+    const rows = compose([{ id: 1, species: "cat", x: 0, dir: 1 as const }], 0, "idle", 40, "#fbbf24")
     const chars = new Set(rows.flatMap(expand).map((px) => px.char))
     expect(chars.has("▀")).toBe(true)
   })
 
   test("compose run-length encodes rows instead of one span per cell", () => {
-    const rows = compose([{ species: "cat", x: 10, dir: 1 as const }], 0, "idle", 200, "#fbbf24")
+    const rows = compose([{ id: 1, species: "cat", x: 10, dir: 1 as const }], 0, "idle", 200, "#fbbf24")
     for (const row of rows) {
       expect(expand(row).length).toBe(200)
       expect(row.length).toBeLessThan(40)
@@ -46,8 +46,8 @@ describe("pet sprites", () => {
   })
 
   test("compose mirrors a pet walking left", () => {
-    const right = compose([{ species: "cat", x: 0, dir: 1 as const }], 0, "idle", W, "#fbbf24")
-    const left = compose([{ species: "cat", x: 0, dir: -1 as const }], 0, "idle", W, "#fbbf24")
+    const right = compose([{ id: 1, species: "cat", x: 0, dir: 1 as const }], 0, "idle", W, "#fbbf24")
+    const left = compose([{ id: 1, species: "cat", x: 0, dir: -1 as const }], 0, "idle", W, "#fbbf24")
     const colors = (rows: Seg[][]) => rows.map((row) => expand(row).map((px) => px.fg))
     expect(colors(left)).toEqual(colors(right).map((row) => row.slice().reverse()))
   })

@@ -107,8 +107,8 @@ test("poking a pet shows hearts and feeding drops a cookie they run to", async (
 
   const colors = () => new Set(strip.rows().flat().flatMap((seg) => [seg.fg, seg.bg]))
 
-  // Poke every column so the cat is hit wherever it spawned.
-  for (let x = 0; x < 120; x += 8) strip.poke(x)
+  const cat = strip.crew()[0]
+  strip.poke(cat.id)
   await setup.waitFor(() => colors().has("#f472b6"), { maxPasses: 100 })
 
   strip.feed()
@@ -122,6 +122,45 @@ test("poking a pet shows hearts and feeding drops a cookie they run to", async (
     },
     { maxPasses: 200 },
   )
+
+  setup.renderer.destroy()
+}, 30000)
+
+test("dragging and turning target the same individual among clones", async () => {
+  const setup = await createTestRenderer({ width: 120, height: 30, useThread: false })
+  const [list] = createSignal<string[]>(["cat", "cat"])
+  let strip!: ReturnType<typeof createStrip>
+  render(() => {
+    strip = createStrip(() => 120, () => "idle", list, () => true, () => "#fbbf24")
+    return <box width="100%" />
+  }, setup.renderer)
+  await setup.renderOnce()
+
+  const [one, two] = strip.crew()
+  expect(one.id).not.toBe(two.id)
+
+  // Grab clone one by its position and carry it to the far right.
+  const grabbed = strip.grab(Math.round(one.x) + 8)
+  expect(grabbed).toBeDefined()
+  strip.drag(grabbed!, 110)
+  const carried = strip.crew().find((critter) => critter.id === grabbed)!
+  expect(carried.x).toBe(102)
+  expect(carried.mood?.kind).toBe("held")
+
+  // The other clone did not move.
+  const other = strip.crew().find((critter) => critter.id !== grabbed)!
+  const still = [one, two].find((critter) => critter.id === other.id)!
+  expect(other.x).toBe(still.x)
+
+  strip.drop(grabbed!)
+  expect(strip.crew().find((critter) => critter.id === grabbed)!.mood).toBeUndefined()
+
+  // Turning flips only the pet under the cursor.
+  const before = strip.crew().find((critter) => critter.id === grabbed)!
+  strip.turn(107)
+  const after = strip.crew().find((critter) => critter.id === grabbed)!
+  expect(after.dir).toBe(-before.dir as 1 | -1)
+  expect(strip.crew().find((critter) => critter.id !== grabbed)!.dir).toBe(other.dir)
 
   setup.renderer.destroy()
 }, 30000)

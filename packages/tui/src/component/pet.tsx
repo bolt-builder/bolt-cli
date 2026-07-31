@@ -1,4 +1,4 @@
-import { rgbToHex } from "@opentui/core"
+import { MouseButton, rgbToHex } from "@opentui/core"
 import { batch, createEffect, createMemo, createSignal, onCleanup, Index, Show } from "solid-js"
 import { useKV } from "../context/kv"
 import { useSync } from "../context/sync"
@@ -189,11 +189,16 @@ export interface Seg {
 }
 
 interface Critter {
+  // Stable identity so interactions stick to the exact individual you
+  // grabbed, even when two clones of the same species roam the strip.
+  id: number
   species: string
   x: number
   dir: 1 | -1
-  mood?: { kind: "love" | "munch"; until: number }
+  mood?: { kind: "love" | "munch" | "held"; until: number }
 }
+
+let seq = 0
 
 export interface Treat {
   x: number
@@ -232,7 +237,11 @@ export function compose(
     if (!species) continue
     const mood = play && critter.mood && critter.mood.until > play.now ? critter.mood.kind : undefined
     const frames =
-      mood === "love" ? species.states.attention : mood === "munch" ? species.states.busy : species.states[state]
+      mood === "love" || mood === "held"
+        ? species.states.attention
+        : mood === "munch"
+          ? species.states.busy
+          : species.states[state]
     const art = frames[frame % frames.length]
     const x = Math.round(critter.x)
     for (let r = 0; r < H; r++) {
@@ -248,7 +257,7 @@ export function compose(
         grid[r][col] = ch === "!" ? warn : species.colors[ch]
       }
     }
-    if (mood && frame % 2 === 0) {
+    if (mood === "love" && frame % 2 === 0) {
       for (let r = 0; r < HEARTS.length; r++) {
         const row = HEARTS[r]
         for (let c = 0; c < row.length; c++) {
@@ -315,7 +324,7 @@ export function createStrip(
       names.map((name, i) => {
         const old = prev[i]
         if (old && old.species === name) return old
-        return { species: name, x: Math.random() * span, dir: Math.random() < 0.5 ? -1 : 1 } as Critter
+        return { id: ++seq, species: name, x: Math.random() * span, dir: Math.random() < 0.5 ? -1 : 1 } as Critter
       }),
     )
   })
@@ -353,12 +362,47 @@ export function createStrip(
 
   return {
     rows,
-    // Pet whatever is under the given column: wide eyes and hearts.
-    poke(x: number) {
+    crew,
+    // Which pet sits under this column? Nearest center wins when clones pile up.
+    grab(x: number) {
+      const hits = crew().filter((critter) => x >= critter.x && x < critter.x + W)
+      const nearest = hits.sort((a, b) => Math.abs(a.x + W / 2 - x) - Math.abs(b.x + W / 2 - x))[0]
+      return nearest?.id
+    },
+    // Pet exactly this individual: wide eyes and hearts.
+    poke(id: number) {
       const until = Date.now() + LOVE_MS
       setCrew((prev) =>
+        prev.map((critter) => (critter.id === id ? { ...critter, mood: { kind: "love", until } } : critter)),
+      )
+    },
+    // Carry the grabbed pet to a column; it dangles startled until dropped.
+    drag(id: number, x: number) {
+      const until = Date.now() + 1500
+      setCrew((prev) =>
+        prev.map((critter) => {
+          if (critter.id !== id) return critter
+          const goal = Math.min(Math.max(0, width() - W), Math.max(0, x - W / 2))
+          const dir = goal === critter.x ? critter.dir : ((goal > critter.x ? 1 : -1) as 1 | -1)
+          return { ...critter, x: goal, dir, mood: { kind: "held", until } }
+        }),
+      )
+    },
+    drop(id: number) {
+      setCrew((prev) =>
         prev.map((critter) =>
-          x >= critter.x && x < critter.x + W ? { ...critter, mood: { kind: "love", until } } : critter,
+          critter.id === id && critter.mood?.kind === "held" ? { ...critter, mood: undefined } : critter,
+        ),
+      )
+    },
+    // Spin the pet under this column around.
+    turn(x: number) {
+      const hits = crew().filter((critter) => x >= critter.x && x < critter.x + W)
+      const nearest = hits.sort((a, b) => Math.abs(a.x + W / 2 - x) - Math.abs(b.x + W / 2 - x))[0]
+      if (!nearest) return
+      setCrew((prev) =>
+        prev.map((critter) =>
+          critter.id === nearest.id ? { ...critter, dir: (critter.dir * -1) as 1 | -1 } : critter,
         ),
       )
     },
@@ -398,9 +442,38 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
     strip.feed()
   })
 
+  // Track the grabbed pet by id so a drag keeps moving the same individual
+  // even when a clone wanders under the cursor.
+  let held: { id: number; x: number; moved: boolean } | undefined
+  const finish = () => {
+    if (!held) return
+    if (!held.moved) strip.poke(held.id)
+    strip.drop(held.id)
+    held = undefined
+  }
+
   return (
     <Show when={strip.rows().length}>
-      <box width="100%" overflow="hidden" onMouseDown={(evt) => strip.poke(evt.x)}>
+      <box
+        width="100%"
+        overflow="hidden"
+        onMouseDown={(evt) => {
+          if (evt.button === MouseButton.RIGHT) {
+            strip.turn(evt.x)
+            return
+          }
+          const id = strip.grab(evt.x)
+          if (id === undefined) return
+          held = { id, x: evt.x, moved: false }
+        }}
+        onMouseDrag={(evt) => {
+          if (!held) return
+          if (Math.abs(evt.x - held.x) >= 1) held.moved = true
+          strip.drag(held.id, evt.x)
+        }}
+        onMouseDragEnd={finish}
+        onMouseUp={finish}
+      >
         <Index each={strip.rows()}>
           {(row) => (
             <box height={1} width="100%" overflow="hidden">
@@ -426,13 +499,13 @@ function same(a: Seg[][], b: Seg[][]): boolean {
 
 function wander(critter: Critter, state: State, width: number, now: number, treat?: Treat): Critter {
   const mood = critter.mood && critter.mood.until > now ? critter.mood : undefined
-  // Being petted trumps everything: sit still and soak up the hearts.
-  if (mood?.kind === "love") return { ...critter, mood }
+  // Being carried or petted trumps everything: stay exactly where put.
+  if (mood?.kind === "held" || mood?.kind === "love") return { ...critter, mood }
   if (treat) {
     const delta = treat.x + 3 - (critter.x + W / 2)
     if (Math.abs(delta) <= 4) return { ...critter, mood: { kind: "munch", until: treat.until } }
     const dir = (delta > 0 ? 1 : -1) as 1 | -1
-    return { species: critter.species, x: critter.x + dir * 2, dir }
+    return { ...critter, x: critter.x + dir * 2, dir, mood: undefined }
   }
   if (state === "attention") return { ...critter, mood }
   const max = Math.max(0, width - W)
@@ -441,5 +514,5 @@ function wander(critter: Critter, state: State, width: number, now: number, trea
   const step = state === "busy" ? 1 : Math.random() < 0.15 ? 1 : 0
   const x = Math.min(max, Math.max(0, critter.x + dir * step))
   const turned = x === critter.x && step > 0 ? ((dir * -1) as 1 | -1) : dir
-  return { species: critter.species, x, dir: turned }
+  return { ...critter, x, dir: turned, mood }
 }
