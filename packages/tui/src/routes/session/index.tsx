@@ -582,7 +582,8 @@ export function Session() {
           if (fork) toast.show({ variant: "error", message: "btw: failed to fork the session", duration: 5000 })
           return
         }
-        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` }).catch(() => {})
+        // Best-effort rename; a failed title update should not block the side question.
+        void sdk.client.session.update({ sessionID: id, title: `btw: ${label}` }).catch(() => undefined)
         toast.show({ variant: "info", message: `btw: thinking about "${label}"`, duration: 5000 })
         const result = await sdk.client.session
           .prompt({
