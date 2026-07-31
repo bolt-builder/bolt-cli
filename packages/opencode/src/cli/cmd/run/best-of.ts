@@ -133,6 +133,21 @@ export async function runBestOf(input: {
   const done = settled.filter((item): item is Candidate & { text: string } => item.text !== undefined)
 
   if (done.length === 0) {
+    if (input.json) {
+      process.stdout.write(
+        JSON.stringify({
+          type: "best_of",
+          timestamp: Date.now(),
+          candidates: settled.map((item) => ({
+            label: item.label,
+            model: format(item.model),
+            sessionID: item.sessionID,
+            error: item.error,
+          })),
+        }) + EOL,
+      )
+      return 1
+    }
     settled.forEach((item) => UI.error(`${item.label} · ${format(item.model)}: ${item.error}`))
     return 1
   }
@@ -160,7 +175,7 @@ export async function runBestOf(input: {
     return { order, sessionID: id }
   })().catch(() => undefined)
 
-  if (!verdict) note("judge produced no usable verdict; keeping the first finished candidate")
+  if (!verdict) note("judge produced no usable verdict; keeping the first successful candidate in submission order")
   const order = verdict?.order ?? done.map((item) => item.label)
   const ranked = new Map(settled.map((item) => [item.label, item]))
   const winner = ranked.get(order[0])!

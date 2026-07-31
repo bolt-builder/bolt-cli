@@ -684,7 +684,7 @@ export const RunCommand = effectCmd({
           const candidates = parseCandidates(args["best-of"])
           if (typeof candidates === "string") return die(candidates)
           const exit = await runBestOf({
-            sdk: args.attach ? attachSDK(directory) : sdk,
+            sdk: args.attach ? attachSDK(directory ?? (await current(sdk))) : sdk,
             candidates,
             judge: pick(args.model) ?? candidates[0],
             message,
