@@ -1442,10 +1442,14 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
+      {/* Outside the anchor box on purpose: the autocomplete palette renders
+          above the anchor, so keeping the fire out of it lets the palette sit
+          flush against the input and overlay the (calmed) flames instead of
+          floating above the whole strip. */}
+      <Show when={props.visible !== false && fire()}>
+        <FireStrip rows={calm()} />
+      </Show>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
-        <Show when={fire()}>
-          <FireStrip rows={calm()} />
-        </Show>
         <box
           width="100%"
           border={["left"]}
