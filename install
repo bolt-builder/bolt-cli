@@ -18,14 +18,14 @@ Options:
     -v, --version <version> Install a specific version (e.g., 1.0.180)
     -b, --binary <path>     Install from a local binary instead of downloading
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
-        --voice             Also set up /voice input: installs sox (recorder) and
-                            whisper-cpp plus a local model (~0.6 GB) for offline
-                            transcription without an OpenAI key
+        --no-voice          Skip /voice input setup (sox recorder plus whisper-cpp
+                            and a local model, ~0.6 GB, for offline transcription
+                            without an OpenAI key). Installed by default.
 
 Examples:
     curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
     curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --version 0.0.1
-    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --voice
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --no-voice
     ./install --binary /path/to/bolt
 EOF
 }
@@ -33,7 +33,7 @@ EOF
 requested_version=${VERSION:-}
 no_modify_path=false
 binary_path=""
-install_voice=false
+install_voice=true
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -63,8 +63,8 @@ while [[ $# -gt 0 ]]; do
             no_modify_path=true
             shift
             ;;
-        --voice)
-            install_voice=true
+        --no-voice)
+            install_voice=false
             shift
             ;;
         *)
@@ -524,7 +524,9 @@ install_voice_deps() {
     print_message info "${MUTED}Voice model installed at ${NC}$model"
 }
 
-if [[ "$install_voice" == "true" ]]; then
+# Voice setup is on by default but skipped in CI, where a 0.6 GB model
+# download and system packages are wasted work.
+if [[ "$install_voice" == "true" && "${GITHUB_ACTIONS-}" != "true" && "${CI-}" != "true" ]]; then
     install_voice_deps || true
 fi
 
