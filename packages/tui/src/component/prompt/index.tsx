@@ -73,6 +73,7 @@ export type PromptProps = {
   visible?: boolean
   disabled?: boolean
   onSubmit?: () => void
+  onAside?: (question: string) => void
   ref?: (ref: PromptRef | undefined) => void
   hint?: JSX.Element
   right?: JSX.Element
@@ -102,6 +103,9 @@ export type PromptRef = {
   blur(): void
   focus(): void
   submit(): void
+  // Optional so plugin-provided prompt replacements without side-question
+  // support still satisfy the ref.
+  aside?(): void
 }
 
 const money = new Intl.NumberFormat("en-US", {
@@ -299,7 +303,7 @@ export function Prompt(props: PromptProps) {
 
   const [store, setStore] = createStore<{
     prompt: PromptInfo
-    mode: "normal" | "shell"
+    mode: "normal" | "shell" | "btw"
     extmarkToPartIndex: Map<number, number>
     interrupt: number
     placeholder: number
@@ -415,7 +419,7 @@ export function Prompt(props: PromptProps) {
           if (auto()?.visible) return
           if (!input.focused) return
           // TODO: this should be its own command
-          if (store.mode === "shell") {
+          if (store.mode !== "normal") {
             setStore("mode", "normal")
             return
           }
@@ -647,6 +651,10 @@ export function Prompt(props: PromptProps) {
     },
     submit() {
       void submit()
+    },
+    aside() {
+      setStore("mode", "btw")
+      input.focus()
     },
   }
 
@@ -884,8 +892,8 @@ export function Prompt(props: PromptProps) {
   useBindings(() => {
     return {
       target: inputTarget,
-      enabled: inputTarget() !== undefined && store.mode === "shell",
-      bindings: [{ key: "escape", desc: "Exit shell mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      enabled: inputTarget() !== undefined && store.mode !== "normal",
+      bindings: [{ key: "escape", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
     }
   })
 
@@ -894,9 +902,9 @@ export function Prompt(props: PromptProps) {
       target: inputTarget,
       enabled: (() => {
         cursorVersion()
-        return inputTarget() !== undefined && store.mode === "shell" && input?.visualCursor.offset === 0
+        return inputTarget() !== undefined && store.mode !== "normal" && input?.visualCursor.offset === 0
       })(),
-      bindings: [{ key: "backspace", desc: "Exit shell mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      bindings: [{ key: "backspace", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
     }
   })
 
@@ -1122,7 +1130,12 @@ export function Prompt(props: PromptProps) {
           ]
         : []
 
-    if (store.mode === "shell") {
+    if (store.mode === "btw") {
+      // Sticky side-question mode: each submission becomes its own fork; the
+      // mode stays active until esc so follow-ups don't need /btw again.
+      if (!inputText.trim()) return true
+      props.onAside?.(inputText)
+    } else if (store.mode === "shell") {
       move.startSubmit()
       void sdk.client.session.shell({
         sessionID,
@@ -1405,6 +1418,7 @@ export function Prompt(props: PromptProps) {
       const example = shell()[store.placeholder % shell().length]
       return `Run a command... "${example}"`
     }
+    if (store.mode === "btw") return "Ask a side question... esc to exit"
     if (!list().length) return undefined
     return `Ask anything... "${list()[store.placeholder % list().length]}"`
   })
@@ -1548,7 +1562,7 @@ export function Prompt(props: PromptProps) {
                   {(agent) => (
                     <>
                       <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        {store.mode === "shell" ? "Shell" : store.mode === "btw" ? "Btw" : Locale.titlecase(agent().name)}
                       </text>
                       <Show when={store.mode === "normal" && local.permission.mode === "auto"}>
                         <text fg={fadeColor(theme.textMuted, agentMetaAlpha())}>auto</text>
