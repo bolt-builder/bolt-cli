@@ -37,21 +37,21 @@ already-loaded config until then.
 
 ## Where files live
 
-| Scope                         | Path                                                                                                                      |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Project config                | `./bolt.json`, `./bolt.jsonc`, or inside `.bolt/` / `.opencode/` (bolt walks up from the cwd to the worktree root)       |
-| Global config                 | `~/.config/opencode/bolt.json` (NOT `~/.bolt/`)                                                                           |
-| Project agents                | `.bolt/agent(s)/<name>.md` or `.opencode/agent(s)/<name>.md`                                                              |
-| Global agents                 | `~/.config/opencode/agent(s)/<name>.md`                                                                                   |
-| Project commands              | `.bolt/command(s)/<name>.md` or `.opencode/command(s)/<name>.md`                                                          |
-| Global commands               | `~/.config/opencode/command(s)/<name>.md`                                                                                 |
-| Project skills                | `.bolt/skill(s)/<name>/SKILL.md` or `.opencode/skill(s)/<name>/SKILL.md`                                                  |
-| Global skills                 | `~/.config/opencode/skill(s)/<name>/SKILL.md`                                                                             |
+| Scope            | Path                                                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Project config   | `./bolt.json`, `./bolt.jsonc`, or inside `.bolt/` / `.opencode/` (bolt walks up from the cwd to the worktree root) |
+| Global config    | `~/.config/opencode/bolt.json` (NOT `~/.bolt/`)                                                                    |
+| Project agents   | `.bolt/agent(s)/<name>.md` or `.opencode/agent(s)/<name>.md`                                                       |
+| Global agents    | `~/.config/opencode/agent(s)/<name>.md`                                                                            |
+| Project commands | `.bolt/command(s)/<name>.md` or `.opencode/command(s)/<name>.md`                                                   |
+| Global commands  | `~/.config/opencode/command(s)/<name>.md`                                                                          |
+| Project skills   | `.bolt/skill(s)/<name>/SKILL.md` or `.opencode/skill(s)/<name>/SKILL.md`                                           |
+| Global skills    | `~/.config/opencode/skill(s)/<name>/SKILL.md`                                                                      |
 
 Legacy `opencode.json` / `opencode.jsonc` files are still honored in every
 location; when both exist, the `bolt.*` file wins. Prefer `bolt.jsonc` when
 creating new config.
-| External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md`                                                    |
+| External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md` |
 
 Configs from each scope are deep-merged. Project overrides global. Unknown
 top-level keys in `bolt.json` are rejected with `ConfigInvalidError`.
