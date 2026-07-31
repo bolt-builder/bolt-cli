@@ -53,6 +53,7 @@ import { DialogConfirm } from "../../ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
+import { DialogTodos } from "../../component/dialog-todos"
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
 import { filetype } from "../../util/filetype"
@@ -505,6 +506,18 @@ export function Session() {
       },
       run: () => {
         dialog.replace(() => <DialogSessionRename session={route.sessionID} />)
+      },
+    },
+    {
+      title: "View todos",
+      value: "session.todos",
+      category: "Session",
+      slash: {
+        name: "todos",
+        aliases: ["todo"],
+      },
+      run: () => {
+        dialog.replace(() => <DialogTodos sessionID={route.sessionID} />)
       },
     },
     {
