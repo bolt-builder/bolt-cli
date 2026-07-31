@@ -57,7 +57,9 @@ export function FireStrip(props: { rows: Cell[][] }) {
         {(row) => (
           <box height={1} width="100%" overflow="hidden">
             <text>
-              <Index each={row()}>{(item) => <span style={{ fg: item().fg, bg: item().bg }}>{item().char}</span>}</Index>
+              <Index each={row()}>
+                {(item) => <span style={{ fg: item().fg, bg: item().bg }}>{item().char}</span>}
+              </Index>
             </text>
           </box>
         )}
