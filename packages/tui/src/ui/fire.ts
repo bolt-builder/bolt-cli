@@ -66,6 +66,11 @@ const DEPTH = 4
 // Heat values run 0..MAX, matching the 36-color palette of the original.
 export const MAX = 35
 
+// Upstream seeds no fire on grids narrower than 35 columns, so simulation
+// width never drops below this. Coincidentally equal to MAX, but a separate
+// concept: this is a column threshold, not the heat ceiling.
+const MIN_WIDTH = 35
+
 // Builds a 36-color fire ramp from a single base color so the flames match
 // the active theme: embers stay near black, the body burns in shades of the
 // base color, and the hottest cells blow out toward white. The eased splits
@@ -108,11 +113,14 @@ export interface Engine {
   grid(): Uint8Array
 }
 
-let compiled: WebAssembly.Module | undefined
+let compiled: Promise<WebAssembly.Module> | undefined
 
-async function module() {
-  if (compiled) return compiled
-  compiled = new WebAssembly.Module(await Bun.file(wasm).bytes())
+// Caches the in-flight compilation so concurrent ignite() calls share one
+// compile instead of racing to compile the module twice.
+function module() {
+  compiled ??= Bun.file(wasm)
+    .bytes()
+    .then((bytes) => new WebAssembly.Module(bytes))
   return compiled
 }
 
@@ -120,9 +128,9 @@ async function module() {
 // and row `rows - 1` is the constantly hot source hugging the chatbox.
 export async function ignite(width: number, rows: number = ROWS): Promise<Engine> {
   const mod = await module()
-  // Upstream seeds no fire on grids narrower than 35 columns, so simulate at
-  // least that wide and slice each row down to the requested width.
-  const sim = Math.max(width, MAX)
+  // Simulate at least MIN_WIDTH columns and slice each row down to the
+  // requested width.
+  const sim = Math.max(width, MIN_WIDTH)
   const depth = rows * DEPTH
   const spawn = () => {
     const instance = new WebAssembly.Instance(mod, {
@@ -145,9 +153,15 @@ export async function ignite(width: number, rows: number = ROWS): Promise<Engine
     advance() {
       try {
         state.api.fire_update_cells(state.ptr)
-      } catch (err) {
+      } catch {
         // Known upstream panic; a fresh instance reseeds and keeps burning.
-        state = spawn()
+        // If the respawn itself traps, keep the prior instance and retry on
+        // the next advance instead of letting the error escape.
+        try {
+          state = spawn()
+        } catch (err) {
+          console.error("doom-fire respawn failed", { err })
+        }
       }
     },
     // Reconstructed per read: the buffer detaches when wasm memory grows.
