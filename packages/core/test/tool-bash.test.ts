@@ -122,7 +122,13 @@ const withTool = <A, E, R>(
   }).pipe(
     Effect.provide(
       AppNodeBuilder.build(
-        LayerNode.group([ToolRegistry.node, ToolRegistry.toolsNode, LocationMutation.node, BashTool.node, Database.node]),
+        LayerNode.group([
+          ToolRegistry.node,
+          ToolRegistry.toolsNode,
+          LocationMutation.node,
+          BashTool.node,
+          Database.node,
+        ]),
         [
           [Location.node, activeLocation],
           [PermissionV2.node, permission],

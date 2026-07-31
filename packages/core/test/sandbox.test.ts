@@ -23,7 +23,10 @@ describe("sandbox", () => {
   })
 
   test("linux argv rebinds writable roots over a read-only root and runs the shell", () => {
-    const wrapped = Sandbox.linux({ command: "bun test", shell: "/bin/sh", writable: ["/repo", "/tmp"] }, "/usr/bin/bwrap")
+    const wrapped = Sandbox.linux(
+      { command: "bun test", shell: "/bin/sh", writable: ["/repo", "/tmp"] },
+      "/usr/bin/bwrap",
+    )
     expect(wrapped.exe).toBe("/usr/bin/bwrap")
     expect(wrapped.args.slice(0, 3)).toEqual(["--ro-bind", "/", "/"])
     expect(wrapped.args).toContain("--die-with-parent")
@@ -39,7 +42,10 @@ describe("sandbox", () => {
     expect(text).toContain('(subpath "/tmp")')
     expect(text).toContain('(subpath "/dev")')
 
-    const wrapped = Sandbox.darwin({ command: "bun test", shell: "/bin/zsh", writable: ["/repo"] }, "/usr/bin/sandbox-exec")
+    const wrapped = Sandbox.darwin(
+      { command: "bun test", shell: "/bin/zsh", writable: ["/repo"] },
+      "/usr/bin/sandbox-exec",
+    )
     expect(wrapped.args[0]).toBe("-p")
     expect(wrapped.args.slice(-3)).toEqual(["/bin/zsh", "-c", "bun test"])
   })

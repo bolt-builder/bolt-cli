@@ -781,8 +781,7 @@ export const dict = {
   "settings.general.row.appearance.title": "Görünüm",
   "settings.general.row.appearance.description": "Bolt'un cihazınızdaki görünümünü özelleştirin",
   "settings.general.row.colorScheme.title": "Renk şeması",
-  "settings.general.row.colorScheme.description":
-    "Bolt'un sistem, açık veya koyu temayı takip etip etmeyeceğini seçin",
+  "settings.general.row.colorScheme.description": "Bolt'un sistem, açık veya koyu temayı takip etip etmeyeceğini seçin",
   "settings.general.row.theme.title": "Tema",
   "settings.general.row.theme.description": "Bolt'un temasını özelleştirin.",
   "settings.general.row.font.title": "Kod Yazı Tipi",

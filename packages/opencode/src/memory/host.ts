@@ -254,13 +254,15 @@ export function sessionPort(input: {
         const messages = yield* input.sessions.messages({ sessionID: SessionID.make(sessionID), limit: window })
         const turn = latest(messages)
         if (!turn) return undefined
-        const diffs = yield* input.summary.computeDiff({ messages: [turn.user, ...turn.assistants] }).pipe(
-          Effect.catch((err) =>
-            Effect.logWarning("memory turn diff unavailable", { error: String(err) }).pipe(
-              Effect.as([] as Snapshot.FileDiff[]),
+        const diffs = yield* input.summary
+          .computeDiff({ messages: [turn.user, ...turn.assistants] })
+          .pipe(
+            Effect.catch((err) =>
+              Effect.logWarning("memory turn diff unavailable", { error: String(err) }).pipe(
+                Effect.as([] as Snapshot.FileDiff[]),
+              ),
             ),
-          ),
-        )
+          )
         return {
           user: text(turn.user.parts),
           assistant: output(turn.assistant.parts),
@@ -292,12 +294,10 @@ export function modelPort(input: { provider: Provider.Interface }): MemoryPorts.
         const fallback = () =>
           input.provider.getModel(ProviderV2.ID.make(session.providerID), ModelV2.ID.make(session.modelID))
         const source = parsed
-          ? yield* input.provider
-              .getModel(ProviderV2.ID.make(parsed.providerID), ModelV2.ID.make(parsed.modelID))
-              .pipe(
-                Effect.map((model) => ({ model, reason: undefined as string | undefined })),
-                Effect.catch(() => Effect.map(fallback(), (model) => ({ model, reason: "model unavailable" }))),
-              )
+          ? yield* input.provider.getModel(ProviderV2.ID.make(parsed.providerID), ModelV2.ID.make(parsed.modelID)).pipe(
+              Effect.map((model) => ({ model, reason: undefined as string | undefined })),
+              Effect.catch(() => Effect.map(fallback(), (model) => ({ model, reason: "model unavailable" }))),
+            )
           : { model: yield* fallback(), reason: configured ? "invalid model" : undefined }
         if (source.reason)
           yield* Effect.logWarning("memory model config ignored", { reason: source.reason, model: configured })
