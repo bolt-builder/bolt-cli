@@ -100,7 +100,7 @@ async function traceFile(filePath: string, depth = 0): Promise<void> {
   }
 
   // Only trace TypeScript/JavaScript files
-  if (!filePath.match(/\.(ts|tsx|js|jsx)$/)) {
+  if (!/\.(ts|tsx|js|jsx)$/.test(filePath)) {
     return
   }
 

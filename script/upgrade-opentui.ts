@@ -171,7 +171,7 @@ async function fixKnownLockfileIssues() {
     lockfile,
     txt
       .split("\n")
-      .filter((line) => !line.match(/^    "opentui-spinner\/@opentui\//))
+      .filter((line) => !/^    "opentui-spinner\/@opentui\//.test(line))
       .join("\n"),
   )
   return removed

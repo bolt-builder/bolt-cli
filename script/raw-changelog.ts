@@ -46,7 +46,7 @@ const sections = {
 function ref(input: string) {
   if (input === "HEAD") return input
   if (input.startsWith("v")) return input
-  if (input.match(/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/)) return `v${input}`
+  if (/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(input)) return `v${input}`
   return input
 }
 
@@ -82,7 +82,7 @@ function section(areas: Set<string>) {
 }
 
 function type(message: string) {
-  if (message.match(/fix/i)) return "Bugfixes"
+  if (/fix/i.test(message)) return "Bugfixes"
   return "Improvements"
 }
 
@@ -126,7 +126,7 @@ async function commits(from: string, to: string) {
   for (const hash of log.split("\n").filter(Boolean)) {
     const item = data.get(hash)
     if (!item) continue
-    if (item.message.match(/^(ignore:|test:|chore:|ci:|release:)/i)) continue
+    if (/^(ignore:|test:|chore:|ci:|release:)/i.test(item.message)) continue
 
     const diff = await $`git diff-tree --no-commit-id --name-only -r ${hash}`.text()
     const areas = new Set<string>()
@@ -161,7 +161,7 @@ async function contributors(from: string, to: string) {
   for (const item of await diff(base, head)) {
     const title = item.message.split("\n")[0] ?? ""
     if (!item.login || team.includes(item.login)) continue
-    if (title.match(/^(ignore:|test:|chore:|ci:|release:)/i)) continue
+    if (/^(ignore:|test:|chore:|ci:|release:)/i.test(title)) continue
     if (!users.has(item.login)) users.set(item.login, new Set())
     users.get(item.login)!.add(title)
   }
