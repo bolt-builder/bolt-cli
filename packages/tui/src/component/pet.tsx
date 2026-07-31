@@ -176,7 +176,7 @@ export const TREAT_KEY = "pet_treat"
 // (a string, an object, junk entries) must degrade to fewer pets, not a crash.
 export function roster(value: unknown): string[] {
   if (!Array.isArray(value)) return []
-  return value.filter((name): name is string => typeof name === "string" && SPECIES[name] !== undefined)
+  return value.filter((name): name is string => typeof name === "string" && Object.hasOwn(SPECIES, name))
 }
 
 // One styled run of a strip row. Rows are run-length encoded so a mostly

@@ -83,6 +83,7 @@ test("animated pet strip keeps rendering fast frames", async () => {
 
 test("poking a pet shows hearts and feeding drops a cookie they run to", async () => {
   const setup = await createTestRenderer({ width: 120, height: 30, useThread: false })
+  cleanup = () => setup.renderer.destroy()
   const [list] = createSignal<string[]>(["cat"])
   let strip!: ReturnType<typeof createStrip>
   render(() => {
@@ -122,12 +123,11 @@ test("poking a pet shows hearts and feeding drops a cookie they run to", async (
     },
     { maxPasses: 200 },
   )
-
-  setup.renderer.destroy()
 }, 30000)
 
 test("dragging and turning target the same individual among clones", async () => {
   const setup = await createTestRenderer({ width: 120, height: 30, useThread: false })
+  cleanup = () => setup.renderer.destroy()
   const [list] = createSignal<string[]>(["cat", "cat"])
   let strip!: ReturnType<typeof createStrip>
   render(() => {
@@ -161,6 +161,4 @@ test("dragging and turning target the same individual among clones", async () =>
   const after = strip.crew().find((critter) => critter.id === grabbed)!
   expect(after.dir).toBe(-before.dir as 1 | -1)
   expect(strip.crew().find((critter) => critter.id !== grabbed)!.dir).toBe(other.dir)
-
-  setup.renderer.destroy()
 }, 30000)

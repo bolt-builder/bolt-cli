@@ -65,5 +65,6 @@ describe("pet sprites", () => {
     expect(roster("cat")).toEqual([])
     expect(roster({ cat: 1 })).toEqual([])
     expect(roster([1, "cat", null, "unicorn", "dog"])).toEqual(["cat", "dog"])
+    expect(roster(["constructor", "toString", "__proto__"])).toEqual([])
   })
 })

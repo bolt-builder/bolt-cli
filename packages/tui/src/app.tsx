@@ -47,7 +47,7 @@ import { DialogStatus } from "./component/dialog-status"
 import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
 import { DialogPets } from "./component/dialog-pets"
-import { PETS_KEY, TREAT_KEY } from "./component/pet"
+import { PETS_KEY, roster, TREAT_KEY } from "./component/pet"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
@@ -821,7 +821,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         title: "Feed the pets",
         slashName: "feed",
         run: () => {
-          if (!(kv.get(PETS_KEY, []) as string[]).length) {
+          if (!roster(kv.get(PETS_KEY, [])).length) {
             toast.show({ message: "no pets to feed, spawn some with /pets", variant: "warning" })
             return
           }
