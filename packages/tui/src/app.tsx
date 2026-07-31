@@ -83,6 +83,7 @@ import {
 import type { EventSource } from "./context/sdk"
 import { DialogVariant } from "./component/dialog-variant"
 import { createTuiAttention } from "./attention"
+import { voice } from "./voice"
 import * as TuiAudio from "./audio"
 import { win32DisableProcessedInput, win32FlushInputBuffer } from "./terminal-win32"
 import { destroyRenderer } from "./util/renderer"
@@ -138,6 +139,7 @@ const appBindingCommands = [
   "app.toggle.diffwrap",
   "app.toggle.paste_summary",
   "app.toggle.session_directory_filter",
+  "voice.toggle",
 ] as const
 
 export type TuiInput = {
@@ -593,6 +595,40 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             type: "home",
           })
           dialog.clear()
+        },
+      },
+      {
+        name: "voice.toggle",
+        title: voice.status() === "recording" ? "Stop voice recording" : "Start voice recording",
+        category: "Session",
+        slashName: "voice",
+        run: async () => {
+          dialog.clear()
+          if (voice.status() === "transcribing") return
+          if (voice.status() === "idle") {
+            const error = voice.start()
+            if (error) toast.show({ message: error, variant: "warning" })
+            return
+          }
+          const audio = await voice.stop()
+          if (!audio) {
+            toast.show({ message: "No audio captured", variant: "warning" })
+            return
+          }
+          const result = await sdk.client.voice
+            .transcribe({ voiceTranscribeInput: { audio, mime: "audio/wav" } })
+            .catch(() => undefined)
+          voice.reset()
+          if (!result || result.error) {
+            toast.show({ message: result?.error?.message ?? "Transcription failed", variant: "error" })
+            return
+          }
+          const text = result.data?.text.trim()
+          if (!text) {
+            toast.show({ message: "Transcription was empty", variant: "warning" })
+            return
+          }
+          promptRef.current?.insert?.(text)
         },
       },
       {
