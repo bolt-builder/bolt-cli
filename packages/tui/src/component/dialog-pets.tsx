@@ -2,6 +2,7 @@ import { createMemo } from "solid-js"
 import { useKV } from "../context/kv"
 import { DialogSelect } from "../ui/dialog-select"
 import { useDialog } from "../ui/dialog"
+import { useToast } from "../ui/toast"
 import { PETS_KEY, SPECIES } from "./pet"
 
 const CAP = 24
@@ -9,6 +10,7 @@ const CAP = 24
 export function DialogPets() {
   const kv = useKV()
   const dialog = useDialog()
+  const toast = useToast()
   const list = createMemo(() => (kv.get(PETS_KEY, []) as string[]).filter((name) => SPECIES[name] !== undefined))
 
   const options = createMemo(() => {
@@ -32,14 +34,21 @@ export function DialogPets() {
       title="Pets"
       options={options()}
       onSelect={(option) => {
+        // Close on select like every other dialog: a dialog that swallows
+        // enter without visible feedback reads as a frozen app. Reopen /pets
+        // to spawn more.
+        dialog.clear()
         if (!option.value) {
           kv.set(PETS_KEY, [])
-          dialog.clear()
           return
         }
-        // Stay open so spawning a whole litter is one keypress per pet.
-        if (list().length >= CAP) return
-        kv.set(PETS_KEY, [...list(), option.value])
+        if (list().length >= CAP) {
+          toast.show({ message: `the ${CAP}-pet kennel is full`, variant: "warning" })
+          return
+        }
+        const next = [...list(), option.value]
+        kv.set(PETS_KEY, next)
+        toast.show({ message: `${option.value} spawned (${next.length} roaming)`, variant: "success" })
       }}
     />
   )

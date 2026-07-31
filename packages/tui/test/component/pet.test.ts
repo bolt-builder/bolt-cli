@@ -22,14 +22,19 @@ describe("pet sprites", () => {
     }
   })
 
-  test("compose renders half-block rows and trims empty leading rows", () => {
+  test("compose renders a constant-height strip of half-block rows", () => {
+    // Height must never vary per frame: resizing the strip forces the whole
+    // app to relayout on every animation tick.
+    for (const state of ["idle", "busy", "attention"] as const) {
+      for (const frame of [0, 1]) {
+        const rows = compose([{ species: "blob", x: 0, dir: 1 as const }], frame, state, 40, "#fbbf24")
+        expect(rows.length).toBe(H / 2)
+        for (const row of rows) expect(expand(row).length).toBe(40)
+      }
+    }
     const rows = compose([{ species: "cat", x: 0, dir: 1 as const }], 0, "idle", 40, "#fbbf24")
-    expect(rows.length).toBeGreaterThan(0)
-    expect(rows.length).toBeLessThanOrEqual(H / 2)
-    for (const row of rows) expect(expand(row).length).toBe(40)
     const chars = new Set(rows.flatMap(expand).map((px) => px.char))
     expect(chars.has("▀")).toBe(true)
-    expect(expand(rows[0]).some((px) => px.char !== " ")).toBe(true)
   })
 
   test("compose run-length encodes rows instead of one span per cell", () => {

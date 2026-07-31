@@ -229,32 +229,32 @@ export function compose(crew: Critter[], frame: number, state: State, cols: numb
     flush()
     rows.push(line)
   }
-  const blank = (row: Seg[]) => row.every((seg) => !seg.fg && !seg.bg && seg.text.trim() === "")
-  while (rows.length && blank(rows[0])) rows.shift()
+  // Never trim rows: the strip must keep a constant height while pets exist.
+  // Varying the row count per frame (squish frames, the alert flash) resizes
+  // the prompt every tick and forces a full-screen relayout, which stalls the
+  // renderer far more than drawing ever does.
   return rows
 }
 
-export function PetStrip(props: { sessionID?: string; width: number }) {
-  const kv = useKV()
-  const sync = useSync()
-  const { theme } = useTheme()
+// The strip engine, free of app contexts so tests can drive it with plain
+// accessors: spawn reconciliation, the wander/tick interval, and the composed
+// rows behind a deep-equal gate so ticks where nothing visibly changed never
+// touch the renderer.
+export function createStrip(
+  width: () => number,
+  state: () => State,
+  list: () => string[],
+  animated: () => boolean,
+  warn: () => string,
+) {
   const [tick, setTick] = createSignal(0)
   const [crew, setCrew] = createSignal<Critter[]>([])
-  const list = createMemo(() => (kv.get(PETS_KEY, []) as string[]).filter((name) => SPECIES[name] !== undefined))
-  const state = createMemo<State>(() => {
-    const id = props.sessionID ?? ""
-    if ((sync.data.permission[id] ?? []).length) return "attention"
-    const status = sync.data.session_status?.[id] ?? { type: "idle" }
-    if (status.type !== "idle") return "busy"
-    return "idle"
-  })
-  const animated = createMemo(() => kv.get("animations_enabled", true))
 
   // Reconcile spawned critters with the persisted list, keeping positions of
   // the ones already on screen so spawning never teleports the others.
   createEffect(() => {
     const names = list()
-    const span = Math.max(1, props.width - W)
+    const span = Math.max(1, width() - W)
     setCrew((prev) =>
       names.map((name, i) => {
         const old = prev[i]
@@ -266,20 +266,45 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
 
   createEffect(() => {
     if (!animated() || !list().length) return
-    const pace = state() === "busy" ? 200 : state() === "attention" ? 350 : 600
+    const pace = state() === "busy" ? 250 : state() === "attention" ? 400 : 800
     const timer = setInterval(() => {
       batch(() => {
         setTick((n) => n + 1)
-        setCrew((prev) => prev.map((critter) => wander(critter, state(), props.width)))
+        setCrew((prev) => prev.map((critter) => wander(critter, state(), width())))
       })
     }, pace)
     onCleanup(() => clearInterval(timer))
   })
 
-  const rows = createMemo(() => {
-    if (!list().length || props.width < W) return []
-    return compose(crew(), Math.floor(tick() / 2), state(), props.width, rgbToHex(theme.warning))
+  return createMemo(
+    () => {
+      if (!list().length || width() < W) return []
+      return compose(crew(), Math.floor(tick() / 2), state(), width(), warn())
+    },
+    [],
+    { equals: same },
+  )
+}
+
+export function PetStrip(props: { sessionID?: string; width: number }) {
+  const kv = useKV()
+  const sync = useSync()
+  const { theme } = useTheme()
+  const list = createMemo(() => (kv.get(PETS_KEY, []) as string[]).filter((name) => SPECIES[name] !== undefined))
+  const state = createMemo<State>(() => {
+    const id = props.sessionID ?? ""
+    if ((sync.data.permission[id] ?? []).length) return "attention"
+    const status = sync.data.session_status?.[id] ?? { type: "idle" }
+    if (status.type !== "idle") return "busy"
+    return "idle"
   })
+  const rows = createStrip(
+    () => props.width,
+    state,
+    list,
+    () => kv.get("animations_enabled", true) as boolean,
+    () => rgbToHex(theme.warning),
+  )
 
   return (
     <Show when={rows().length}>
@@ -295,6 +320,15 @@ export function PetStrip(props: { sessionID?: string; width: number }) {
         </Index>
       </box>
     </Show>
+  )
+}
+
+function same(a: Seg[][], b: Seg[][]): boolean {
+  if (a.length !== b.length) return false
+  return a.every(
+    (row, r) =>
+      row.length === b[r].length &&
+      row.every((seg, i) => seg.text === b[r][i].text && seg.fg === b[r][i].fg && seg.bg === b[r][i].bg),
   )
 }
 
