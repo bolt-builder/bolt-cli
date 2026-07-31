@@ -172,190 +172,79 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ## Roadmap
 
-Where Bolt is headed, for the CLI, the desktop app, and everything around them. Have an opinion? [Tell us in Discussions](https://github.com/Bolt-builder/bolt-cli/discussions).
+The roadmap is about one thing now: making the agent itself smarter, more autonomous, and more fun to work with. Have an opinion? [Tell us in Discussions](https://github.com/Bolt-builder/bolt-cli/discussions).
 
 ### Now
 
-- [ ] Session sync engine rollout (event-sourced storage, phase 1 shipped)
-- [ ] V2 session core (durable runner and coordinator)
+- [ ] Best-of-N runs: fire the same task at several models in parallel, rank the results, keep the winner
+- [ ] Multi-agent pipelines: one agent plans, one codes, one reviews; a tiny eng team in your terminal
+- [ ] Automatic agent selection: Bolt reads your prompt and quietly routes it to the right specialist
+
+> Under the hood, the session sync engine and V2 session core keep rolling out. They are the plumbing that makes everything below possible.
 
 ### Next
 
 <details>
-<summary><strong>CLI and sessions (14)</strong></summary>
+<summary><strong>Agents that remember (4)</strong></summary>
 
-- [ ] `session tail`: live-follow a running session from another terminal
-- [ ] `session search`: full-text search across all transcripts
-- [ ] `bolt undo`: one-command rollback of agent changes
-- [ ] Named checkpoints and restore points per session
+- [ ] Repo convention learning: the agent picks up your codebase's style and sticks to it
+- [ ] Compounding memory: every session teaches the next one
+- [ ] Memory introspection: ask the agent why it believes something and where it learned it
+- [ ] Cross-session recall: "do it like we did in that auth refactor last month"
+
+</details>
+
+<details>
+<summary><strong>Agents that check their work (5)</strong></summary>
+
+- [ ] Test-aware refactor loops: change, run, verify, repeat until green
+- [ ] Confidence scoring: the agent tells you when it is guessing
 - [ ] `bolt review --staged / --branch`: one-shot AI diff review with exit codes
-- [ ] `bolt commit`: AI-generated commit messages from staged changes
-- [ ] `bolt doctor`: one-command health check for providers, MCP, and config
-- [ ] Budget guards: `--max-cost` and `--max-tokens` on runs
-- [ ] Structured output schemas for `run --format json`
-- [ ] Session templates: reusable prompt, agent, and model presets
-- [ ] Session tags and filters in `session list`
-- [ ] Skills management: `bolt skill list/add`
-- [ ] Committable permission presets (`.bolt/permissions.jsonc`)
-- [ ] Lifecycle hooks: run shell commands before/after tool calls
+- [ ] `bolt commit`: commit messages you don't have to rewrite
+- [ ] Self-review pass before any diff is handed to you
 
 </details>
 
 <details>
-<summary><strong>Agents and intelligence (12)</strong></summary>
+<summary><strong>Agents that never sleep (5)</strong></summary>
 
-- [ ] Best-of-N runs: same task, multiple models, ranked results
-- [ ] Shareable agent definitions and an agent gallery
-- [ ] Guided custom-agent scaffolding wizard
-- [ ] Per-agent model defaults and fallback chains
-- [ ] Automatic agent selection based on prompt intent
-- [ ] Test-aware refactor loops that verify after each step
-- [ ] Repo convention learning: the agent gets better with use
-- [ ] Multi-agent pipelines: plan, then code, then review
-- [ ] Confidence scoring on agent answers
-- [ ] Guardrail agent that blocks risky commands org-wide
-- [ ] Prompt caching controls per provider
-- [ ] First-class local model presets (Ollama and friends)
-
-</details>
-
-<details>
-<summary><strong>Automation and background work (10)</strong></summary>
-
-- [ ] `run --background`: fire-and-forget job queue
-- [ ] `bolt jobs list/tail/kill` for background runs
-- [ ] Watch mode: rerun tests on change, auto-fix failures
-- [ ] Scheduled tasks: `bolt cron` for recurring agent work
-- [ ] On-red-main automation: bisect and propose a fix
-- [ ] Dependency update automation with a ready-to-review PR
+- [ ] Watch mode: tests rerun on every save and failures fix themselves
+- [ ] `bolt cron`: scheduled agent chores (dependency bumps, changelog drafts, issue triage)
+- [ ] On-red-main automation: bisect, blame, and propose the fix before you've seen the alert
 - [ ] Flaky test detection and quarantining
-- [ ] Changelog generation on release
-- [ ] Auto-triage of new issues
-- [ ] Duplicate PR detection
+- [ ] Background job queue: `run --background` plus `bolt jobs list/tail/kill`
 
 </details>
 
 <details>
-<summary><strong>Remote and server (10)</strong></summary>
+<summary><strong>Agents with guardrails (4)</strong></summary>
 
-- [ ] `bolt run --on <host>`: remote execution on a beefier box
-- [ ] Team server: a shared agent farm for your org
-- [ ] Session handoff between devices
-- [ ] Live multiplayer sessions: invite a teammate
-- [ ] Control plane graduating out of `/experimental`
-- [ ] Workspace placement: route sessions to the right workspace
-- [ ] Clustering for V2 sessions
-- [ ] TLS and token auth for `serve`
-- [ ] Server dashboard: overview of all running sessions
-- [ ] mDNS device pairing flow
+- [ ] Guardrail agent that vetoes risky commands before they run
+- [ ] Budget guards: `--max-cost` and `--max-tokens` on any run
+- [ ] `bolt undo`: one-command rollback when an experiment goes sideways
+- [ ] Named checkpoints: save points you can rewind the repo and the conversation to
 
 </details>
 
 <details>
-<summary><strong>Desktop app (15)</strong></summary>
+<summary><strong>Party tricks (5)</strong></summary>
 
-- [ ] Complete Bolt rebrand: name, icons, bundle IDs, `bolt://` deep links
-- [ ] Tray icon with quick actions
-- [ ] Global hotkey to summon the composer from anywhere
-- [ ] PR review UI: fetch, comment, and approve from the app
-- [ ] Actionable notifications: approve a permission from the notification
-- [ ] Session timeline visualization
-- [ ] Multi-repo project switcher
-- [ ] Drag-and-drop folder onboarding
-- [ ] Offline mode with queued prompts
-- [ ] Auto-start the daemon on login
-- [ ] Windows ARM builds
-- [ ] Flatpak and Snap distribution on Linux
-- [ ] Menu bar quick model switcher
-- [ ] In-app editor for agent and config files
-- [ ] Usage and cost dashboard in the app
-
-</details>
-
-<details>
-<summary><strong>App and web UI (12)</strong></summary>
-
-- [ ] Web UI feature parity with the desktop app
-- [ ] Mobile-friendly session view
-- [ ] Theme gallery
-- [ ] Split-pane multi-session view
-- [ ] Rich markdown export of sessions
-- [ ] Inline image and diagram rendering
-- [ ] Voice input for the composer
-- [ ] Keyboard-first review mode
-- [ ] Search across all sessions in the UI
-- [ ] Pinned favorite prompts
-- [ ] Session sharing links with permissions
-- [ ] Live token and cost meter in the composer
-
-</details>
-
-<details>
-<summary><strong>MCP and extensibility (10)</strong></summary>
-
-- [ ] MCP registry browser: discover and add servers in one click
-- [ ] One-click MCP OAuth flows in the UI
-- [ ] Plugin API v2 stable (Effect and Promise flavors)
-- [ ] Public server client available to plugins
-- [ ] Next-gen SDK replacing the legacy JS SDK
-- [ ] CodeMode: script-based tool calling for faster, cheaper runs
-- [ ] Theme plugins
-- [ ] Custom slash command plugins
-- [ ] Plugin sandboxing and permissions
-- [ ] Hot-reload plugin development mode
-
-</details>
-
-<details>
-<summary><strong>GitHub and integrations (8)</strong></summary>
-
-- [ ] `bolt github automate`: issue-to-PR pipeline
-- [ ] Slack delegation: assign a task from Slack, get a PR back
-- [ ] Linear and Jira issue intake
-- [ ] GitLab support
-- [ ] Bitbucket support
-- [ ] CI failure auto-fix on PRs
-- [ ] PR description generation from a session
-- [ ] Automatic responses to review comments
-
-</details>
-
-<details>
-<summary><strong>Observability and stats (8)</strong></summary>
-
-- [ ] `stats` export to JSON and CSV
-- [ ] Team usage rollups
-- [ ] Per-provider latency metrics
-- [ ] Shareable session replay recordings
-- [ ] OpenTelemetry tracing for agent runs
-- [ ] Cost alerts and budgets per org
-- [ ] Tool-call analytics: which tools agents use most
-- [ ] Startup performance profiling
+- [ ] Voice input: talk your way through a refactor
+- [ ] Design-to-code: hand the agent a Figma file, get components back
+- [ ] Codebase visualization maps drawn by the agent
+- [ ] Pair-programming mode with a shared cursor
+- [ ] Session replays you can share like a highlight reel
 
 </details>
 
 ### Later
 
-- [ ] Enterprise SSO and SAML
-- [ ] Audit logs and compliance controls
-- [ ] Role-based access control for team servers
-- [ ] Self-hosted enterprise deployment
-- [ ] Fine-tuned repo-specific models
-- [ ] Agent evaluation benchmark harness
-- [ ] Cross-repo and monorepo-wide agents
 - [ ] Autonomous long-horizon projects spanning days
-- [ ] Agent federation across organizations
-- [ ] Plugin and agent marketplace
-- [ ] Deep IDE-native extensions (VS Code, JetBrains)
-- [ ] Design-to-code: build UIs from Figma files
-- [ ] Database-aware agents with safe migrations
-- [ ] Integrated security scanning suite
+- [ ] Fine-tuned repo-specific models
 - [ ] On-device small-model routing for trivial tasks
-- [ ] Multilingual voice control
-- [ ] Pair-programming mode with shared cursor
-- [ ] Codebase visualization maps
-- [ ] Time-travel debugging across session checkpoints
+- [ ] Agent federation across organizations
 - [ ] AI release manager: cut, verify, and publish releases end to end
+- [ ] Agent evaluation benchmark harness
 
 ### Done
 
