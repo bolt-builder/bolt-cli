@@ -5,6 +5,7 @@ import {
   MouseEvent,
   PasteEvent,
   decodePasteBytes,
+  rgbToHex,
   type KeyEvent,
   type Renderable,
 } from "@opentui/core"
@@ -1386,7 +1387,11 @@ export function Prompt(props: PromptProps) {
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
   const fire = createMemo(() => animationsEnabled() && status().type !== "idle")
-  const flames = createFire(() => dimensions().width, fire)
+  const flames = createFire(
+    () => dimensions().width,
+    fire,
+    () => rgbToHex(theme.primary),
+  )
 
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
