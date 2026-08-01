@@ -20,6 +20,7 @@ type Diff = {
   sha: string
   login: string | null
   message: string
+  parents: number
 }
 
 const repo = process.env.GH_REPO ?? "bolt-builder/bolt-cli"
@@ -74,7 +75,7 @@ async function diff(base: string, head: string) {
   const list: Diff[] = []
   for (let page = 1; ; page++) {
     const text =
-      await $`gh api "/repos/${repo}/compare/${base}...${head}?per_page=100&page=${page}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message}'`.text()
+      await $`gh api "/repos/${repo}/compare/${base}...${head}?per_page=100&page=${page}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message, parents: (.parents | length)}'`.text()
     const batch = text
       .split("\n")
       .filter(Boolean)
@@ -166,6 +167,18 @@ async function commits(from: string, to: string) {
   return reverted(list)
 }
 
+// A commit only counts as a community contribution when a PR in this repo was
+// authored by the commit author. Upstream commits arrive through sync merges
+// whose PR is authored by a bot or team member, so they fail this check.
+async function authored(sha: string, login: string) {
+  const data = await $`gh api "/repos/${repo}/commits/${sha}/pulls"`.json()
+  return (data as { user: { login: string }; base: { repo: { full_name: string } } }[]).some(
+    (pr) =>
+      pr.base.repo.full_name.toLowerCase() === repo.toLowerCase() &&
+      pr.user.login.toLowerCase() === login.toLowerCase(),
+  )
+}
+
 async function contributors(from: string, to: string) {
   const base = ref(from)
   const head = ref(to)
@@ -176,6 +189,8 @@ async function contributors(from: string, to: string) {
     if (internal(item.login)) continue
     if (!item.login) continue
     if (skip.test(title)) continue
+    if (item.parents > 1) continue
+    if (!(await authored(item.sha, item.login))) continue
     if (!users.has(item.login)) users.set(item.login, new Set())
     users.get(item.login)!.add(title)
   }
