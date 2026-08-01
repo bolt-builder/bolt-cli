@@ -36,8 +36,7 @@ async function signWindows(configuration: { path: string }) {
 // "unidentified developer" dialog instead. Only applies when CI has explicitly
 // disabled identity discovery because the certificate secret is absent; non-mac
 // hosts are guarded inside electron-builder, which skips mac signing entirely.
-const identity =
-  !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
+const identity = !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
