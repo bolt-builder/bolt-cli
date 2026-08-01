@@ -11,7 +11,7 @@ if (!token) {
 }
 
 const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-const agentLogin =  "bolt-cli[bot]"
+const agentLogin = "bolt-cli[bot]"
 const teamMembers = new Set(
   (await Bun.file(new URL("../../.github/TEAM_MEMBERS", import.meta.url)).text())
     .split("\n")
