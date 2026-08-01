@@ -3,7 +3,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
 
-import type { Configuration } from "electron-builder"
+import type { AfterPackContext, Configuration } from "electron-builder"
 
 const execFileAsync = promisify(execFile)
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
@@ -29,6 +29,19 @@ async function signWindows(configuration: { path: string }) {
   )
 }
 
+// Without a Developer ID identity electron-builder skips signing entirely and
+// Gatekeeper reports the quarantined download as "damaged". Ad-hoc signing keeps
+// the bundle seal valid so users get the bypassable "unidentified developer"
+// dialog instead. Only runs when CI has explicitly disabled identity discovery
+// because the certificate secret is absent.
+async function adhoc(context: AfterPackContext) {
+  if (context.electronPlatformName !== "darwin") return
+  if (process.env.CSC_LINK || process.env.CSC_IDENTITY_AUTO_DISCOVERY !== "false") return
+  const app = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`)
+  await execFileAsync("codesign", ["--force", "--deep", "--sign", "-", app])
+  console.log(`ad-hoc signed ${app} (no Developer ID identity available)`)
+}
+
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
   if (raw === "dev" || raw === "beta" || raw === "prod") return raw
@@ -43,6 +56,7 @@ const APP_IDS = {
 
 const getBase = (appId: string): Configuration => ({
   artifactName: "bolt-desktop-${os}-${arch}.${ext}",
+  afterPack: adhoc,
   directories: {
     output: "dist",
     buildResources: "resources",
