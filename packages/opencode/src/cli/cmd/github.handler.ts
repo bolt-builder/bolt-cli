@@ -7,7 +7,6 @@ import { Octokit } from "@octokit/rest"
 import { graphql } from "@octokit/graphql"
 import * as core from "@actions/core"
 import * as github from "@actions/github"
-import type { Context } from "@actions/github/lib/context"
 import type {
   IssueCommentEvent,
   IssuesEvent,
@@ -386,7 +385,7 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
   yield* Effect.promise(async () => {
     const isMock = args.token || args.event
 
-    const context = isMock ? (JSON.parse(args.event!) as Context) : github.context
+    const context = isMock ? (JSON.parse(args.event!) as typeof github.context) : github.context
     if (!SUPPORTED_EVENTS.includes(context.eventName as (typeof SUPPORTED_EVENTS)[number])) {
       core.setFailed(`Unsupported event type: ${context.eventName}`)
       process.exit(1)
