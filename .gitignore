@@ -39,3 +39,4 @@ tsconfig.tsbuildinfo
 bolt-cli/.env.example
 tauri_key
 tauri_key.pub
+design.md
