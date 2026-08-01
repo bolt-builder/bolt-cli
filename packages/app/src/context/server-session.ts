@@ -579,8 +579,8 @@ export function createServerSession(
       })),
       source: legacyMessageSource(items),
       sourceMode: before ? ("older" as const) : ("latest" as const),
-      cursor: response.response.headers.get("x-next-cursor") ?? undefined,
-      complete: !response.response.headers.get("x-next-cursor"),
+      cursor: response.response?.headers.get("x-next-cursor") ?? undefined,
+      complete: !response.response?.headers.get("x-next-cursor"),
     }
   }
 

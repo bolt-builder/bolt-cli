@@ -540,7 +540,7 @@ export const Terminal = (props: TerminalProps) => {
         if ((await sdk().protocol) === "v1") {
           return sdk()
             .client.pty.get({ ptyID: id }, { throwOnError: false })
-            .then((result) => result.response.status === 404)
+            .then((result) => result.response?.status === 404)
             .catch((err) => {
               debugTerminal("failed to inspect terminal session", err)
               return false
@@ -571,6 +571,7 @@ export const Terminal = (props: TerminalProps) => {
               throw err
             })
           if (!result) return
+          if (!result.response) throw new Error("PTY connect ticket failed without a response")
           if (result.response.status === 200 && result.data?.ticket) return result.data.ticket
           if (result.response.status === 404 || result.response.status === 405) return
           if (result.response.status === 403)
