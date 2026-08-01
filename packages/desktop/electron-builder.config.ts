@@ -3,7 +3,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
 
-import type { AfterPackContext, Configuration } from "electron-builder"
+import type { Configuration } from "electron-builder"
 
 const execFileAsync = promisify(execFile)
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
@@ -30,19 +30,14 @@ async function signWindows(configuration: { path: string }) {
 }
 
 // Without a Developer ID identity electron-builder skips signing entirely and
-// Gatekeeper reports the quarantined download as "damaged". Ad-hoc signing keeps
-// the bundle seal valid so users get the bypassable "unidentified developer"
-// dialog instead. Only runs when CI has explicitly disabled identity discovery
-// because the certificate secret is absent.
-async function adhoc(context: AfterPackContext) {
-  if (context.electronPlatformName !== "darwin") return
-  if (process.env.CSC_LINK || process.env.CSC_IDENTITY_AUTO_DISCOVERY !== "false") return
-  if (process.platform !== "darwin")
-    throw new Error("ad-hoc signing the macOS bundle requires codesign, which is only available on macOS hosts")
-  const app = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`)
-  await execFileAsync("codesign", ["--force", "--deep", "--sign", "-", app])
-  console.log(`ad-hoc signed ${app} (no Developer ID identity available)`)
-}
+// Gatekeeper reports the quarantined download as "damaged". Falling back to
+// electron-builder's native ad-hoc signing (identity "-") keeps the bundle seal
+// valid, applies the entitlements per component, and gives users the bypassable
+// "unidentified developer" dialog instead. Only applies when CI has explicitly
+// disabled identity discovery because the certificate secret is absent; non-mac
+// hosts are guarded inside electron-builder, which skips mac signing entirely.
+const identity =
+  !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
 
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
@@ -58,7 +53,6 @@ const APP_IDS = {
 
 const getBase = (appId: string): Configuration => ({
   artifactName: "bolt-desktop-${os}-${arch}.${ext}",
-  afterPack: adhoc,
   directories: {
     output: "dist",
     buildResources: "resources",
@@ -91,6 +85,7 @@ const getBase = (appId: string): Configuration => ({
   mac: {
     category: "public.app-category.developer-tools",
     icon: `resources/icons/icon.icns`,
+    identity,
     hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
