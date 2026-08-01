@@ -97,8 +97,12 @@ Subagents for delegation: `@general` for complex multi-step tasks and `@explore`
 
 Bolt also ships as a desktop app: multi-window and multi-tab session management, a prompt composer with attachments and clipboard image paste, an integrated terminal and file tree, a command palette, full settings (keybinds, models, providers, servers), native notifications, deep links, WSL integration on Windows, auto-updates across dev/beta/prod channels, and 17 UI languages. Download it from the [releases page](https://github.com/Bolt-builder/bolt-cli/releases).
 
-> [!NOTE]
-> The desktop app is still being rebranded from its OpenCode origins, so current builds ship under the old name and icons. The Bolt identity lands as part of the roadmap below.
+> [!TIP]
+> On macOS you can install it in one line, no Gatekeeper detour:
+>
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install-desktop | bash
+> ```
 
 ## Configuration
 
@@ -159,7 +163,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Now
 
-- [ ] Best-of-N runs: fire the same task at several models in parallel, rank the results, keep the winner
 - [ ] Multi-agent pipelines: one agent plans, one codes, one reviews; a tiny eng team in your terminal
 - [ ] Automatic agent selection: Bolt reads your prompt and quietly routes it to the right specialist
 
@@ -210,9 +213,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Party tricks (5)</strong></summary>
+<summary><strong>Party tricks (4)</strong></summary>
 
-- [ ] Voice input: talk your way through a refactor
 - [ ] Design-to-code: hand the agent a Figma file, get components back
 - [ ] Codebase visualization maps drawn by the agent
 - [ ] Pair-programming mode with a shared cursor
@@ -227,12 +229,19 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 - [ ] On-device small-model routing for trivial tasks
 - [ ] Agent federation across organizations
 - [ ] AI release manager: cut, verify, and publish releases end to end
-- [ ] Agent evaluation benchmark harness
 
 ### Done
 
+- [x] Best-of-N runs: fire the same task at several models in parallel, rank the results, keep the winner
+- [x] Push-to-talk voice input in the TUI
+- [x] Agent evaluation benchmark harness (`bolt eval`)
 - [x] Project memory module: automatic capture with save and recall tools
 - [x] `bolt memory`: view and edit what the agent remembers per project (`/memory` in the TUI)
+- [x] Per-session memory controls
+- [x] `/plan` mode, `/todos` task list, and `/btw` side questions that don't interrupt the task
+- [x] `bolt logs` with tail and follow
+- [x] `.boltignore`-aware agent file search
+- [x] macOS desktop app with a one-line terminal installer (no Gatekeeper detour)
 
 ## Contributing
 
