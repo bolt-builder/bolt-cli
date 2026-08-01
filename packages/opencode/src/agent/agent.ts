@@ -14,6 +14,7 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_COMMIT from "./prompt/commit.txt"
 import PROMPT_CODE_REVIEW from "./prompt/code-review.txt"
 import PROMPT_DEBUG from "./prompt/debug.txt"
 import PROMPT_REFACTOR from "./prompt/refactor.txt"
@@ -287,6 +288,22 @@ const layer = Layer.effect(
               user,
             ),
             prompt: PROMPT_TITLE,
+          },
+          commit: {
+            name: "commit",
+            mode: "primary",
+            options: {},
+            native: true,
+            hidden: true,
+            temperature: 0.3,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+              }),
+              user,
+            ),
+            prompt: PROMPT_COMMIT,
           },
           summary: {
             name: "summary",
