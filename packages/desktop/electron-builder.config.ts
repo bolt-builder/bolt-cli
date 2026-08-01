@@ -37,6 +37,8 @@ async function signWindows(configuration: { path: string }) {
 async function adhoc(context: AfterPackContext) {
   if (context.electronPlatformName !== "darwin") return
   if (process.env.CSC_LINK || process.env.CSC_IDENTITY_AUTO_DISCOVERY !== "false") return
+  if (process.platform !== "darwin")
+    throw new Error("ad-hoc signing the macOS bundle requires codesign, which is only available on macOS hosts")
   const app = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}.app`)
   await execFileAsync("codesign", ["--force", "--deep", "--sign", "-", app])
   console.log(`ad-hoc signed ${app} (no Developer ID identity available)`)
