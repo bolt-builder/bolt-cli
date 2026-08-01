@@ -391,6 +391,11 @@ jobs:
             unset CSC_KEY_PASSWORD
             export CSC_IDENTITY_AUTO_DISCOVERY=false
           fi
+          # APPLE_API_KEY is a path and always non-empty; a partial notary env
+          # makes electron-builder fail hard instead of skipping notarization.
+          if [ -z "$APPLE_API_KEY_ID" ] || [ -z "$APPLE_API_ISSUER" ]; then
+            unset APPLE_API_KEY APPLE_API_KEY_ID APPLE_API_ISSUER
+          fi
           # macOS dmgbuild flakes with "hdiutil: couldn't eject - Resource busy" when
           # Spotlight/XProtect briefly holds the mounted DMG volume; retry up to 3 times.
           for attempt in 1 2 3; do
