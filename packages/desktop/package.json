@@ -1,7 +1,7 @@
 {
   "name": "@opencode-ai/desktop",
   "private": true,
-  "version": "1.20.0",
+  "version": "1.20.1",
   "type": "module",
   "license": "PolyForm Noncommercial 1.0.0 License ",
   "homepage": "https://opencode.ai",
