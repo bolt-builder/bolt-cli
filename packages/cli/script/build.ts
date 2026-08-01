@@ -104,7 +104,7 @@ for (const item of targets) {
       {
         name: `@opencode-ai/${name}`,
         version: Script.version,
-        license: "MIT",
+        license: "PolyForm Noncommercial 1.0.0 License ",
         repository: {
           type: "git",
           url: "git+https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym.git",

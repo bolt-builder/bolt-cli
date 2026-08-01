@@ -1,7 +1,7 @@
 /*
  * Adapted from proxy-from-env: https://github.com/Rob--W/proxy-from-env
  *
- * The MIT License
+ * The PolyForm Noncommercial 1.0.0 License  License
  *
  * Copyright (C) 2016-2018 Rob Wu <rob@robwu.nl>
  *

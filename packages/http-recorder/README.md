@@ -214,4 +214,4 @@ Cassettes are readable JSON files intended to be committed with your tests. HTTP
 
 ## License
 
-MIT
+PolyForm Noncommercial 1.0.0 License 

@@ -12,7 +12,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <id>${appId}</id>
 
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>MIT</project_license>
+  <project_license>PolyForm Noncommercial 1.0.0 License </project_license>
 
   <name>${productName}</name>
   <summary>${summary}</summary>

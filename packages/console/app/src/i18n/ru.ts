@@ -186,7 +186,7 @@ export const dict = {
   "home.faq.q8": "OpenCode — это open source?",
   "home.faq.a8.p1": "Да, OpenCode полностью open source. Исходный код доступен публично на",
   "home.faq.a8.p2": "под",
-  "home.faq.a8.mitLicense": "лицензией MIT",
+  "home.faq.a8.mitLicense": "лицензией PolyForm Noncommercial 1.0.0 License ",
   "home.faq.a8.p3":
     ", что означает, что любой может использовать, изменять или вносить вклад в его развитие. Любой участник сообщества может создавать issues, отправлять pull requests и расширять функциональность.",
 

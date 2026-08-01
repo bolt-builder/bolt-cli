@@ -3,7 +3,7 @@
   "name": "@opencode-ai/memory",
   "version": "1.20.0",
   "type": "module",
-  "license": "MIT",
+  "license": "PolyForm Noncommercial 1.0.0 License ",
   "description": "Project memory storage, indexing, recall, and command helpers for Bolt",
   "keywords": [
     "bolt",

@@ -182,7 +182,7 @@ export const dict = {
   "home.faq.q8": "هل OpenCode مفتوح المصدر؟",
   "home.faq.a8.p1": "نعم، OpenCode مفتوح المصدر بالكامل. الكود المصدري متاح علنًا على",
   "home.faq.a8.p2": "بموجب",
-  "home.faq.a8.mitLicense": "رخصة MIT",
+  "home.faq.a8.mitLicense": "رخصة PolyForm Noncommercial 1.0.0 License ",
   "home.faq.a8.p3":
     "، مما يعني أن أي شخص يستطيع استخدامه أو تعديله أو المساهمة في تطويره. يمكن لأي شخص من المجتمع فتح قضايا، وتقديم طلبات سحب، وتوسيع الوظائف.",
 
