@@ -171,12 +171,14 @@ async function commits(from: string, to: string) {
 // authored by the commit author. Upstream commits arrive through sync merges
 // whose PR is authored by a bot or team member, so they fail this check.
 async function authored(sha: string, login: string) {
-  const data = await $`gh api "/repos/${repo}/commits/${sha}/pulls"`.json()
-  return (data as { user: { login: string }; base: { repo: { full_name: string } } }[]).some(
-    (pr) =>
-      pr.base.repo.full_name.toLowerCase() === repo.toLowerCase() &&
-      pr.user.login.toLowerCase() === login.toLowerCase(),
-  )
+  const data = await $`gh api --paginate --slurp "/repos/${repo}/commits/${sha}/pulls?per_page=100"`.json()
+  return (data as { user: { login: string }; base: { repo: { full_name: string } } }[][])
+    .flat()
+    .some(
+      (pr) =>
+        pr.base.repo.full_name.toLowerCase() === repo.toLowerCase() &&
+        pr.user.login.toLowerCase() === login.toLowerCase(),
+    )
 }
 
 async function contributors(from: string, to: string) {
