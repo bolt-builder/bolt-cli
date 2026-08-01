@@ -25,7 +25,7 @@ export function clean(text: string) {
 /** Cap a diff for the prompt, keeping the head where the summary lives. */
 export function cap(patch: string, limit = LIMIT) {
   if (patch.length <= limit) return patch
-  return patch.slice(0, limit) + "\n\n[diff truncated]"
+  return `${patch.slice(0, limit)}\n\n[diff truncated]`
 }
 
 export const CommitCommand = effectCmd({

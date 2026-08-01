@@ -33,6 +33,6 @@ describe("cap", () => {
 
   test("truncates long diffs with a marker", () => {
     const result = cap("a".repeat(100), 10)
-    expect(result).toBe("a".repeat(10) + "\n\n[diff truncated]")
+    expect(result).toBe(`${"a".repeat(10)}\n\n[diff truncated]`)
   })
 })
