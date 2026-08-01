@@ -27,7 +27,7 @@ jobs:
             }
 
             // Check if author is a team member or bot
-            if (login === 'opencode-agent[bot]') return;
+            if (login ===   "bolt-cli[bot]" ) return;
 
             // Skip locked PRs (e.g. pull[bot] sync PRs); comments cannot be created on them
             if (pr.locked) {
@@ -181,7 +181,7 @@ jobs:
             }
 
             // Check if author is a team member or bot
-            if (login === 'opencode-agent[bot]') return;
+            if (login ===  "bolt-cli[bot]") return;
 
             // Skip locked PRs (e.g. pull[bot] sync PRs); comments cannot be created on them
             if (pr.locked) {

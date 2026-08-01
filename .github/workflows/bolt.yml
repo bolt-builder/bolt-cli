@@ -1,4 +1,4 @@
-name: opencode
+name: bolt
 
 on:
   issue_comment:
@@ -25,7 +25,7 @@ jobs:
 
       - uses: ./.github/actions/setup-bun
 
-      - name: Run opencode
+      - name: Run Bolt
         uses: bolt-builder/bolt-cli/github@2c14fc5586fe0b88e5c04732d2e846769cc35671 # latest
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}

@@ -26,8 +26,8 @@ const repo = process.env.GH_REPO ?? "bolt-builder/bolt-cli"
 const bot = [
   "actions-user",
   "github-actions[bot]",
-  "opencode",
-  "opencode-agent[bot]",
+  "Bolt",
+  "bolt-cli[bot]",
   "deepsource-autofix[bot]",
   "dependabot[bot]",
 ]
