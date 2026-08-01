@@ -29,6 +29,16 @@ async function signWindows(configuration: { path: string }) {
   )
 }
 
+// Without a Developer ID identity electron-builder skips signing entirely and
+// Gatekeeper reports the quarantined download as "damaged". Falling back to
+// electron-builder's native ad-hoc signing (identity "-") keeps the bundle seal
+// valid, applies the entitlements per component, and gives users the bypassable
+// "unidentified developer" dialog instead. Only applies when CI has explicitly
+// disabled identity discovery because the certificate secret is absent; non-mac
+// hosts are guarded inside electron-builder, which skips mac signing entirely.
+const identity =
+  !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
+
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
   if (raw === "dev" || raw === "beta" || raw === "prod") return raw
@@ -75,6 +85,7 @@ const getBase = (appId: string): Configuration => ({
   mac: {
     category: "public.app-category.developer-tools",
     icon: `resources/icons/icon.icns`,
+    identity,
     hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
