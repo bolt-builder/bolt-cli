@@ -23,14 +23,27 @@ type Diff = {
 }
 
 const repo = process.env.GH_REPO ?? "bolt-builder/bolt-cli"
-const bot = ["actions-user", "github-actions[bot]", "opencode", "opencode-agent[bot]"]
+const bot = [
+  "actions-user",
+  "github-actions[bot]",
+  "opencode",
+  "opencode-agent[bot]",
+  "deepsource-autofix[bot]",
+  "dependabot[bot]",
+]
 const team = [
   ...(await Bun.file(new URL("../.github/TEAM_MEMBERS", import.meta.url))
     .text()
     .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
     .then((x) => x.filter((x) => x && !x.startsWith("#")))),
   ...bot,
-]
+].map((x) => x.toLowerCase())
+
+function internal(login: string | null) {
+  return !!login && team.includes(login.toLowerCase())
+}
+
+const skip = /^(ignore|test|chore|ci|release)(\([^)]*\))?:|^sync release versions/i
 const order = ["Core", "TUI", "Desktop", "SDK", "Extensions"] as const
 const sections = {
   core: "Core",
@@ -126,7 +139,7 @@ async function commits(from: string, to: string) {
   for (const hash of log.split("\n").filter(Boolean)) {
     const item = data.get(hash)
     if (!item) continue
-    if (/^(ignore:|test:|chore:|ci:|release:)/i.test(item.message)) continue
+    if (skip.test(item.message)) continue
 
     const diff = await $`git diff-tree --no-commit-id --name-only -r ${hash}`.text()
     const areas = new Set<string>()
@@ -160,8 +173,9 @@ async function contributors(from: string, to: string) {
   const users: User = new Map()
   for (const item of await diff(base, head)) {
     const title = item.message.split("\n")[0] ?? ""
-    if (!item.login || team.includes(item.login)) continue
-    if (/^(ignore:|test:|chore:|ci:|release:)/i.test(title)) continue
+    if (internal(item.login)) continue
+    if (!item.login) continue
+    if (skip.test(title)) continue
     if (!users.has(item.login)) users.set(item.login, new Set())
     users.get(item.login)!.add(title)
   }
@@ -208,7 +222,7 @@ function format(from: string, to: string, list: Commit[], thanks: string[]) {
   }
 
   for (const commit of list) {
-    const attr = commit.author && !team.includes(commit.author) ? ` (@${commit.author})` : ""
+    const attr = commit.author && !internal(commit.author) ? ` (@${commit.author})` : ""
     grouped.get(section(commit.areas))!.get(type(commit.message))!.push(`- \`${commit.hash}\` ${commit.message}${attr}`)
   }
 
