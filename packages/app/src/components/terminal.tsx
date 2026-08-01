@@ -575,8 +575,7 @@ export const Terminal = (props: TerminalProps) => {
           if (result.response?.status === 404 || result.response?.status === 405) return
           if (result.response?.status === 403)
             throw new Error("PTY connect ticket rejected by origin or CSRF checks. Check the server CORS config.")
-          if (result.response)
-            throw new Error(`PTY connect ticket failed with ${result.response.status}`)
+          if (result.response) throw new Error(`PTY connect ticket failed with ${result.response.status}`)
         }
         // return sdk()
         //   .api.pty.connectToken({
