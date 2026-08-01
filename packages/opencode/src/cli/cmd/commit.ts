@@ -64,6 +64,7 @@ export const CommitCommand = effectCmd({
     }
 
     const diff = yield* git.run(args.all ? ["diff", "HEAD"] : ["diff", "--cached"], { cwd })
+    if (diff.exitCode !== 0) return yield* fail(diff.stderr.toString().trim() || "git diff failed")
     const patch = diff.text().trim()
     if (!patch) {
       return yield* fail(
