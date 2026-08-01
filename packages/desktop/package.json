@@ -33,7 +33,7 @@
     "electron-window-state": "^5.0.3"
   },
   "devDependencies": {
-    "@actions/artifact": "4.0.0",
+    "@actions/artifact": "6.2.1",
     "@lydell/node-pty": "catalog:",
     "@opencode-ai/app": "workspace:*",
     "@opencode-ai/ui": "workspace:*",
