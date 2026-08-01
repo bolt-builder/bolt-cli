@@ -65,9 +65,16 @@ if (Script.release && !Script.preview) {
   // partially failed publish), prepareReleaseFiles leaves the tree clean and
   // an unconditional `git commit` would fail with "nothing to commit".
   if (await $`git status --porcelain --untracked-files=no`.text()) await $`git commit -am "release: ${tag}"`
+  // Bare --force-with-lease can never move an existing tag: tags have no
+  // remote-tracking refs, so git rejects the push with "stale info". Pin the
+  // lease to the tag value fetched at the start of this run instead. New tags
+  // get an empty expectation (remote ref must not exist), and re-dispatching a
+  // failed publish moves its own tag, while a tag moved concurrently by
+  // another run still fails the lease.
+  const prior = (await $`git rev-parse --verify refs/tags/${tag}`.nothrow().quiet().text()).trim()
   await $`git tag -d ${tag}`.nothrow()
   await $`git tag ${tag}`
-  await $`git push origin refs/tags/${tag} --force-with-lease --no-verify`
+  await $`git push origin refs/tags/${tag} --force-with-lease=refs/tags/${tag}:${prior} --no-verify`
   await new Promise((resolve) => setTimeout(resolve, 5_000))
   await $`git fetch origin`
   await $`git checkout -B dev origin/dev`
