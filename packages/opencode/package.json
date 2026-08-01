@@ -4,6 +4,7 @@
   "name": "@bolt-builder/bolt-cli",
   "type": "module",
   "license": "PolyForm Licenese 1.0.0",
+  "readme": "README.md",
   "private": false,
   "scripts": {
     "typecheck": "tsgo --noEmit",
