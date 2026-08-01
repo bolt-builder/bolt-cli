@@ -89,7 +89,9 @@ const getBase = (appId: string): Configuration => ({
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
     entitlementsInherit: "resources/entitlements.plist",
-    notarize: true,
+    // Apple only notarizes Developer ID signed apps; ad-hoc builds must skip
+    // notarization or electron-builder fails looking for notary credentials.
+    notarize: identity !== "-",
     target: ["dmg", "zip"],
   },
   dmg: {

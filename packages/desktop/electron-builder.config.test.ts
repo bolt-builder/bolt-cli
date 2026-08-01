@@ -89,3 +89,39 @@ for (const channel of ["beta", "prod"] as const) {
     })
   })
 }
+
+test("skips notarization for ad-hoc signed builds", async () => {
+  const link = process.env.CSC_LINK
+  const discovery = process.env.CSC_IDENTITY_AUTO_DISCOVERY
+  delete process.env.CSC_LINK
+  process.env.CSC_IDENTITY_AUTO_DISCOVERY = "false"
+
+  const module = await import("./electron-builder.config.ts?notarize=adhoc")
+  const config = module.default as Configuration
+
+  if (link === undefined) delete process.env.CSC_LINK
+  else process.env.CSC_LINK = link
+  if (discovery === undefined) delete process.env.CSC_IDENTITY_AUTO_DISCOVERY
+  else process.env.CSC_IDENTITY_AUTO_DISCOVERY = discovery
+
+  expect(config.mac?.identity).toBe("-")
+  expect(config.mac?.notarize).toBe(false)
+})
+
+test("notarizes when a signing certificate is available", async () => {
+  const link = process.env.CSC_LINK
+  const discovery = process.env.CSC_IDENTITY_AUTO_DISCOVERY
+  process.env.CSC_LINK = "base64-cert"
+  delete process.env.CSC_IDENTITY_AUTO_DISCOVERY
+
+  const module = await import("./electron-builder.config.ts?notarize=cert")
+  const config = module.default as Configuration
+
+  if (link === undefined) delete process.env.CSC_LINK
+  else process.env.CSC_LINK = link
+  if (discovery === undefined) delete process.env.CSC_IDENTITY_AUTO_DISCOVERY
+  else process.env.CSC_IDENTITY_AUTO_DISCOVERY = discovery
+
+  expect(config.mac?.identity).toBeUndefined()
+  expect(config.mac?.notarize).toBe(true)
+})
