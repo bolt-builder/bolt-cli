@@ -22,8 +22,7 @@ export const MemorySaveTool = Tool.define(
           if (!MemoryControls.contribute(info.metadata))
             return {
               title: "Bolt memory: off for this session",
-              output:
-                "Memory contribution is turned off for this session. Turn it back on with /memory contribute on.",
+              output: "Memory contribution is turned off for this session. Turn it back on with /memory contribute on.",
               metadata: { sources: [] },
             }
           const instance = yield* InstanceState.context
