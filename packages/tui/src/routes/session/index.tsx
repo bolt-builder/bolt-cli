@@ -24,7 +24,8 @@ import { useEvent } from "../../context/event"
 import { SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
-import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
+import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, tint, useTheme } from "../../context/theme"
+import { createPulse } from "../../util/signal"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "../../component/prompt"
 import type {
@@ -247,6 +248,10 @@ export function Session() {
 
   const lastAssistant = createMemo(() => {
     return messages().findLast((x) => x.role === "assistant")
+  })
+
+  const lastUser = createMemo(() => {
+    return messages().findLast((x) => x.role === "user")
   })
 
   const dimensions = useTerminalDimensions()
@@ -1366,6 +1371,7 @@ export function Session() {
                           message={message as UserMessage}
                           parts={sync.data.part[message.id] ?? []}
                           pending={pending()}
+                          last={lastUser()?.id === message.id}
                         />
                       </Match>
                       <Match when={message.role === "assistant"}>
@@ -1498,9 +1504,11 @@ function UserMessage(props: {
   onMouseUp: () => void
   index: number
   pending?: string
+  last?: boolean
 }) {
   const ctx = use()
   const local = useLocal()
+  const kv = useKV()
   const text = createMemo(() => {
     const texts = props.parts
       .map((x) => {
@@ -1517,6 +1525,12 @@ function UserMessage(props: {
   const [hover, setHover] = createSignal(false)
   const queued = createMemo(() => props.pending && props.message.id > props.pending)
   const color = createMemo(() => local.agent.color(props.message.agent))
+  // Glow: breathe the rail of the message the agent is currently working on.
+  const working = createMemo(
+    () => !!props.last && (ctx.sync.data.session_status[ctx.sessionID]?.type ?? "idle") !== "idle",
+  )
+  const glow = createPulse(working, () => kv.get("animations_enabled", true))
+  const rail = createMemo(() => (working() ? tint(theme.backgroundPanel, color(), 0.3 + 0.7 * glow()) : color()))
   const queuedFg = createMemo(() => selectedForeground(theme, color()))
   const metadataVisible = createMemo(() => queued() || ctx.showTimestamps())
 
@@ -1529,7 +1543,7 @@ function UserMessage(props: {
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
           border={["left"]}
-          borderColor={color()}
+          borderColor={rail()}
           customBorderChars={SplitBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}
         >

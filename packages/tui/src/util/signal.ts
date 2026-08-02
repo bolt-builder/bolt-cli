@@ -16,6 +16,30 @@ export function createDebouncedSignal<T>(value: T, ms: number): [Accessor<T>, (v
   return [get, debounced]
 }
 
+/** Breathing 0..1 wave while active; holds 1 when active with animations off. */
+export function createPulse(active: Accessor<boolean>, enabled: Accessor<boolean>, period = 1600) {
+  const [value, setValue] = createSignal(0)
+
+  createEffect(
+    on([active, enabled], ([run, animate]) => {
+      if (!run || !animate) {
+        setValue(run ? 1 : 0)
+        return
+      }
+
+      const start = performance.now()
+      const timer = setInterval(() => {
+        const phase = ((performance.now() - start) % period) / period
+        setValue(0.5 - Math.cos(phase * Math.PI * 2) / 2)
+      }, 50)
+
+      onCleanup(() => clearInterval(timer))
+    }),
+  )
+
+  return value
+}
+
 export function createFadeIn(show: Accessor<boolean>, enabled: Accessor<boolean>) {
   const [alpha, setAlpha] = createSignal(show() ? 1 : 0)
   let revealed = show()
