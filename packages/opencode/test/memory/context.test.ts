@@ -32,24 +32,24 @@ function run(ctx: { directory: string; worktree: string }, metadata: Record<stri
 
 describe("memory host context", () => {
   test("injects guidance and saved memory for an enabled store", async () => {
-    const f = await fixture()
-    await BoltMemory.enable({ ctx: f.ctx })
-    await BoltMemory.remember({ ctx: f.ctx, text: "Deploys happen via the ship script" })
-    const blocks = await run(f.ctx)
+    const tmp = await fixture()
+    await BoltMemory.enable({ ctx: tmp.ctx })
+    await BoltMemory.remember({ ctx: tmp.ctx, text: "Deploys happen via the ship script" })
+    const blocks = await run(tmp.ctx)
     expect(blocks).toHaveLength(1)
     expect(blocks[0]).toContain("memory_recall")
     expect(blocks[0]).toContain("ship script")
   })
 
   test("empty when the store is disabled", async () => {
-    const f = await fixture()
-    expect(await run(f.ctx)).toEqual([])
+    const tmp = await fixture()
+    expect(await run(tmp.ctx)).toEqual([])
   })
 
   test("empty when the session opted out of memory use", async () => {
-    const f = await fixture()
-    await BoltMemory.enable({ ctx: f.ctx })
-    await BoltMemory.remember({ ctx: f.ctx, text: "Deploys happen via the ship script" })
-    expect(await run(f.ctx, { [MemoryControls.USE]: false })).toEqual([])
+    const tmp = await fixture()
+    await BoltMemory.enable({ ctx: tmp.ctx })
+    await BoltMemory.remember({ ctx: tmp.ctx, text: "Deploys happen via the ship script" })
+    expect(await run(tmp.ctx, { [MemoryControls.USE]: false })).toEqual([])
   })
 })
