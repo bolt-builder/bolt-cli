@@ -92,13 +92,15 @@ export const CommitCommand = effectCmd({
       `\nDiff:\n${cap(patch)}`,
     ].join("\n")
 
-    const result = yield* prompt.prompt({
-      sessionID: session.id,
-      messageID: MessageID.ascending(),
-      agent: "commit",
-      model: args.model ? parseModel(args.model) : undefined,
-      parts: [{ id: PartID.ascending(), type: "text", text }],
-    }).pipe(Effect.orDie)
+    const result = yield* prompt
+      .prompt({
+        sessionID: session.id,
+        messageID: MessageID.ascending(),
+        agent: "commit",
+        model: args.model ? parseModel(args.model) : undefined,
+        parts: [{ id: PartID.ascending(), type: "text", text }],
+      })
+      .pipe(Effect.orDie)
 
     if (result.info.role === "assistant" && result.info.error) {
       const err = result.info.error

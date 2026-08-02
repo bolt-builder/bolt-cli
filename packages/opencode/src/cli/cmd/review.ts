@@ -89,13 +89,15 @@ export const ReviewCommand = effectCmd({
       permission: [{ permission: "question", action: "deny", pattern: "*" }],
     })
 
-    const result = yield* prompt.prompt({
-      sessionID: session.id,
-      messageID: MessageID.ascending(),
-      agent: "code-review",
-      model: args.model ? parseModel(args.model) : undefined,
-      parts: [{ id: PartID.ascending(), type: "text", text: `${INSTRUCTIONS}\n\nDiff:\n${patch}` }],
-    }).pipe(Effect.orDie)
+    const result = yield* prompt
+      .prompt({
+        sessionID: session.id,
+        messageID: MessageID.ascending(),
+        agent: "code-review",
+        model: args.model ? parseModel(args.model) : undefined,
+        parts: [{ id: PartID.ascending(), type: "text", text: `${INSTRUCTIONS}\n\nDiff:\n${patch}` }],
+      })
+      .pipe(Effect.orDie)
 
     if (result.info.role === "assistant" && result.info.error) {
       const err = result.info.error
