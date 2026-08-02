@@ -15,6 +15,7 @@ import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
+import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { SkillTool } from "./skill"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
@@ -109,6 +110,8 @@ const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const memsave = yield* MemorySaveTool
+    const memrecall = yield* MemoryRecallTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -215,6 +218,8 @@ const layer = Layer.effect(
           search: Tool.init(websearch),
           skill: Tool.init(skilltool),
           patch: Tool.init(patchtool),
+          memsave: Tool.init(memsave),
+          memrecall: Tool.init(memrecall),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
@@ -238,6 +243,8 @@ const layer = Layer.effect(
             tool.search,
             tool.skill,
             tool.patch,
+            tool.memsave,
+            tool.memrecall,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),

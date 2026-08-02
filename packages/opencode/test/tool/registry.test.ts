@@ -109,6 +109,16 @@ describe("tool.registry", () => {
     }),
   )
 
+  it.instance("exposes the memory tools", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const ids = yield* registry.ids()
+
+      expect(ids).toContain("memory_save")
+      expect(ids).toContain("memory_recall")
+    }),
+  )
+
   it.instance("does not expose execute unless code mode is enabled", () =>
     Effect.gen(function* () {
       const registry = yield* ToolRegistry.Service
