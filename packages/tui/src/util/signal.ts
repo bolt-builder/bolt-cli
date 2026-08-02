@@ -27,6 +27,9 @@ export function createPulse(active: Accessor<boolean>, enabled: Accessor<boolean
         return
       }
 
+      // Reset so re-enabling animations mid-activity starts the wave at 0
+      // instead of holding the steady value 1 until the first tick.
+      setValue(0)
       const start = performance.now()
       const timer = setInterval(() => {
         const phase = ((performance.now() - start) % period) / period
