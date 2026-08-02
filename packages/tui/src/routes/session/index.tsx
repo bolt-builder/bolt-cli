@@ -1525,12 +1525,13 @@ function UserMessage(props: {
   const [hover, setHover] = createSignal(false)
   const queued = createMemo(() => props.pending && props.message.id > props.pending)
   const color = createMemo(() => local.agent.color(props.message.agent))
-  // Glow: breathe the rail of the message the agent is currently working on.
+  // Continue-style glow: while the agent works on this message, swap the left
+  // rail for a full outline that sweeps between the theme primary and accent.
   const working = createMemo(
     () => !!props.last && (ctx.sync.data.session_status[ctx.sessionID]?.type ?? "idle") !== "idle",
   )
   const glow = createPulse(working, () => kv.get("animations_enabled", true))
-  const rail = createMemo(() => (working() ? tint(theme.backgroundPanel, color(), 0.3 + 0.7 * glow()) : color()))
+  const outline = createMemo(() => tint(theme.primary, theme.accent, glow()))
   const queuedFg = createMemo(() => selectedForeground(theme, color()))
   const metadataVisible = createMemo(() => queued() || ctx.showTimestamps())
 
@@ -1542,9 +1543,10 @@ function UserMessage(props: {
         <box
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
-          border={["left"]}
-          borderColor={rail()}
-          customBorderChars={SplitBorder.customBorderChars}
+          border={working() ? true : ["left"]}
+          borderStyle={working() ? "rounded" : undefined}
+          borderColor={working() ? outline() : color()}
+          customBorderChars={working() ? undefined : SplitBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
