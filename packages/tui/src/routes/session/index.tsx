@@ -1544,7 +1544,7 @@ function UserMessage(props: {
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
           border={working() ? true : ["left"]}
-          borderStyle={working() ? "rounded" : undefined}
+          borderStyle={working() ? "heavy" : undefined}
           borderColor={working() ? outline() : color()}
           customBorderChars={working() ? undefined : SplitBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}

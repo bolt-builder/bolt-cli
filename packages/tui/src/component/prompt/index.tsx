@@ -5,7 +5,6 @@ import {
   MouseEvent,
   PasteEvent,
   decodePasteBytes,
-  rgbToHex,
   type KeyEvent,
   type Renderable,
 } from "@opentui/core"
@@ -22,7 +21,7 @@ import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
 import { voice } from "../../voice"
-import { createFire, FireStrip } from "../fire-frame"
+
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -1412,12 +1411,6 @@ export function Prompt(props: PromptProps) {
     animationsEnabled,
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
-  const fire = createMemo(() => animationsEnabled() && status().type !== "idle")
-  const flames = createFire(
-    () => dimensions().width,
-    fire,
-    () => rgbToHex(theme.primary),
-  )
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
     if (store.mode === "shell") {
@@ -1458,13 +1451,6 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
-      {/* Outside the anchor box on purpose: the autocomplete palette renders
-          above the anchor, so keeping the fire out of it lets the palette sit
-          flush against the input and cover the flames instead of floating
-          above the whole strip. */}
-      <Show when={props.visible !== false && fire()}>
-        <FireStrip rows={flames()} />
-      </Show>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <box
           width="100%"
