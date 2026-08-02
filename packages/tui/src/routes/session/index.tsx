@@ -21,7 +21,7 @@ import { useRoute, useRouteData } from "../../context/route"
 import { useProject } from "../../context/project"
 import { useSync } from "../../context/sync"
 import { useEvent } from "../../context/event"
-import { SplitBorder } from "../../ui/border"
+import { GlowBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
 import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, tint, useTheme } from "../../context/theme"
@@ -1544,9 +1544,8 @@ function UserMessage(props: {
           id={props.message.id}
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
           border={working() ? true : ["left"]}
-          borderStyle={working() ? "heavy" : undefined}
           borderColor={working() ? outline() : color()}
-          customBorderChars={working() ? undefined : SplitBorder.customBorderChars}
+          customBorderChars={working() ? GlowBorder : SplitBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
