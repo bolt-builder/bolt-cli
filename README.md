@@ -150,6 +150,8 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 | `plugin`     | Install and manage plugins                               |
 | `github`     | GitHub Actions agent (install, run)                      |
 | `pr`         | Check out a GitHub PR into a local branch                |
+| `commit`     | Commit staged changes with a generated message           |
+| `review`     | AI review of a diff with pass/fail exit codes            |
 | `stats`      | Show token usage and cost statistics                     |
 | `db`         | Query the local session database                         |
 | `debug`      | Troubleshooting tools (config, lsp, snapshots, and more) |
@@ -181,12 +183,10 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Agents that check their work (5)</strong></summary>
+<summary><strong>Agents that check their work (3)</strong></summary>
 
 - [ ] Test-aware refactor loops: change, run, verify, repeat until green
 - [ ] Confidence scoring: the agent tells you when it is guessing
-- [ ] `bolt review --staged / --branch`: one-shot AI diff review with exit codes
-- [ ] `bolt commit`: commit messages you don't have to rewrite
 - [ ] Self-review pass before any diff is handed to you
 
 </details>
@@ -232,6 +232,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] `bolt review --staged / --branch`: one-shot AI diff review with exit codes
+- [x] `bolt commit`: commit messages you don't have to rewrite
 - [x] Best-of-N runs: fire the same task at several models in parallel, rank the results, keep the winner
 - [x] Push-to-talk voice input in the TUI
 - [x] Agent evaluation benchmark harness (`bolt eval`)
