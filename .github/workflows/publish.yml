@@ -73,7 +73,7 @@ jobs:
 
   build-cli:
     needs: version
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     if: github.repository == 'bolt-builder/bolt-cli'
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
@@ -124,7 +124,7 @@ jobs:
     needs:
       - build-cli
       - version
-    runs-on: blacksmith-4vcpu-windows-2025
+    runs-on: windows-latest
     if: github.repository == 'bolt-builder/bolt-cli'
     env:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -266,17 +266,17 @@ jobs:
             target: aarch64-apple-darwin
             platform_flag: --mac --arm64
             bun_install_flags: --os=darwin --cpu=arm64
-          # github-hosted: blacksmith lacks ARM64 MSVC cross-compilation toolchain
+          # github-hosted: official runners lack ARM64 MSVC cross-compilation toolchain
           - host: "windows-2025"
             target: aarch64-pc-windows-msvc
             platform_flag: --win --arm64
-          - host: "blacksmith-4vcpu-windows-2025"
+          - host: "windows-latest"
             target: x86_64-pc-windows-msvc
             platform_flag: --win
-          - host: "blacksmith-4vcpu-ubuntu-2404"
+          - host: "ubuntu-latest"
             target: x86_64-unknown-linux-gnu
             platform_flag: --linux
-          - host: "blacksmith-4vcpu-ubuntu-2404-arm"
+          - host: "ubuntu-latest"
             target: aarch64-unknown-linux-gnu
             platform_flag: --linux --arm64
     runs-on: ${{ matrix.settings.host }}
@@ -490,7 +490,7 @@ jobs:
     # Publish whatever succeeded: the CLI build is required, but failed
     # electron/signing legs only skip their own assets instead of blocking the release.
     if: always() && !cancelled() && needs.version.result == 'success' && needs.build-cli.result == 'success'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
