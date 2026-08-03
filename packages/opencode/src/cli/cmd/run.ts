@@ -887,7 +887,7 @@ export const RunCommand = effectCmd({
 
         // Resolve auto model selection
         const model = pick(args.model)
-        const resolvedModel = model === "auto" ? undefined : model
+        let resolvedModel = model === "auto" ? undefined : model
         if (model === "auto") {
           UI.println(
             UI.Style.TEXT_INFO_BOLD + "→",
@@ -897,9 +897,9 @@ export const RunCommand = effectCmd({
         }
 
         // Validate resolved model if specified
-        if (resolvedModel && resolvedModel !== "auto") {
-          const available = await client.app.models(undefined, { throwOnError: true }).then((x) => x.data ?? []).catch(() => [])
-          const isValid = available.some((m) => m.providerID === resolvedModel.providerID && m.id === resolvedModel.modelID)
+        if (resolvedModel) {
+          const available = await client.app.models(undefined, { throwOnError: true }).then((x: any) => x.data ?? []).catch(() => [])
+          const isValid = available.some((m: any) => m.providerID === resolvedModel.providerID && m.id === resolvedModel.modelID)
           if (!isValid) {
             UI.println(
               UI.Style.TEXT_WARNING_BOLD + "!",
