@@ -18,6 +18,7 @@ import { InvalidTool } from "./invalid"
 import { BackgroundKillTool, BackgroundListTool, BackgroundOutputTool, BackgroundStartTool } from "./background"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
+import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
@@ -119,6 +120,7 @@ const layer = Layer.effect(
     const bgoutput = yield* BackgroundOutputTool
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
+    const testrun = yield* TestRunTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -232,6 +234,7 @@ const layer = Layer.effect(
           bgoutput: Tool.init(bgoutput),
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
+          testrun: Tool.init(testrun),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
@@ -262,6 +265,7 @@ const layer = Layer.effect(
             tool.bgoutput,
             tool.bgkill,
             tool.bglist,
+            tool.testrun,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
