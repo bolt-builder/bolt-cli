@@ -1,5 +1,5 @@
 import * as path from "path"
-import { Effect, Schema, Semaphore } from "effect"
+import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
 import { LSP } from "@/lsp/lsp"
 import { createTwoFilesPatch, diffLines } from "diff"
@@ -13,7 +13,7 @@ import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
 import * as Bom from "@/util/bom"
-import { replace, trimDiff } from "./edit"
+import { lock, replace, trimDiff } from "./edit"
 
 function normalize(text: string): string {
   return text.replaceAll("\r\n", "\n")
@@ -26,18 +26,6 @@ function ending(text: string): "\n" | "\r\n" {
 function convert(text: string, eol: "\n" | "\r\n"): string {
   if (eol === "\n") return text
   return text.replaceAll("\n", "\r\n")
-}
-
-const locks = new Map<string, Semaphore.Semaphore>()
-
-function lock(filePath: string) {
-  const resolved = FSUtil.resolve(filePath)
-  const hit = locks.get(resolved)
-  if (hit) return hit
-
-  const next = Semaphore.makeUnsafe(1)
-  locks.set(resolved, next)
-  return next
 }
 
 export const Parameters = Schema.Struct({
