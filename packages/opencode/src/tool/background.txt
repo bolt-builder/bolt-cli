@@ -1,0 +1,9 @@
+Starts a shell command as a background process and returns immediately with a process id.
+
+Use this for long-running commands that should keep running while you continue working: dev servers, watchers, tails, long builds. Do NOT use shell-level backgrounding (`&`, `nohup`, `setsid`) with the bash tool; output is lost and the process cannot be managed.
+
+Usage:
+- Returns a process id. Use `process_output` with that id to read accumulated output, `kill_process` to stop it, and `list_processes` to see all background processes.
+- The process is killed automatically when the session ends.
+- Same permission rules as the bash tool apply.
+- For quick commands that finish on their own, use the bash tool instead.
