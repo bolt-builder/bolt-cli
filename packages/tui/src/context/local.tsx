@@ -97,6 +97,10 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
           return agents().find((x) => x.name === agentStore.current) ?? agents().at(0)
         },
         set(name: string) {
+          if (name === "auto") {
+            setAgentStore("current", undefined)
+            return
+          }
           if (!agents().some((x) => x.name === name))
             return toast.show({
               variant: "warning",
@@ -335,6 +339,13 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
               save()
             }
           })
+        },
+        clear() {
+          const a = agent.current()
+          if (!a) return
+          const currentModels = modelStore.model
+          delete currentModels[a.name]
+          setModelStore("model", currentModels)
         },
         toggleFavorite(model: { providerID: string; modelID: string }) {
           batch(() => {

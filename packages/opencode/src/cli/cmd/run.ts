@@ -28,8 +28,9 @@ import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
-function pick(value: string | undefined): ModelInput | undefined {
+function pick(value: string | undefined): ModelInput | "auto" | undefined {
   if (!value) return undefined
+  if (value === "auto") return "auto"
   const [providerID, ...rest] = value.split("/")
   return {
     providerID,
@@ -165,7 +166,7 @@ export const RunCommand = effectCmd({
       .option("model", {
         type: "string",
         alias: ["m"],
-        describe: "model to use in the format of provider/model",
+        describe: "model to use in the format of provider/model (or 'auto' for cheapest available)",
       })
       .option("best-of", {
         type: "string",
@@ -174,7 +175,7 @@ export const RunCommand = effectCmd({
       })
       .option("agent", {
         type: "string",
-        describe: "agent to use",
+        describe: "agent to use (or 'auto' for automatic selection)",
       })
       .option("format", {
         type: "string",
@@ -560,15 +561,23 @@ export const RunCommand = effectCmd({
 
       async function createFreshSession(
         sdk: OpencodeClient,
-        input: { agent: string | undefined; model: ModelInput | undefined; variant: string | undefined },
+        input: { agent: string | undefined; model: ModelInput | "auto" | undefined; variant: string | undefined },
       ): Promise<SessionInfo> {
+        const resolvedModel = input.model === "auto" ? undefined : input.model
+        if (input.model === "auto") {
+          UI.println(
+            UI.Style.TEXT_INFO_BOLD + "→",
+            UI.Style.TEXT_NORMAL,
+            `Using server-side default model selection (cheapest available)`,
+          )
+        }
         const result = await sdk.session.create({
           title: args.title !== undefined && args.title !== "" ? args.title : undefined,
           agent: input.agent,
-          model: input.model
+          model: resolvedModel
             ? {
-                providerID: input.model.providerID,
-                id: input.model.modelID,
+                providerID: resolvedModel.providerID,
+                id: resolvedModel.modelID,
                 variant: input.variant,
               }
             : undefined,
@@ -603,9 +612,22 @@ export const RunCommand = effectCmd({
         process.exit(1)
       }
 
+      function handleAutoAgent(name: string): string | undefined {
+        if (name === "auto") {
+          UI.println(
+            UI.Style.TEXT_INFO_BOLD + "→",
+            UI.Style.TEXT_NORMAL,
+            `Using default agent`,
+          )
+          return undefined
+        }
+        return name
+      }
+
       async function localAgent() {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = handleAutoAgent(args.agent)
+        if (!name) return undefined
 
         const entry = await Effect.runPromise(
           agentSvc.get(name).pipe(Effect.provideService(InstanceRef, localInstance)),
@@ -631,7 +653,8 @@ export const RunCommand = effectCmd({
 
       async function attachAgent(sdk: OpencodeClient) {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = handleAutoAgent(args.agent)
+        if (!name) return undefined
 
         const modes = await sdk.app
           .agents(undefined, { throwOnError: true })
@@ -678,15 +701,25 @@ export const RunCommand = effectCmd({
         return localAgent()
       }
 
+
       async function execute(sdk: OpencodeClient) {
         if (args["best-of"]) {
           const { parseCandidates, runBestOf } = await import("./run/best-of")
           const candidates = parseCandidates(args["best-of"])
           if (typeof candidates === "string") return die(candidates)
+          const model = pick(args.model)
+          const resolvedModel = model === "auto" ? undefined : model
+          if (model === "auto") {
+            UI.println(
+              UI.Style.TEXT_INFO_BOLD + "→",
+              UI.Style.TEXT_NORMAL,
+              `Using server-side default model selection (cheapest available)`,
+            )
+          }
           const exit = await runBestOf({
             sdk: args.attach ? attachSDK(directory ?? (await current(sdk))) : sdk,
             candidates,
-            judge: pick(args.model) ?? candidates[0],
+            judge: resolvedModel ?? candidates[0],
             message,
             parts: [...files, { type: "text", text: message }],
             agent: args.agent,
@@ -852,6 +885,31 @@ export const RunCommand = effectCmd({
         // Validate agent if specified
         const agent = await pickAgent(client)
 
+        // Resolve auto model selection
+        const model = pick(args.model)
+        const resolvedModel = model === "auto" ? undefined : model
+        if (model === "auto") {
+          UI.println(
+            UI.Style.TEXT_INFO_BOLD + "→",
+            UI.Style.TEXT_NORMAL,
+            `Using server-side default model selection (cheapest available)`,
+          )
+        }
+
+        // Validate resolved model if specified
+        if (resolvedModel && resolvedModel !== "auto") {
+          const available = await client.app.models(undefined, { throwOnError: true }).then((x) => x.data ?? []).catch(() => [])
+          const isValid = available.some((m) => m.providerID === resolvedModel.providerID && m.id === resolvedModel.modelID)
+          if (!isValid) {
+            UI.println(
+              UI.Style.TEXT_WARNING_BOLD + "!",
+              UI.Style.TEXT_NORMAL,
+              `Model ${resolvedModel.providerID}/${resolvedModel.modelID} not found. Using server default.`,
+            )
+            resolvedModel = undefined
+          }
+        }
+
         await share(client, sessionID)
 
         if (!interactive) {
@@ -870,7 +928,7 @@ export const RunCommand = effectCmd({
             const result = await client.session.command({
               sessionID,
               agent,
-              model: args.model,
+              model: resolvedModel ? `${resolvedModel.providerID}/${resolvedModel.modelID}` : undefined,
               command: args.command,
               arguments: message,
               variant: args.variant,
@@ -884,11 +942,10 @@ export const RunCommand = effectCmd({
             return
           }
 
-          const model = pick(args.model)
           const result = await client.session.prompt({
             sessionID,
             agent,
-            model,
+            model: resolvedModel,
             variant: args.variant,
             parts: [...files, { type: "text", text: message }],
           })
@@ -901,7 +958,6 @@ export const RunCommand = effectCmd({
           return
         }
 
-        const model = pick(args.model)
         const { runInteractiveMode } = await import("./run/runtime")
         try {
           await runInteractiveMode({
@@ -913,7 +969,7 @@ export const RunCommand = effectCmd({
             replay,
             replayLimit: args["replay-limit"],
             agent,
-            model,
+            model: resolvedModel,
             variant: args.variant,
             files,
             initialInput,
@@ -930,6 +986,7 @@ export const RunCommand = effectCmd({
 
       if (interactive && !args.attach && !args.session && !args.continue) {
         const model = pick(args.model)
+        const resolvedModel = model === "auto" ? undefined : model
         const { runInteractiveLocalMode } = await import("./run/runtime")
         const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
           const { Server } = await import("@/server/server")
@@ -949,7 +1006,7 @@ export const RunCommand = effectCmd({
             share,
             createSession: createFreshSession,
             agent: args.agent,
-            model,
+            model: resolvedModel,
             variant: args.variant,
             replay,
             replayLimit: args["replay-limit"],

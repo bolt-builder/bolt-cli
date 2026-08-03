@@ -71,6 +71,7 @@ Built-in agents. Switch with `Tab` in the TUI.
 
 | Agent         | Access | Description                                          |
 | ------------- | ------ | ---------------------------------------------------- |
+| `orchestrator`| Full   | Coordinates complex multi-step tasks by delegating to specialized agents |
 | `code`        | Full   | Default: reads, writes, runs code                    |
 | `plan`        | Read   | Explores and produces a plan without changing code   |
 | `ask`         | Read   | Questions and research, no file edits                |

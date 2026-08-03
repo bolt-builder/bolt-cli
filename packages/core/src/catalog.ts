@@ -56,6 +56,7 @@ export interface Interface extends State.Transformable<Draft> {
     readonly available: () => Effect.Effect<ModelV2.Info[]>
     readonly default: () => Effect.Effect<ModelV2.Info | undefined>
     readonly small: (providerID: ProviderV2.ID) => Effect.Effect<ModelV2.Info | undefined>
+    readonly cheapest: () => Effect.Effect<ModelV2.Info | undefined>
   }
 }
 
@@ -258,7 +259,7 @@ const layer = Layer.effect(
             ),
             Array.map((model) => ({
               model,
-              cost: model.cost[0] ? model.cost[0].input + model.cost[0].output : 999,
+              cost: model.cost[0] ? model.cost[0].input + model.cost[0].output : DEFAULT_COST_PENALTY,
               age: (Date.now() - model.time.released) / (1000 * 60 * 60 * 24 * 30),
               small: SMALL_MODEL_RE.test(`${model.id} ${model.family ?? ""} ${model.name}`.toLowerCase()),
             })),
@@ -284,6 +285,38 @@ const layer = Layer.effect(
             ),
           )
         }),
+
+        cheapest: Effect.fn("CatalogV2.model.cheapest")(function* () {
+          const available = yield* result.model.available()
+          const candidates = pipe(
+            available,
+            Array.filter(
+              (model) =>
+                model.enabled &&
+                model.status === "active" &&
+                model.capabilities.input.some((item) => item.startsWith("text")) &&
+                model.capabilities.output.some((item) => item.startsWith("text")),
+            ),
+            Array.map((model) => ({
+              model,
+              cost: model.cost[0] ? model.cost[0].input + model.cost[0].output : DEFAULT_COST_PENALTY,
+            })),
+            Array.filter((item) => item.cost > 0),
+          )
+
+          if (candidates.length === 0) {
+            return available[0] ?? undefined
+          }
+
+          return Option.getOrUndefined(
+            pipe(
+              candidates,
+              Array.sortWith((item) => item.cost, Order.Number),
+              Array.map((item) => item.model),
+              Array.head,
+            ),
+          )
+        }),
       },
     }
 
@@ -291,6 +324,8 @@ const layer = Layer.effect(
   }),
 )
 
+// High penalty value for models without cost data, ensuring they're sorted last
+const DEFAULT_COST_PENALTY = 999
 const SMALL_MODEL_RE = /\b(nano|flash|lite|mini|haiku|small|fast)\b/
 
 export const locationLayer = layer.pipe(
