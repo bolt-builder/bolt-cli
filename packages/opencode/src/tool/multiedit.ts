@@ -1,6 +1,6 @@
-import * as path from "path"
+import path from "path"
 import { Effect, Schema } from "effect"
-import * as Tool from "./tool"
+import { Tool } from "./tool"
 import { LSP } from "@/lsp/lsp"
 import { createTwoFilesPatch, diffLines } from "diff"
 import DESCRIPTION from "./multiedit.txt"
@@ -12,7 +12,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
-import * as Bom from "@/util/bom"
+import { Bom } from "@/util/bom"
 import { lock, replace, trimDiff } from "./edit"
 
 function normalize(text: string): string {

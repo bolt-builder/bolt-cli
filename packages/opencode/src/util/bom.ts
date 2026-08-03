@@ -25,3 +25,5 @@ export const syncFile = Effect.fn("Bom.syncFile")(function* (fs: FSUtil.Interfac
   yield* fs.writeWithDirs(filePath, join(current.text, bom))
   return current.text
 })
+
+export * as Bom from "./bom"
