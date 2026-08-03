@@ -34,7 +34,8 @@ function convertToLineEnding(text: string, ending: "\n" | "\r\n"): string {
 
 const locks = new Map<string, Semaphore.Semaphore>()
 
-function lock(filePath: string) {
+// Shared with multiedit so concurrent edits to the same file are serialized across both tools.
+export function lock(filePath: string) {
   const resolvedFilePath = FSUtil.resolve(filePath)
   const hit = locks.get(resolvedFilePath)
   if (hit) return hit

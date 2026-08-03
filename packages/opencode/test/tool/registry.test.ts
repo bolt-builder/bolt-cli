@@ -116,6 +116,7 @@ describe("tool.registry", () => {
 
       expect(ids).toContain("memory_save")
       expect(ids).toContain("memory_recall")
+      expect(ids).toContain("multiedit")
     }),
   )
 
