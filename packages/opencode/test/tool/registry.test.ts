@@ -121,6 +121,7 @@ describe("tool.registry", () => {
       expect(ids).toContain("process_output")
       expect(ids).toContain("kill_process")
       expect(ids).toContain("list_processes")
+      expect(ids).toContain("test_run")
     }),
   )
 
