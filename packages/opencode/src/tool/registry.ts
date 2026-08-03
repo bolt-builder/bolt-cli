@@ -16,6 +16,7 @@ import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
+import { MultiEditTool } from "./multiedit"
 import { SkillTool } from "./skill"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
@@ -112,6 +113,7 @@ const layer = Layer.effect(
     const skilltool = yield* SkillTool
     const memsave = yield* MemorySaveTool
     const memrecall = yield* MemoryRecallTool
+    const multiedit = yield* MultiEditTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -211,6 +213,7 @@ const layer = Layer.effect(
           glob: Tool.init(globtool),
           grep: Tool.init(greptool),
           edit: Tool.init(edit),
+          multiedit: Tool.init(multiedit),
           write: Tool.init(writetool),
           task: Tool.init(task),
           fetch: Tool.init(webfetch),
@@ -236,6 +239,7 @@ const layer = Layer.effect(
             tool.glob,
             tool.grep,
             tool.edit,
+            tool.multiedit,
             tool.write,
             tool.task,
             tool.fetch,
@@ -299,7 +303,7 @@ const layer = Layer.effect(
         const usePatch =
           input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4")
         if (tool.id === ApplyPatchTool.id) return usePatch
-        if (tool.id === EditTool.id || tool.id === WriteTool.id) return !usePatch
+        if (tool.id === EditTool.id || tool.id === WriteTool.id || tool.id === MultiEditTool.id) return !usePatch
 
         return true
       })
