@@ -173,12 +173,23 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 ### Next
 
 <details>
-<summary><strong>Agents that remember (4)</strong></summary>
+<summary><strong>Agents that remember (2)</strong></summary>
 
 - [ ] Repo convention learning: the agent picks up your codebase's style and sticks to it
-- [ ] Compounding memory: every session teaches the next one
 - [ ] Memory introspection: ask the agent why it believes something and where it learned it
-- [ ] Cross-session recall: "do it like we did in that auth refactor last month"
+
+</details>
+
+<details>
+<summary><strong>Agents with better hands (7)</strong></summary>
+
+- [ ] `multiedit`: batch several edits to one file in a single tool call
+- [ ] Background process tools: start a dev server, poll its output, kill it, all without blocking the loop
+- [ ] `test_run`: run tests and hand the agent structured failures (file, line, message)
+- [ ] `view_image`: let the agent look at screenshots and design mocks
+- [ ] Browser tool: navigate and screenshot the running app to verify UI changes visually
+- [ ] LSP power tools: rename symbol and find references, promoted out of experimental
+- [ ] Semantic codebase search: find code by meaning, not regex
 
 </details>
 
@@ -232,6 +243,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Compounding memory: every session teaches the next one, automatically
+- [x] Cross-session recall: new sessions start with project memory and `memory_save` / `memory_recall` in every agent's toolbox
 - [x] `bolt review --staged / --branch`: one-shot AI diff review with exit codes
 - [x] `bolt commit`: commit messages you don't have to rewrite
 - [x] Best-of-N runs: fire the same task at several models in parallel, rank the results, keep the winner
