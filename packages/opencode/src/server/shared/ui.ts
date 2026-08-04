@@ -38,7 +38,11 @@ function proxyResponseHeaders(headers: Record<string, string>) {
 }
 
 export function upstreamURL(path: string) {
-  return new URL(path, UI_UPSTREAM).toString()
+  const url = new URL(path, UI_UPSTREAM)
+  // A path like "//evil.com/x" resolves to a different host, turning the UI
+  // fallback proxy into an open relay (SSRF). Pin the resolved origin.
+  if (url.origin !== UI_UPSTREAM.origin) return UI_UPSTREAM.toString()
+  return url.toString()
 }
 
 export function embeddedUI(disableEmbeddedWebUi: boolean) {

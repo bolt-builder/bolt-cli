@@ -1,5 +1,6 @@
 export * as ServerAuth from "./auth"
 
+import { createHash, timingSafeEqual } from "node:crypto"
 import { Config as EffectConfig, Context, Effect, Layer, Option, Redacted } from "effect"
 
 export type Credentials = {
@@ -42,11 +43,20 @@ export function required(config: Info) {
 }
 
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  return (
-    Option.isSome(config.password) &&
-    credentials.username === config.username &&
-    Redacted.value(credentials.password) === config.password.value
-  )
+  if (Option.isNone(config.password)) return false
+  // Evaluate both comparisons so a username mismatch does not skip the
+  // password hash, which would leak username validity through timing.
+  const username = equals(credentials.username, config.username)
+  const password = equals(Redacted.value(credentials.password), config.password.value)
+  return username && password
+}
+
+// Constant-time comparison so the password cannot be recovered byte-by-byte
+// through response timing. Hashing first equalizes lengths, which
+// timingSafeEqual requires (and avoids leaking the length itself).
+function equals(a: string, b: string) {
+  const hash = (value: string) => createHash("sha256").update(value).digest()
+  return timingSafeEqual(hash(a), hash(b))
 }
 
 export function header(credentials?: Credentials) {
