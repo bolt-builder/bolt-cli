@@ -24,7 +24,7 @@ import { useEvent } from "../../context/event"
 import { SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
-import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
+import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, tint, useTheme } from "../../context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "../../component/prompt"
 import type {
@@ -1785,36 +1785,37 @@ function ReasoningHeader(props: {
   duration?: string
 }) {
   const { theme } = useTheme()
-  const fg = () =>
-    props.open
-      ? RGBA.fromValues(theme.warning.r, theme.warning.g, theme.warning.b, theme.thinkingOpacity)
-      : theme.warning
+  
+  // Create a gradient from accent to primary, matching the theme
+  const gradient = (column: number, length: number) => 
+    tint(theme.accent, theme.primary, length <= 1 ? 1 : column / (length - 1))
+
+  const thinkingText = props.title ? "Thinking: " + props.title : "Thinking"
+  
+  // Build the complete text for the done state
+  const togglePrefix = props.toggleable ? (props.open ? "- " : "+ ") : ""
+  const thoughtBase = "Thought"
+  const separator = (props.title || props.duration) ? ": " : ""
+  const titlePart = props.title ?? ""
+  const durationPart = props.duration ? (props.title ? " · " + props.duration : props.duration) : ""
+  const doneText = togglePrefix + thoughtBase + separator + titlePart + durationPart
 
   return (
     <Switch>
       <Match when={!props.done}>
         <box flexDirection="row">
-          <Spinner color={fg()}>{props.title ? "Thinking: " + props.title : "Thinking"}</Spinner>
+          <text>
+            {Array.from(thinkingText).map((char, column) => (
+              <span style={{ fg: gradient(column, thinkingText.length) }}>{char}</span>
+            ))}
+          </text>
         </box>
       </Match>
       <Match when={true}>
-        <text fg={fg()} wrapMode="none">
-          <Show when={props.toggleable}>
-            <span>{props.open ? "- " : "+ "}</span>
-          </Show>
-          <span>Thought</span>
-          <Show when={props.title || props.duration}>
-            <span>: </span>
-          </Show>
-          <Show when={props.title}>
-            <span>{props.title}</span>
-          </Show>
-          <Show when={props.duration}>
-            <span>
-              {props.title ? " · " : ""}
-              {props.duration}
-            </span>
-          </Show>
+        <text wrapMode="none">
+          {Array.from(doneText).map((char, column) => (
+            <span style={{ fg: gradient(column, doneText.length) }}>{char}</span>
+          ))}
         </text>
       </Match>
     </Switch>
