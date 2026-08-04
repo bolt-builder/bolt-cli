@@ -107,7 +107,7 @@ function ShellSubmessage(props: { text: string; animate?: boolean }) {
   })
 
   return (
-    <span data-component="shell-submessage">
+    <span data-component="shell-submessage" dir="ltr">
       <span ref={widthRef} data-slot="shell-submessage-width" style={{ width: props.animate ? "0px" : undefined }}>
         <span data-slot="basic-tool-tool-subtitle">
           <span
@@ -459,10 +459,10 @@ function newLayout() {
   return typeof document !== "undefined" && document.body.hasAttribute("data-new-layout")
 }
 
-function webSearchProviderLabel(provider: unknown) {
-  if (provider === "parallel") return "Parallel Web Search"
-  if (provider === "exa") return "Exa Web Search"
-  return "Web Search"
+function webSearchProviderLabel(provider: unknown, i18n: ReturnType<typeof useI18n>) {
+  const name = provider === "parallel" ? "Parallel" : provider === "exa" ? "Exa" : undefined
+  if (name) return i18n.t("ui.tool.websearch.provider", { provider: name })
+  return i18n.t("ui.tool.websearch")
 }
 
 export function getToolInfo(
@@ -505,7 +505,7 @@ export function getToolInfo(
     case "websearch":
       return {
         icon: "window-cursor",
-        title: webSearchProviderLabel(metadata?.provider),
+        title: webSearchProviderLabel(metadata?.provider, i18n),
         subtitle: input.query,
       }
     case "task": {
@@ -1309,7 +1309,7 @@ export function UserMessageDisplay(props: {
                   clickable={!!props.actions?.openAttachment}
                   onClick={() => props.actions?.openAttachment?.(file)}
                 >
-                  {typeLabel(name, file.mime)}
+                  {typeLabel(name, file.mime, i18n.t("ui.common.file"))}
                 </AttachmentCardV2>
               </Show>
             )
@@ -1331,7 +1331,11 @@ export function UserMessageDisplay(props: {
         }
       >
         <div data-slot="user-message-body">
-          <div data-slot="user-message-text" data-comments={messageComments().length > 0 ? "true" : undefined}>
+          <div
+            data-slot="user-message-text"
+            dir="auto"
+            data-comments={messageComments().length > 0 ? "true" : undefined}
+          >
             <HighlightedText text={text()} references={inlineFiles()} agents={agents()} />
             <Show when={messageComments().length > 0}>
               <UserMessageComments comments={messageComments()} bounded />
@@ -1590,7 +1594,9 @@ PART_MAPPING["tool"] = function ToolPartDisplay(props) {
                 <ToolErrorCard
                   tool={part().tool}
                   error={error()}
-                  title={part().tool === "websearch" ? webSearchProviderLabel(partMetadata().provider) : undefined}
+                  title={
+                    part().tool === "websearch" ? webSearchProviderLabel(partMetadata().provider, i18n) : undefined
+                  }
                   defaultOpen={props.defaultOpen}
                   open={controlledOpen()}
                   onOpenChange={props.onToolOpenChange ? handleToolOpenChange : undefined}
@@ -1952,12 +1958,13 @@ ToolRegistry.register({
 ToolRegistry.register({
   name: "websearch",
   render(props) {
+    const i18n = useI18n()
     const query = createMemo(() => {
       const value = props.input.query
       if (typeof value !== "string") return ""
       return value
     })
-    const title = createMemo(() => webSearchProviderLabel(props.metadata.provider))
+    const title = createMemo(() => webSearchProviderLabel(props.metadata.provider, i18n))
 
     return (
       <BasicTool
@@ -2122,7 +2129,7 @@ ToolRegistry.register({
           </div>
         )}
       >
-        <div data-component="bash-output">
+        <div data-component="bash-output" dir="ltr">
           <div data-slot="bash-copy">
             <TooltipV2 value={copied() ? i18n.t("ui.message.copied") : i18n.t("ui.message.copy")} placement="top">
               <IconButtonV2

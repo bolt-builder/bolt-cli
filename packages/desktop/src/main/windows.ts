@@ -12,6 +12,7 @@ import { exportDebugLogs, write as writeLog } from "./logging"
 import { getStore, removeStoreFile } from "./store"
 import { PINCH_ZOOM_ENABLED_KEY, WINDOW_IDS_KEY } from "./store-keys"
 import { createUnresponsiveSampler } from "./unresponsive"
+import { nativeT } from "./native-translations"
 import { createWindowRegistry } from "./window-registry"
 import { safeWindowURL } from "./window-state"
 import { resolveExternalURL, resolveLocalFilePath } from "./external-url"
@@ -345,19 +346,20 @@ function wireWindowRecovery(win: BrowserWindow, name: string) {
   let showing = false
   const sampler = createUnresponsiveSampler(win, name)
 
-  const handle = async (button: string | undefined, wait: boolean) => {
-    if (button === "Export Logs") {
+  type RecoveryAction = "relaunch" | "export-logs" | "keep-waiting" | "quit"
+  const handle = async (action: RecoveryAction | undefined, wait: boolean) => {
+    if (action === "export-logs") {
       const sampling = sampler.stopAndFlush()
       await exportDebugLogs().catch((error) => writeLog("main", "failed to export debug logs", { error }, "error"))
       if (wait && sampling) sampler.start()
       return true
     }
-    if (button === "Relaunch") {
+    if (action === "relaunch") {
       sampler.stopAndFlush()
       relaunchHandler()
       return false
     }
-    if (button === "Quit") {
+    if (action === "quit") {
       sampler.stopAndFlush()
       app.quit()
     }
@@ -369,16 +371,26 @@ function wireWindowRecovery(win: BrowserWindow, name: string) {
     showing = true
     try {
       while (!win.isDestroyed()) {
-        const buttons = wait ? ["Relaunch", "Export Logs", "Keep Waiting"] : ["Relaunch", "Export Logs", "Quit"]
+        const actions: { id: RecoveryAction; label: string }[] = wait
+          ? [
+              { id: "relaunch", label: nativeT("desktop.recovery.action.relaunch") },
+              { id: "export-logs", label: nativeT("desktop.recovery.action.exportLogs") },
+              { id: "keep-waiting", label: nativeT("desktop.recovery.action.keepWaiting") },
+            ]
+          : [
+              { id: "relaunch", label: nativeT("desktop.recovery.action.relaunch") },
+              { id: "export-logs", label: nativeT("desktop.recovery.action.exportLogs") },
+              { id: "quit", label: nativeT("desktop.recovery.action.quit") },
+            ]
         const result = await dialog.showMessageBox(win, {
           type: "warning",
-          buttons,
+          buttons: actions.map((action) => action.label),
           defaultId: 0,
           cancelId: 2,
           message,
           detail,
         })
-        if (await handle(buttons[result.response], wait)) continue
+        if (await handle(actions[result.response]?.id, wait)) continue
         return
       }
     } finally {
