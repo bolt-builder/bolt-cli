@@ -1796,11 +1796,11 @@ function ReasoningHeader(props: {
   }
 
   const thinkingText = props.title ? "Thinking: " + props.title : "Thinking"
-  
+
   // Build the complete text for the done state
   const togglePrefix = props.toggleable ? (props.open ? "- " : "+ ") : ""
   const thoughtBase = "Thought"
-  const separator = (props.title || props.duration) ? ": " : ""
+  const separator = props.title || props.duration ? ": " : ""
   const titlePart = props.title ?? ""
   const durationPart = props.duration ? (props.title ? " · " + props.duration : props.duration) : ""
   const doneText = togglePrefix + thoughtBase + separator + titlePart + durationPart
