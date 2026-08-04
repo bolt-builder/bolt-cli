@@ -2,7 +2,7 @@
   "name": "@opencode-ai/web",
   "type": "module",
   "license": "PolyForm Noncommercial 1.0.0 License ",
-  "version": "1.20.3",
+  "version": "1.20.4",
   "scripts": {
     "dev": "astro dev",
     "dev:remote": "VITE_API_URL=https://api.opencode.ai astro dev",
