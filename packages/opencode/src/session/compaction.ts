@@ -415,8 +415,10 @@ const layer = Layer.effect(
       // Remove old messages that have been summarized (head and hidden) to prevent
       // context buildup. This must run only after the summary has been generated
       // and persisted above: deleting first would permanently lose the history if
-      // summarization failed or the session was too large to compact.
-      if (!input.overflow) {
+      // summarization failed or the session was too large to compact. A "stop"
+      // result with an errored message means no valid summary exists either, so
+      // the history must survive in that case too.
+      if (!input.overflow && !processor.message.error) {
         const messageIDsToRemove = new Set<MessageID>()
         const messageIDsToPreserve = new Set<MessageID>()
         // Add head messages (summarized in this compaction)
