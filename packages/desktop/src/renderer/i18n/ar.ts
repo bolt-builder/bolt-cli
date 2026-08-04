@@ -15,8 +15,7 @@ export const dict = {
   "desktop.updater.downloadFailed.title": "فشل التحديث",
   "desktop.updater.downloadFailed.message": "فشل تنزيل التحديث",
   "desktop.updater.downloaded.title": "تم تنزيل التحديث",
-  "desktop.updater.downloaded.prompt":
-    "تم تنزيل الإصدار {{version}} من Bolt. هل ترغب في تثبيته وإعادة تشغيل التطبيق؟",
+  "desktop.updater.downloaded.prompt": "تم تنزيل الإصدار {{version}} من Bolt. هل ترغب في تثبيته وإعادة تشغيل التطبيق؟",
   "desktop.updater.installFailed.title": "فشل التحديث",
   "desktop.updater.installFailed.message": "فشل تثبيت التحديث",
 
