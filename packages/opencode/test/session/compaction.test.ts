@@ -890,6 +890,39 @@ describe("session.compaction.process", () => {
     }).pipe(withCompaction({ result: "compact" })),
   )
 
+  itCompaction.instance(
+    "keeps summarized history when compaction fails",
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const session = yield* ssn.create({})
+      yield* createUserMessage(session.id, "first")
+      yield* createUserMessage(session.id, "second")
+      yield* createUserMessage(session.id, "third")
+      yield* createSummaryCompaction(session.id)
+
+      const msgs = yield* ssn.messages({ sessionID: session.id })
+      const parent = msgs.at(-1)?.info.id
+      expect(parent).toBeTruthy()
+
+      // Non-overflow auto compaction whose summarization fails ("compact"): the
+      // old head messages must survive, since deletion must happen only after a
+      // summary has been produced. Regression for history-loss on failed compaction.
+      const result = yield* SessionCompaction.use.process({
+        parentID: parent!,
+        messages: msgs,
+        sessionID: session.id,
+        auto: true,
+      })
+
+      expect(result).toBe("stop")
+      const texts = (yield* ssn.messages({ sessionID: session.id }))
+        .flatMap((msg) => msg.parts)
+        .flatMap((part) => (part.type === "text" ? [part.text] : []))
+      expect(texts).toContain("first")
+      expect(texts).toContain("second")
+    }).pipe(withCompaction({ result: "compact", config: cfg({ tail_turns: 1, preserve_recent_tokens: 100 }) })),
+  )
+
   it.instance(
     "adds synthetic continue prompt when auto is enabled",
     Effect.gen(function* () {
