@@ -887,27 +887,13 @@ export const RunCommand = effectCmd({
 
         // Resolve auto model selection
         const model = pick(args.model)
-        let resolvedModel = model === "auto" ? undefined : model
+        const resolvedModel = model === "auto" ? undefined : model
         if (model === "auto") {
           UI.println(
             UI.Style.TEXT_INFO_BOLD + "→",
             UI.Style.TEXT_NORMAL,
             `Using server-side default model selection (cheapest available)`,
           )
-        }
-
-        // Validate resolved model if specified
-        if (resolvedModel) {
-          const available = await client.app.models(undefined, { throwOnError: true }).then((x: any) => x.data ?? []).catch(() => [])
-          const isValid = available.some((m: any) => m.providerID === resolvedModel.providerID && m.id === resolvedModel.modelID)
-          if (!isValid) {
-            UI.println(
-              UI.Style.TEXT_WARNING_BOLD + "!",
-              UI.Style.TEXT_NORMAL,
-              `Model ${resolvedModel.providerID}/${resolvedModel.modelID} not found. Using server default.`,
-            )
-            resolvedModel = undefined
-          }
         }
 
         await share(client, sessionID)
