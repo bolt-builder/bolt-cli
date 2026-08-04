@@ -1785,10 +1785,15 @@ function ReasoningHeader(props: {
   duration?: string
 }) {
   const { theme } = useTheme()
-  
-  // Create a gradient from accent to primary, matching the theme
-  const gradient = (column: number, length: number) => 
-    tint(theme.accent, theme.primary, length <= 1 ? 1 : column / (length - 1))
+
+  // Create a gradient from accent to primary, matching the theme.
+  // When the reasoning block is expanded, dim the header via thinkingOpacity
+  // so the open state reads differently from the collapsed one.
+  const gradient = (column: number, length: number) => {
+    const color = tint(theme.accent, theme.primary, length <= 1 ? 1 : column / (length - 1))
+    if (props.open) return RGBA.fromValues(color.r, color.g, color.b, theme.thinkingOpacity)
+    return color
+  }
 
   const thinkingText = props.title ? "Thinking: " + props.title : "Thinking"
   
@@ -1804,11 +1809,11 @@ function ReasoningHeader(props: {
     <Switch>
       <Match when={!props.done}>
         <box flexDirection="row">
-          <text>
+          <Spinner color={theme.accent}>
             {Array.from(thinkingText).map((char, column) => (
               <span style={{ fg: gradient(column, thinkingText.length) }}>{char}</span>
             ))}
-          </text>
+          </Spinner>
         </box>
       </Match>
       <Match when={true}>
