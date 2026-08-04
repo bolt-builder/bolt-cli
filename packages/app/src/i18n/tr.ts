@@ -3,7 +3,7 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "Dosya",
   "desktop.menu.edit": "Düzen",
   "desktop.menu.view": "Görünüm",
@@ -43,11 +43,11 @@ export const dict = {
   "desktop.menu.nextProject": "Sonraki proje",
   "desktop.menu.minimize": "Simge durumuna küçült",
   "desktop.menu.maximize": "Ekranı kapla",
-  "desktop.menu.documentation": "OpenCode belgeleri",
+  "desktop.menu.documentation": "Bolt belgeleri",
   "desktop.menu.supportForum": "Destek forumu",
   "desktop.menu.shareFeedback": "Geri bildirim paylaş",
   "desktop.menu.reportBug": "Hata bildir",
-  "desktop.menu.ariaLabel": "OpenCode menüsü",
+  "desktop.menu.ariaLabel": "Bolt menüsü",
 
   "desktop.updater.dialog.checkFailed.message": "Güncellemeler kontrol edilemedi.",
   "desktop.updater.dialog.checkFailed.title": "Güncelleme hatası",
@@ -62,9 +62,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "Günlükleri dışa aktar",
   "desktop.recovery.action.keepWaiting": "Beklemeye devam et",
   "desktop.recovery.action.quit": "Çık",
-  "desktop.recovery.loadFailed": "OpenCode yüklenemedi",
-  "desktop.recovery.terminated": "OpenCode penceresi beklenmedik şekilde sonlandırıldı",
-  "desktop.recovery.unresponsive": "OpenCode yanıt vermiyor",
+  "desktop.recovery.loadFailed": "Bolt yüklenemedi",
+  "desktop.recovery.terminated": "Bolt penceresi beklenmedik şekilde sonlandırıldı",
+  "desktop.recovery.unresponsive": "Bolt yanıt vermiyor",
   "desktop.recovery.unresponsive.detail":
     "Uygulamayı yeniden başlatabilir, günlükleri açabilir veya beklemeye devam edebilirsiniz.",
   "desktop.recovery.loadFailed.detail": "Pencere: {{window}}\nURL: {{url}}\nHata: {{code}} {{description}}",
@@ -84,13 +84,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "Dağıtımda komutlar çalıştırılamıyor",
   "desktop.wsl.error.installWsl": "WSL kurulamadı",
   "desktop.wsl.error.installDistro": "Dağıtım kurulamadı: {{distro}}",
-  "desktop.wsl.error.installOpencode": "OpenCode kurulamadı",
+  "desktop.wsl.error.installOpencode": "Bolt kurulamadı",
   "desktop.wsl.error.alreadyAdded": "{{distro}} zaten eklendi",
   "desktop.wsl.error.opencodeMissing": "opencode bu dağıtımda kurulu değil",
   "desktop.wsl.error.opencodeCannotRun": "opencode kurulu ancak çalıştırılamadı",
-  "desktop.wsl.error.opencodeNotInstalled": "OpenCode, {{distro}} içinde kurulu değil",
+  "desktop.wsl.error.opencodeNotInstalled": "Bolt, {{distro}} içinde kurulu değil",
   "desktop.wsl.error.updateVersion":
-    "OpenCode güncellemesi tamamlandı ancak {{distro}} hâlâ {{installed}} sürümünü bildiriyor; beklenen sürüm: {{expected}}",
+    "Bolt güncellemesi tamamlandı ancak {{distro}} hâlâ {{installed}} sürümünü bildiriyor; beklenen sürüm: {{expected}}",
   "desktop.wsl.error.noVersion": "sürüm yok",
   "desktop.wsl.error.serverExited": "WSL sunucusu başlatıldıktan sonra kapandı (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -546,7 +546,7 @@ export const dict = {
   "help.tabs.title": "Sekmelerle tanışın",
   "help.tabs.description": "Çalışmalarınızı ve etkin oturumlarınızı sekmelerle düzenleyin",
   "help.tabs.date": "14 Temmuz",
-  "help.tabs.introduction": "OpenCode Desktop artık sekmeler üzerine kurulu.",
+  "help.tabs.introduction": "Bolt Desktop artık sekmeler üzerine kurulu.",
   "help.tabs.sessions":
     "Bir sekmede yeni oturum başlatın veya projelerinizden mevcut bir oturumu açın. Yeni bir işe başlarken yeni sekme açın, işiniz bittiğinde sekmeyi kapatın.",
   "help.tabs.organize":

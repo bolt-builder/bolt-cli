@@ -1044,7 +1044,7 @@ export const dict = {
   "help.tabs.title": "탭 소개",
   "help.tabs.description": "탭으로 작업과 활성 세션을 정리하세요",
   "help.tabs.date": "7월 14일",
-  "help.tabs.introduction": "이제 OpenCode Desktop은 탭을 중심으로 구성됩니다.",
+  "help.tabs.introduction": "이제 Bolt Desktop은 탭을 중심으로 구성됩니다.",
   "help.tabs.sessions":
     "탭에서 새 세션을 시작하거나 프로젝트에서 기존 세션을 여세요. 새로운 작업을 시작할 때 새 탭을 열고, 작업을 마치면 닫으세요.",
   "help.tabs.organize":
@@ -1054,7 +1054,7 @@ export const dict = {
   "help.tabs.worktrees":
     "새 디자인은 아직 Git Worktrees를 지원하지 않지만 곧 지원할 예정입니다. 이전 레이아웃을 계속 사용하려면 설정에서 레이아웃을 전환할 수 있습니다. 단, 몇 주 후에는 새 레이아웃이 영구 적용됩니다.",
 
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "파일",
   "desktop.menu.edit": "편집",
   "desktop.menu.view": "보기",
@@ -1094,11 +1094,11 @@ export const dict = {
   "desktop.menu.nextProject": "다음 프로젝트",
   "desktop.menu.minimize": "최소화",
   "desktop.menu.maximize": "최대화",
-  "desktop.menu.documentation": "OpenCode 문서",
+  "desktop.menu.documentation": "Bolt 문서",
   "desktop.menu.supportForum": "지원 포럼",
   "desktop.menu.shareFeedback": "피드백 보내기",
   "desktop.menu.reportBug": "버그 신고",
-  "desktop.menu.ariaLabel": "OpenCode 메뉴",
+  "desktop.menu.ariaLabel": "Bolt 메뉴",
 
   "desktop.updater.dialog.checkFailed.message": "업데이트를 확인하지 못했습니다.",
   "desktop.updater.dialog.checkFailed.title": "업데이트 오류",
@@ -1113,9 +1113,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "로그 내보내기",
   "desktop.recovery.action.keepWaiting": "계속 기다리기",
   "desktop.recovery.action.quit": "종료",
-  "desktop.recovery.loadFailed": "OpenCode를 불러오지 못했습니다",
-  "desktop.recovery.terminated": "OpenCode 윈도우가 예기치 않게 종료되었습니다",
-  "desktop.recovery.unresponsive": "OpenCode가 응답하지 않습니다",
+  "desktop.recovery.loadFailed": "Bolt를 불러오지 못했습니다",
+  "desktop.recovery.terminated": "Bolt 윈도우가 예기치 않게 종료되었습니다",
+  "desktop.recovery.unresponsive": "Bolt가 응답하지 않습니다",
   "desktop.recovery.unresponsive.detail": "앱을 다시 실행하거나 로그를 열거나 계속 기다릴 수 있습니다.",
   "desktop.recovery.loadFailed.detail": "윈도우: {{window}}\nURL: {{url}}\n오류: {{code}} {{description}}",
   "desktop.recovery.terminated.detail": "윈도우: {{window}}\n원인: {{reason}}\n코드: {{code}}",
@@ -1134,13 +1134,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "배포판에서 명령을 실행할 수 없습니다",
   "desktop.wsl.error.installWsl": "WSL 설치 실패",
   "desktop.wsl.error.installDistro": "배포판 설치 실패: {{distro}}",
-  "desktop.wsl.error.installOpencode": "OpenCode 설치 실패",
+  "desktop.wsl.error.installOpencode": "Bolt 설치 실패",
   "desktop.wsl.error.alreadyAdded": "{{distro}} 배포판은 이미 추가되었습니다",
   "desktop.wsl.error.opencodeMissing": "이 배포판에 opencode가 설치되어 있지 않습니다",
   "desktop.wsl.error.opencodeCannotRun": "opencode가 설치되어 있지만 실행할 수 없습니다",
-  "desktop.wsl.error.opencodeNotInstalled": "{{distro}}에 OpenCode가 설치되어 있지 않습니다",
+  "desktop.wsl.error.opencodeNotInstalled": "{{distro}}에 Bolt가 설치되어 있지 않습니다",
   "desktop.wsl.error.updateVersion":
-    "OpenCode 업데이트가 완료되었지만 {{distro}}에서 여전히 {{installed}} 버전으로 표시됩니다. 예상 버전: {{expected}}",
+    "Bolt 업데이트가 완료되었지만 {{distro}}에서 여전히 {{installed}} 버전으로 표시됩니다. 예상 버전: {{expected}}",
   "desktop.wsl.error.noVersion": "버전 없음",
   "desktop.wsl.error.serverExited": "WSL 서버가 시작 후 종료되었습니다(코드={{code}} 신호={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":

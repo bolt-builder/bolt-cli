@@ -1,5 +1,5 @@
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "Archivo",
   "desktop.menu.edit": "Editar",
   "desktop.menu.view": "Ver",
@@ -39,11 +39,11 @@ export const dict = {
   "desktop.menu.nextProject": "Siguiente proyecto",
   "desktop.menu.minimize": "Minimizar",
   "desktop.menu.maximize": "Maximizar",
-  "desktop.menu.documentation": "Documentación de OpenCode",
+  "desktop.menu.documentation": "Documentación de Bolt",
   "desktop.menu.supportForum": "Foro de asistencia",
   "desktop.menu.shareFeedback": "Enviar comentarios",
   "desktop.menu.reportBug": "Informar de un error",
-  "desktop.menu.ariaLabel": "Menú de OpenCode",
+  "desktop.menu.ariaLabel": "Menú de Bolt",
 
   "desktop.updater.dialog.checkFailed.message": "No se pudo buscar actualizaciones.",
   "desktop.updater.dialog.checkFailed.title": "Error de actualización",
@@ -58,9 +58,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "Exportar registros",
   "desktop.recovery.action.keepWaiting": "Seguir esperando",
   "desktop.recovery.action.quit": "Salir",
-  "desktop.recovery.loadFailed": "No se pudo cargar OpenCode",
-  "desktop.recovery.terminated": "La ventana de OpenCode se cerró de forma inesperada",
-  "desktop.recovery.unresponsive": "OpenCode no responde",
+  "desktop.recovery.loadFailed": "No se pudo cargar Bolt",
+  "desktop.recovery.terminated": "La ventana de Bolt se cerró de forma inesperada",
+  "desktop.recovery.unresponsive": "Bolt no responde",
   "desktop.recovery.unresponsive.detail":
     "Puedes volver a iniciar la aplicación, abrir los registros o seguir esperando.",
   "desktop.recovery.loadFailed.detail": "Ventana: {{window}}\nURL: {{url}}\nError: {{code}} {{description}}",
@@ -80,13 +80,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "No se pueden ejecutar comandos en la distribución",
   "desktop.wsl.error.installWsl": "No se pudo instalar WSL",
   "desktop.wsl.error.installDistro": "No se pudo instalar la distribución: {{distro}}",
-  "desktop.wsl.error.installOpencode": "No se pudo instalar OpenCode",
+  "desktop.wsl.error.installOpencode": "No se pudo instalar Bolt",
   "desktop.wsl.error.alreadyAdded": "Ya se ha añadido {{distro}}",
   "desktop.wsl.error.opencodeMissing": "opencode no está instalado en esta distribución",
   "desktop.wsl.error.opencodeCannotRun": "opencode está instalado, pero no se pudo ejecutar",
-  "desktop.wsl.error.opencodeNotInstalled": "OpenCode no está instalado en {{distro}}",
+  "desktop.wsl.error.opencodeNotInstalled": "Bolt no está instalado en {{distro}}",
   "desktop.wsl.error.updateVersion":
-    "La actualización de OpenCode finalizó, pero {{distro}} sigue indicando {{installed}}; se esperaba {{expected}}",
+    "La actualización de Bolt finalizó, pero {{distro}} sigue indicando {{installed}}; se esperaba {{expected}}",
   "desktop.wsl.error.noVersion": "sin versión",
   "desktop.wsl.error.serverExited": "El servidor WSL se cerró después de iniciarse (código={{code}} señal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -543,7 +543,7 @@ export const dict = {
   "help.tabs.title": "Presentamos las pestañas",
   "help.tabs.description": "Organiza tu trabajo y las sesiones activas con pestañas",
   "help.tabs.date": "14 de julio",
-  "help.tabs.introduction": "OpenCode Desktop ahora se organiza en torno a pestañas.",
+  "help.tabs.introduction": "Bolt Desktop ahora se organiza en torno a pestañas.",
   "help.tabs.sessions":
     "Inicia una nueva sesión en una pestaña o abre una sesión existente de cualquiera de tus proyectos. Abre una pestaña nueva cuando empieces algo nuevo y ciérrala cuando termines.",
   "help.tabs.organize":

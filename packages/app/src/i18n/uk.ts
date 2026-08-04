@@ -1,5 +1,5 @@
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "Файл",
   "desktop.menu.edit": "Редагування",
   "desktop.menu.view": "Вигляд",
@@ -39,11 +39,11 @@ export const dict = {
   "desktop.menu.nextProject": "Наступний проєкт",
   "desktop.menu.minimize": "Згорнути",
   "desktop.menu.maximize": "Розгорнути",
-  "desktop.menu.documentation": "Документація OpenCode",
+  "desktop.menu.documentation": "Документація Bolt",
   "desktop.menu.supportForum": "Форум підтримки",
   "desktop.menu.shareFeedback": "Надіслати відгук",
   "desktop.menu.reportBug": "Повідомити про помилку",
-  "desktop.menu.ariaLabel": "Меню OpenCode",
+  "desktop.menu.ariaLabel": "Меню Bolt",
 
   "desktop.updater.dialog.checkFailed.message": "Не вдалося перевірити наявність оновлень.",
   "desktop.updater.dialog.checkFailed.title": "Помилка оновлення",
@@ -58,9 +58,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "Експортувати журнали",
   "desktop.recovery.action.keepWaiting": "Продовжити очікування",
   "desktop.recovery.action.quit": "Завершити роботу",
-  "desktop.recovery.loadFailed": "Не вдалося завантажити OpenCode",
-  "desktop.recovery.terminated": "Роботу вікна OpenCode несподівано завершено",
-  "desktop.recovery.unresponsive": "OpenCode не відповідає",
+  "desktop.recovery.loadFailed": "Не вдалося завантажити Bolt",
+  "desktop.recovery.terminated": "Роботу вікна Bolt несподівано завершено",
+  "desktop.recovery.unresponsive": "Bolt не відповідає",
   "desktop.recovery.unresponsive.detail":
     "Ви можете повторно запустити програму, відкрити журнали або продовжити очікування.",
   "desktop.recovery.loadFailed.detail": "Вікно: {{window}}\nURL: {{url}}\nПомилка: {{code}} {{description}}",
@@ -80,20 +80,20 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "Не вдалося виконати команди в дистрибутиві",
   "desktop.wsl.error.installWsl": "Не вдалося встановити WSL",
   "desktop.wsl.error.installDistro": "Не вдалося встановити дистрибутив: {{distro}}",
-  "desktop.wsl.error.installOpencode": "Не вдалося встановити OpenCode",
+  "desktop.wsl.error.installOpencode": "Не вдалося встановити Bolt",
   "desktop.wsl.error.alreadyAdded": "{{distro}} уже додано",
   "desktop.wsl.error.opencodeMissing": "opencode не встановлено в цьому дистрибутиві",
   "desktop.wsl.error.opencodeCannotRun": "opencode встановлено, але його не вдалося запустити",
-  "desktop.wsl.error.opencodeNotInstalled": "OpenCode не встановлено в {{distro}}",
+  "desktop.wsl.error.opencodeNotInstalled": "Bolt не встановлено в {{distro}}",
   "desktop.wsl.error.updateVersion":
-    "Оновлення OpenCode завершено, але {{distro}} усе ще повідомляє про версію {{installed}}; очікувалася {{expected}}",
+    "Оновлення Bolt завершено, але {{distro}} усе ще повідомляє про версію {{installed}}; очікувалася {{expected}}",
   "desktop.wsl.error.noVersion": "версію не вказано",
   "desktop.wsl.error.serverExited": "Сервер WSL завершив роботу після запуску (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
     "Сервер WSL завершив роботу, не досягнувши працездатного стану (code={{code}} signal={{signal}}){{output}}",
   "desktop.wsl.error.healthTimeout":
-    "Час очікування перевірки працездатності sidecar для {{distro}} минув через {{timeout}}мс",
-  "desktop.wsl.error.commandTimeout": "Час очікування {{command}} {{args}} минув через {{timeout}}мс",
+    "Час очікування перевірки працездатності sidecar для {{distro}} минув через {{timeout}} мс",
+  "desktop.wsl.error.commandTimeout": "Час очікування {{command}} {{args}} минув через {{timeout}} мс",
   "desktop.wsl.error.failedPort": "Не вдалося отримати порт",
 
   "desktop.picker.error.notSelected": "Засіб вибору не повернув вибраний файл",
@@ -549,7 +549,7 @@ export const dict = {
   "help.tabs.title": "Представляємо вкладки",
   "help.tabs.description": "Упорядковуйте роботу й активні сесії за допомогою вкладок",
   "help.tabs.date": "14 липня",
-  "help.tabs.introduction": "OpenCode Desktop тепер побудовано навколо вкладок.",
+  "help.tabs.introduction": "Bolt Desktop тепер побудовано навколо вкладок.",
   "help.tabs.sessions":
     "Почніть нову сесію у вкладці або відкрийте наявну сесію з будь-якого свого проєкту. Відкривайте нову вкладку, коли починаєте щось нове, і закривайте її після завершення.",
   "help.tabs.organize":

@@ -1,5 +1,5 @@
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "Fichier",
   "desktop.menu.edit": "Édition",
   "desktop.menu.view": "Affichage",
@@ -39,11 +39,11 @@ export const dict = {
   "desktop.menu.nextProject": "Projet suivant",
   "desktop.menu.minimize": "Réduire",
   "desktop.menu.maximize": "Agrandir",
-  "desktop.menu.documentation": "Documentation d'OpenCode",
+  "desktop.menu.documentation": "Documentation d'Bolt",
   "desktop.menu.supportForum": "Forum d'assistance",
   "desktop.menu.shareFeedback": "Envoyer des commentaires",
   "desktop.menu.reportBug": "Signaler un bogue",
-  "desktop.menu.ariaLabel": "Menu OpenCode",
+  "desktop.menu.ariaLabel": "Menu Bolt",
 
   "desktop.updater.dialog.checkFailed.message": "La recherche de mises à jour a échoué.",
   "desktop.updater.dialog.checkFailed.title": "Erreur de mise à jour",
@@ -58,9 +58,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "Exporter les journaux",
   "desktop.recovery.action.keepWaiting": "Continuer d'attendre",
   "desktop.recovery.action.quit": "Quitter",
-  "desktop.recovery.loadFailed": "Échec du chargement d'OpenCode",
-  "desktop.recovery.terminated": "La fenêtre OpenCode s'est arrêtée de manière inattendue",
-  "desktop.recovery.unresponsive": "OpenCode ne répond pas",
+  "desktop.recovery.loadFailed": "Échec du chargement d'Bolt",
+  "desktop.recovery.terminated": "La fenêtre Bolt s'est arrêtée de manière inattendue",
+  "desktop.recovery.unresponsive": "Bolt ne répond pas",
   "desktop.recovery.unresponsive.detail":
     "Vous pouvez relancer l'application, ouvrir les journaux ou continuer d'attendre.",
   "desktop.recovery.loadFailed.detail": "Fenêtre : {{window}}\nURL : {{url}}\nErreur : {{code}} {{description}}",
@@ -80,13 +80,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "Impossible d'exécuter des commandes dans la distribution",
   "desktop.wsl.error.installWsl": "Échec de l'installation de WSL",
   "desktop.wsl.error.installDistro": "Échec de l'installation de la distribution : {{distro}}",
-  "desktop.wsl.error.installOpencode": "Échec de l'installation d'OpenCode",
+  "desktop.wsl.error.installOpencode": "Échec de l'installation d'Bolt",
   "desktop.wsl.error.alreadyAdded": "{{distro}} a déjà été ajoutée",
   "desktop.wsl.error.opencodeMissing": "opencode n'est pas installé dans cette distribution",
   "desktop.wsl.error.opencodeCannotRun": "opencode est installé, mais n'a pas pu s'exécuter",
-  "desktop.wsl.error.opencodeNotInstalled": "OpenCode n'est pas installé dans {{distro}}",
+  "desktop.wsl.error.opencodeNotInstalled": "Bolt n'est pas installé dans {{distro}}",
   "desktop.wsl.error.updateVersion":
-    "La mise à jour d'OpenCode est terminée, mais {{distro}} indique toujours {{installed}} au lieu de {{expected}}",
+    "La mise à jour d'Bolt est terminée, mais {{distro}} indique toujours {{installed}} au lieu de {{expected}}",
   "desktop.wsl.error.noVersion": "aucune version",
   "desktop.wsl.error.serverExited": "Le serveur WSL s'est arrêté après son démarrage (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -517,7 +517,7 @@ export const dict = {
   "help.tabs.title": "Présentation des onglets",
   "help.tabs.description": "Organisez votre travail et vos sessions actives à l'aide d'onglets",
   "help.tabs.date": "14 juillet",
-  "help.tabs.introduction": "OpenCode Desktop s'articule désormais autour d'onglets.",
+  "help.tabs.introduction": "Bolt Desktop s'articule désormais autour d'onglets.",
   "help.tabs.sessions":
     "Démarrez une nouvelle session dans un onglet ou ouvrez une session existante depuis l'un de vos projets. Ouvrez un nouvel onglet lorsque vous commencez une nouvelle tâche et fermez-le une fois celle-ci terminée.",
   "help.tabs.organize":

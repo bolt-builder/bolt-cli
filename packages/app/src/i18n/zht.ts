@@ -3,7 +3,7 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "檔案",
   "desktop.menu.edit": "編輯",
   "desktop.menu.view": "檢視",
@@ -43,11 +43,11 @@ export const dict = {
   "desktop.menu.nextProject": "下一個專案",
   "desktop.menu.minimize": "最小化",
   "desktop.menu.maximize": "最大化",
-  "desktop.menu.documentation": "OpenCode 文件",
+  "desktop.menu.documentation": "Bolt 文件",
   "desktop.menu.supportForum": "支援論壇",
   "desktop.menu.shareFeedback": "提供意見回饋",
   "desktop.menu.reportBug": "回報錯誤",
-  "desktop.menu.ariaLabel": "OpenCode 選單",
+  "desktop.menu.ariaLabel": "Bolt 選單",
 
   "desktop.updater.dialog.checkFailed.message": "檢查更新失敗。",
   "desktop.updater.dialog.checkFailed.title": "更新錯誤",
@@ -62,9 +62,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "匯出記錄檔",
   "desktop.recovery.action.keepWaiting": "繼續等待",
   "desktop.recovery.action.quit": "結束",
-  "desktop.recovery.loadFailed": "OpenCode 載入失敗",
-  "desktop.recovery.terminated": "OpenCode 視窗意外終止",
-  "desktop.recovery.unresponsive": "OpenCode 沒有回應",
+  "desktop.recovery.loadFailed": "Bolt 載入失敗",
+  "desktop.recovery.terminated": "Bolt 視窗意外終止",
+  "desktop.recovery.unresponsive": "Bolt 沒有回應",
   "desktop.recovery.unresponsive.detail": "你可以重新啟動應用程式、開啟記錄檔，或繼續等待。",
   "desktop.recovery.loadFailed.detail": "視窗：{{window}}\nURL：{{url}}\n錯誤：{{code}} {{description}}",
   "desktop.recovery.terminated.detail": "視窗：{{window}}\n原因：{{reason}}\n代碼：{{code}}",
@@ -83,13 +83,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "無法在發行版中執行命令",
   "desktop.wsl.error.installWsl": "WSL 安裝失敗",
   "desktop.wsl.error.installDistro": "無法安裝發行版：{{distro}}",
-  "desktop.wsl.error.installOpencode": "OpenCode 安裝失敗",
+  "desktop.wsl.error.installOpencode": "Bolt 安裝失敗",
   "desktop.wsl.error.alreadyAdded": "已新增 {{distro}}",
   "desktop.wsl.error.opencodeMissing": "此發行版中未安裝 opencode",
   "desktop.wsl.error.opencodeCannotRun": "已安裝 opencode，但無法執行",
-  "desktop.wsl.error.opencodeNotInstalled": "{{distro}} 中未安裝 OpenCode",
+  "desktop.wsl.error.opencodeNotInstalled": "{{distro}} 中未安裝 Bolt",
   "desktop.wsl.error.updateVersion":
-    "OpenCode 更新完成，但 {{distro}} 回報的版本仍為 {{installed}}；預期版本為 {{expected}}",
+    "Bolt 更新完成，但 {{distro}} 回報的版本仍為 {{installed}}；預期版本為 {{expected}}",
   "desktop.wsl.error.noVersion": "無版本資訊",
   "desktop.wsl.error.serverExited": "WSL 伺服器在啟動後結束 (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -535,7 +535,7 @@ export const dict = {
   "help.tabs.title": "分頁功能介紹",
   "help.tabs.description": "使用分頁整理工作和進行中的工作階段",
   "help.tabs.date": "7 月 14 日",
-  "help.tabs.introduction": "OpenCode Desktop 現在以分頁為核心。",
+  "help.tabs.introduction": "Bolt Desktop 現在以分頁為核心。",
   "help.tabs.sessions":
     "在分頁中開始新的工作階段，或從任一專案開啟現有的工作階段。開始新工作時請開啟新分頁，完成後再將其關閉。",
   "help.tabs.organize":

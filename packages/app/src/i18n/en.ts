@@ -450,7 +450,7 @@ export const dict = {
   "help.tabs.title": "Introducing Tabs",
   "help.tabs.description": "Organize your work and active sessions with tabs",
   "help.tabs.date": "July 14",
-  "help.tabs.introduction": "OpenCode Desktop is now built around tabs.",
+  "help.tabs.introduction": "Bolt Desktop is now built around tabs.",
   "help.tabs.sessions":
     "Start a new session in a tab, or open an existing session from any of your projects. Open a new tab when you're starting something new, and close it when you're done.",
   "help.tabs.organize":

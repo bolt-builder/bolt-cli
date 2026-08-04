@@ -2,7 +2,7 @@ import { dict as en } from "./en"
 type Keys = keyof typeof en
 
 export const dict = {
-  "desktop.menu.app": "OpenCode",
+  "desktop.menu.app": "Bolt",
   "desktop.menu.file": "Arkiv",
   "desktop.menu.edit": "Rediger",
   "desktop.menu.view": "Vis",
@@ -42,11 +42,11 @@ export const dict = {
   "desktop.menu.nextProject": "Neste prosjekt",
   "desktop.menu.minimize": "Minimer",
   "desktop.menu.maximize": "Maksimer",
-  "desktop.menu.documentation": "OpenCode-dokumentasjon",
+  "desktop.menu.documentation": "Bolt-dokumentasjon",
   "desktop.menu.supportForum": "Brukerstøtteforum",
   "desktop.menu.shareFeedback": "Del tilbakemelding",
   "desktop.menu.reportBug": "Rapporter en feil",
-  "desktop.menu.ariaLabel": "OpenCode-meny",
+  "desktop.menu.ariaLabel": "Bolt-meny",
 
   "desktop.updater.dialog.checkFailed.message": "Søket etter oppdateringer mislyktes.",
   "desktop.updater.dialog.checkFailed.title": "Oppdateringsfeil",
@@ -61,9 +61,9 @@ export const dict = {
   "desktop.recovery.action.exportLogs": "Eksporter logger",
   "desktop.recovery.action.keepWaiting": "Fortsett å vente",
   "desktop.recovery.action.quit": "Avslutt",
-  "desktop.recovery.loadFailed": "OpenCode kunne ikke lastes inn",
-  "desktop.recovery.terminated": "OpenCode-vinduet ble uventet avsluttet",
-  "desktop.recovery.unresponsive": "OpenCode svarer ikke",
+  "desktop.recovery.loadFailed": "Bolt kunne ikke lastes inn",
+  "desktop.recovery.terminated": "Bolt-vinduet ble uventet avsluttet",
+  "desktop.recovery.unresponsive": "Bolt svarer ikke",
   "desktop.recovery.unresponsive.detail": "Du kan starte appen på nytt, åpne loggene eller fortsette å vente.",
   "desktop.recovery.loadFailed.detail": "Vindu: {{window}}\nURL: {{url}}\nFeil: {{code}} {{description}}",
   "desktop.recovery.terminated.detail": "Vindu: {{window}}\nÅrsak: {{reason}}\nKode: {{code}}",
@@ -82,13 +82,13 @@ export const dict = {
   "desktop.wsl.error.executeDistro": "Kan ikke kjøre kommandoer i distribusjonen",
   "desktop.wsl.error.installWsl": "Installasjonen av WSL mislyktes",
   "desktop.wsl.error.installDistro": "Kunne ikke installere distribusjonen: {{distro}}",
-  "desktop.wsl.error.installOpencode": "Installasjonen av OpenCode mislyktes",
+  "desktop.wsl.error.installOpencode": "Installasjonen av Bolt mislyktes",
   "desktop.wsl.error.alreadyAdded": "{{distro}} er allerede lagt til",
   "desktop.wsl.error.opencodeMissing": "opencode er ikke installert i denne distribusjonen",
   "desktop.wsl.error.opencodeCannotRun": "opencode er installert, men kunne ikke kjøres",
-  "desktop.wsl.error.opencodeNotInstalled": "OpenCode er ikke installert i {{distro}}",
+  "desktop.wsl.error.opencodeNotInstalled": "Bolt er ikke installert i {{distro}}",
   "desktop.wsl.error.updateVersion":
-    "Oppdateringen av OpenCode er fullført, men {{distro}} rapporterer fortsatt {{installed}}; forventet {{expected}}",
+    "Oppdateringen av Bolt er fullført, men {{distro}} rapporterer fortsatt {{installed}}; forventet {{expected}}",
   "desktop.wsl.error.noVersion": "ingen versjon",
   "desktop.wsl.error.serverExited": "WSL-serveren ble avsluttet etter oppstart (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -1160,7 +1160,7 @@ export const dict = {
   "help.tabs.title": "Vi introduserer faner",
   "help.tabs.description": "Organiser arbeidet og de aktive sesjonene dine med faner",
   "help.tabs.date": "14. juli",
-  "help.tabs.introduction": "OpenCode Desktop er nå bygget rundt faner.",
+  "help.tabs.introduction": "Bolt Desktop er nå bygget rundt faner.",
   "help.tabs.sessions":
     "Start en ny sesjon i en fane, eller åpne en eksisterende sesjon fra et av prosjektene dine. Åpne en ny fane når du skal begynne på noe nytt, og lukk den når du er ferdig.",
   "help.tabs.organize":
