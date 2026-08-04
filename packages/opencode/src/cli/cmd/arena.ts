@@ -52,7 +52,7 @@ export const ArenaCommand = effectCmd({
     const { ServerAuth } = yield* Effect.promise(() => import("@/server/auth"))
     const { parseModels, runArena } = yield* Effect.promise(() => import("./run/arena"))
     yield* Effect.promise(async () => {
-      const die = (message: string): never => {
+      function die(message: string): never {
         UI.error(message)
         process.exit(1)
       }
@@ -64,7 +64,7 @@ export const ArenaCommand = effectCmd({
       if (message.trim().length === 0) die("You must provide a message")
 
       const models = parseModels(args.models)
-      if (typeof models === "string") return die(models)
+      if (typeof models === "string") die(models)
 
       const judge = (() => {
         if (!args.judge) return models[0]
