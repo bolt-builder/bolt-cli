@@ -43,11 +43,12 @@ export function required(config: Info) {
 }
 
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  return (
-    Option.isSome(config.password) &&
-    equals(credentials.username, config.username) &&
-    equals(Redacted.value(credentials.password), config.password.value)
-  )
+  if (Option.isNone(config.password)) return false
+  // Evaluate both comparisons so a username mismatch does not skip the
+  // password hash, which would leak username validity through timing.
+  const username = equals(credentials.username, config.username)
+  const password = equals(Redacted.value(credentials.password), config.password.value)
+  return username && password
 }
 
 // Constant-time comparison so the password cannot be recovered byte-by-byte
