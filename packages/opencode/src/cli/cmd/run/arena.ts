@@ -242,9 +242,7 @@ export async function runArena(input: {
     )
     const count = removed.filter(Boolean).length
     if (count) note(`cleaned up ${count} losing worktree${count === 1 ? "" : "s"}`)
-    losers
-      .filter((_, i) => !removed[i])
-      .forEach((item) => note(`could not remove worktree ${item.worktree.directory}`))
+    losers.filter((_, i) => !removed[i]).forEach((item) => note(`could not remove worktree ${item.worktree.directory}`))
   }
 
   if (input.json) {
