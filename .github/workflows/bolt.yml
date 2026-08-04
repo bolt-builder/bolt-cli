@@ -12,7 +12,7 @@ jobs:
       contains(github.event.comment.body, ' /opencode') ||
       startsWith(github.event.comment.body, '/opencode') ||
       contains(github.event.comment.body, ' /bc') ||
-      startsWith(github.event.comment.body, '/vc') ||
+      startsWith(github.event.comment.body, '/bc') ||
       contains(github.event.comment.body, ' /bolt') ||
       startsWith(github.event.comment.body, '/bolt')
     runs-on: blacksmith-4vcpu-ubuntu-2404
