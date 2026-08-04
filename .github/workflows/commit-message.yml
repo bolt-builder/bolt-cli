@@ -11,7 +11,7 @@ permissions:
 jobs:
   rewrite:
     if: github.event.head_commit.author.name != 'bolt-cli-bot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v4
         with:
