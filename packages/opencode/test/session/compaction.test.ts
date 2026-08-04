@@ -903,12 +903,13 @@ describe("session.compaction.process", () => {
       const msgs = yield* ssn.messages({ sessionID: session.id })
       const parent = msgs.at(-1)?.info.id
       expect(parent).toBeTruthy()
+      if (!parent) return
 
       // Non-overflow auto compaction whose summarization fails ("compact"): the
       // old head messages must survive, since deletion must happen only after a
       // summary has been produced. Regression for history-loss on failed compaction.
       const result = yield* SessionCompaction.use.process({
-        parentID: parent!,
+        parentID: parent,
         messages: msgs,
         sessionID: session.id,
         auto: true,
