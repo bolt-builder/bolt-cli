@@ -1785,17 +1785,17 @@ function ReasoningHeader(props: {
   duration?: string
 }) {
   const { theme } = useTheme()
-  
+
   // Create a gradient from accent to primary, matching the theme
-  const gradient = (column: number, length: number) => 
+  const gradient = (column: number, length: number) =>
     tint(theme.accent, theme.primary, length <= 1 ? 1 : column / (length - 1))
 
   const thinkingText = props.title ? "Thinking: " + props.title : "Thinking"
-  
+
   // Build the complete text for the done state
   const togglePrefix = props.toggleable ? (props.open ? "- " : "+ ") : ""
   const thoughtBase = "Thought"
-  const separator = (props.title || props.duration) ? ": " : ""
+  const separator = props.title || props.duration ? ": " : ""
   const titlePart = props.title ?? ""
   const durationPart = props.duration ? (props.title ? " · " + props.duration : props.duration) : ""
   const doneText = togglePrefix + thoughtBase + separator + titlePart + durationPart
