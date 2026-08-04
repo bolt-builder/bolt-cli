@@ -26,18 +26,21 @@ export function DialogModel(props: { providerID?: string }) {
     const favorites = connected() ? local.model.favorite() : []
     const recents = local.model.recent()
 
-    const autoOption = needle.length === 0 ? [
-      {
-        value: undefined as { providerID: string; modelID: string } | undefined,
-        title: "Auto",
-        description: "Cheapest available model",
-        category: showExtra() ? "Auto" : undefined,
-        onSelect: () => {
-          local.model.clear()
-          dialog.clear()
-        },
-      },
-    ] : []
+    const autoOption =
+      needle.length === 0
+        ? [
+            {
+              value: undefined as { providerID: string; modelID: string } | undefined,
+              title: "Auto",
+              description: "Cheapest available model",
+              category: showExtra() ? "Auto" : undefined,
+              onSelect: () => {
+                local.model.clear()
+                dialog.clear()
+              },
+            },
+          ]
+        : []
 
     function toOptions(items: typeof favorites, category: string) {
       if (!showSections) return []

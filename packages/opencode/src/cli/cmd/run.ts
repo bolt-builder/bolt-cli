@@ -614,11 +614,7 @@ export const RunCommand = effectCmd({
 
       function handleAutoAgent(name: string): string | undefined {
         if (name === "auto") {
-          UI.println(
-            UI.Style.TEXT_INFO_BOLD + "→",
-            UI.Style.TEXT_NORMAL,
-            `Using default agent`,
-          )
+          UI.println(UI.Style.TEXT_INFO_BOLD + "→", UI.Style.TEXT_NORMAL, `Using default agent`)
           return undefined
         }
         return name
@@ -700,7 +696,6 @@ export const RunCommand = effectCmd({
 
         return localAgent()
       }
-
 
       async function execute(sdk: OpencodeClient) {
         if (args["best-of"]) {

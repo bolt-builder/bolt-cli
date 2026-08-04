@@ -69,19 +69,19 @@ That's it. Bolt picks up your project context automatically.
 
 Built-in agents. Switch with `Tab` in the TUI.
 
-| Agent         | Access | Description                                          |
-| ------------- | ------ | ---------------------------------------------------- |
-| `orchestrator`| Full   | Coordinates complex multi-step tasks by delegating to specialized agents |
-| `code`        | Full   | Default: reads, writes, runs code                    |
-| `plan`        | Read   | Explores and produces a plan without changing code   |
-| `ask`         | Read   | Questions and research, no file edits                |
-| `code-review` | Read   | Reviews changes for correctness, style, and security |
-| `debug`       | Full   | Debugs failing tests, crashes, and logic errors      |
-| `refactor`    | Full   | Safe refactoring with test verification at each step |
-| `docs`        | Edit   | Writes and updates documentation and comments        |
-| `security`    | Read   | Security audit: vulnerabilities, secrets, patterns   |
-| `migrate`     | Full   | Framework upgrades and dependency migrations         |
-| `perf`        | Full   | Performance analysis and optimization                |
+| Agent          | Access | Description                                                              |
+| -------------- | ------ | ------------------------------------------------------------------------ |
+| `orchestrator` | Full   | Coordinates complex multi-step tasks by delegating to specialized agents |
+| `code`         | Full   | Default: reads, writes, runs code                                        |
+| `plan`         | Read   | Explores and produces a plan without changing code                       |
+| `ask`          | Read   | Questions and research, no file edits                                    |
+| `code-review`  | Read   | Reviews changes for correctness, style, and security                     |
+| `debug`        | Full   | Debugs failing tests, crashes, and logic errors                          |
+| `refactor`     | Full   | Safe refactoring with test verification at each step                     |
+| `docs`         | Edit   | Writes and updates documentation and comments                            |
+| `security`     | Read   | Security audit: vulnerabilities, secrets, patterns                       |
+| `migrate`      | Full   | Framework upgrades and dependency migrations                             |
+| `perf`         | Full   | Performance analysis and optimization                                    |
 
 Subagents for delegation: `@general` for complex multi-step tasks and `@explore` for fast read-only codebase research. You can also define your own agents as markdown files or generate one with `bolt agent create`.
 

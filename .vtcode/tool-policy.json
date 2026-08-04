@@ -1,10 +1,6 @@
 {
   "version": 1,
-  "available_tools": [
-    "apply_patch",
-    "exec_command",
-    "write_stdin"
-  ],
+  "available_tools": ["apply_patch", "exec_command", "write_stdin"],
   "policies": {
     "apply_patch": "prompt",
     "exec_command": "allow",
@@ -44,41 +40,15 @@
             "tool_timeout_seconds",
             "experimental_use_rmcp_client"
           ],
-          "server": [
-            "enabled",
-            "bind_address",
-            "port",
-            "transport",
-            "name",
-            "version"
-          ],
-          "ui": [
-            "mode",
-            "max_events",
-            "show_provider_names"
-          ]
+          "server": ["enabled", "bind_address", "port", "transport", "name", "version"],
+          "ui": ["mode", "max_events", "show_provider_names"]
         }
       },
       "providers": {
         "context7": {
-          "tools": [
-            "search_*",
-            "fetch_*",
-            "list_*",
-            "context7_*",
-            "get_*"
-          ],
-          "resources": [
-            "docs::*",
-            "snippets::*",
-            "repositories::*",
-            "context7::*"
-          ],
-          "prompts": [
-            "context7::*",
-            "support::*",
-            "docs::*"
-          ],
+          "tools": ["search_*", "fetch_*", "list_*", "context7_*", "get_*"],
+          "resources": ["docs::*", "snippets::*", "repositories::*", "context7::*"],
+          "prompts": ["context7::*", "support::*", "docs::*"],
           "logging": [
             "mcp.tool_execution",
             "mcp.tool_failed",
@@ -87,31 +57,14 @@
             "mcp.provider_initialized"
           ],
           "configuration": {
-            "context7": [
-              "workspace",
-              "search_scope",
-              "max_results"
-            ],
-            "provider": [
-              "max_concurrent_requests"
-            ]
+            "context7": ["workspace", "search_scope", "max_results"],
+            "provider": ["max_concurrent_requests"]
           }
         },
         "sequential-thinking": {
-          "tools": [
-            "plan",
-            "critique",
-            "reflect",
-            "decompose",
-            "sequential_*"
-          ],
+          "tools": ["plan", "critique", "reflect", "decompose", "sequential_*"],
           "resources": null,
-          "prompts": [
-            "sequential-thinking::*",
-            "plan",
-            "reflect",
-            "critique"
-          ],
+          "prompts": ["sequential-thinking::*", "plan", "reflect", "critique"],
           "logging": [
             "mcp.tool_execution",
             "mcp.tool_failed",
@@ -120,27 +73,13 @@
             "mcp.provider_initialized"
           ],
           "configuration": {
-            "provider": [
-              "max_concurrent_requests"
-            ],
-            "sequencing": [
-              "max_depth",
-              "max_branches"
-            ]
+            "provider": ["max_concurrent_requests"],
+            "sequencing": ["max_depth", "max_branches"]
           }
         },
         "time": {
-          "tools": [
-            "get_*",
-            "list_*",
-            "convert_timezone",
-            "describe_timezone",
-            "time_*"
-          ],
-          "resources": [
-            "timezone:*",
-            "location:*"
-          ],
+          "tools": ["get_*", "list_*", "convert_timezone", "describe_timezone", "time_*"],
+          "resources": ["timezone:*", "location:*"],
           "prompts": null,
           "logging": [
             "mcp.tool_execution",
@@ -150,12 +89,8 @@
             "mcp.provider_initialized"
           ],
           "configuration": {
-            "provider": [
-              "max_concurrent_requests"
-            ],
-            "time": [
-              "local_timezone_override"
-            ]
+            "provider": ["max_concurrent_requests"],
+            "time": ["local_timezone_override"]
           }
         }
       }
