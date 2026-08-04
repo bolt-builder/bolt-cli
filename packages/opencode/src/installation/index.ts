@@ -64,9 +64,6 @@ export class UpgradeFailedError extends Schema.TaggedErrorClass<UpgradeFailedErr
 const GitHubRelease = Schema.Struct({ tag_name: Schema.String })
 const NpmPackage = Schema.Struct({ version: Schema.String })
 const BrewFormula = Schema.Struct({ versions: Schema.Struct({ stable: Schema.String }) })
-const BrewInfoV2 = Schema.Struct({
-  formulae: Schema.Array(Schema.Struct({ versions: Schema.Struct({ stable: Schema.String }) })),
-})
 const ChocoPackage = Schema.Struct({
   d: Schema.Struct({ results: Schema.Array(Schema.Struct({ Version: Schema.String })) }),
 })
@@ -218,18 +215,19 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
         if (detectedMethod === "brew") {
           const formula = yield* getBrewFormula()
-          if (formula.includes("/")) {
-            const infoJson = yield* text(["brew", "info", "--json=v2", formula])
-            const info = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(BrewInfoV2))(infoJson)
-            return info.formulae[0].versions.stable
+          // Tap formulae are generated from GitHub releases, and the local tap checkout can be
+          // stale until `brew update` runs; resolve the target from release metadata instead so
+          // the caller's version equality guard never skips a fresh release. `upgrade()` refreshes
+          // the tap before running `brew upgrade`.
+          if (!formula.includes("/")) {
+            const response = yield* httpOk.execute(
+              HttpClientRequest.get("https://formulae.brew.sh/api/formula/bolt-cli.json").pipe(
+                HttpClientRequest.acceptJson,
+              ),
+            )
+            const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
+            return data.versions.stable
           }
-          const response = yield* httpOk.execute(
-            HttpClientRequest.get("https://formulae.brew.sh/api/formula/bolt-cli.json").pipe(
-              HttpClientRequest.acceptJson,
-            ),
-          )
-          const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
-          return data.versions.stable
         }
 
         if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {

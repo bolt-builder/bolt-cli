@@ -161,20 +161,21 @@ describe("installation", () => {
       }),
     )
 
-    const brewInfoJson = JSON.stringify({
-      formulae: [{ versions: { stable: "2.1.0" } }],
+    // stale local tap metadata reports 1.0.0; the target must come from release metadata
+    const staleBrewInfoJson = JSON.stringify({
+      formulae: [{ versions: { stable: "1.0.0" } }],
     })
     testEffect(
       testLayer(
-        () => jsonResponse({}), // HTTP not used for tap formula
+        () => jsonResponse({ tag_name: "v2.1.0" }),
         (cmd, args) => {
           if (cmd === "brew" && args.includes("bolt-builder/tap/bolt-cli") && args.includes("--formula"))
             return "bolt-cli"
-          if (cmd === "brew" && args.includes("--json=v2")) return brewInfoJson
+          if (cmd === "brew" && args.includes("--json=v2")) return staleBrewInfoJson
           return ""
         },
       ),
-    ).effect("reads brew tap info JSON via CLI", () =>
+    ).effect("resolves tap installs from GitHub releases instead of stale tap metadata", () =>
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("brew")
         expect(result).toBe("2.1.0")

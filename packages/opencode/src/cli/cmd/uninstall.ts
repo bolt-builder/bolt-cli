@@ -133,7 +133,7 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
       pnpm: "pnpm uninstall -g @bolt-builder/bolt-cli",
       bun: "bun remove -g @bolt-builder/bolt-cli",
       yarn: "yarn global remove @bolt-builder/bolt-cli",
-      brew: "brew uninstall bolt",
+      brew: "brew uninstall bolt-cli",
       choco: "choco uninstall bolt",
       scoop: "scoop uninstall bolt",
     }
@@ -184,7 +184,7 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
       pnpm: ["pnpm", "uninstall", "-g", "@bolt-builder/bolt-cli"],
       bun: ["bun", "remove", "-g", "@bolt-builder/bolt-cli"],
       yarn: ["yarn", "global", "remove", "@bolt-builder/bolt-cli"],
-      brew: ["brew", "uninstall", "bolt"],
+      brew: ["brew", "uninstall", "bolt-cli"],
       choco: ["choco", "uninstall", "bolt"],
       scoop: ["scoop", "uninstall", "bolt"],
     }
