@@ -40,3 +40,4 @@ bolt-cli/.env.example
 tauri_key
 tauri_key.pub
 design.md
+.vtcode/tool-policy.json
