@@ -1,7 +1,5 @@
-import { Session } from "@/session/session"
+import type { Session } from "@/session/session"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
-import { MessageV2 } from "../../session/message-v2"
-import { SessionID } from "../../session/schema"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import * as prompts from "@clack/prompts"
@@ -238,6 +236,8 @@ export const ExportCommand = effectCmd({
 })
 
 const run = Effect.fn("Cli.export.body")(function* (args: { sessionID?: string; sanitize?: boolean }) {
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
   const svc = yield* Session.Service
   let sessionID = args.sessionID ? SessionID.make(args.sessionID) : undefined
   process.stderr.write(`Exporting session: ${sessionID ?? "latest"}\n`)

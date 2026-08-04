@@ -1,11 +1,6 @@
 import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
-import { Session } from "@/session/session"
-import { NotFoundError } from "@/storage/storage"
-import { Database } from "@opencode-ai/core/database/database"
-import { SessionTable } from "@opencode-ai/core/session/sql"
-import { Project } from "@/project/project"
-import { InstanceRef } from "@/effect/instance-ref"
+import type { Project } from "@/project/project"
 
 interface SessionStats {
   totalSessions: number
@@ -67,6 +62,7 @@ export const StatsCommand = effectCmd({
         type: "string",
       }),
   handler: Effect.fn("Cli.stats")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const ctx = yield* InstanceRef
     if (!ctx) return
     const stats = yield* aggregateSessionStats(args.days, args.project, ctx.project)
@@ -81,6 +77,9 @@ export const StatsCommand = effectCmd({
 })
 
 const getAllSessions = Effect.fnUntraced(function* () {
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { Database } = yield* Effect.promise(() => import("@opencode-ai/core/database/database"))
+  const { SessionTable } = yield* Effect.promise(() => import("@opencode-ai/core/session/sql"))
   const { db } = yield* Database.Service
   return (yield* db.select().from(SessionTable).all().pipe(Effect.orDie)).map((row) => Session.fromRow(row))
 })
@@ -90,6 +89,8 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
   projectFilter?: string,
   currentProject?: Project.Info,
 ) {
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
   const svc = yield* Session.Service
   const sessions = yield* getAllSessions()
   const MS_IN_DAY = 24 * 60 * 60 * 1000
