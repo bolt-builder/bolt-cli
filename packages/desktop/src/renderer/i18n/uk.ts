@@ -4,7 +4,7 @@ export const dict = {
   "desktop.menu.reloadWebview": "Перезавантажити Webview",
   "desktop.menu.restart": "Перезапустити",
 
-  "desktop.dialog.chooseFolder": "Виберіть теку",
+  "desktop.dialog.chooseFolder": "Виберіть папку",
   "desktop.dialog.chooseFile": "Виберіть файл",
   "desktop.dialog.saveFile": "Зберегти файл",
 
@@ -21,7 +21,7 @@ export const dict = {
 
   "desktop.cli.installed.title": "CLI встановлено",
   "desktop.cli.installed.message":
-    "CLI встановлено до {{path}}\n\nПерезапустіть термінал, щоб використовувати команду 'bolt'.",
+    "CLI встановлено за шляхом {{path}}\n\nПерезапустіть термінал, щоб використовувати команду 'bolt'.",
   "desktop.cli.failed.title": "Не вдалося встановити",
   "desktop.cli.failed.message": "Не вдалося встановити CLI: {{error}}",
 }
