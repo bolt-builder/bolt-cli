@@ -105,7 +105,7 @@ async function capture(directory: string) {
   const text = await new Response(proc.stdout).text()
   await proc.exited
   if (text.length <= DIFF_LIMIT) return text
-  return text.slice(0, DIFF_LIMIT) + `\n... (diff truncated at ${DIFF_LIMIT} characters)`
+  return `${text.slice(0, DIFF_LIMIT)}\n... (diff truncated at ${DIFF_LIMIT} characters)`
 }
 
 export async function runArena(input: {
@@ -137,7 +137,11 @@ export async function runArena(input: {
     const worktree = created.data
     if (!worktree)
       return { label, model, error: created.error ? JSON.stringify(created.error) : "failed to create worktree" }
-    await events.wait(worktree.directory)
+    const boot = await events
+      .wait(worktree.directory)
+      .then(() => undefined)
+      .catch((err) => String(err))
+    if (boot) return { label, model, worktree, error: boot }
     note(`${label} · ${format(model)} worktree ready at ${worktree.directory}`)
 
     const sdk = input.client(worktree.directory)
@@ -203,10 +207,11 @@ export async function runArena(input: {
     })
     const id = session.data?.id
     if (!id) return undefined
+    // --variant is contender-specific (provider reasoning effort); the judge
+    // may be a different provider that rejects it, so prompt the judge plain.
     const result = await input.sdk.session.prompt({
       sessionID: id,
       model: input.judge,
-      variant: input.variant,
       parts: [{ type: "text", text: judgePrompt(input.message, done.map(exhibit)) }],
     })
     if (result.error) return undefined
@@ -221,18 +226,25 @@ export async function runArena(input: {
   if (!verdict) note("judge produced no usable verdict; keeping the first successful candidate in submission order")
   const order = verdict?.order ?? done.map((item) => item.label)
   const ranked = new Map(settled.map((item) => [item.label, item]))
-  const winner = ranked.get(order[0])!
+  const winner = ranked.get(order[0]) ?? done[0]
 
   if (input.cleanup) {
-    const losers = settled.filter((item) => item.label !== winner.label && item.worktree)
-    await Promise.all(
+    const losers = settled.filter(
+      (item): item is Contender & { worktree: Worktree } => item.label !== winner.label && item.worktree !== undefined,
+    )
+    const removed = await Promise.all(
       losers.map((item) =>
         input.sdk.worktree
-          .remove({ worktreeRemoveInput: { directory: item.worktree!.directory } })
-          .catch(() => undefined),
+          .remove({ worktreeRemoveInput: { directory: item.worktree.directory } })
+          .then((result) => !result.error)
+          .catch(() => false),
       ),
     )
-    if (losers.length) note(`cleaned up ${losers.length} losing worktree${losers.length === 1 ? "" : "s"}`)
+    const count = removed.filter(Boolean).length
+    if (count) note(`cleaned up ${count} losing worktree${count === 1 ? "" : "s"}`)
+    losers
+      .filter((_, i) => !removed[i])
+      .forEach((item) => note(`could not remove worktree ${item.worktree.directory}`))
   }
 
   if (input.json) {
@@ -251,8 +263,9 @@ export async function runArena(input: {
 
   UI.empty()
   order.forEach((label, i) => {
-    const item = ranked.get(label)!
-    const marker = i === 0 ? UI.Style.TEXT_SUCCESS + "★" : UI.Style.TEXT_DIM + `${i + 1}.`
+    const item = ranked.get(label)
+    if (!item) return
+    const marker = i === 0 ? `${UI.Style.TEXT_SUCCESS}★` : `${UI.Style.TEXT_DIM}${i + 1}.`
     UI.println(
       `${marker} ${label} · ${format(item.model)} ${UI.Style.TEXT_DIM}${item.sessionID}${UI.Style.TEXT_NORMAL}`,
     )
