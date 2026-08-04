@@ -584,6 +584,9 @@ jobs:
           OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
           GH_REPO: ${{ needs.version.outputs.repo }}
+          # PAT with write access to bolt-builder/homebrew-tap; the publish script
+          # skips the tap update with a warning when unset.
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
           NPM_CONFIG_PROVENANCE: false
           LATEST_YML_DIR: /tmp/latest-yml
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

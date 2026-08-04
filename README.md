@@ -45,6 +45,12 @@ curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install |
 
 # Or with npm / bun / pnpm / yarn
 npm i -g @bolt-builder/bolt-cli
+
+# Or with Homebrew (macOS / Linux)
+brew install bolt-builder/tap/bolt-cli
+
+# Or try it without installing
+npx @bolt-builder/bolt-cli
 ```
 
 Then, from any project:
