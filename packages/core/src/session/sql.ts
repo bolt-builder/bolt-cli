@@ -62,6 +62,9 @@ export const SessionTable = sqliteTable(
     index("session_project_idx").on(table.project_id),
     index("session_workspace_idx").on(table.workspace_id),
     index("session_parent_idx").on(table.parent_id),
+    // listGlobal filters by directory and always sorts by (time_updated desc, id desc);
+    // without this the session sidebar/pagination full-scans + sorts every request.
+    index("session_directory_time_updated_idx").on(table.directory, table.time_updated, table.id),
   ],
 )
 

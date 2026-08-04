@@ -17,22 +17,15 @@ import type {
 } from "@octokit/webhooks-types"
 import { UI } from "../ui"
 import { ModelsDev } from "@opencode-ai/core/models-dev"
-import { InstanceRef } from "@/effect/instance-ref"
 import { SessionShare } from "@/share/session"
-import { Session } from "@/session/session"
 import type { SessionID } from "../../session/schema"
-import { MessageID, PartID } from "../../session/schema"
-import { Provider } from "@/provider/provider"
 import { MessageV2 } from "../../session/message-v2"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { EventV2 } from "@opencode-ai/core/event"
-import { SessionPrompt } from "@/session/prompt"
-import { Git } from "@/git"
 import { setTimeout as sleep } from "node:timers/promises"
 import { Process } from "@/util/process"
 import { parseGitHubRemote } from "@/util/repository"
 import { Effect } from "effect"
-import { extractResponseText, formatPromptTooLargeError } from "./github.shared"
 
 type GitHubAuthor = {
   login: string
@@ -154,6 +147,8 @@ type UserEvent = (typeof USER_EVENTS)[number]
 type RepoEvent = (typeof REPO_EVENTS)[number]
 
 export const githubInstall = Effect.fn("Cli.github.install")(function* () {
+  const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+  const { Git } = yield* Effect.promise(() => import("@/git"))
   const maybeCtx = yield* InstanceRef
   if (!maybeCtx) return yield* Effect.die("InstanceRef not provided")
   const ctx = maybeCtx
@@ -375,6 +370,13 @@ jobs:
 })
 
 export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: string; token?: string }) {
+  const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+  const { Git } = yield* Effect.promise(() => import("@/git"))
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { SessionPrompt } = yield* Effect.promise(() => import("@/session/prompt"))
+  const { MessageID, PartID } = yield* Effect.promise(() => import("../../session/schema"))
+  const { Provider } = yield* Effect.promise(() => import("@/provider/provider"))
+  const { extractResponseText, formatPromptTooLargeError } = yield* Effect.promise(() => import("./github.shared"))
   const ctx = yield* InstanceRef
   if (!ctx) return yield* Effect.die("InstanceRef not provided")
   const gitSvc = yield* Git.Service

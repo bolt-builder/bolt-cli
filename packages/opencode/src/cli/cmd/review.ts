@@ -1,13 +1,6 @@
 import { Effect } from "effect"
 import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
-import { Git } from "@/git"
-import { InstanceRef } from "@/effect/instance-ref"
-import { Session } from "@/session/session"
-import { SessionPrompt } from "@/session/prompt"
-import { MessageID, PartID } from "../../session/schema"
-import { parseModel } from "@/provider/provider"
-import { extractResponseText } from "./github.shared"
 
 const LIMIT = 120_000
 
@@ -46,6 +39,8 @@ export const ReviewCommand = effectCmd({
       })
       .conflicts("staged", "branch"),
   handler: Effect.fn("Cli.review")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const { Git } = yield* Effect.promise(() => import("@/git"))
     const ctx = yield* InstanceRef
     if (!ctx) return yield* fail("Could not load instance context")
     if (ctx.project.vcs !== "git") {
@@ -82,6 +77,11 @@ export const ReviewCommand = effectCmd({
 
     UI.println("Reviewing changes...")
 
+    const { Session } = yield* Effect.promise(() => import("@/session/session"))
+    const { SessionPrompt } = yield* Effect.promise(() => import("@/session/prompt"))
+    const { MessageID, PartID } = yield* Effect.promise(() => import("../../session/schema"))
+    const { parseModel } = yield* Effect.promise(() => import("@/provider/provider"))
+    const { extractResponseText } = yield* Effect.promise(() => import("./github.shared"))
     const sessions = yield* Session.Service
     const prompt = yield* SessionPrompt.Service
     const session = yield* sessions.create({
