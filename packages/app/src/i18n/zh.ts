@@ -88,8 +88,7 @@ export const dict = {
   "desktop.wsl.error.opencodeMissing": "此发行版中未安装 opencode",
   "desktop.wsl.error.opencodeCannotRun": "已安装 opencode，但无法运行",
   "desktop.wsl.error.opencodeNotInstalled": "{{distro}} 中未安装 Bolt",
-  "desktop.wsl.error.updateVersion":
-    "Bolt 更新已完成，但 {{distro}} 仍报告版本 {{installed}}；预期版本为 {{expected}}",
+  "desktop.wsl.error.updateVersion": "Bolt 更新已完成，但 {{distro}} 仍报告版本 {{installed}}；预期版本为 {{expected}}",
   "desktop.wsl.error.noVersion": "无版本信息",
   "desktop.wsl.error.serverExited": "WSL 服务器启动后退出（code={{code}} signal={{signal}}）",
   "desktop.wsl.error.serverExitedBeforeHealthy":
