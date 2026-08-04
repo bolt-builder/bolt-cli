@@ -86,8 +86,12 @@ Options:
   -s, --session      session id to continue                                                 [string]
       --fork         fork the session before continuing (requires --continue or --session) [boolean]
       --share        share the session                                                     [boolean]
-  -m, --model        model to use in the format of provider/model                           [string]
-      --agent        agent to use                                                           [string]
+  -m, --model        model to use in the format of provider/model (or 'auto' for cheapest available)
+                                                                                            [string]
+      --best-of      comma-separated provider/model list: run the same task on every model in
+                     parallel, rank the results with a judge (--model, or the first entry), keep the
+                     winner                                                                 [string]
+      --agent        agent to use (or 'auto' for automatic selection)                       [string]
       --format       format: default (formatted) or json (raw JSON events)
                                           [string] [choices: "default", "json"] [default: "default"]
   -f, --file         file(s) to attach to message                                            [array]
@@ -104,6 +108,32 @@ Options:
       --thinking     show thinking blocks                                                  [boolean]
   -i, --interactive  run in direct interactive split-footer mode          [boolean] [default: false]
       --auto         auto-approve permissions that are not explicitly denied (dangerous!)
+                                                                          [boolean] [default: false]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode arena --help 1`] = `
+"bolt arena [message..]
+
+race agents on the same task in isolated worktrees and keep the best result
+
+Positionals:
+  message  task to send to every contender                                     [array] [default: []]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]
+      --models      comma-separated provider/model list (duplicates allowed, one worktree each)
+                                                                                 [string] [required]
+      --judge       judge model as provider/model (defaults to the first entry in --models) [string]
+      --agent       agent to use for every contender                                        [string]
+      --variant     model variant (provider-specific reasoning effort, e.g., high, max, minimal)
+                                                                                            [string]
+      --format      format: default (formatted) or json (single JSON result)
+                                          [string] [choices: "default", "json"] [default: "default"]
+      --cleanup     remove losing worktrees and their branches after judging
                                                                           [boolean] [default: false]"
 `;
 
