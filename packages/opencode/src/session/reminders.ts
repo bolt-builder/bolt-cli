@@ -35,7 +35,7 @@ export const apply = Effect.fn("SessionReminders.apply")(function* (input: {
       })
     }
     const wasPlan = input.messages.some((msg) => msg.info.role === "assistant" && msg.info.agent === "plan")
-    if (wasPlan && input.agent.name === "build") {
+    if (wasPlan && input.agent.name === "code") {
       userMessage.parts.push({
         id: PartID.ascending(),
         messageID: userMessage.info.id,

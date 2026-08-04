@@ -29,7 +29,9 @@ export const LogsCommand = effectCmd({
     const lines = text.split("\n")
     if (lines.at(-1) === "") lines.pop()
     const count = Math.max(0, Math.floor(args.tail))
-    for (const line of lines.slice(-count)) console.log(line)
+    // slice(-0) === slice(0) returns the whole array, so guard 0 explicitly to
+    // mean "print no history" (e.g. `logs --tail 0 --follow` to stream only new lines).
+    for (const line of count === 0 ? [] : lines.slice(-count)) console.log(line)
     if (!args.follow) return
     // Follow by re-reading appended bytes whenever the file changes; the log
     // is append-only so the previous size is always a valid resume offset.
