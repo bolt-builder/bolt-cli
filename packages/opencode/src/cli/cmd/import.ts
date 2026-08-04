@@ -107,9 +107,7 @@ export const ImportCommand = effectCmd({
 const runImport = Effect.fn("Cli.import.body")(function* (file: string, ctx: InstanceContext) {
   const { Info, toRow } = yield* Effect.promise(() => import("@/session/session"))
   const { Database } = yield* Effect.promise(() => import("@opencode-ai/core/database/database"))
-  const { SessionTable, MessageTable, PartTable } = yield* Effect.promise(
-    () => import("@opencode-ai/core/session/sql"),
-  )
+  const { SessionTable, MessageTable, PartTable } = yield* Effect.promise(() => import("@opencode-ai/core/session/sql"))
   const share = yield* ShareNext.Service
   const fs = yield* FSUtil.Service
   const { db } = yield* Database.Service
