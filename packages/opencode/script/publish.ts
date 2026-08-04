@@ -160,14 +160,16 @@ async function brew() {
     "",
   ].join("\n")
 
-  const tap = `https://x-access-token:${token}@github.com/bolt-builder/homebrew-tap.git`
+  // keep the token out of remote.origin.url (git clone persists it in .git/config);
+  // auth is passed per-invocation via a process-scoped extraheader instead
+  const auth = `http.https://github.com/.extraheader=AUTHORIZATION: basic ${btoa(`x-access-token:${token}`)}`
   await $`rm -rf ./dist/homebrew-tap`
-  await $`git clone ${tap} ./dist/homebrew-tap`
+  await $`git -c ${auth} clone https://github.com/bolt-builder/homebrew-tap.git ./dist/homebrew-tap`
   await $`mkdir -p ./dist/homebrew-tap/Formula`
   await Bun.file("./dist/homebrew-tap/Formula/bolt-cli.rb").write(formula)
   await $`git add Formula/bolt-cli.rb`.cwd("./dist/homebrew-tap")
   if ((await $`git diff --cached --quiet`.cwd("./dist/homebrew-tap").nothrow()).exitCode !== 0) {
     await $`git commit -m "bolt-cli v${Script.version}"`.cwd("./dist/homebrew-tap")
-    await $`git push`.cwd("./dist/homebrew-tap")
+    await $`git -c ${auth} push`.cwd("./dist/homebrew-tap")
   }
 }
