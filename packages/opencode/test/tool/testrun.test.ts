@@ -40,9 +40,12 @@ describe("testrun.parse", () => {
   })
 
   test("parses bun test failures and counts", () => {
-    const out = ["(pass) tool.edit > replaces text [1.2ms]", "(fail) tool.edit > preserves BOM", "1 pass", "1 fail"].join(
-      "\n",
-    )
+    const out = [
+      "(pass) tool.edit > replaces text [1.2ms]",
+      "(fail) tool.edit > preserves BOM",
+      "1 pass",
+      "1 fail",
+    ].join("\n")
     const result = parse(out)
     expect(result.failures).toEqual([{ name: "tool.edit > preserves BOM" }])
     expect(result.counts).toEqual({ pass: 1, fail: 1 })

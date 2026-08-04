@@ -129,9 +129,7 @@ export const TestRunTool = Tool.define(
           const cwd = params.workdir ? path.resolve(instance.directory, params.workdir) : instance.directory
           const command = params.command ?? (yield* detect(fs, cwd))
           if (!command) {
-            throw new Error(
-              "Could not detect a test command for this project. Pass the command parameter explicitly.",
-            )
+            throw new Error("Could not detect a test command for this project. Pass the command parameter explicitly.")
           }
 
           const tokens = command.trim().split(/\s+/)
