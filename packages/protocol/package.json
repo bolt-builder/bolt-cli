@@ -3,7 +3,7 @@
   "name": "@opencode-ai/protocol",
   "private": true,
   "type": "module",
-  "license": "PolyForm Noncommercial 1.0.0 License ",
+  "license": "AGPL-3.0-only",
   "exports": {
     "./*": "./src/*.ts"
   },

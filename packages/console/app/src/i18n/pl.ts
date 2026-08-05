@@ -184,7 +184,7 @@ export const dict = {
   "home.faq.q8": "Czy OpenCode jest open source?",
   "home.faq.a8.p1": "Tak, OpenCode jest w pełni open source. Kod źródłowy jest publicznie dostępny na",
   "home.faq.a8.p2": "na licencji",
-  "home.faq.a8.mitLicense": "PolyForm Noncommercial 1.0.0 License  License",
+  "home.faq.a8.mitLicense": "AGPL-3.0 License",
   "home.faq.a8.p3":
     ", co oznacza, że każdy może go używać, modyfikować i wspierać jego rozwój. Każdy ze społeczności może zgłaszać błędy, przesyłać pull requesty i rozszerzać funkcjonalność.",
 

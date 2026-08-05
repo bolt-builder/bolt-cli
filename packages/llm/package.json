@@ -3,7 +3,7 @@
   "version": "1.20.6",
   "name": "@opencode-ai/llm",
   "type": "module",
-  "license": "PolyForm Noncommercial 1.0.0 License ",
+  "license": "AGPL-3.0-only",
   "private": true,
   "scripts": {
     "setup:recording-env": "bun run script/setup-recording-env.ts",

@@ -3,7 +3,7 @@
   "version": "1.20.6",
   "private": true,
   "type": "module",
-  "license": "PolyForm Noncommercial 1.0.0 License ",
+  "license": "AGPL-3.0-only",
   "exports": {
     "./*": "./src/components/*.tsx",
     "./session-diff": "./src/components/session-diff.ts",

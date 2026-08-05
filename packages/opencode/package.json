@@ -3,7 +3,7 @@
   "version": "1.20.6",
   "name": "@bolt-builder/bolt-cli",
   "type": "module",
-  "license": "PolyForm Licenese 1.0.0",
+  "license": "AGPL-3.0-only",
   "readme": "README.md",
   "private": false,
   "scripts": {
