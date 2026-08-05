@@ -2,7 +2,7 @@
   "name": "@opencode-ai/slack",
   "version": "1.20.6",
   "type": "module",
-  "license": "PolyForm Noncommercial 1.0.0 License ",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "bun run src/index.ts",
     "typecheck": "tsgo --noEmit"

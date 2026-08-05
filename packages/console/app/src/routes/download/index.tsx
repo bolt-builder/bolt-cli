@@ -472,7 +472,7 @@ export default function Download() {
                 </a>{" "}
                 {i18n.t("home.faq.a8.p2")}{" "}
                 <a
-                  href={`${config.github.repoUrl}?tab=PolyForm Noncommercial 1.0.0 License -1-ov-file#readme`}
+                  href={`${config.github.repoUrl}?tab=AGPL-3.0-1-ov-file#readme`}
                   target="_blank"
                 >
                   {i18n.t("home.faq.a8.mitLicense")}

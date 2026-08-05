@@ -182,7 +182,7 @@ export const dict = {
   "home.faq.q8": "OpenCode เป็นโอเพนซอร์สหรือไม่?",
   "home.faq.a8.p1": "ใช่ OpenCode เป็นโอเพนซอร์สเต็มรูปแบบ ซอร์สโค้ดเปิดเผยต่อสาธารณะบน",
   "home.faq.a8.p2": "ภายใต้",
-  "home.faq.a8.mitLicense": "PolyForm Noncommercial 1.0.0 License  License",
+  "home.faq.a8.mitLicense": "AGPL-3.0 License",
   "home.faq.a8.p3":
     " ซึ่งหมายความว่าใครๆ ก็สามารถใช้ แก้ไข หรือร่วมพัฒนาได้ ทุกคนในชุมชนสามารถเปิด issue, ส่ง pull request และขยายฟังก์ชันการทำงานได้",
 

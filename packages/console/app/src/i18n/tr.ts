@@ -183,7 +183,7 @@ export const dict = {
   "home.faq.q8": "OpenCode açık kaynak mı?",
   "home.faq.a8.p1": "Evet, OpenCode tamamen açık kaynaktır. Kaynak kodu",
   "home.faq.a8.p2": "'da",
-  "home.faq.a8.mitLicense": "PolyForm Noncommercial 1.0.0 License  Lisansı",
+  "home.faq.a8.mitLicense": "AGPL-3.0 Lisansı",
   "home.faq.a8.p3":
     "altında herkese açıktır, yani herkes kullanabilir, değiştirebilir veya geliştirmeye katkıda bulunabilir. Topluluktan herkes issue açabilir, pull request gönderebilir ve işlevselliği genişletebilir.",
 

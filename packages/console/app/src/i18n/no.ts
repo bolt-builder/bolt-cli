@@ -184,7 +184,7 @@ export const dict = {
   "home.faq.q8": "Er OpenCode åpen kildekode?",
   "home.faq.a8.p1": "Ja, OpenCode er fullt open source. Kildekoden er offentlig på",
   "home.faq.a8.p2": "under",
-  "home.faq.a8.mitLicense": "PolyForm Noncommercial 1.0.0 License -lisensen",
+  "home.faq.a8.mitLicense": "AGPL-3.0-lisensen",
   "home.faq.a8.p3":
     ", som betyr at hvem som helst kan bruke, endre eller bidra til utviklingen. Alle i communityet kan opprette issues, sende inn pull requests og utvide funksjonalitet.",
 
