@@ -1,5 +1,5 @@
-name: "opencode GitHub Action"
-description: "Run opencode in GitHub Actions workflows"
+name: "Bolt GitHub Action"
+description: "Run Bolt in GitHub Actions workflows"
 branding:
   icon: "code"
   color: "orange"
@@ -41,33 +41,40 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Get opencode version
+    - name: Get bolt version
       id: version
       shell: bash
       run: |
         VERSION=$(curl -sf https://api.github.com/repos/bolt-builder/bolt-cli/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
-        echo "version=${VERSION:-latest}" >> $GITHUB_OUTPUT
+        if [ -z "$VERSION" ]; then
+          echo "Failed to resolve the latest bolt release version" >&2
+          exit 1
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Cache opencode
+    - name: Cache bolt
       id: cache
       uses: actions/cache@v4
       with:
-        path: ~/.opencode/bin
-        key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+        path: ~/.bolt/bin
+        key: bolt-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
 
-    - name: Install opencode
+    - name: Install bolt
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: curl -fsSL https://opencode.ai/install | bash
+      # The install script ships with this action, so it is pinned to the same
+      # ref as the action itself instead of the mutable dev branch. Passing the
+      # resolved release tag keeps the installed binary tied to the cache key.
+      run: bash "${GITHUB_ACTION_PATH}/../install" --version "${{ steps.version.outputs.version }}"
 
-    - name: Add opencode to PATH
+    - name: Add bolt to PATH
       shell: bash
-      run: echo "$HOME/.opencode/bin" >> $GITHUB_PATH
+      run: echo "$HOME/.bolt/bin" >> $GITHUB_PATH
 
-    - name: Run opencode
+    - name: Run bolt
       shell: bash
-      id: run_opencode
-      run: opencode github run
+      id: run_bolt
+      run: bolt github run
       env:
         MODEL: ${{ inputs.model }}
         AGENT: ${{ inputs.agent }}
