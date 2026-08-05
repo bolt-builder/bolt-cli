@@ -32,3 +32,4 @@ jobs:
           OPENCODE_PERMISSION: '{"bash": "deny"}'
         with:
           model: opencode/claude-fable-5
+          mentions: /opencode,/oc,/bc,/bolt

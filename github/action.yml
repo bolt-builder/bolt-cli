@@ -46,7 +46,11 @@ runs:
       shell: bash
       run: |
         VERSION=$(curl -sf https://api.github.com/repos/bolt-builder/bolt-cli/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
-        echo "version=${VERSION:-latest}" >> $GITHUB_OUTPUT
+        if [ -z "$VERSION" ]; then
+          echo "Failed to resolve the latest bolt release version" >&2
+          exit 1
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Cache bolt
       id: cache
@@ -58,7 +62,10 @@ runs:
     - name: Install bolt
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
+      # The install script ships with this action, so it is pinned to the same
+      # ref as the action itself instead of the mutable dev branch. Passing the
+      # resolved release tag keeps the installed binary tied to the cache key.
+      run: bash "${GITHUB_ACTION_PATH}/../install" --version "${{ steps.version.outputs.version }}"
 
     - name: Add bolt to PATH
       shell: bash
