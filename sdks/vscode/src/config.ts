@@ -7,5 +7,6 @@ export function config() {
     path: cfg.get<string>("path", ""),
     args: cfg.get<string[]>("args", []),
     reuse: cfg.get<boolean>("terminal.reuse", true),
+    server: cfg.get<string>("server.url", ""),
   }
 }

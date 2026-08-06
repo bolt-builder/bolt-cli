@@ -5,9 +5,16 @@ suite("extension", () => {
   test("registers every bolt command", async () => {
     await extensions.getExtension("bolt-builder.bolt-vscode")?.activate()
     const registered = await commands.getCommands(true)
-    for (const id of ["bolt.openTerminal", "bolt.openNewTerminal", "bolt.addFilepathToTerminal"]) {
+    for (const id of ["bolt.openTerminal", "bolt.openNewTerminal", "bolt.addFilepathToTerminal", "bolt.addFilepathToChat"]) {
       ok(registered.includes(id), `missing command ${id}`)
     }
+  })
+
+  test("the chat view is registered", async () => {
+    await extensions.getExtension("bolt-builder.bolt-vscode")?.activate()
+    // Focusing the contributed view resolves the webview provider; it throws
+    // when the view id is not registered.
+    await commands.executeCommand("bolt.chat.focus")
   })
 
   test("settings have the documented defaults", () => {

@@ -1,5 +1,7 @@
 import { commands, env, ExtensionContext, Terminal, TextEditor, Uri, ViewColumn, window, workspace, WorkspaceFolder } from "vscode"
+import { Backend, spawner } from "./backend"
 import { locate } from "./binary"
+import { Chat } from "./chat"
 import { config } from "./config"
 import { display, reference } from "./format"
 
@@ -12,8 +14,33 @@ export function activate(context: ExtensionContext) {
   // and filepath insertion keep targeting them.
   const terminals: Terminal[] = window.terminals.filter((t) => /^Bolt( \(\d+\))?$/.test(t.name))
 
+  const backend = new Backend({
+    url: () => config().server,
+    binary: () => locate(config().path, process.env["PATH"] ?? ""),
+    spawn: spawner(log),
+    log,
+    onExit: (fatal) => {
+      if (fatal) {
+        window.showErrorMessage("The Bolt server keeps exiting. Check the Bolt output channel for details.")
+      }
+    },
+  })
+  const chat = new Chat(context, backend, log)
+
   context.subscriptions.push(
     output,
+    backend,
+    chat,
+    window.registerWebviewViewProvider(Chat.id, chat),
+    commands.registerCommand("bolt.addFilepathToChat", async () => {
+      const editor = window.activeTextEditor
+      if (!editor) {
+        window.showInformationMessage("Open a file to add its path to the Bolt chat.")
+        return
+      }
+      chat.insert(`${active(editor)} `)
+      await commands.executeCommand("bolt.chat.focus")
+    }),
     window.onDidCloseTerminal((terminal) => {
       const index = terminals.indexOf(terminal)
       if (index === -1) {

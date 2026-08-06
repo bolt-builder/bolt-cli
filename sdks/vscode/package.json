@@ -59,13 +59,43 @@
       {
         "command": "bolt.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
+      },
+      {
+        "command": "bolt.addFilepathToChat",
+        "title": "Add Filepath to Bolt Chat"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bolt",
+          "title": "Bolt",
+          "icon": "images/bolt-mono.svg"
+        }
+      ]
+    },
+    "views": {
+      "bolt": [
+        {
+          "type": "webview",
+          "id": "bolt.chat",
+          "name": "Chat",
+          "icon": "images/bolt-mono.svg",
+          "contextualTitle": "Bolt"
+        }
+      ]
+    },
     "menus": {
       "editor/title": [
         {
           "command": "bolt.openNewTerminal",
           "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "bolt.addFilepathToChat",
+          "group": "bolt"
         }
       ]
     },
@@ -89,6 +119,11 @@
           "type": "boolean",
           "default": true,
           "description": "Focus an existing Bolt terminal instead of creating a new one when running Open Bolt."
+        },
+        "bolt.server.url": {
+          "type": "string",
+          "default": "",
+          "description": "URL of a running Bolt server for the sidebar chat. Leave empty to let the extension start one."
         }
       }
     },

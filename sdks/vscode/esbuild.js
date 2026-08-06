@@ -40,11 +40,26 @@ async function main() {
       esbuildProblemMatcherPlugin,
     ],
   })
+  const webview = await esbuild.context({
+    entryPoints: ["src/webview/main.ts"],
+    bundle: true,
+    format: "iife",
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    platform: "browser",
+    outfile: "dist/webview.js",
+    logLevel: "silent",
+    plugins: [esbuildProblemMatcherPlugin],
+  })
   if (watch) {
     await ctx.watch()
+    await webview.watch()
   } else {
     await ctx.rebuild()
+    await webview.rebuild()
     await ctx.dispose()
+    await webview.dispose()
   }
 }
 
