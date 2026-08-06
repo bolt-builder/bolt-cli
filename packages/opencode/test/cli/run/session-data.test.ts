@@ -162,6 +162,43 @@ describe("run session data", () => {
     expect(out.data.ids.has("txt-user-1")).toBe(true)
   })
 
+  test("renders user text from other clients when includeUserText is set", () => {
+    let data = createSessionData({ includeUserText: true })
+    data = reduce(data, user("msg-remote-1")).data
+
+    const out = reduce(
+      data,
+      text({ id: "txt-remote-1", messageID: "msg-remote-1", text: "partner prompt", time: { end: 1 } }),
+    )
+
+    expect(out.commits.map((commit) => [commit.kind, commit.text])).toEqual([["user", "partner prompt"]])
+  })
+
+  test("flushes buffered user text once a remote message resolves to a user role", () => {
+    let data = createSessionData({ includeUserText: true })
+    data = reduce(
+      data,
+      text({ id: "txt-remote-2", messageID: "msg-remote-2", text: "late role", time: { end: 1 } }),
+    ).data
+
+    const out = reduce(data, user("msg-remote-2"))
+
+    expect(out.commits.map((commit) => [commit.kind, commit.text])).toEqual([["user", "late role"]])
+  })
+
+  test("suppresses user text for locally sent messages even when includeUserText is set", () => {
+    let data = createSessionData({ includeUserText: true, local: new Set(["msg-local-1"]) })
+    data = reduce(data, user("msg-local-1")).data
+
+    const out = reduce(
+      data,
+      text({ id: "txt-local-1", messageID: "msg-local-1", text: "my own prompt", time: { end: 1 } }),
+    )
+
+    expect(out.commits).toEqual([])
+    expect(out.data.ids.has("txt-local-1")).toBe(true)
+  })
+
   test("suppresses reasoning commits when thinking is disabled", () => {
     const out = reduce(
       createSessionData(),

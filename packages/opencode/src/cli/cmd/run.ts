@@ -271,6 +271,12 @@ export const RunCommand = effectCmd({
         default: false,
         hidden: true,
         describe: "enable direct interactive demo slash commands; pass one as the message to run it immediately",
+      })
+      .option("pair", {
+        type: "boolean",
+        default: false,
+        hidden: true,
+        describe: "render user prompts sent by other clients on the same session",
       }),
   handler: Effect.fn("Cli.run")(function* (args) {
     if (args.background) {
@@ -966,6 +972,7 @@ export const RunCommand = effectCmd({
             sessionID,
             sessionTitle: sess.title,
             resume: Boolean(args.session || args.continue) && !args.fork,
+            pair: args.pair,
             replay,
             replayLimit: args["replay-limit"],
             agent,
@@ -1058,6 +1065,7 @@ type MiniCommandInput = {
   replay?: boolean
   replayLimit?: number
   demo?: boolean
+  pair?: boolean
 }
 
 export async function runMini(input: MiniCommandInput) {
@@ -1096,5 +1104,6 @@ export async function runMini(input: MiniCommandInput) {
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,
     demo: input.demo ?? false,
+    pair: input.pair ?? false,
   })
 }
