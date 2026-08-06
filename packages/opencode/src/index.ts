@@ -32,6 +32,7 @@ import { ReviewCommand } from "./cli/cmd/review"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
+import { FlakyCommand } from "./cli/cmd/flaky"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
@@ -114,6 +115,7 @@ const cli = yargs(args)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
+  .command(FlakyCommand)
   .command(SessionCommand)
   .command(PluginCommand)
   .command(DbCommand)
