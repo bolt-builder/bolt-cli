@@ -71,6 +71,8 @@ type StreamInput = {
   directory?: string
   sessionID: string
   thinking: boolean
+  // Pair mode: render user prompts sent by other clients on the same session.
+  pair?: boolean
   replay?: boolean
   replayLimit?: number
   limits: () => Record<string, number>
@@ -441,10 +443,14 @@ function createLayer(input: StreamInput) {
         }
         input.trace?.write("recv.subscribe", {
           sessionID: input.sessionID,
+          pair: input.pair,
         })
 
+        // Shared across session data rebuilds (bootstrap and resize replays)
+        // so prompts sent by this client stay suppressed in pair mode.
+        const local = new Set<string>()
         const state: State = {
-          data: createSessionData(),
+          data: createSessionData({ includeUserText: input.pair, local }),
           subagent: createSubagentData(),
           tick: 0,
           footerView: { type: "prompt" },
@@ -716,6 +722,8 @@ function createLayer(input: StreamInput) {
                 thinking: input.thinking,
                 limits: input.limits(),
                 providers: input.providers?.(),
+                pair: input.pair,
+                local,
               })
             : undefined
           const replay =
@@ -727,6 +735,8 @@ function createLayer(input: StreamInput) {
                   thinking: input.thinking,
                   limits: input.limits(),
                   providers: input.providers?.(),
+                  pair: input.pair,
+                  local,
                 })
               : history
 
@@ -1029,6 +1039,8 @@ function createLayer(input: StreamInput) {
                 thinking: input.thinking,
                 limits: input.limits(),
                 providers: input.providers?.(),
+                pair: input.pair,
+                local,
               })
               const activeCommits = replayActiveText(history.data, state.data)
               return {
@@ -1047,6 +1059,8 @@ function createLayer(input: StreamInput) {
                         thinking: input.thinking,
                         limits: input.limits(),
                         providers: input.providers?.(),
+                        pair: input.pair,
+                        local,
                       })
                     : history,
               }
@@ -1208,6 +1222,11 @@ function createLayer(input: StreamInput) {
           }
           state.wait = item
           state.data.announced = false
+          // Remember prompts this client sent so pair mode does not render
+          // them a second time when their user message events arrive.
+          if (next.prompt.messageID) {
+            local.add(next.prompt.messageID)
+          }
 
           const turn = new AbortController()
           const stop = () => {
