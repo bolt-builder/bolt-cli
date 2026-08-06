@@ -178,7 +178,9 @@ export const JobsCommand = effectCmd({
         const status = alive(job.pid) ? "running" : "stopped"
         const when = new Date(job.started).toLocaleString()
         const restarts = job.restarts?.length ? `  restarts ${job.restarts.length}` : ""
-        UI.println(`${job.id}  ${status.padEnd(7)}  pid ${String(job.pid).padEnd(6)}  ${when}  ${job.command}${restarts}`)
+        UI.println(
+          `${job.id}  ${status.padEnd(7)}  pid ${String(job.pid).padEnd(6)}  ${when}  ${job.command}${restarts}`,
+        )
       }
       return
     }
