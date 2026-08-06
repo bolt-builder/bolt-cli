@@ -200,13 +200,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Agents that check their work (1)</strong></summary>
-
-- [ ] Self-review pass before any diff is handed to you
-
-</details>
-
-<details>
 <summary><strong>Agents with guardrails (4)</strong></summary>
 
 - [ ] Guardrail agent that vetoes risky commands before they run
@@ -236,6 +229,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Self-review pass: `bolt refactor --self-review` hands the green diff to the code-review agent before you see it
 - [x] Confidence scoring: `--confidence` on `bolt review` and `bolt refactor` makes the agent say when it is guessing
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
