@@ -4,6 +4,7 @@ import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
+import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
@@ -121,6 +122,7 @@ const layer = Layer.effect(
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
     const testrun = yield* TestRunTool
+    const browser = yield* BrowserTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -235,6 +237,7 @@ const layer = Layer.effect(
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
           testrun: Tool.init(testrun),
+          browser: Tool.init(browser),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
@@ -266,6 +269,7 @@ const layer = Layer.effect(
             tool.bgkill,
             tool.bglist,
             tool.testrun,
+            tool.browser,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
