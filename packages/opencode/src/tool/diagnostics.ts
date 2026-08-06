@@ -25,10 +25,7 @@ export function within(file: string, root: string) {
   return !relative.startsWith("..") && !path.isAbsolute(relative)
 }
 
-export function filter(
-  all: Record<string, LSPClient.Diagnostic[]>,
-  options: { path?: string; severity?: Severity },
-) {
+export function filter(all: Record<string, LSPClient.Diagnostic[]>, options: { path?: string; severity?: Severity }) {
   const result: Record<string, LSPClient.Diagnostic[]> = {}
   for (const file of Object.keys(all).sort()) {
     if (options.path && !within(file, options.path)) continue
