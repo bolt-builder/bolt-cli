@@ -19,6 +19,7 @@ import { InvalidTool } from "./invalid"
 import { BackgroundKillTool, BackgroundListTool, BackgroundOutputTool, BackgroundStartTool } from "./background"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
+import { ProfileTool } from "./profile"
 import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
 import { SqlTool } from "./sql"
@@ -126,6 +127,7 @@ const layer = Layer.effect(
     const testrun = yield* TestRunTool
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
+    const profile = yield* ProfileTool
     const httptool = yield* HttpTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
@@ -243,6 +245,7 @@ const layer = Layer.effect(
           testrun: Tool.init(testrun),
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
+          profile: Tool.init(profile),
           http: Tool.init(httptool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
@@ -277,6 +280,7 @@ const layer = Layer.effect(
             tool.testrun,
             tool.sql,
             tool.diagnostics,
+            tool.profile,
             tool.http,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
