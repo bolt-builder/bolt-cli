@@ -168,7 +168,7 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ## Roadmap
 
-The roadmap is about one thing: making the agent smarter, more autonomous, and more fun to work with. It is deliberately short. Items land when they land, in no guaranteed order, and anything we are not confident we will build stays off the list. Have an opinion? [Tell us in Discussions](https://github.com/Bolt-builder/bolt-cli/discussions).
+The roadmap is about one thing: making the agent smarter, more autonomous, and more fun to work with. There are 250 open items below, grouped by theme. Have an opinion? [Tell us in Discussions](https://github.com/Bolt-builder/bolt-cli/discussions).
 
 ### Now
 
@@ -180,97 +180,399 @@ The roadmap is about one thing: making the agent smarter, more autonomous, and m
 ### Next
 
 <details>
-<summary><strong>Agents with better hands (4)</strong></summary>
+<summary><strong>Agents with better hands (10)</strong></summary>
 
+- [ ] `diagnostics` tool: pull compiler and LSP diagnostics on demand, not only after a failed run
+- [ ] Service supervision: health-check a background dev server and restart it when it dies mid-run
+- [ ] `profile` tool: run a command under a profiler and hand the agent the hot frames
+- [ ] Frame extraction: pull stills from a screen recording so the agent can inspect a repro video
 - [ ] Browser tool: navigate and screenshot the running app to verify UI changes visually
-- [ ] Semantic codebase search: find code by meaning, not regex
 - [ ] LSP power tools: rename symbol and find references, promoted out of experimental
+- [ ] Semantic codebase search: find code by meaning, not regex
 - [ ] `sql` tool: run read-only queries against the project database with schema awareness
+- [ ] `http` tool: call APIs with saved auth profiles and typed response capture
+- [ ] Codemod runner: generate an ast-grep or jscodeshift transform, preview the diff, then apply it
 
 </details>
 
 <details>
-<summary><strong>Agents that check their work (4)</strong></summary>
+<summary><strong>Agents that check their work (10)</strong></summary>
 
-- [ ] Regression guard: auto-generate a failing test from every bug before fixing it
+- [ ] Mutation testing: the agent mutates code to prove your tests actually catch bugs
+- [ ] Property-based test generation for pure functions the agent touches
 - [ ] Static analysis pass folded into every diff (lint, types, dead code) before handoff
-- [ ] Test impact analysis: run only the tests the diff can actually break
+- [ ] Regression guard: auto-generate a failing test from every bug before fixing it
+- [ ] Assertion mining: suggest missing assertions in existing tests
+- [ ] Coverage-aware planning: prefer changes in well-tested code, flag changes in untested code
+- [ ] Invariant checks: the agent states invariants before refactoring and verifies them after
 - [ ] Doc-code drift detection: flag READMEs and comments the diff just made stale
+- [ ] Type-tightening pass: propose stricter types for code the agent touched
+- [ ] Performance regression check: benchmark hot paths before and after the change
 
 </details>
 
 <details>
-<summary><strong>Guardrails and recovery (5)</strong></summary>
+<summary><strong>Agents with guardrails (10)</strong></summary>
 
 - [ ] Guardrail agent that vetoes risky commands before they run
 - [ ] Budget guards: `--max-cost` and `--max-tokens` on any run
-- [ ] `bolt undo` and named checkpoints: rewind the repo and the conversation together
-- [ ] Dry-run mode: show every file write and command a plan would execute without doing it
+- [ ] `bolt undo`: one-command rollback when an experiment goes sideways
+- [ ] Named checkpoints: save points you can rewind the repo and the conversation to
+- [ ] Secrets firewall: redact tokens and keys from prompts, logs, and replays automatically
+- [ ] Dry-run mode: show every file write and command the plan would execute without doing it
+- [ ] Blast-radius estimates: how many callers, tests, and packages a diff touches, before applying
 - [ ] Protected paths: glob-based no-touch zones the agent cannot edit
+- [ ] Rate-limited tool budgets per session (max shell commands, max file writes)
+- [ ] Two-agent approval: destructive commands need a second agent's sign-off
 
 </details>
 
 <details>
-<summary><strong>Context and memory (5)</strong></summary>
+<summary><strong>Party tricks II (10)</strong></summary>
+
+- [ ] Pair-programming mode with a shared cursor
+- [ ] Whiteboard-to-architecture: photo of a sketch in, scaffolded services out
+- [ ] Commit-history time-lapse video generator
+- [ ] `bolt roast`: brutally honest code review mode
+- [ ] Repo trivia: the agent quizzes your team on your own codebase
+- [ ] ASCII architecture diagrams rendered live in the TUI
+- [ ] Changelog rap: release notes in the style of your choice
+- [ ] Code golf mode: the agent minimizes a function and explains every trick
+- [ ] `bolt tour`: guided walking tour of an unfamiliar codebase, room by room
+- [ ] Emoji-only commit summaries as a hidden flag
+
+</details>
+
+<details>
+<summary><strong>Multi-agent orchestration (10)</strong></summary>
+
+- [ ] Planner/worker/reviewer roles with explicit handoff artifacts
+- [ ] Agent debate: two agents argue an approach, a judge picks the plan
+- [ ] Parallel worktree swarms: N agents on N branches, merged by a coordinator
+- [ ] Specialist registry: frontend, infra, database, and docs agents with routed dispatch
+- [ ] Subagent progress streaming into one unified timeline
+- [ ] Deadlock detection when agents wait on each other
+- [ ] Shared scratchpad memory between agents in one pipeline
+- [ ] Cost-aware orchestration: cheap models draft, expensive models verify
+- [ ] Pipeline templates: reusable YAML definitions of multi-agent flows
+- [ ] Cross-repo pipelines: one plan spanning several repositories
+
+</details>
+
+<details>
+<summary><strong>Memory and learning (10)</strong></summary>
+
+- [ ] Memory decay: stale facts age out unless reconfirmed
+- [ ] Memory conflicts: detect and resolve contradictory learned facts
+- [ ] Team memory: opt-in shared project memory across teammates
+- [ ] Memory diffs: see exactly what a session added to memory before it persists
+- [ ] Negative memory: remember what did NOT work to avoid repeating it
+- [ ] Memory search: full-text and semantic search over everything learned
+- [ ] Per-directory memory scopes for monorepos
+- [ ] Memory import/export as reviewable markdown
+- [ ] Auto-learned build/test commands per project, no config needed
+- [ ] Memory provenance: every fact links to the session and message that taught it
+
+</details>
+
+<details>
+<summary><strong>Context engine (10)</strong></summary>
 
 - [ ] Pre-emptive compaction: summarize in the background at 80% context, never mid-prompt
 - [ ] Context pinning: mark files and facts that must never be compacted away
+- [ ] Smart file ranking: recently failing tests and hot files first
+- [ ] Diff-aware context: load only the hunks that matter, not whole files
 - [ ] Context budget meter live in the TUI status bar
-- [ ] Memory search: full-text and semantic search over everything the agent has learned
-- [ ] Memory decay: stale facts age out unless reconfirmed
+- [ ] Cross-file symbol graphs injected for the code under edit
+- [ ] Context replay: inspect exactly what the model saw for any past turn
+- [ ] Adaptive context per model: small models get distilled context automatically
+- [ ] Conversation branching with shared prefix caching
+- [ ] Context lint: warn when the prompt contains contradictory instructions
 
 </details>
 
 <details>
-<summary><strong>Git, review, and CI (5)</strong></summary>
+<summary><strong>Codebase intelligence (10)</strong></summary>
 
-- [ ] Review findings posted as comment drafts on the GitHub PR, not just printed locally
+- [ ] Whole-repo embedding index with incremental updates on save
+- [ ] Ownership map: who owns what, inferred from history and CODEOWNERS
+- [ ] Dead code radar: confidently unused exports, ranked by deletion safety
+- [ ] Dependency health report: outdated, vulnerable, and abandoned packages
+- [ ] Architectural drift detection against a declared module contract
+- [ ] Hotspot analysis: files with high churn and high complexity flagged for refactor
+- [ ] API surface tracking: public interface diffs across versions
+- [ ] Duplicate logic finder: near-identical code across the repo
+- [ ] Migration assistant: framework and major-version upgrade playbooks
+- [ ] Monorepo package graph with build-order awareness
+
+</details>
+
+<details>
+<summary><strong>Git and version control (10)</strong></summary>
+
+- [ ] Stacked PR support: split one big change into an ordered, reviewable stack
+- [ ] Semantic conflict resolution: merge conflicts resolved by intent, not lines
+- [ ] `bolt rebase`: agent-driven interactive rebase with explained decisions
+- [ ] Commit message linting against your repo's own conventions
+- [ ] Auto-split commits: one logical change per commit from a messy worktree
+- [ ] Worktree manager: create, list, and clean agent worktrees safely
+- [ ] Cherry-pick assistant: port a fix across release branches
+- [ ] Git archaeology: "when and why did this behavior change?" answered with evidence
+- [ ] Submodule-aware operations end to end
+- [ ] Signed-commit verification surfaced in review and bisect output
+
+</details>
+
+<details>
+<summary><strong>Code review (10)</strong></summary>
+
+- [ ] Review comment drafts posted directly to GitHub PRs
+- [ ] Severity-calibrated findings tuned by your past accept/reject decisions
+- [ ] Security-focused review profile (injection, authz, secrets, crypto misuse)
+- [ ] Accessibility review profile for UI diffs
+- [ ] Review checklists generated from AGENTS.md and CONTRIBUTING.md
 - [ ] Incremental re-review: only newly pushed commits get re-reviewed
-- [ ] PR description generation kept in sync with the final diff
-- [ ] GitHub Actions failure triage wired to `bolt bisect`
-- [ ] Auto-rerun of known-flaky jobs, escalating into `bolt flaky` quarantine
+- [ ] Cross-PR awareness: flag conflicting in-flight PRs before merge
+- [ ] Review analytics: which finding categories your team fixes vs ignores
+- [ ] Suggested-change patches attached to every finding
+- [ ] Reviewer personas: strict, pragmatic, or mentoring tone per run
 
 </details>
 
 <details>
-<summary><strong>Interfaces (5)</strong></summary>
+<summary><strong>Testing and QA (10)</strong></summary>
+
+- [ ] Test generation from types and docstrings with human-readable names
+- [ ] Snapshot test triage: explain what changed and whether it looks intended
+- [ ] E2E test recorder: turn a browser session into a Playwright spec
+- [ ] Test impact analysis: run only tests affected by the diff
+- [ ] Fixture factory generation from schema definitions
+- [ ] Fuzz harness scaffolding for parsers and codecs
+- [ ] Visual regression baseline management
+- [ ] Test speed profiler with slowest-test leaderboard
+- [ ] Quarantine dashboard: flaky list with age, owner, and deflake suggestions
+- [ ] Contract tests generated from OpenAPI and GraphQL schemas
+
+</details>
+
+<details>
+<summary><strong>CI/CD and automation (10)</strong></summary>
+
+- [ ] GitHub Actions failure triage bot wired to `bolt bisect`
+- [ ] Auto-rerun of known-flaky jobs with quarantine escalation
+- [ ] PR description generation kept in sync with the final diff
+- [ ] Release notes drafted from merged PRs, grouped by user impact
+- [ ] Dependency bump PRs with changelog digests and risk notes
+- [ ] Workflow linting: catch broken YAML and deprecated actions before push
+- [ ] Merge queue awareness: rebase and revalidate at the front of the queue
+- [ ] Deploy gate: agent checks dashboards and error rates after ship
+- [ ] Issue triage cron: label, dedupe, and draft responses on new issues
+- [ ] Nightly repo health report delivered as a single markdown brief
+
+</details>
+
+<details>
+<summary><strong>Terminal and TUI (10)</strong></summary>
 
 - [ ] Split-pane TUI: conversation on one side, live diff on the other
+- [ ] Inline images in supported terminals (kitty, iTerm2, WezTerm)
+- [ ] Mouse-free diff review with hunk-level accept/reject keys
 - [ ] Session tabs: several conversations in one TUI instance
-- [ ] Hunk-level diff review with accept and reject keys
-- [ ] Windows and Linux desktop builds with the one-line installer
-- [ ] VS Code extension: inline diff apply and a session sidebar on top of today's launch integration
+- [ ] Theme marketplace with hot-reload preview
+- [ ] Vim and Emacs keybinding profiles
+- [ ] Status line API for prompt frameworks (starship, p10k)
+- [ ] Notification hooks: desktop alerts when a long run finishes
+- [ ] Scrollback search with regex and time filters
+- [ ] Zero-flicker rendering on slow SSH connections
 
 </details>
 
 <details>
-<summary><strong>Providers, cost, and performance (5)</strong></summary>
+<summary><strong>Desktop and GUI (10)</strong></summary>
 
-- [ ] Local model support: Ollama and llama.cpp as first-class providers
+- [ ] Windows and Linux desktop builds with the one-line installer
+- [ ] Diff review UI with side-by-side and inline modes
+- [ ] Session browser: search, filter, and resume past sessions visually
+- [ ] Drag-and-drop images and files into the conversation
+- [ ] Global hotkey quick-ask window
+- [ ] Menu bar mode: fire-and-forget tasks from the tray
+- [ ] Background work panel: watch `bolt jobs` and cron runs from the desktop app
+- [ ] Native notifications with actionable buttons (view diff, retry)
+- [ ] Release highlights surfaced in-app when an auto-update lands
+- [ ] Offline queue: compose tasks offline, run when back online
+
+</details>
+
+<details>
+<summary><strong>Editor integrations (10)</strong></summary>
+
+- [ ] VS Code: inline diff apply and a session sidebar on top of today's launch integration
+- [ ] JetBrains plugin sharing the same daemon protocol
+- [ ] Neovim plugin with buffer-level context sync
+- [ ] Inline ghost-text suggestions backed by project memory
+- [ ] Editor-aware context: open buffers and cursor position inform the agent
+- [ ] Jump-to-source from every file reference in the conversation
+- [ ] Apply-hunk UX: accept agent edits hunk by hunk in the editor
+- [ ] Problems-panel sync: editor diagnostics feed the agent automatically
+- [ ] Notebook support: agent edits Jupyter cells with execution awareness
+- [ ] Zed: a richer ACP surface with inline edits and diagnostics round-tripped
+
+</details>
+
+<details>
+<summary><strong>Providers and gateways (10)</strong></summary>
+
+- [ ] Gateway health dashboard: latency and error rate per configured gateway
 - [ ] Automatic gateway failover when a provider errors mid-run
-- [ ] Cost estimate for a task before you run it
+- [ ] Free-tier optimizer: route to the best currently-free model
+- [ ] Local model support: Ollama and llama.cpp as first-class providers
+- [ ] Provider capability matrix auto-detected (tools, vision, caching, JSON mode)
+- [ ] Per-project provider allowlists for compliance
+- [ ] OAuth device flow for gateways that support it, no key pasting
+- [ ] Streaming cost ticker per provider in the status bar
+- [ ] Custom provider templates shareable as one-line imports
+- [ ] Gateway usage export: monthly spend per provider as CSV
+
+</details>
+
+<details>
+<summary><strong>Model routing and cost (10)</strong></summary>
+
+- [ ] Task-complexity router: trivial edits go to small models automatically
+- [ ] Cost simulator: estimate a task's price before running it
+- [ ] Session budgets with hard stops and graceful wind-down
+- [ ] Per-team spend reports with model breakdowns
+- [ ] Cache-hit optimizer: reorder context for maximum prefix reuse
+- [ ] Latency-based routing: fastest healthy provider wins ties
+- [ ] Quality feedback loop: routing learns from accepted vs rejected outputs
+- [ ] Batch mode: queue cheap overnight runs on discounted throughput
+- [ ] Token diet mode: aggressive prompt compression for constrained budgets
+- [ ] Spot-style preemption: pause and resume runs when prices spike
+
+</details>
+
+<details>
+<summary><strong>Performance and scale (10)</strong></summary>
+
+- [ ] Sub-second cold start for the CLI on every platform
+- [ ] Incremental repo scanning: only re-index what changed
+- [ ] Streaming tool output: no buffering entire command results in memory
 - [ ] Parallel tool execution when calls are independent
+- [ ] Session storage compaction and archival policies
+- [ ] 1M-file monorepo support with lazy directory hydration
+- [ ] Memory ceiling for the daemon with graceful degradation
+- [ ] Binary size diet: smaller installs, faster updates
+- [ ] Profiling harness: flame graphs for slow agent turns
 - [ ] Benchmark suite tracked in CI with regression alerts
 
 </details>
 
 <details>
-<summary><strong>Party tricks (3)</strong></summary>
+<summary><strong>Observability and analytics (10)</strong></summary>
 
-- [ ] `bolt roast`: brutally honest code review mode
-- [ ] `bolt tour`: guided walking tour of an unfamiliar codebase, room by room
-- [ ] ASCII architecture diagrams rendered live in the TUI, built on `bolt map`
+- [ ] Session timeline view: every tool call, token count, and pause explained
+- [ ] Where-did-my-tokens-go breakdown per session
+- [ ] Agent success metrics: task completion rate, edit acceptance rate
+- [ ] OpenTelemetry export for traces and metrics
+- [ ] Slow-turn analyzer: what made this response take 90 seconds?
+- [ ] Tool failure heatmap across sessions
+- [ ] Weekly digest: what the agent shipped, learned, and struggled with
+- [ ] Audit log: every command and file write, tamper-evident
+- [ ] Error clustering across sessions with suggested root causes
+- [ ] Self-report: the agent grades its own week and proposes improvements
+
+</details>
+
+<details>
+<summary><strong>Security and privacy (10)</strong></summary>
+
+- [ ] Sandboxed shell execution with per-project capability profiles
+- [ ] Prompt injection detection on all fetched web and file content
+- [ ] PII scrubbing before anything leaves the machine
+- [ ] SBOM generation and license compliance checks in one command
+- [ ] Dependency vulnerability autofix PRs with exploitability notes
+- [ ] Local-only mode: hard guarantee that no code leaves localhost
+- [ ] Secret scanning pre-commit with agent-suggested remediation
+- [ ] Signed plugin distribution with a verification chain
+- [ ] SSO and SCIM for team installations
+- [ ] Compliance profiles: SOC2 and HIPAA operating modes
+
+</details>
+
+<details>
+<summary><strong>Collaboration and teams (10)</strong></summary>
+
+- [ ] Session handoff: send a live session to a teammate with full context
+- [ ] Team playbooks: shared prompts and pipelines versioned in the repo
+- [ ] Slack: promote the in-tree bot to a supported integration with PR links back in-channel
+- [ ] Shared quarantine and flaky-test lists across the team
+- [ ] Async standup: the agent summarizes everyone's merged work daily
+- [ ] Knowledge handbook auto-built from team sessions and memory
+- [ ] Review load balancing: route PRs to the least-loaded qualified reviewer
+- [ ] Onboarding mode: new hires get a guided, memory-backed repo tour
+- [ ] Multi-tenant server: one daemon, many developers, isolated state
+- [ ] Org-wide roadmap board fed by agent-discovered tech debt
+
+</details>
+
+<details>
+<summary><strong>Extensibility and plugins (10)</strong></summary>
+
+- [ ] Stable plugin API v1 with semver guarantees
+- [ ] Plugin marketplace with ratings and install counts
+- [ ] Tool test harness: exercise a custom tool against fixture sessions before you ship it
+- [ ] MCP server mode: expose bolt's own tools and agents to other MCP clients
+- [ ] Webhook triggers: start runs from external events
+- [ ] Agent inheritance: derive a project agent from a built-in one and override only what differs
+- [ ] Scriptable lifecycle hooks: pre-run, post-diff, pre-commit
+- [ ] Language packs: community-maintained conventions per ecosystem
+- [ ] Python and Go SDKs alongside today's TypeScript SDK
+- [ ] Template repos: `bolt new` project scaffolds with agents preconfigured
+
+</details>
+
+<details>
+<summary><strong>Docs and DX (10)</strong></summary>
+
+- [ ] `bolt docs`: generate and maintain API docs from the code itself
+- [ ] Runnable README verification: docs' commands tested in CI
+- [ ] Architecture decision records drafted from big diffs
+- [ ] Interactive tutorials that run inside the TUI
+- [ ] Error messages that link to the exact fix, not a search page
+- [ ] `bolt doctor`: one command that diagnoses broken setups
+- [ ] Config schema with editor autocomplete and inline docs
+- [ ] Migration guides generated between bolt versions
+- [ ] Public cookbook of real session transcripts by task type
+- [ ] First-run experience: from install to first merged PR in ten minutes
+
+</details>
+
+<details>
+<summary><strong>Web, deploy, and runtime (10)</strong></summary>
+
+- [ ] Web UI parity: jobs, cron, and stats in `bolt web`, not just sessions
+- [ ] Remote runners: execute agent work on a beefy box, drive it locally
+- [ ] Container-native mode: every session in a disposable sandbox image
+- [ ] Preview deployments wired into the verification loop
+- [ ] Infra-as-code awareness: Terraform and Pulumi plan review
+- [ ] Kubernetes operator for team-scale bolt daemons
+- [ ] Serverless task API: POST a prompt, get a PR link back
+- [ ] Artifact store for build outputs the agent produces
+- [ ] Edge config: run trivial routing decisions without a round trip
+- [ ] Self-hosted gateway image with metering built in
 
 </details>
 
 ### Later
 
-Ideas we like and have not scoped. No commitment, no date.
-
 - [ ] Autonomous long-horizon projects spanning days
 - [ ] Fine-tuned repo-specific models
 - [ ] On-device small-model routing for trivial tasks
+- [ ] Agent federation across organizations
 - [ ] AI release manager: cut, verify, and publish releases end to end
+- [ ] Voice-first pair programming sessions
+- [ ] Formal verification assistance for critical modules
+- [ ] Self-improving toolchain: the agent proposes and ships its own tool upgrades
 
 ### Done
 
