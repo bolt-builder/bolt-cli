@@ -52,7 +52,7 @@ export const FlakyCommand = effectCmd({
     const command = args.command
     const runs = Math.max(1, Math.floor(args.runs))
 
-    const execute = async () => {
+    const execute = () => {
       const shell = process.platform === "win32" ? ["cmd", "/c", command] : ["sh", "-c", command]
       const proc = Bun.spawn(shell, { cwd, stdout: "ignore", stderr: "ignore" })
       return proc.exited
@@ -84,7 +84,7 @@ export const FlakyCommand = effectCmd({
     UI.println("Verdict: FLAKY. The same command both passed and failed.")
     process.exitCode = 2
     if (!args.quarantine) {
-      UI.println('Record it with: bolt flaky "' + command + '" --quarantine')
+      UI.println(`Record it with: bolt flaky "${command}" --quarantine`)
       return
     }
 
@@ -93,7 +93,7 @@ export const FlakyCommand = effectCmd({
     const entry: Quarantined = { command, passes, runs, detected: Date.now() }
     const merged = [...existing.filter((item) => item.command !== command), entry]
     fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(file, JSON.stringify(merged, null, 2) + "\n")
+    fs.writeFileSync(file, `${JSON.stringify(merged, null, 2)}\n`)
     UI.println(`Quarantined in ${FILE} (${merged.length} entr${merged.length === 1 ? "y" : "ies"}).`)
   }),
 })
