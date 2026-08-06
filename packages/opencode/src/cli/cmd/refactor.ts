@@ -76,6 +76,7 @@ export const RefactorCommand = effectCmd({
           sessionID: session.id,
           messageID: MessageID.ascending(),
           model: args.model ? parseModel(args.model) : undefined,
+          parts: [{ id: PartID.ascending(), type: "text", text }],
           parts: [{ id: PartID.ascending(), type: "text", text: args.confidence ? `${text}\n\n${CONFIDENCE}` : text }],
         })
         .pipe(Effect.orDie)
@@ -97,6 +98,8 @@ export const RefactorCommand = effectCmd({
       return { exit, output: `${stdout}\n${stderr}` }
     })
 
+    UI.println("Refactoring...")
+    yield* send(args.instruction)
 
     // Review the resulting worktree diff in a fresh code-review session. Warns
     // on a FAIL verdict but never reverts: tests are green at this point.
@@ -186,6 +189,7 @@ export const RefactorCommand = effectCmd({
       }
       if (attempt === attempts) break
       UI.println(`Tests failed with exit code ${run.exit}. Asking the agent to fix...`)
+      yield* send(
       latest = yield* send(
         [
           `The test command \`${args.test}\` failed with exit code ${run.exit} after your changes.`,

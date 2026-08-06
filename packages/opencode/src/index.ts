@@ -39,6 +39,7 @@ import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
 import { BisectCommand } from "./cli/cmd/bisect"
+import { RefactorCommand } from "./cli/cmd/refactor"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
@@ -129,6 +130,7 @@ const cli = yargs(args)
   .command(CronCommand)
   .command(FlakyCommand)
   .command(BisectCommand)
+  .command(RefactorCommand)
   .command(FigmaCommand)
   .command(SessionCommand)
   .command(PluginCommand)

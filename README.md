@@ -193,6 +193,9 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
+<summary><strong>Agents that check their work (2)</strong></summary>
+
+- [ ] Confidence scoring: the agent tells you when it is guessing
 <summary><strong>Agents that check their work (1)</strong></summary>
 
 - [ ] Self-review pass before any diff is handed to you
@@ -228,6 +231,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] Session replays: `bolt export --html` writes a self-contained HTML replay of any session, with a step-through timeline you can share
 - [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
 - [x] Codebase maps: `bolt map` walks your source tree and draws a mermaid map of directory dependencies with per-directory file counts
