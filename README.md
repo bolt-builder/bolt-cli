@@ -193,9 +193,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Agents that check their work (2)</strong></summary>
+<summary><strong>Agents that check their work (1)</strong></summary>
 
-- [ ] Confidence scoring: the agent tells you when it is guessing
 - [ ] Self-review pass before any diff is handed to you
 
 </details>
@@ -230,6 +229,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Confidence scoring: `--confidence` on `bolt review` and `bolt refactor` makes the agent say when it is guessing
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] `bolt memory why`: memory introspection that answers why the agent believes something and where it learned it
 - [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
