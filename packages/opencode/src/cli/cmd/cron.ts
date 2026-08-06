@@ -66,12 +66,14 @@ export function matches(expr: string, date: Date) {
   if (sets.some((set) => !set)) return false
   const [minute, hour, dom, month, dow] = sets as Set<number>[]
   const day = date.getDay()
+  const domMatch = dom.has(date.getDate())
+  const dowMatch = dow.has(day) || (day === 0 && dow.has(7))
+  // POSIX/Vixie cron: when both day-of-month and day-of-week are restricted, the
+  // day matches if EITHER matches; when one is `*` it matches every day, so the
+  // AND below degrades to the restricted field on its own.
+  const dayMatch = parts[2] !== "*" && parts[4] !== "*" ? domMatch || dowMatch : domMatch && dowMatch
   return (
-    minute.has(date.getMinutes()) &&
-    hour.has(date.getHours()) &&
-    dom.has(date.getDate()) &&
-    month.has(date.getMonth() + 1) &&
-    (dow.has(day) || (day === 0 && dow.has(7)))
+    minute.has(date.getMinutes()) && hour.has(date.getHours()) && month.has(date.getMonth() + 1) && dayMatch
   )
 }
 
