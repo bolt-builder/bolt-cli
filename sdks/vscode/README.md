@@ -14,11 +14,18 @@ The `bolt` CLI must be installed and on your PATH. See the [Bolt repository](htt
 
 ## Extension Settings
 
-This extension currently contributes no settings. Configuration for the CLI path and terminal behavior is planned.
+| Setting | Default | Description |
+| --- | --- | --- |
+| `bolt.path` | `""` | Path to the bolt CLI binary. Leave empty to look it up on your PATH. |
+| `bolt.args` | `[]` | Extra arguments appended when launching Bolt in the terminal. |
+| `bolt.terminal.reuse` | `true` | Focus an existing Bolt terminal instead of creating a new one when running Open Bolt. |
+
+In multi-root workspaces, opening Bolt asks which folder to run in and remembers your last choice. Diagnostics (binary resolution, terminal lifecycle) are written to the Bolt output channel; no file contents or prompt text are ever logged.
 
 ## Known Limitations
 
 - The file reference is typed into the Bolt terminal prompt; it is not sent while Bolt is busy generating a response.
+- Values in `bolt.args` are passed to the shell as-is; quote them yourself if they contain spaces.
 - Screenshots are not yet included in this README. TODO: add screenshots of the terminal integration.
 
 ## Publishing note
