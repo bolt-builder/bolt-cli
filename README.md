@@ -210,13 +210,10 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Agents that never sleep (5)</strong></summary>
+<summary><strong>Agents that never sleep (2)</strong></summary>
 
-- [ ] Watch mode: tests rerun on every save and failures fix themselves
-- [ ] `bolt cron`: scheduled agent chores (dependency bumps, changelog drafts, issue triage)
 - [ ] On-red-main automation: bisect, blame, and propose the fix before you've seen the alert
 - [ ] Flaky test detection and quarantining
-- [ ] Background job queue: `run --background` plus `bolt jobs list/tail/kill`
 
 </details>
 
@@ -250,6 +247,9 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] `bolt cron`: schedule recurring agent chores with `cron add/list/rm/start`, each trigger running as a background job
+- [x] Background job queue: `bolt run --background` starts detached jobs you manage with `bolt jobs list/tail/kill`
+- [x] Watch mode: `bolt watch "<command>"` reruns your tests on every save, and `--fix` sends failures to the agent so they fix themselves
 - [x] Compounding memory: every session teaches the next one, automatically
 - [x] Cross-session recall: new sessions start with project memory and `memory_save` / `memory_recall` in every agent's toolbox
 - [x] `bolt review --staged / --branch`: one-shot AI diff review with exit codes
