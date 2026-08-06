@@ -810,7 +810,7 @@ describe("session.compaction.prune", () => {
     Effect.gen(function* () {
       const ssn = yield* SessionNs.Service
       const info = yield* ssn.create({})
-      const a = yield* ssn.updateMessage({
+      const userMsg = yield* ssn.updateMessage({
         id: MessageID.ascending(),
         role: "user",
         sessionID: info.id,
@@ -820,12 +820,12 @@ describe("session.compaction.prune", () => {
       })
       yield* ssn.updatePart({
         id: PartID.ascending(),
-        messageID: a.id,
+        messageID: userMsg.id,
         sessionID: info.id,
         type: "text",
         text: "first",
       })
-      const b: SessionV1.Assistant = {
+      const assistantMsg: SessionV1.Assistant = {
         id: MessageID.ascending(),
         role: "assistant",
         sessionID: info.id,
@@ -841,14 +841,14 @@ describe("session.compaction.prune", () => {
         },
         modelID: ref.modelID,
         providerID: ref.providerID,
-        parentID: a.id,
+        parentID: userMsg.id,
         time: { created: Date.now() },
         finish: "end_turn",
       }
-      yield* ssn.updateMessage(b)
+      yield* ssn.updateMessage(assistantMsg)
       yield* ssn.updatePart({
         id: PartID.ascending(),
-        messageID: b.id,
+        messageID: assistantMsg.id,
         sessionID: info.id,
         type: "tool",
         callID: crypto.randomUUID(),
