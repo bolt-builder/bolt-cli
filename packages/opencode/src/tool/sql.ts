@@ -205,8 +205,7 @@ export const SqlTool = Tool.define(
           }
 
           const configured = yield* Effect.promise(() => configTarget(ins.worktree))
-          const target =
-            params.target ?? configured ?? process.env["BOLT_SQL_URL"] ?? process.env["DATABASE_URL"]
+          const target = params.target ?? configured ?? process.env["BOLT_SQL_URL"] ?? process.env["DATABASE_URL"]
           if (!target) {
             throw new Error(
               "no database target configured: pass target, add a url to .bolt/sql.json, or set BOLT_SQL_URL / DATABASE_URL",
