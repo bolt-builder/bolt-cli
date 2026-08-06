@@ -35,6 +35,11 @@ export const RefactorCommand = effectCmd({
         alias: "m",
         type: "string",
         describe: "model to use in the format of provider/model",
+      })
+      .option("confidence", {
+        type: "boolean",
+        describe: "ask the model to report how confident it is in the refactor",
+        default: false,
       }),
   handler: Effect.fn("Cli.refactor")(function* (args) {
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
@@ -58,13 +63,16 @@ export const RefactorCommand = effectCmd({
       ],
     })
 
+    const { confidence, CONFIDENCE } = yield* Effect.promise(() => import("./review"))
     const send = Effect.fn(function* (text: string) {
       const result = yield* prompt
         .prompt({
           sessionID: session.id,
           messageID: MessageID.ascending(),
           model: args.model ? parseModel(args.model) : undefined,
-          parts: [{ id: PartID.ascending(), type: "text", text }],
+          parts: [
+            { id: PartID.ascending(), type: "text", text: args.confidence ? `${text}\n\n${CONFIDENCE}` : text },
+          ],
         })
         .pipe(Effect.orDie)
       if (result.info.role === "assistant" && result.info.error) {
@@ -86,18 +94,23 @@ export const RefactorCommand = effectCmd({
     })
 
     UI.println("Refactoring...")
-    yield* send(args.instruction)
+    let latest = yield* send(args.instruction)
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
       UI.println(`Running tests (attempt ${attempt}/${attempts}): ${args.test}`)
       const run = yield* test
       if (run.exit === 0) {
         UI.println("Tests are green. Refactor complete.")
+        if (!args.confidence) return
+        const level = confidence(latest)
+        UI.println(
+          level ? `Confidence: ${level.toUpperCase()}` : "Could not determine a confidence level from the response.",
+        )
         return
       }
       if (attempt === attempts) break
       UI.println(`Tests failed with exit code ${run.exit}. Asking the agent to fix...`)
-      yield* send(
+      latest = yield* send(
         [
           `The test command \`${args.test}\` failed with exit code ${run.exit} after your changes.`,
           "Fix the failures and keep the refactor intact. Output (tail):",
