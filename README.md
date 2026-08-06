@@ -590,7 +590,6 @@ The roadmap is about one thing: making the agent smarter, more autonomous, and m
 - [x] VS Code extension (`sdks/vscode`) and ACP for editors like Zed
 - [x] Web UI: `bolt web` starts the server and opens the browser dashboard
 - [x] Custom agents defined as markdown in your repo, or generated with `bolt agent create`
-- [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet)
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] Session replays: `bolt export --html` writes a self-contained HTML replay of any session, with a step-through timeline you can share
 - [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
