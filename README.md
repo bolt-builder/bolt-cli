@@ -180,13 +180,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 ### Next
 
 <details>
-<summary><strong>Agents that remember (1)</strong></summary>
-
-- [ ] Memory introspection: ask the agent why it believes something and where it learned it
-
-</details>
-
-<details>
 <summary><strong>Agents with better hands (7)</strong></summary>
 
 - [ ] `multiedit`: batch several edits to one file in a single tool call
@@ -232,6 +225,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 - [x] Self-review pass: `bolt refactor --self-review` hands the green diff to the code-review agent before you see it
 - [x] Confidence scoring: `--confidence` on `bolt review` and `bolt refactor` makes the agent say when it is guessing
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
+- [x] `bolt memory why`: memory introspection that answers why the agent believes something and where it learned it
 - [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
 - [x] On-red-main automation: `bolt bisect "<command>" --good <ref>` finds the culprit commit, shows blame, and `--fix` proposes the patch
 - [x] Flaky test detection and quarantining: `bolt flaky "<command>"` reruns your tests and records flaky offenders in `.bolt/quarantine.json`
