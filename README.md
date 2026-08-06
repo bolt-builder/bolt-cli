@@ -212,12 +212,11 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Party tricks (4)</strong></summary>
+<summary><strong>Party tricks (3)</strong></summary>
 
 - [ ] Design-to-code: hand the agent a Figma file, get components back
 - [ ] Codebase visualization maps drawn by the agent
 - [ ] Pair-programming mode with a shared cursor
-- [ ] Session replays you can share like a highlight reel
 
 </details>
 
@@ -231,6 +230,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Session replays: `bolt export --html` writes a self-contained HTML replay of any session, with a step-through timeline you can share
 - [x] `bolt memory why`: memory introspection that answers why the agent believes something and where it learned it
 - [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
 - [x] On-red-main automation: `bolt bisect "<command>" --good <ref>` finds the culprit commit, shows blame, and `--fix` proposes the patch
