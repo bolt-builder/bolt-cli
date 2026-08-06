@@ -41,6 +41,7 @@ import { FlakyCommand } from "./cli/cmd/flaky"
 import { BisectCommand } from "./cli/cmd/bisect"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { FigmaCommand } from "./cli/cmd/figma"
+import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
@@ -132,6 +133,7 @@ const cli = yargs(args)
   .command(BisectCommand)
   .command(RefactorCommand)
   .command(FigmaCommand)
+  .command(PairCommand)
   .command(SessionCommand)
   .command(PluginCommand)
   .command(DbCommand)
