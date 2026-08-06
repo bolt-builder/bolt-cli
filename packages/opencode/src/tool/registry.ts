@@ -8,6 +8,7 @@ import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { FramesTool } from "./frames"
+import { GitTool } from "./git"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
 import { HttpTool } from "./http"
@@ -139,6 +140,7 @@ const layer = Layer.effect(
     const profile = yield* ProfileTool
     const httptool = yield* HttpTool
     const frames = yield* FramesTool
+    const gittool = yield* GitTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -260,6 +262,7 @@ const layer = Layer.effect(
           profile: Tool.init(profile),
           http: Tool.init(httptool),
           frames: Tool.init(frames),
+          git: Tool.init(gittool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           lsprefs: Tool.init(lsprefs),
@@ -300,6 +303,7 @@ const layer = Layer.effect(
             tool.profile,
             tool.http,
             tool.frames,
+            tool.git,
             tool.lsprefs,
             tool.lsprename,
             ...(tool.execute ? [tool.execute] : []),
