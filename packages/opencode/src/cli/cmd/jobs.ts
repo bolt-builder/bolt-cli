@@ -106,7 +106,7 @@ export const JobsCommand = effectCmd({
     if (args.action === "list") {
       const all = jobs()
       if (all.length === 0) {
-        UI.println("No background jobs. Start one with: bolt run --background \"...\"")
+        UI.println('No background jobs. Start one with: bolt run --background "..."')
         return
       }
       for (const job of all) {

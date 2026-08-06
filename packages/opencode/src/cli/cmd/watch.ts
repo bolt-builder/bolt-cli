@@ -29,7 +29,7 @@ export const WatchCommand = effectCmd({
       .positional("command", {
         type: "string",
         demandOption: true,
-        describe: "command to run when files change, e.g. \"bun test\"",
+        describe: 'command to run when files change, e.g. "bun test"',
       })
       .option("fix", {
         type: "boolean",
