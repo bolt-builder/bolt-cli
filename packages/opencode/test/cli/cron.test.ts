@@ -58,4 +58,21 @@ describe("matches", () => {
     expect(matches("0 12 16 1 *", date)).toBe(false)
     expect(matches("0 12 15 2 *", date)).toBe(false)
   })
+
+  test("ORs day-of-month and day-of-week when both are restricted", () => {
+    // 2026-01-01 is a Thursday (getDay() === 4).
+    const firstOfMonth = new Date(2026, 0, 1, 0, 0)
+    expect(firstOfMonth.getDate()).toBe(1)
+    expect(firstOfMonth.getDay()).toBe(4)
+    // "1st OR Monday": matches on the 1st even though it is not a Monday.
+    expect(matches("0 0 1 * 1", firstOfMonth)).toBe(true)
+    // ...and matches on a Monday that is not the 1st.
+    const monday = new Date(2026, 0, 5, 0, 0)
+    expect(monday.getDay()).toBe(1)
+    expect(matches("0 0 1 * 1", monday)).toBe(true)
+    // A Thursday that is not the 1st matches neither, so no run.
+    const otherThursday = new Date(2026, 0, 8, 0, 0)
+    expect(otherThursday.getDay()).toBe(4)
+    expect(matches("0 0 1 * 1", otherThursday)).toBe(false)
+  })
 })
