@@ -40,6 +40,10 @@ describe("substitute", () => {
     expect(substitute("Run the standard review", "")).toBe("Run the standard review")
   })
 
+  test("$0 is not a positional placeholder", () => {
+    expect(substitute("Run $0 now", "a b")).toBe("Run $0 now\n\na b")
+  })
+
   test("repeated numbered placeholders each substitute", () => {
     expect(substitute("$1 and $1 again", "echo")).toBe("echo and echo again")
   })

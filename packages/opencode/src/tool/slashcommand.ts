@@ -11,7 +11,7 @@ export const Parameters = Schema.Struct({
 })
 
 const argsRegex = /(?:"[^"]*"|'[^']*'|[^\s"']+)/g
-const placeholderRegex = /\$(\d+)/g
+const placeholderRegex = /\$([1-9]\d*)/g
 const quoteTrimRegex = /^["']|["']$/g
 
 /**
