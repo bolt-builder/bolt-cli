@@ -8,6 +8,7 @@ import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { HttpTool } from "./http"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
 import { Database } from "@opencode-ai/core/database/database"
@@ -127,6 +128,7 @@ const layer = Layer.effect(
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
     const profile = yield* ProfileTool
+    const httptool = yield* HttpTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -244,6 +246,7 @@ const layer = Layer.effect(
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
           profile: Tool.init(profile),
+          http: Tool.init(httptool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
@@ -278,6 +281,7 @@ const layer = Layer.effect(
             tool.sql,
             tool.diagnostics,
             tool.profile,
+            tool.http,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
