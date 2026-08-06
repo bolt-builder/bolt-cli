@@ -34,7 +34,8 @@ import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
 import { SlashcommandTool } from "./slashcommand"
 import { SqlTool } from "./sql"
-import * as Tool from "./tool"
+import { TaskCreateTool, TaskListTool, TaskUpdateTool } from "./tasks"
+import { Tool } from "./tool"
 import { Command } from "@/command"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@opencode-ai/plugin"
@@ -77,6 +78,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 import { McpCatalog } from "@/mcp/catalog"
+import { Storage } from "@/storage/storage"
 
 export function webSearchEnabled(providerID: ProviderV2.ID, flags = { exa: false, parallel: false }) {
   return providerID === ProviderV2.ID.opencode || flags.exa || flags.parallel
@@ -148,6 +150,9 @@ const layer = Layer.effect(
     const testrun = yield* TestRunTool
     const semantic = yield* SemanticSearchTool
     const browser = yield* BrowserTool
+    const taskcreate = yield* TaskCreateTool
+    const taskupdate = yield* TaskUpdateTool
+    const tasklist = yield* TaskListTool
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
     const profile = yield* ProfileTool
@@ -274,6 +279,9 @@ const layer = Layer.effect(
           testrun: Tool.init(testrun),
           semantic: Tool.init(semantic),
           browser: Tool.init(browser),
+          taskcreate: Tool.init(taskcreate),
+          taskupdate: Tool.init(taskupdate),
+          tasklist: Tool.init(tasklist),
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
           profile: Tool.init(profile),
@@ -319,6 +327,9 @@ const layer = Layer.effect(
             tool.testrun,
             tool.semantic,
             tool.browser,
+            tool.taskcreate,
+            tool.taskupdate,
+            tool.tasklist,
             tool.sql,
             tool.diagnostics,
             tool.profile,
@@ -531,6 +542,7 @@ export const node = LayerNode.make({
     Format.node,
     Truncate.node,
     RuntimeFlags.node,
+    Storage.node,
     MCP.node,
     Database.node,
     Ripgrep.node,
