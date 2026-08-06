@@ -125,6 +125,7 @@ export interface Interface {
   readonly hover: (input: LocInput) => Effect.Effect<any>
   readonly definition: (input: LocInput) => Effect.Effect<any[]>
   readonly references: (input: LocInput) => Effect.Effect<any[]>
+  readonly rename: (input: LocInput, name: string) => Effect.Effect<any[]>
   readonly implementation: (input: LocInput) => Effect.Effect<any[]>
   readonly documentSymbol: (uri: string) => Effect.Effect<(DocumentSymbol | Symbol)[]>
   readonly workspaceSymbol: (query: string) => Effect.Effect<Symbol[]>
@@ -410,6 +411,19 @@ const layer = Layer.effect(
       return results.flat().filter(Boolean)
     })
 
+    const rename = Effect.fn("LSP.rename")(function* (input: LocInput, name: string) {
+      const results = yield* run(input.file, (client) =>
+        client.connection
+          .sendRequest("textDocument/rename", {
+            textDocument: { uri: pathToFileURL(input.file).href },
+            position: { line: input.line, character: input.character },
+            newName: name,
+          })
+          .catch(() => null),
+      )
+      return results.filter(Boolean)
+    })
+
     const implementation = Effect.fn("LSP.implementation")(function* (input: LocInput) {
       const results = yield* run(input.file, (client) =>
         client.connection
@@ -486,6 +500,7 @@ const layer = Layer.effect(
       hover,
       definition,
       references,
+      rename,
       implementation,
       documentSymbol,
       workspaceSymbol,

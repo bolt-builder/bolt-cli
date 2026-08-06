@@ -7,8 +7,10 @@ import { QuestionTool } from "./question"
 import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
+import { FramesTool } from "./frames"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { HttpTool } from "./http"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
 import { Database } from "@opencode-ai/core/database/database"
@@ -19,8 +21,10 @@ import { InvalidTool } from "./invalid"
 import { BackgroundKillTool, BackgroundListTool, BackgroundOutputTool, BackgroundStartTool } from "./background"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
+import { ProfileTool } from "./profile"
 import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
+import { SqlTool } from "./sql"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@opencode-ai/plugin"
@@ -32,6 +36,9 @@ import { Provider } from "@/provider/provider"
 
 import { WebSearchTool } from "./websearch"
 import { LspTool } from "./lsp"
+import { DiagnosticsTool } from "./diagnostics"
+import { LspReferencesTool } from "./lsp-references"
+import { LspRenameTool } from "./lsp-rename"
 import * as Truncate from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "@opencode-ai/core/util/glob"
@@ -104,6 +111,8 @@ const layer = Layer.effect(
     const question = yield* QuestionTool
     const todo = yield* TodoWriteTool
     const lsptool = yield* LspTool
+    const lsprefs = yield* LspReferencesTool
+    const lsprename = yield* LspRenameTool
     const plan = yield* PlanExitTool
     const webfetch = yield* WebFetchTool
     const websearch = yield* WebSearchTool
@@ -123,6 +132,11 @@ const layer = Layer.effect(
     const bglist = yield* BackgroundListTool
     const testrun = yield* TestRunTool
     const browser = yield* BrowserTool
+    const sql = yield* SqlTool
+    const diagtool = yield* DiagnosticsTool
+    const profile = yield* ProfileTool
+    const httptool = yield* HttpTool
+    const frames = yield* FramesTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -238,8 +252,15 @@ const layer = Layer.effect(
           bglist: Tool.init(bglist),
           testrun: Tool.init(testrun),
           browser: Tool.init(browser),
+          sql: Tool.init(sql),
+          diagnostics: Tool.init(diagtool),
+          profile: Tool.init(profile),
+          http: Tool.init(httptool),
+          frames: Tool.init(frames),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
+          lsprefs: Tool.init(lsprefs),
+          lsprename: Tool.init(lsprename),
           plan: Tool.init(plan),
           ...(codeModeTool ? { execute: Tool.init(codeModeTool) } : {}),
         })
@@ -270,6 +291,13 @@ const layer = Layer.effect(
             tool.bglist,
             tool.testrun,
             tool.browser,
+            tool.sql,
+            tool.diagnostics,
+            tool.profile,
+            tool.http,
+            tool.frames,
+            tool.lsprefs,
+            tool.lsprename,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),

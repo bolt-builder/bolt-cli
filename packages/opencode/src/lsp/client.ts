@@ -243,6 +243,10 @@ export async function create(input: {
             dynamicRegistration: true,
             relatedDocumentSupport: true,
           },
+          references: {},
+          rename: {
+            prepareSupport: false,
+          },
           publishDiagnostics: {
             versionSupport: false,
           },
