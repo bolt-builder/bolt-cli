@@ -210,14 +210,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Agents that never sleep (2)</strong></summary>
-
-- [ ] On-red-main automation: bisect, blame, and propose the fix before you've seen the alert
-- [ ] Flaky test detection and quarantining
-
-</details>
-
-<details>
 <summary><strong>Agents with guardrails (4)</strong></summary>
 
 - [ ] Guardrail agent that vetoes risky commands before they run
@@ -247,6 +239,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] On-red-main automation: `bolt bisect "<command>" --good <ref>` finds the culprit commit, shows blame, and `--fix` proposes the patch
+- [x] Flaky test detection and quarantining: `bolt flaky "<command>"` reruns your tests and records flaky offenders in `.bolt/quarantine.json`
 - [x] `bolt cron`: schedule recurring agent chores with `cron add/list/rm/start`, each trigger running as a background job
 - [x] Background job queue: `bolt run --background` starts detached jobs you manage with `bolt jobs list/tail/kill`
 - [x] Watch mode: `bolt watch "<command>"` reruns your tests on every save, and `--fix` sends failures to the agent so they fix themselves
