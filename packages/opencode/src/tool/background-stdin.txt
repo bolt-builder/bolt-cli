@@ -1,0 +1,9 @@
+Writes input to the stdin of a running background process started with bash_background.
+
+Use this to drive interactive background processes: answer a prompt, feed a REPL, send commands to a dev-server console, or pipe data into a filter that reads stdin.
+
+Usage:
+- Pass the process id returned by bash_background and the text to send in `data`.
+- A trailing newline is appended by default so line-buffered programs see the input; pass enter=false to send the text exactly as-is.
+- Use `process_output` afterwards to read whatever the process printed in response.
+- Fails with a clear error when the id is unknown, the process has already exited, or its stdin pipe is closed.

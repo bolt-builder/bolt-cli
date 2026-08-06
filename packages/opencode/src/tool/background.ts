@@ -12,16 +12,21 @@ import { BashArity } from "@/permission/arity"
 import * as Truncate from "./truncate"
 import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
+import type { ChildProcessHandle } from "effect/unstable/process/ChildProcessSpawner"
 import START_DESCRIPTION from "./background.txt"
 import OUTPUT_DESCRIPTION from "./background-output.txt"
 import KILL_DESCRIPTION from "./background-kill.txt"
 import LIST_DESCRIPTION from "./background-list.txt"
+import STDIN_DESCRIPTION from "./background-stdin.txt"
 
 const TYPE = "shell"
 
 /** Live output per running job. BackgroundJob only exposes output after completion, so the
  * stream consumer inside each job's run effect appends here and process_output reads it. */
 const live = new Map<string, { text: string; cut: boolean }>()
+
+/** Handle per running job so background_stdin can write to the child's stdin. */
+const handles = new Map<string, ChildProcessHandle>()
 
 function append(id: string, chunk: string, keep: number) {
   const entry = live.get(id) ?? { text: "", cut: false }
@@ -33,12 +38,14 @@ function append(id: string, chunk: string, keep: number) {
   live.set(id, entry)
 }
 
+// stdin stays piped and open (endOnDone: false) so background_stdin can write
+// to the child across multiple calls; programs that ignore stdin are unaffected.
 function command(shell: string, text: string, cwd: string, env: NodeJS.ProcessEnv) {
   if (process.platform === "win32" && Shell.ps(shell)) {
     return ChildProcess.make(shell, ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", text], {
       cwd,
       env,
-      stdin: "ignore",
+      stdin: { stream: "pipe", endOnDone: false },
       detached: false,
     })
   }
@@ -46,9 +53,15 @@ function command(shell: string, text: string, cwd: string, env: NodeJS.ProcessEn
     shell,
     cwd,
     env,
-    stdin: "ignore",
+    stdin: { stream: "pipe", endOnDone: false },
     detached: process.platform !== "win32",
   })
+}
+
+/** Encode a background_stdin write; appends a newline unless enter is false. */
+export function payload(data: string, enter?: boolean) {
+  const text = enter === false ? data : `${data}\n`
+  return new TextEncoder().encode(text)
 }
 
 function render(info: BackgroundJob.Info) {
@@ -125,6 +138,8 @@ export const BackgroundStartTool = Tool.define(
             run: Effect.scoped(
               Effect.gen(function* () {
                 const handle = yield* spawner.spawn(command(shell, params.command, cwd, env))
+                handles.set(id, handle)
+                yield* Effect.addFinalizer(() => Effect.sync(() => handles.delete(id)))
                 yield* Effect.forkScoped(
                   Stream.runForEach(Stream.decodeText(handle.all), (chunk) =>
                     Effect.sync(() => append(id, chunk, keep)),
@@ -190,6 +205,51 @@ export const BackgroundOutputTool = Tool.define(
             title: `${params.id} [${info.status}]`,
             output: [`status=${info.status}`, body || "(no output yet)"].join("\n"),
             metadata: { id: info.id, status: info.status, truncated: cut },
+          }
+        }),
+    }
+  }),
+)
+
+export const StdinParameters = Schema.Struct({
+  id: Schema.String.annotate({ description: "The background process id returned by bash_background" }),
+  data: Schema.String.annotate({ description: "The text to write to the process's stdin" }),
+  enter: Schema.optional(Schema.Boolean).annotate({
+    description: "Append a trailing newline so line-buffered programs see the input. Defaults to true.",
+  }),
+})
+
+export const BackgroundStdinTool = Tool.define(
+  "background_stdin",
+  Effect.gen(function* () {
+    const jobs = yield* BackgroundJob.Service
+
+    return {
+      description: STDIN_DESCRIPTION,
+      parameters: StdinParameters,
+      execute: (params: Schema.Schema.Type<typeof StdinParameters>, ctx: Tool.Context) =>
+        Effect.gen(function* () {
+          const info = yield* jobs.get(params.id)
+          if (!info || info.type !== TYPE) {
+            throw new Error(`No background process found with id ${params.id}. Use list_processes to see known ids.`)
+          }
+          if (info.status !== "running") {
+            throw new Error(`Process ${params.id} has already exited (status=${info.status}); its stdin is closed.`)
+          }
+          const handle = handles.get(params.id)
+          if (!handle) {
+            throw new Error(`Process ${params.id} is not accepting input; its stdin pipe is already closed.`)
+          }
+          const bytes = payload(params.data, params.enter)
+          yield* Stream.run(Stream.make(bytes), handle.stdin).pipe(
+            Effect.catch((error) =>
+              Effect.die(new Error(`Could not write to stdin of process ${params.id}; the pipe is closed (${error.message}).`)),
+            ),
+          )
+          return {
+            title: `${params.id} stdin`,
+            output: `Wrote ${bytes.byteLength} bytes to stdin of ${params.id}. Use process_output with id=${params.id} to read its response.`,
+            metadata: { id: params.id, bytes: bytes.byteLength },
           }
         }),
     }
