@@ -36,6 +36,8 @@ import { Provider } from "@/provider/provider"
 import { WebSearchTool } from "./websearch"
 import { LspTool } from "./lsp"
 import { DiagnosticsTool } from "./diagnostics"
+import { LspReferencesTool } from "./lsp-references"
+import { LspRenameTool } from "./lsp-rename"
 import * as Truncate from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "@opencode-ai/core/util/glob"
@@ -108,6 +110,8 @@ const layer = Layer.effect(
     const question = yield* QuestionTool
     const todo = yield* TodoWriteTool
     const lsptool = yield* LspTool
+    const lsprefs = yield* LspReferencesTool
+    const lsprename = yield* LspRenameTool
     const plan = yield* PlanExitTool
     const webfetch = yield* WebFetchTool
     const websearch = yield* WebSearchTool
@@ -252,6 +256,8 @@ const layer = Layer.effect(
           frames: Tool.init(frames),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
+          lsprefs: Tool.init(lsprefs),
+          lsprename: Tool.init(lsprename),
           plan: Tool.init(plan),
           ...(codeModeTool ? { execute: Tool.init(codeModeTool) } : {}),
         })
@@ -286,6 +292,8 @@ const layer = Layer.effect(
             tool.profile,
             tool.http,
             tool.frames,
+            tool.lsprefs,
+            tool.lsprename,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),

@@ -43,6 +43,7 @@ const lsp = Layer.succeed(
     hover: () => Effect.succeed([]),
     definition: () => Effect.succeed([]),
     references: () => Effect.succeed([]),
+    rename: () => Effect.succeed([]),
     implementation: () => Effect.succeed([]),
     documentSymbol: () => Effect.succeed([]),
     workspaceSymbol: (query) =>
