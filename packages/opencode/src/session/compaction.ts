@@ -330,13 +330,15 @@ const layer = Layer.effect(
       // hidden compaction request does not cost a full slow-model turn. Only
       // use it when its context window fits at least as much as the session
       // model's; an explicit compaction agent model always wins.
-      const base = yield* provider.getModel(userMessage.model.providerID, userMessage.model.modelID).pipe(Effect.orDie)
-      const small = agent.model ? undefined : yield* provider.getSmallModel(userMessage.model.providerID)
       const model = agent.model
         ? yield* provider.getModel(agent.model.providerID, agent.model.modelID).pipe(Effect.orDie)
-        : small && small.limit.context >= base.limit.context
-          ? small
-          : base
+        : yield* Effect.gen(function* () {
+            const base = yield* provider
+              .getModel(userMessage.model.providerID, userMessage.model.modelID)
+              .pipe(Effect.orDie)
+            const small = yield* provider.getSmallModel(userMessage.model.providerID)
+            return small && small.limit.context >= base.limit.context ? small : base
+          })
       const cfg = yield* config.get()
       const history = compactionPart && messages.at(-1)?.info.id === input.parentID ? messages.slice(0, -1) : messages
       const prior = completedCompactions(history)
