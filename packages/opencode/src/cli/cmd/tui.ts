@@ -6,7 +6,7 @@ import { fileURLToPath } from "url"
 import { UI } from "@/cli/ui"
 import { errorMessage } from "@opencode-ai/tui/util/error"
 import { withTimeout } from "@/util/timeout"
-import { withNetworkOptions, resolveNetworkOptionsNoConfig, hasArg } from "@/cli/network"
+import { withNetworkOptions, resolveNetworkOptionsNoConfig, hasArg, enforceLoopbackWithoutAuth } from "@/cli/network"
 import { Filesystem } from "@/util/filesystem"
 import type { GlobalEvent } from "@opencode-ai/sdk/v2"
 import type { EventSource } from "@opencode-ai/tui/context/sdk"
@@ -230,8 +230,17 @@ export const TuiThreadCommand = cmd({
       const prompt = await input(args.prompt)
       const config = await TuiConfig.get()
 
-      const network = resolveNetworkOptionsNoConfig(args)
-      const external = hasArg("--port") || hasArg("--hostname") || network.mdns === true
+      const resolved = resolveNetworkOptionsNoConfig(args)
+      const external = hasArg("--port") || hasArg("--hostname") || resolved.mdns === true
+      // An external bind exposes the file/shell API; refuse it beyond loopback
+      // when no server password is set.
+      const guard = external ? enforceLoopbackWithoutAuth(resolved) : ({ ok: true as const, opts: resolved })
+      if (!guard.ok) {
+        UI.error(guard.error)
+        process.exitCode = 1
+        return
+      }
+      const network = guard.opts
 
       const headers = external ? ServerAuth.headers() : undefined
 
