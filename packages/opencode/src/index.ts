@@ -32,15 +32,14 @@ import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { LearnCommand } from "./cli/cmd/learn"
-import { RefactorCommand } from "./cli/cmd/refactor"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
 import { BisectCommand } from "./cli/cmd/bisect"
-import { RefactorCommand } from "./cli/cmd/refactor"
 import { FigmaCommand } from "./cli/cmd/figma"
+import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
@@ -123,15 +122,14 @@ const cli = yargs(args)
   .command(ReviewCommand)
   .command(RefactorCommand)
   .command(LearnCommand)
-  .command(RefactorCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
   .command(FlakyCommand)
   .command(BisectCommand)
-  .command(RefactorCommand)
   .command(FigmaCommand)
+  .command(PairCommand)
   .command(SessionCommand)
   .command(PluginCommand)
   .command(DbCommand)

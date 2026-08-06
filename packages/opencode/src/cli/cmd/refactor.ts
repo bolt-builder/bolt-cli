@@ -68,7 +68,6 @@ export const RefactorCommand = effectCmd({
       ],
     })
 
-    const { confidence, CONFIDENCE } = yield* Effect.promise(() => import("./review"))
     const { confidence, CONFIDENCE, INSTRUCTIONS, verdict } = yield* Effect.promise(() => import("./review"))
     const send = Effect.fn(function* (text: string) {
       const result = yield* prompt
@@ -76,7 +75,6 @@ export const RefactorCommand = effectCmd({
           sessionID: session.id,
           messageID: MessageID.ascending(),
           model: args.model ? parseModel(args.model) : undefined,
-          parts: [{ id: PartID.ascending(), type: "text", text }],
           parts: [{ id: PartID.ascending(), type: "text", text: args.confidence ? `${text}\n\n${CONFIDENCE}` : text }],
         })
         .pipe(Effect.orDie)
@@ -189,7 +187,6 @@ export const RefactorCommand = effectCmd({
       }
       if (attempt === attempts) break
       UI.println(`Tests failed with exit code ${run.exit}. Asking the agent to fix...`)
-      yield* send(
       latest = yield* send(
         [
           `The test command \`${args.test}\` failed with exit code ${run.exit} after your changes.`,

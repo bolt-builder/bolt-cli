@@ -71,6 +71,7 @@ type ShellCall = {
 
 export type SessionData = {
   includeUserText: boolean
+  local: Set<string>
   announced: boolean
   ids: Set<string>
   tools: Set<string>
@@ -105,10 +106,12 @@ export type SessionDataOutput = {
 export function createSessionData(
   input: {
     includeUserText?: boolean
+    local?: Set<string>
   } = {},
 ): SessionData {
   return {
     includeUserText: input.includeUserText ?? false,
+    local: input.local ?? new Set(),
     announced: false,
     ids: new Set(),
     tools: new Set(),
@@ -439,7 +442,23 @@ function ready(data: SessionData, partID: string): boolean {
     return true
   }
 
-  return data.includeUserText && role === "user"
+  return role === "user" && showUser(data, msg)
+}
+
+// Whether a user-role message's text should render. Pair mode shows the
+// partner's prompts, but this client's own prompts are already echoed locally
+// on submit, so events for locally-sent message IDs stay suppressed to avoid
+// rendering them twice.
+function showUser(data: SessionData, messageID: string | undefined): boolean {
+  if (!data.includeUserText) {
+    return false
+  }
+
+  if (messageID && data.local.has(messageID)) {
+    return false
+  }
+
+  return true
 }
 
 function syncText(data: SessionData, partID: string, next: string) {
@@ -585,7 +604,7 @@ function replay(data: SessionData, commits: SessionCommit[], messageID: string, 
       continue
     }
 
-    if (role === "user" && !data.includeUserText) {
+    if (role === "user" && !showUser(data, messageID)) {
       data.ids.add(partID)
       drop(data, partID)
       continue
@@ -748,7 +767,7 @@ export function flushInterrupted(data: SessionData, commits: SessionCommit[]) {
     }
 
     const msg = data.msg.get(partID)
-    if (msg && data.role.get(msg) === "user" && !data.includeUserText) {
+    if (msg && data.role.get(msg) === "user" && !showUser(data, msg)) {
       data.ids.add(partID)
       drop(data, partID)
       continue
@@ -1013,7 +1032,7 @@ export function reduceSessionData(input: SessionDataInput): SessionDataOutput {
 
     const msg = part.messageID
     const role = msg ? data.role.get(msg) : undefined
-    if (role === "user" && part.type === "text" && !data.includeUserText) {
+    if (role === "user" && part.type === "text" && !showUser(data, msg)) {
       data.ids.add(part.id)
       drop(data, part.id)
       return out(data, commits)

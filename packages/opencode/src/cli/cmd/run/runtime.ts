@@ -52,6 +52,7 @@ type RunRuntimeInput = {
   initialInput?: string
   thinking: boolean
   backgroundSubagents: boolean
+  pair?: boolean
   replay?: boolean
   replayLimit?: number
   demo?: RunInput["demo"]
@@ -477,6 +478,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput, deps: RunRuntimeDep
         directory: ctx.directory,
         sessionID: state.sessionID,
         thinking: input.thinking,
+        pair: input.pair,
         replay: input.replay,
         replayLimit: input.replayLimit,
         limits: () => state.limits,
@@ -794,6 +796,7 @@ export async function runInteractiveMode(
       initialInput: input.initialInput,
       thinking: input.thinking,
       backgroundSubagents: input.backgroundSubagents,
+      pair: input.pair,
       replay: input.replay,
       replayLimit: input.replayLimit,
       demo: input.demo,
