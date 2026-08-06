@@ -29,6 +29,7 @@ import {
 import { McpResourceReadTool, McpResourcesTool } from "./mcp-resource"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
+import { NotebookTool } from "./notebook"
 import { ProfileTool } from "./profile"
 import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
@@ -142,6 +143,7 @@ const layer = Layer.effect(
     const memsave = yield* MemorySaveTool
     const memrecall = yield* MemoryRecallTool
     const multiedit = yield* MultiEditTool
+    const notebook = yield* NotebookTool
     const bgstart = yield* BackgroundStartTool
     const bgoutput = yield* BackgroundOutputTool
     const bgkill = yield* BackgroundKillTool
@@ -259,6 +261,7 @@ const layer = Layer.effect(
           grep: Tool.init(greptool),
           edit: Tool.init(edit),
           multiedit: Tool.init(multiedit),
+          notebook: Tool.init(notebook),
           write: Tool.init(writetool),
           task: Tool.init(task),
           fetch: Tool.init(webfetch),
@@ -307,6 +310,7 @@ const layer = Layer.effect(
             tool.grep,
             tool.edit,
             tool.multiedit,
+            tool.notebook,
             tool.write,
             tool.task,
             tool.fetch,
