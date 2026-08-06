@@ -199,9 +199,7 @@ export const GitTool = Tool.define(
 
     const run = Effect.fnUntraced(
       function* (args: string[], cwd: string) {
-        const handle = yield* spawner.spawn(
-          ChildProcess.make("git", args, { cwd, extendEnv: true, stdin: "ignore" }),
-        )
+        const handle = yield* spawner.spawn(ChildProcess.make("git", args, { cwd, extendEnv: true, stdin: "ignore" }))
         const collected = yield* Effect.all(
           [Stream.mkString(Stream.decodeText(handle.stdout)), Stream.mkString(Stream.decodeText(handle.stderr))],
           { concurrency: 2 },
@@ -282,7 +280,9 @@ export const GitTool = Tool.define(
             return {
               title: `git log (${entries.length} commit${entries.length === 1 ? "" : "s"})`,
               output: entries.length
-                ? entries.map((entry) => `${entry.sha.slice(0, 8)} ${entry.date} ${entry.author}: ${entry.subject}`).join("\n")
+                ? entries
+                    .map((entry) => `${entry.sha.slice(0, 8)} ${entry.date} ${entry.author}: ${entry.subject}`)
+                    .join("\n")
                 : "no commits",
               metadata: { entries },
             }
@@ -302,7 +302,12 @@ export const GitTool = Tool.define(
             return {
               title: `git blame ${params.path}`,
               output: lines.length
-                ? lines.map((line) => `${String(line.line).padStart(5)} ${line.sha.slice(0, 8)} ${line.author}: ${line.content}`).join("\n")
+                ? lines
+                    .map(
+                      (line) =>
+                        `${String(line.line).padStart(5)} ${line.sha.slice(0, 8)} ${line.author}: ${line.content}`,
+                    )
+                    .join("\n")
                 : "no lines",
               metadata: { lines: lines.length, path: params.path },
             }

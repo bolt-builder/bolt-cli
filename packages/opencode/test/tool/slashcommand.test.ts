@@ -31,9 +31,7 @@ describe("substitute", () => {
   })
 
   test("appends arguments when the template has no placeholders", () => {
-    expect(substitute("Run the standard review", "focus on tests")).toBe(
-      "Run the standard review\n\nfocus on tests",
-    )
+    expect(substitute("Run the standard review", "focus on tests")).toBe("Run the standard review\n\nfocus on tests")
   })
 
   test("does not append when there are no arguments", () => {

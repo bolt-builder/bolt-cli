@@ -243,7 +243,9 @@ export const BackgroundStdinTool = Tool.define(
           const bytes = payload(params.data, params.enter)
           yield* Stream.run(Stream.make(bytes), handle.stdin).pipe(
             Effect.catch((error) =>
-              Effect.die(new Error(`Could not write to stdin of process ${params.id}; the pipe is closed (${error.message}).`)),
+              Effect.die(
+                new Error(`Could not write to stdin of process ${params.id}; the pipe is closed (${error.message}).`),
+              ),
             ),
           )
           return {
