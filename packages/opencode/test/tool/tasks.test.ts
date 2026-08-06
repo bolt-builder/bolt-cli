@@ -1,5 +1,39 @@
-import { describe, expect, test } from "bun:test"
-import { blocked, create, render, transition, type Info } from "../../src/tool/tasks"
+import { afterEach, describe, expect, test } from "bun:test"
+import { LayerNode } from "@opencode-ai/core/effect/layer-node"
+import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
+import { FSUtil } from "@opencode-ai/core/fs-util"
+import { Effect, Layer } from "effect"
+import { Agent } from "../../src/agent/agent"
+import { Config } from "@/config/config"
+import { Plugin } from "../../src/plugin"
+import { RuntimeFlags } from "@/effect/runtime-flags"
+import { Storage } from "@/storage/storage"
+import { Truncate } from "@/tool/truncate"
+import { SessionID, MessageID } from "../../src/session/schema"
+import { blocked, create, render, transition, TaskListTool, type Info } from "../../src/tool/tasks"
+import { disposeAllInstances, provideInstance, testInstanceStoreLayer, tmpdirScoped } from "../fixture/fixture"
+import { testEffect } from "../lib/effect"
+
+const layer = Layer.mergeAll(
+  LayerNode.compile(
+    LayerNode.group([
+      CrossSpawnSpawner.node,
+      FSUtil.node,
+      Plugin.node,
+      Truncate.node,
+      Config.node,
+      Agent.node,
+      RuntimeFlags.node,
+      Storage.node,
+    ]),
+  ),
+  testInstanceStoreLayer,
+)
+const it = testEffect(layer)
+
+afterEach(async () => {
+  await disposeAllInstances()
+})
 
 function task(id: string, status: Info["status"], blockers: string[] = []): Info {
   return { id, subject: `task ${id}`, status, blockers }
@@ -104,6 +138,11 @@ describe("transition", () => {
     expect(out.tasks[0]).toMatchObject({ subject: "renamed", status: "in_progress" })
   })
 
+  test("rejects a whitespace-only subject", () => {
+    const out = transition([task("1", "pending")], { id: "1", subject: "   " })
+    expect(out).toEqual({ ok: false, reason: "subject must not be empty" })
+  })
+
   test("rejects self-blocking", () => {
     const out = transition([task("1", "pending")], { id: "1", blockers: ["1"] })
     expect(out.ok).toBe(false)
@@ -144,6 +183,44 @@ describe("blocked", () => {
     const item = task("1", "pending", ["9"])
     expect(blocked([item], item)).toEqual([])
   })
+})
+
+describe("task_list execute", () => {
+  it.live("returns structured task records with live blocked info", () =>
+    Effect.gen(function* () {
+      const dir = yield* tmpdirScoped()
+      yield* Effect.gen(function* () {
+        const storage = yield* Storage.Service
+        const sessionID = SessionID.make(`ses_tasks-test-${crypto.randomUUID()}`)
+        yield* Effect.addFinalizer(() => storage.remove(["session_task", sessionID]).pipe(Effect.ignore))
+        const tasks = [task("1", "pending"), task("2", "pending", ["1"])]
+        yield* storage.write(["session_task", sessionID], tasks)
+
+        const info = yield* TaskListTool
+        const def = yield* info.init()
+        const result = yield* def.execute(
+          {},
+          {
+            sessionID,
+            messageID: MessageID.make("msg_tasks-test"),
+            callID: "",
+            agent: "build",
+            abort: AbortSignal.any([]),
+            messages: [],
+            metadata: () => Effect.void,
+            ask: () => Effect.void,
+          },
+        )
+
+        expect(result.metadata.count).toBe(2)
+        expect(result.metadata.tasks).toEqual([
+          { ...tasks[0], blocked: [] },
+          { ...tasks[1], blocked: ["1"] },
+        ])
+        expect(result.output).toContain("blocked by: 1")
+      }).pipe(provideInstance(dir))
+    }),
+  )
 })
 
 describe("render", () => {

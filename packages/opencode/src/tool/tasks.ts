@@ -62,6 +62,8 @@ export function transition(
     return { ok: false, reason: `unknown task id "${input.id}" (known ids: ${known || "none"})` }
   }
 
+  if (input.subject !== undefined && !input.subject.trim()) return { ok: false, reason: "subject must not be empty" }
+
   if (input.blockers) {
     if (input.blockers.includes(input.id)) return { ok: false, reason: `task ${input.id} cannot block itself` }
     const known = tasks.map((task) => task.id)
@@ -123,8 +125,14 @@ export function render(tasks: readonly Info[]) {
 
 const KEY = "session_task"
 
-const load = (storage: Storage.Interface, sessionID: string) =>
-  storage.read<Info[]>([KEY, sessionID]).pipe(Effect.catch(() => Effect.succeed([] as Info[])))
+// A missing key means no tasks yet; any other storage failure must not be
+// mistaken for an empty list, or a later write would erase persisted tasks.
+const load = Effect.fnUntraced(function* (storage: Storage.Interface, sessionID: string) {
+  return yield* storage.read<Info[]>([KEY, sessionID]).pipe(
+    Effect.catchTag("NotFoundError", () => Effect.succeed([] as Info[])),
+    Effect.orDie,
+  )
+})
 
 export const CreateParameters = Schema.Struct({
   subject: Schema.String.annotate({ description: "Brief imperative summary of the task" }),
@@ -248,7 +256,10 @@ export const TaskListTool = Tool.define(
           return {
             title: `${tasks.filter((task) => task.status !== "completed" && task.status !== "cancelled").length} open tasks`,
             output: render(tasks),
-            metadata: { count: tasks.length },
+            metadata: {
+              count: tasks.length,
+              tasks: tasks.map((task) => ({ ...task, blocked: blocked(tasks, task) })),
+            },
           }
         }),
     }
