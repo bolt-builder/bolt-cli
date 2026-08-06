@@ -60,6 +60,8 @@ export type RunInput = {
   sessionID: string
   sessionTitle?: string
   resume?: boolean
+  // Pair mode: render user prompts sent by other clients on the same session.
+  pair?: boolean
   replay?: boolean
   replayLimit?: number
   agent: string | undefined
