@@ -1,0 +1,11 @@
+Pull current compiler and LSP diagnostics on demand, without waiting for a failed run or build.
+
+- Reports diagnostics collected from the language servers running for this project
+- Optional path filter: pass a file to refresh and report diagnostics for just that file, or a directory to limit results to files under it
+- Optional severity filter: error, warning, info, or hint
+- Output lines are structured as file:line:col severity message [source]
+
+Usage notes:
+- When a file path is given the file is opened in the matching language server and the tool waits for fresh diagnostics, so results reflect the current on-disk content
+- Without a path the tool reports diagnostics currently known for files the language servers have already analyzed; files never touched in this session may be missing
+- Diagnostics only exist for file types with a configured language server
