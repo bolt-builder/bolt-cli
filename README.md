@@ -213,11 +213,10 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
-<summary><strong>Party tricks (3)</strong></summary>
+<summary><strong>Party tricks (2)</strong></summary>
 
 - [ ] Codebase visualization maps drawn by the agent
 - [ ] Design-to-code: hand the agent a Figma file, get components back
-- [ ] Pair-programming mode with a shared cursor
 
 </details>
 
@@ -231,6 +230,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet)
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] Session replays: `bolt export --html` writes a self-contained HTML replay of any session, with a step-through timeline you can share
 - [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
