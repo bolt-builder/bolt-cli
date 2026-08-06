@@ -20,6 +20,7 @@ import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
 import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
+import { SqlTool } from "./sql"
 import * as Tool from "./tool"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@opencode-ai/plugin"
@@ -122,6 +123,7 @@ const layer = Layer.effect(
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
     const testrun = yield* TestRunTool
+    const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
@@ -237,6 +239,7 @@ const layer = Layer.effect(
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
           testrun: Tool.init(testrun),
+          sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
@@ -269,6 +272,7 @@ const layer = Layer.effect(
             tool.bgkill,
             tool.bglist,
             tool.testrun,
+            tool.sql,
             tool.diagnostics,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
