@@ -230,7 +230,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
-- [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet)
+- [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet; direct shell input may double-render, and permission prompts can be answered by either side)
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
 - [x] Session replays: `bolt export --html` writes a self-contained HTML replay of any session, with a step-through timeline you can share
 - [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
