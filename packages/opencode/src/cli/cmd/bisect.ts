@@ -19,7 +19,7 @@ export const BisectCommand = effectCmd({
       .positional("command", {
         type: "string",
         demandOption: true,
-        describe: "command that fails on HEAD, e.g. \"bun test ./test/foo.test.ts\"",
+        describe: 'command that fails on HEAD, e.g. "bun test ./test/foo.test.ts"',
       })
       .option("good", {
         alias: "g",
@@ -77,9 +77,12 @@ export const BisectCommand = effectCmd({
     }
     const sha = culprit.text().trim()
 
-    const summary = yield* git.run(["show", "--stat", "--format=commit %H%nauthor %an <%ae>%ndate   %ad%n%n  %s", sha], {
-      cwd,
-    })
+    const summary = yield* git.run(
+      ["show", "--stat", "--format=commit %H%nauthor %an <%ae>%ndate   %ad%n%n  %s", sha],
+      {
+        cwd,
+      },
+    )
     const diff = yield* git.run(["show", sha], { cwd })
     yield* git.run(["bisect", "reset"], { cwd })
 

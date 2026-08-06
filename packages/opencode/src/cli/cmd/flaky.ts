@@ -30,7 +30,7 @@ export const FlakyCommand = effectCmd({
       .positional("command", {
         type: "string",
         demandOption: true,
-        describe: "test command to rerun, e.g. \"bun test ./test/foo.test.ts\"",
+        describe: 'test command to rerun, e.g. "bun test ./test/foo.test.ts"',
       })
       .option("runs", {
         alias: "n",
@@ -84,7 +84,7 @@ export const FlakyCommand = effectCmd({
     UI.println("Verdict: FLAKY. The same command both passed and failed.")
     process.exitCode = 2
     if (!args.quarantine) {
-      UI.println("Record it with: bolt flaky \"" + command + "\" --quarantine")
+      UI.println('Record it with: bolt flaky "' + command + '" --quarantine')
       return
     }
 
