@@ -229,13 +229,27 @@ export const ExportCommand = effectCmd({
       .option("sanitize", {
         describe: "redact sensitive transcript and file data",
         type: "boolean",
+      })
+      .option("html", {
+        describe: "write a self-contained HTML replay instead of JSON",
+        type: "boolean",
+      })
+      .option("out", {
+        describe: "output file for the HTML replay",
+        type: "string",
+        default: "replay.html",
       }),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
 })
 
-const run = Effect.fn("Cli.export.body")(function* (args: { sessionID?: string; sanitize?: boolean }) {
+const run = Effect.fn("Cli.export.body")(function* (args: {
+  sessionID?: string
+  sanitize?: boolean
+  html?: boolean
+  out: string
+}) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
   const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
   const svc = yield* Session.Service
@@ -280,13 +294,19 @@ const run = Effect.fn("Cli.export.body")(function* (args: { sessionID?: string; 
 
   // Match legacy try/catch — catches both typed failures and defects
   // (Session.Service.get throws NotFoundError as a defect, not a typed E).
-  return yield* Effect.gen(function* () {
+  const exportData = yield* Effect.gen(function* () {
     const sessionInfo = yield* svc.get(sessionID!)
     const messages = yield* svc.messages({ sessionID: sessionInfo.id })
-
-    const exportData = { info: sessionInfo, messages }
-
-    process.stdout.write(JSON.stringify(args.sanitize ? sanitize(exportData) : exportData, null, 2))
-    process.stdout.write(EOL)
+    return { info: sessionInfo, messages }
   }).pipe(Effect.catchCause(() => fail(`Session not found: ${sessionID!}`)))
+
+  if (args.html) {
+    const { render } = yield* Effect.promise(() => import("./export-html"))
+    yield* Effect.promise(() => Bun.write(args.out, render(exportData.info.title, exportData.messages)))
+    process.stderr.write(`Wrote replay to ${args.out}\n`)
+    return
+  }
+
+  process.stdout.write(JSON.stringify(args.sanitize ? sanitize(exportData) : exportData, null, 2))
+  process.stdout.write(EOL)
 })
