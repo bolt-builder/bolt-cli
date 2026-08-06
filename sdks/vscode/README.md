@@ -7,6 +7,8 @@ Run the [Bolt](https://github.com/bolt-builder/bolt-cli) AI coding agent inside 
 - **Open Bolt** (`Cmd+Esc` on Mac, `Ctrl+Esc` on Windows/Linux): opens Bolt in a split terminal, or focuses the existing Bolt terminal if one is already running.
 - **Open Bolt in a new tab** (`Cmd+Shift+Esc` / `Ctrl+Shift+Esc`, or the Bolt button in the editor title bar): always starts a fresh Bolt terminal.
 - **Add Filepath to Terminal** (`Cmd+Alt+K` / `Ctrl+Alt+K`): inserts a reference to the active file into the Bolt prompt, for example `@src/extension.ts#12-40` when lines 12 to 40 are selected.
+- **Sidebar chat**: a Bolt icon in the activity bar opens a chat that talks to a Bolt server. The extension starts `bolt serve` for your workspace automatically, or attaches to the server configured in `bolt.server.url`. Responses stream in live, Stop interrupts mid-stream, and the transcript survives hiding the sidebar.
+- **Add Filepath to Bolt Chat** (editor context menu): inserts the same file reference into the sidebar chat input.
 
 ## Requirements
 
@@ -19,6 +21,7 @@ The `bolt` CLI must be installed and on your PATH. See the [Bolt repository](htt
 | `bolt.path` | `""` | Path to the bolt CLI binary. Leave empty to look it up on your PATH. |
 | `bolt.args` | `[]` | Extra arguments appended when launching Bolt in the terminal. |
 | `bolt.terminal.reuse` | `true` | Focus an existing Bolt terminal instead of creating a new one when running Open Bolt. |
+| `bolt.server.url` | `""` | URL of a running Bolt server for the sidebar chat. Leave empty to let the extension start one. |
 
 In multi-root workspaces, opening Bolt asks which folder to run in and remembers your last choice. Diagnostics (binary resolution, terminal lifecycle) are written to the Bolt output channel; no file contents or prompt text are ever logged.
 
@@ -26,7 +29,9 @@ In multi-root workspaces, opening Bolt asks which folder to run in and remembers
 
 - The file reference is typed into the Bolt terminal prompt; it is not sent while Bolt is busy generating a response.
 - Values in `bolt.args` are passed to the shell as-is; quote them yourself if they contain spaces.
-- Screenshots are not yet included in this README. TODO: add screenshots of the terminal integration.
+- The sidebar chat renders only fenced code blocks and inline code; other markdown is shown as plain text.
+- The sidebar authenticates with the private credential the CLI keeps in its state directory; attaching to a remote `bolt.server.url` that uses a different password is not supported yet.
+- Screenshots are not yet included in this README. TODO: add screenshots of the terminal integration and the sidebar.
 
 ## Publishing note
 
