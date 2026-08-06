@@ -16,7 +16,13 @@ import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
-import { BackgroundKillTool, BackgroundListTool, BackgroundOutputTool, BackgroundStartTool } from "./background"
+import {
+  BackgroundKillTool,
+  BackgroundListTool,
+  BackgroundOutputTool,
+  BackgroundStartTool,
+  BackgroundStdinTool,
+} from "./background"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
 import { ProfileTool } from "./profile"
@@ -124,6 +130,7 @@ const layer = Layer.effect(
     const bgoutput = yield* BackgroundOutputTool
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
+    const bgstdin = yield* BackgroundStdinTool
     const testrun = yield* TestRunTool
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
@@ -242,6 +249,7 @@ const layer = Layer.effect(
           bgoutput: Tool.init(bgoutput),
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
+          bgstdin: Tool.init(bgstdin),
           testrun: Tool.init(testrun),
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
@@ -277,6 +285,7 @@ const layer = Layer.effect(
             tool.bgoutput,
             tool.bgkill,
             tool.bglist,
+            tool.bgstdin,
             tool.testrun,
             tool.sql,
             tool.diagnostics,
