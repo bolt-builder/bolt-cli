@@ -25,6 +25,7 @@ import {
   BackgroundStartTool,
   BackgroundStdinTool,
 } from "./background"
+import { McpResourceReadTool, McpResourcesTool } from "./mcp-resource"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
 import { ProfileTool } from "./profile"
@@ -133,6 +134,8 @@ const layer = Layer.effect(
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
     const slashcommand = yield* SlashcommandTool
+    const mcpresources = yield* McpResourcesTool
+    const mcpresourceread = yield* McpResourceReadTool
     const memsave = yield* MemorySaveTool
     const memrecall = yield* MemoryRecallTool
     const multiedit = yield* MultiEditTool
@@ -257,6 +260,8 @@ const layer = Layer.effect(
           skill: Tool.init(skilltool),
           slashcommand: Tool.init(slashcommand),
           patch: Tool.init(patchtool),
+          mcpresources: Tool.init(mcpresources),
+          mcpresourceread: Tool.init(mcpresourceread),
           memsave: Tool.init(memsave),
           memrecall: Tool.init(memrecall),
           bgstart: Tool.init(bgstart),
@@ -299,6 +304,8 @@ const layer = Layer.effect(
             tool.skill,
             tool.slashcommand,
             tool.patch,
+            tool.mcpresources,
+            tool.mcpresourceread,
             tool.memsave,
             tool.memrecall,
             tool.bgstart,
