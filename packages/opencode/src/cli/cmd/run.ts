@@ -177,6 +177,11 @@ export const RunCommand = effectCmd({
         type: "string",
         describe: "agent to use (or 'auto' for automatic selection)",
       })
+      .option("auto-agent", {
+        type: "boolean",
+        default: false,
+        describe: "route the prompt to the best matching agent based on agent descriptions",
+      })
       .option("format", {
         type: "string",
         choices: ["default", "json"],
@@ -464,6 +469,14 @@ export const RunCommand = effectCmd({
         if (args.session || args.continue || args.fork) die("--best-of always runs in fresh sessions")
       }
 
+      if (args["auto-agent"]) {
+        if (args.agent) die("--auto-agent cannot be used with --agent")
+        if (interactive) die("--auto-agent cannot be used with --mini")
+        if (args.attach) die("--auto-agent cannot be used with --attach")
+        if (args.command) die("--auto-agent cannot be used with --command")
+        if (args["best-of"]) die("--auto-agent cannot be used with --best-of")
+      }
+
       const rules: PermissionV1.Ruleset = interactive
         ? []
         : [
@@ -713,7 +726,32 @@ export const RunCommand = effectCmd({
         return name
       }
 
+      // Deterministic prompt routing (--auto-agent): score the prompt against
+      // primary agent descriptions and fall back to the default agent when no
+      // candidate is a confident match. The one-line explanation is suppressed
+      // in --format json so machine output stays clean.
+      async function routedAgent() {
+        const { route, explain } = await import("./run/route")
+        const infos = await Effect.runPromise(
+          agentSvc.list().pipe(Effect.provideService(InstanceRef, localInstance)),
+        )
+        const fallback = await Effect.runPromise(
+          agentSvc.defaultAgent().pipe(Effect.provideService(InstanceRef, localInstance)),
+        )
+        const choice = route(
+          message,
+          infos
+            .filter((info) => info.mode !== "subagent" && info.hidden !== true && info.name !== fallback)
+            .map((info) => ({ name: info.name, description: info.description })),
+        )
+        if (args.format !== "json") {
+          UI.println(UI.Style.TEXT_DIM + explain(choice, fallback) + UI.Style.TEXT_NORMAL)
+        }
+        return choice?.agent
+      }
+
       async function pickAgent(sdk: OpencodeClient) {
+        if (args["auto-agent"]) return routedAgent()
         if (!args.agent) return undefined
         if (args.attach) {
           return attachAgent(sdk)
@@ -1083,6 +1121,8 @@ export async function runMini(input: MiniCommandInput) {
     "best-of": undefined,
     bestOf: undefined,
     agent: input.agent,
+    "auto-agent": false,
+    autoAgent: false,
     format: "default",
     file: undefined,
     title: undefined,
