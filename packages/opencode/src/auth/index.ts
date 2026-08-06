@@ -1,6 +1,6 @@
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import path from "path"
-import { Effect, Layer, Record, Result, Schema, Context } from "effect"
+import { Effect, Layer, Option, Record, Result, Schema, Context } from "effect"
 import { NonNegativeInt } from "@opencode-ai/core/schema"
 import { Global } from "@opencode-ai/core/global"
 import { FSUtil } from "@opencode-ai/core/fs-util"
@@ -56,13 +56,15 @@ const layer = Layer.effect(
     const decode = Schema.decodeUnknownOption(Info)
 
     const all = Effect.fn("Auth.all")(function* () {
-      if (process.env.OPENCODE_AUTH_CONTENT) {
-        try {
-          return JSON.parse(process.env.OPENCODE_AUTH_CONTENT)
-        } catch (err) {}
-      }
-
-      const data = (yield* fsys.readJson(file).pipe(Effect.orElseSucceed(() => ({})))) as Record<string, unknown>
+      const content = process.env.OPENCODE_AUTH_CONTENT
+      // Validate env-provided auth content through the same schema as the file,
+      // and fall back to an empty set on invalid JSON instead of silently
+      // swallowing the parse error (or returning unvalidated data).
+      const data = (
+        content
+          ? Option.getOrElse(Schema.decodeUnknownOption(Schema.UnknownFromJsonString)(content), () => ({}))
+          : yield* fsys.readJson(file).pipe(Effect.orElseSucceed(() => ({})))
+      ) as Record<string, unknown>
       return Record.filterMap(data, (value) => Result.fromOption(decode(value), () => undefined))
     })
 
