@@ -30,8 +30,10 @@ import { MultiEditTool } from "./multiedit"
 import { ProfileTool } from "./profile"
 import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
+import { SlashcommandTool } from "./slashcommand"
 import { SqlTool } from "./sql"
 import * as Tool from "./tool"
+import { Command } from "@/command"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@opencode-ai/plugin"
 import type { JSONSchema7, JSONSchema7Definition } from "@ai-sdk/provider"
@@ -130,6 +132,7 @@ const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const slashcommand = yield* SlashcommandTool
     const memsave = yield* MemorySaveTool
     const memrecall = yield* MemoryRecallTool
     const multiedit = yield* MultiEditTool
@@ -252,6 +255,7 @@ const layer = Layer.effect(
           todo: Tool.init(todo),
           search: Tool.init(websearch),
           skill: Tool.init(skilltool),
+          slashcommand: Tool.init(slashcommand),
           patch: Tool.init(patchtool),
           memsave: Tool.init(memsave),
           memrecall: Tool.init(memrecall),
@@ -293,6 +297,7 @@ const layer = Layer.effect(
             tool.todo,
             tool.search,
             tool.skill,
+            tool.slashcommand,
             tool.patch,
             tool.memsave,
             tool.memrecall,
@@ -496,6 +501,7 @@ export const node = LayerNode.make({
   service: Service,
   layer,
   deps: [
+    Command.node,
     Config.node,
     Plugin.node,
     Question.node,
