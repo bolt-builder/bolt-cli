@@ -205,6 +205,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 <details>
 <summary><strong>Party tricks (3)</strong></summary>
 
+- [ ] Codebase visualization maps drawn by the agent
 - [ ] Design-to-code: hand the agent a Figma file, get components back
 - [ ] Pair-programming mode with a shared cursor
 - [ ] Session replays you can share like a highlight reel
@@ -221,6 +222,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
 - [x] Codebase maps: `bolt map` walks your source tree and draws a mermaid map of directory dependencies with per-directory file counts
 - [x] Self-review pass: `bolt refactor --self-review` hands the green diff to the code-review agent before you see it
 - [x] Confidence scoring: `--confidence` on `bolt review` and `bolt refactor` makes the agent say when it is guessing
