@@ -1,13 +1,18 @@
 {
-  "name": "Bolt",
+  "name": "bolt-vscode",
   "displayName": "Bolt",
-  "description": "Bolt for VS Code",
-  "version": "1.20.6",
-  "publisher": "sst-dev",
+  "description": "Bolt AI coding agent for VS Code: run Bolt in your terminal and add files to its context. Self-hosted and BYOK.",
+  "version": "0.1.0",
+  "publisher": "bolt-builder",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym"
+    "url": "https://github.com/bolt-builder/bolt-cli",
+    "directory": "sdks/vscode"
   },
+  "bugs": {
+    "url": "https://github.com/bolt-builder/bolt-cli/issues"
+  },
+  "homepage": "https://github.com/bolt-builder/bolt-cli/tree/dev/sdks/vscode",
   "license": "AGPL-3.0-only",
   "icon": "images/icon.png",
   "galleryBanner": {
@@ -18,61 +23,69 @@
     "vscode": "^1.94.0"
   },
   "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
     "Other"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "coding assistant",
+    "self-hosted",
+    "byok",
+    "terminal"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "opencode.openTerminal",
-        "title": "Open opencode",
+        "command": "bolt.openTerminal",
+        "title": "Open Bolt",
         "icon": {
-          "light": "images/button-dark.svg",
-          "dark": "images/button-light.svg"
+          "light": "images/bolt-light.svg",
+          "dark": "images/bolt-dark.svg"
         }
       },
       {
-        "command": "opencode.openNewTerminal",
-        "title": "Open opencode in new tab",
+        "command": "bolt.openNewTerminal",
+        "title": "Open Bolt in a new tab",
         "icon": {
-          "light": "images/button-dark.svg",
-          "dark": "images/button-light.svg"
+          "light": "images/bolt-light.svg",
+          "dark": "images/bolt-dark.svg"
         }
       },
       {
-        "command": "opencode.addFilepathToTerminal",
+        "command": "bolt.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "opencode.openNewTerminal",
+          "command": "bolt.openNewTerminal",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "opencode.openTerminal",
-        "title": "Run opencode",
+        "command": "bolt.openTerminal",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
         "linux": "ctrl+escape"
       },
       {
-        "command": "opencode.openNewTerminal",
-        "title": "Run opencode",
+        "command": "bolt.openNewTerminal",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "opencode.addFilepathToTerminal",
-        "title": "opencode: Insert At-Mentioned",
+        "command": "bolt.addFilepathToTerminal",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
         "win": "ctrl+alt+K",
@@ -90,6 +103,7 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "bun run compile-tests && bun run compile && bun run lint",
     "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test"
   },

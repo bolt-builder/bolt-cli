@@ -1,21 +1,29 @@
-# opencode VS Code Extension
+# Bolt for VS Code
 
-A Visual Studio Code extension that integrates [opencode](https://opencode.ai) directly into your development workflow.
-
-## Prerequisites
-
-This extension requires the [opencode CLI](https://opencode.ai) to be installed on your system. Visit [opencode.ai](https://opencode.ai) for installation instructions.
+Run the [Bolt](https://github.com/bolt-builder/bolt-cli) AI coding agent inside VS Code: launch it in a split terminal and send file references to it without leaving your editor. Bolt is self-hosted, bring-your-own-key, and open source; this extension is a thin client of the CLI you already have and makes no network calls of its own.
 
 ## Features
 
-- **Quick Launch**: Use `Cmd+Esc` (Mac) or `Ctrl+Esc` (Windows/Linux) to open opencode in a split terminal view, or focus an existing terminal session if one is already running.
-- **New Session**: Use `Cmd+Shift+Esc` (Mac) or `Ctrl+Shift+Esc` (Windows/Linux) to start a new opencode terminal session, even if one is already open. You can also click the opencode button in the UI.
-- **Context Awareness**: Automatically share your current selection or tab with opencode.
-- **File Reference Shortcuts**: Use `Cmd+Option+K` (Mac) or `Alt+Ctrl+K` (Linux/Windows) to insert file references. For example, `@File#L37-42`.
+- **Open Bolt** (`Cmd+Esc` on Mac, `Ctrl+Esc` on Windows/Linux): opens Bolt in a split terminal, or focuses the existing Bolt terminal if one is already running.
+- **Open Bolt in a new tab** (`Cmd+Shift+Esc` / `Ctrl+Shift+Esc`, or the Bolt button in the editor title bar): always starts a fresh Bolt terminal.
+- **Add Filepath to Terminal** (`Cmd+Alt+K` / `Ctrl+Alt+K`): inserts a reference to the active file into the Bolt prompt, for example `@src/extension.ts#12-40` when lines 12 to 40 are selected.
 
-## Support
+## Requirements
 
-This is an early release. If you encounter issues or have feedback, please create an issue at https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues.
+The `bolt` CLI must be installed and on your PATH. See the [Bolt repository](https://github.com/bolt-builder/bolt-cli) for installation instructions. If the CLI is missing, the extension shows a notification with a link to the install docs instead of failing silently.
+
+## Extension Settings
+
+This extension currently contributes no settings. Configuration for the CLI path and terminal behavior is planned.
+
+## Known Limitations
+
+- The file reference is typed into the Bolt terminal prompt; it is not sent while Bolt is busy generating a response.
+- Screenshots are not yet included in this README. TODO: add screenshots of the terminal integration.
+
+## Publishing note
+
+The `publisher` field in `package.json` is a placeholder. Before the first Marketplace publish, a maintainer must create the `bolt-builder` publisher (or another name) on the Visual Studio Marketplace and update the field if the final name differs.
 
 ## Development
 
@@ -23,12 +31,8 @@ This is an early release. If you encounter issues or have feedback, please creat
 2. `bun install` - Run inside the `sdks/vscode` directory.
 3. Press `F5` to start debugging - This launches a new VS Code window with the extension loaded.
 
-#### Making Changes
+To package a `.vsix` locally, run `./script/package` from `sdks/vscode`.
 
-`tsc` and `esbuild` watchers run automatically during debugging (visible in the Terminal tab). Changes to the extension are automatically rebuilt in the background.
+## License
 
-To test your changes:
-
-1. In the debug VS Code window, press `Cmd+Shift+P`
-2. Search for `Developer: Reload Window`
-3. Reload to see your changes without restarting the debug session
+AGPL-3.0-only. See [LICENSE](./LICENSE).

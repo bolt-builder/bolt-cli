@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Builds a local .vsix for testing. Run from sdks/vscode.
+cd "$(dirname "$0")/.."
+
+bun run package
+bunx @vscode/vsce package --no-dependencies -o dist/bolt.vsix
+echo "Wrote dist/bolt.vsix"
