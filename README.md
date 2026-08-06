@@ -180,9 +180,8 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 ### Next
 
 <details>
-<summary><strong>Agents that remember (2)</strong></summary>
+<summary><strong>Agents that remember (1)</strong></summary>
 
-- [ ] Repo convention learning: the agent picks up your codebase's style and sticks to it
 - [ ] Memory introspection: ask the agent why it believes something and where it learned it
 
 </details>
@@ -239,6 +238,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 
 ### Done
 
+- [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
 - [x] On-red-main automation: `bolt bisect "<command>" --good <ref>` finds the culprit commit, shows blame, and `--fix` proposes the patch
 - [x] Flaky test detection and quarantining: `bolt flaky "<command>"` reruns your tests and records flaky offenders in `.bolt/quarantine.json`
 - [x] `bolt cron`: schedule recurring agent chores with `cron add/list/rm/start`, each trigger running as a background job

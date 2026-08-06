@@ -30,7 +30,7 @@ export const FlakyCommand = effectCmd({
       .positional("command", {
         type: "string",
         demandOption: true,
-        describe: "test command to rerun, e.g. \"bun test ./test/foo.test.ts\"",
+        describe: 'test command to rerun, e.g. "bun test ./test/foo.test.ts"',
       })
       .option("runs", {
         alias: "n",
