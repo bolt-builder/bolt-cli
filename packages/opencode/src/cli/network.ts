@@ -1,6 +1,7 @@
 import type { Argv, InferredOptionTypes } from "yargs"
 import { ConfigV1 } from "@opencode-ai/core/v1/config/config"
 import type { Config } from "@/config/config"
+import { Flag } from "@opencode-ai/core/flag/flag"
 import { Effect } from "effect"
 
 const options = {
@@ -77,4 +78,30 @@ export function resolveNetworkOptionsNoConfig(args: NetworkOptions, config?: Con
   const cors = [...configCors, ...argsCors]
 
   return { hostname, port, mdns, mdnsDomain, cors }
+}
+
+/**
+ * Refuse to expose an unauthenticated server beyond loopback. The API grants
+ * file read/write and shell execution, so binding a non-loopback interface (or
+ * advertising it over mDNS) without a password would hand that to the whole LAN.
+ *
+ * Centralized here so every CLI entrypoint (serve, web, tui) inherits the same
+ * check. Tests and internal RPC callers that use `Server.listen` directly
+ * bypass this on purpose. When authenticated, or already loopback, the options
+ * are returned unchanged; `"localhost"` is pinned to a literal loopback IP
+ * because it can resolve to a non-loopback address via DNS/hosts.
+ */
+export function enforceLoopbackWithoutAuth<T extends { hostname: string; mdns?: boolean }>(
+  opts: T,
+): { ok: true; opts: T } | { ok: false; error: string } {
+  if (Flag.OPENCODE_SERVER_PASSWORD) return { ok: true, opts }
+  const pinned = opts.hostname === "localhost" ? { ...opts, hostname: "127.0.0.1" } : opts
+  const loopback = pinned.hostname === "127.0.0.1" || pinned.hostname === "::1"
+  if (!loopback || pinned.mdns)
+    return {
+      ok: false,
+      error:
+        "Refusing to listen on a non-loopback interface without authentication. Set OPENCODE_SERVER_PASSWORD or bind to 127.0.0.1.",
+    }
+  return { ok: true, opts: pinned }
 }

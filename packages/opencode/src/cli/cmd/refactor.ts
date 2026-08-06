@@ -96,9 +96,6 @@ export const RefactorCommand = effectCmd({
       return { exit, output: `${stdout}\n${stderr}` }
     })
 
-    UI.println("Refactoring...")
-    yield* send(args.instruction)
-
     // Review the resulting worktree diff in a fresh code-review session. Warns
     // on a FAIL verdict but never reverts: tests are green at this point.
     const review = Effect.gen(function* () {
@@ -171,11 +168,6 @@ export const RefactorCommand = effectCmd({
       const run = yield* test
       if (run.exit === 0) {
         UI.println("Tests are green. Refactor complete.")
-        if (!args.confidence) return
-        const level = confidence(latest)
-        UI.println(
-          level ? `Confidence: ${level.toUpperCase()}` : "Could not determine a confidence level from the response.",
-        )
         if (args.confidence) {
           const level = confidence(latest)
           UI.println(

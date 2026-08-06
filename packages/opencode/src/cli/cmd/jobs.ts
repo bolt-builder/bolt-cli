@@ -71,6 +71,24 @@ export function probe(target: string): "url" | "command" {
 }
 
 /**
+ * Kill a detached job and its descendants. Jobs are spawned as their own
+ * process-group leader (see spawnJob), and `bolt run` spawns tool subprocesses
+ * (sh -c ...) into that group, so signal the whole group. Falls back to the
+ * lone pid when the group signal is unsupported (Windows) or already gone.
+ */
+export function killJob(pid: number, signal: NodeJS.Signals | number = "SIGTERM") {
+  if (process.platform === "win32") {
+    process.kill(pid, signal)
+    return
+  }
+  try {
+    process.kill(-pid, signal)
+  } catch {
+    process.kill(pid, signal)
+  }
+}
+
+/**
  * Spawn a detached background job that re-runs this CLI with the given argv,
  * appending output to a log file under the global state directory. Pass `meta`
  * to respawn an existing job in place, keeping its id, log, and restart history.
@@ -248,7 +266,7 @@ export const JobsCommand = effectCmd({
         UI.println(`Job ${job.id} is not running.`)
         return
       }
-      process.kill(job.pid)
+      killJob(job.pid)
       UI.println(`Killed job ${job.id} (pid ${job.pid}).`)
       return
     }
