@@ -189,7 +189,6 @@ export const RefactorCommand = effectCmd({
       }
       if (attempt === attempts) break
       UI.println(`Tests failed with exit code ${run.exit}. Asking the agent to fix...`)
-      yield* send(
       latest = yield* send(
         [
           `The test command \`${args.test}\` failed with exit code ${run.exit} after your changes.`,
