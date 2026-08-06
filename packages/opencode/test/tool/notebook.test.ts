@@ -47,7 +47,7 @@ const notebook = {
   nbformat_minor: 5,
   unknown_top_level_field: "preserved",
 }
-const fixture = JSON.stringify(notebook, null, 1) + "\n"
+const fixture = `${JSON.stringify(notebook, null, 1)}\n`
 
 describe("notebook.parse/serialize", () => {
   test("round-trips byte-stable when nothing is edited", () => {
@@ -81,7 +81,7 @@ describe("notebook.editCell", () => {
     expected.cells[0].source = ["print('changed')"]
     expected.cells[0].outputs = []
     ;(expected.cells[0] as { execution_count: number | null }).execution_count = null
-    expect(serialize(edited)).toBe(JSON.stringify(expected, null, 1) + "\n")
+    expect(serialize(edited)).toBe(`${JSON.stringify(expected, null, 1)}\n`)
   })
 
   test("clears outputs and execution_count only when the source changed", () => {
@@ -142,7 +142,7 @@ describe("notebook.deleteCell", () => {
     const deleted = deleteCell(parse(fixture), 0)
     const expected = structuredClone(notebook) as { cells: unknown[] }
     expected.cells.splice(0, 1)
-    expect(serialize(deleted as never)).toBe(JSON.stringify(expected, null, 1) + "\n")
+    expect(serialize(deleted as never)).toBe(`${JSON.stringify(expected, null, 1)}\n`)
   })
 
   test("rejects out-of-range indices", () => {

@@ -40,7 +40,7 @@ export function parse(text: string): Notebook {
 
 /** Serialize with Jupyter's on-disk convention: indent 1 and a trailing newline. */
 export function serialize(nb: Notebook): string {
-  return JSON.stringify(nb, null, 1) + "\n"
+  return `${JSON.stringify(nb, null, 1)}\n`
 }
 
 /** Join a cell's source (string or array-of-lines) into one string. */
@@ -209,12 +209,13 @@ export const NotebookTool = Tool.define(
           }
 
           if (params.index === undefined) throw new Error(`${params.action} requires the index parameter`)
+          const index = params.index
           const next = yield* Effect.sync(() => {
-            if (params.action === "delete") return deleteCell(nb, params.index!)
+            if (params.action === "delete") return deleteCell(nb, index)
             if (params.source === undefined) throw new Error(`${params.action} requires the source parameter`)
-            if (params.action === "edit") return editCell(nb, params.index!, params.source)
+            if (params.action === "edit") return editCell(nb, index, params.source)
             if (!params.cellType) throw new Error("insert requires the cellType parameter")
-            return insertCell(nb, params.index!, params.cellType, params.source)
+            return insertCell(nb, index, params.cellType, params.source)
           })
 
           const serialized = serialize(next)
