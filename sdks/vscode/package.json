@@ -69,6 +69,29 @@
         }
       ]
     },
+    "configuration": {
+      "title": "Bolt",
+      "properties": {
+        "bolt.path": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the bolt CLI binary. Leave empty to look it up on your PATH."
+        },
+        "bolt.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra arguments appended when launching Bolt in the terminal."
+        },
+        "bolt.terminal.reuse": {
+          "type": "boolean",
+          "default": true,
+          "description": "Focus an existing Bolt terminal instead of creating a new one when running Open Bolt."
+        }
+      }
+    },
     "keybindings": [
       {
         "command": "bolt.openTerminal",
