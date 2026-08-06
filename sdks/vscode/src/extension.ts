@@ -14,10 +14,10 @@ export function activate(context: vscode.ExtensionContext) {
         existing.show()
         return
       }
-      await open(context)
+      await launch(context)
     }),
     vscode.commands.registerCommand("bolt.openNewTerminal", async () => {
-      await open(context)
+      await launch(context)
     }),
     vscode.commands.registerCommand("bolt.addFilepathToTerminal", () => {
       const editor = vscode.window.activeTextEditor
@@ -35,8 +35,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
   )
 }
-
-export function deactivate() {}
 
 // Builds the file reference the Bolt TUI prompt understands: @path, with an
 // optional #start or #start-end line suffix when the editor has a selection.
@@ -56,7 +54,7 @@ export function reference(editor: vscode.TextEditor) {
   return `@${file}#${start}-${end}`
 }
 
-async function open(context: vscode.ExtensionContext) {
+async function launch(context: vscode.ExtensionContext) {
   const found = await locate()
   if (!found) {
     const action = await vscode.window.showErrorMessage(
