@@ -81,9 +81,7 @@ export const MemoryWhyCommand = effectCmd({
     const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
     const memory = MemoryService.make()
     const shown = yield* memory.show({ ctx }).pipe(Effect.orDie)
-    const digests = yield* memory
-      .recent({ root: MemoryPaths.root({ ctx }), limit: 10, max: 200 })
-      .pipe(Effect.orDie)
+    const digests = yield* memory.recent({ root: MemoryPaths.root({ ctx }), limit: 10, max: 200 }).pipe(Effect.orDie)
     const evidence = dossier({ entries: Object.values(shown.inventory.items), sessions: digests })
     if (!evidence) {
       return yield* fail("No project memory stored for this project yet. Run bolt learn or save memories first.")
