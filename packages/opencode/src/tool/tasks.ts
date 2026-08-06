@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect"
 import { Storage } from "@/storage/storage"
-import * as Tool from "./tool"
+import { Tool } from "./tool"
 import CREATE_DESCRIPTION from "./tasks-create.txt"
 import UPDATE_DESCRIPTION from "./tasks-update.txt"
 import LIST_DESCRIPTION from "./tasks-list.txt"
@@ -211,7 +211,8 @@ export const TaskUpdateTool = Tool.define(
           if (!result.ok) throw new Error(result.reason)
 
           yield* storage.write([KEY, ctx.sessionID], result.tasks).pipe(Effect.orDie)
-          const updated = result.tasks.find((task) => task.id === params.id)!
+          const updated = result.tasks.find((task) => task.id === params.id)
+          if (!updated) throw new Error(`task ${params.id} missing after update`)
 
           return {
             title: `Updated task ${params.id}`,
