@@ -12,7 +12,19 @@ export function verdict(text: string) {
   return last[1].toLowerCase() as "pass" | "fail"
 }
 
+/** Parse the last confidence marker from an agent response. */
+export function confidence(text: string) {
+  const matches = [...text.matchAll(/confidence:\s*(high|medium|low)/gi)]
+  const last = matches.at(-1)
+  if (!last) return undefined
+  return last[1].toLowerCase() as "high" | "medium" | "low"
+}
+
+export const CONFIDENCE =
+  'End your final message with exactly one line: "Confidence: high", "Confidence: medium", or "Confidence: low". Use "low" when you are mostly guessing.'
+
 const INSTRUCTIONS = [
+export const INSTRUCTIONS = [
   "Review the following code changes. Use the read, grep, and glob tools to inspect surrounding code when the diff alone is not enough.",
   "Report each issue with a severity (critical, major, minor), the file and line, and a short explanation. Be concise and do not restate the diff. If there are no issues, say so.",
   'End your final message with exactly one line: "Verdict: PASS" if there are no critical or major issues, otherwise "Verdict: FAIL".',
@@ -36,6 +48,11 @@ export const ReviewCommand = effectCmd({
         alias: "m",
         type: "string",
         describe: "model to use in the format of provider/model",
+      })
+      .option("confidence", {
+        type: "boolean",
+        describe: "ask the model to report how confident it is in the review",
+        default: false,
       })
       .conflicts("staged", "branch"),
   handler: Effect.fn("Cli.review")(function* (args) {
@@ -95,7 +112,13 @@ export const ReviewCommand = effectCmd({
         messageID: MessageID.ascending(),
         agent: "code-review",
         model: args.model ? parseModel(args.model) : undefined,
-        parts: [{ id: PartID.ascending(), type: "text", text: `${INSTRUCTIONS}\n\nDiff:\n${patch}` }],
+        parts: [
+          {
+            id: PartID.ascending(),
+            type: "text",
+            text: `${INSTRUCTIONS}${args.confidence ? `\n${CONFIDENCE}` : ""}\n\nDiff:\n${patch}`,
+          },
+        ],
       })
       .pipe(Effect.orDie)
 
@@ -111,6 +134,14 @@ export const ReviewCommand = effectCmd({
     UI.empty()
     UI.println(UI.markdown(text))
     UI.empty()
+
+    if (args.confidence) {
+      const level = confidence(text)
+      UI.println(
+        level ? `Confidence: ${level.toUpperCase()}` : "Could not determine a confidence level from the review.",
+      )
+      UI.empty()
+    }
 
     const outcome = verdict(text)
     if (outcome === "pass") return

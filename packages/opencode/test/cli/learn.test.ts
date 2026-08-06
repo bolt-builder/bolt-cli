@@ -34,7 +34,11 @@ describe("saved", () => {
     const result = saved([
       { type: "tool", tool: "memory_save", state: { status: "completed", metadata: {} } },
       { type: "tool", tool: "memory_save", state: { status: "completed", metadata: { sources: "project.md" } } },
-      { type: "tool", tool: "memory_save", state: { status: "completed", metadata: { sources: [1, "corrections.md"] } } },
+      {
+        type: "tool",
+        tool: "memory_save",
+        state: { status: "completed", metadata: { sources: [1, "corrections.md"] } },
+      },
     ])
     expect(result.count).toBe(3)
     expect(result.sources).toEqual(["corrections.md"])

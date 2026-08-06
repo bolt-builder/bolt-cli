@@ -17,6 +17,7 @@ import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
+import { MapCommand } from "./cli/cmd/map"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
@@ -29,13 +30,17 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
+import { RefactorCommand } from "./cli/cmd/refactor"
 import { LearnCommand } from "./cli/cmd/learn"
+import { RefactorCommand } from "./cli/cmd/refactor"
+import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
 import { BisectCommand } from "./cli/cmd/bisect"
 import { RefactorCommand } from "./cli/cmd/refactor"
+import { FigmaCommand } from "./cli/cmd/figma"
 import { SessionCommand } from "./cli/cmd/session"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
@@ -109,19 +114,24 @@ const cli = yargs(args)
   .command(StatsCommand)
   .command(EvalCommand)
   .command(LogsCommand)
+  .command(MapCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
   .command(PrCommand)
   .command(CommitCommand)
   .command(ReviewCommand)
+  .command(RefactorCommand)
   .command(LearnCommand)
+  .command(RefactorCommand)
+  .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
   .command(FlakyCommand)
   .command(BisectCommand)
   .command(RefactorCommand)
+  .command(FigmaCommand)
   .command(SessionCommand)
   .command(PluginCommand)
   .command(DbCommand)
