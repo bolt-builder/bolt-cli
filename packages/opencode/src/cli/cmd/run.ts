@@ -250,6 +250,12 @@ export const RunCommand = effectCmd({
         describe: "auto-approve permissions that are not explicitly denied (dangerous!)",
         default: false,
       })
+      .option("background", {
+        alias: ["bg"],
+        type: "boolean",
+        default: false,
+        describe: "run detached as a background job (manage with bolt jobs list/tail/kill)",
+      })
       .option("yolo", {
         type: "boolean",
         hidden: true,
@@ -267,6 +273,19 @@ export const RunCommand = effectCmd({
         describe: "enable direct interactive demo slash commands; pass one as the message to run it immediately",
       }),
   handler: Effect.fn("Cli.run")(function* (args) {
+    if (args.background) {
+      if (args.interactive || args.attach) {
+        UI.error("--background cannot be used with --interactive or --attach")
+        process.exit(1)
+      }
+      const { spawnJob } = yield* Effect.promise(() => import("./jobs"))
+      const skip = new Set(["--background", "--bg"])
+      const argv = process.argv.slice(2).filter((arg) => !skip.has(arg))
+      const job = spawnJob(argv, process.cwd())
+      UI.println(`Started background job ${job.id} (pid ${job.pid}).`)
+      UI.println(`Tail it with: bolt jobs tail ${job.id} --follow`)
+      return
+    }
     const { Agent } = yield* Effect.promise(() => import("@/agent/agent"))
     const { RuntimeFlags } = yield* Effect.promise(() => import("@/effect/runtime-flags"))
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
@@ -1072,6 +1091,7 @@ export async function runMini(input: MiniCommandInput) {
     "replay-limit": input.replayLimit,
     replayLimit: input.replayLimit,
     auto: false,
+    background: false,
     yolo: false,
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,
