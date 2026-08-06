@@ -17,6 +17,7 @@ import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
+import { MapCommand } from "./cli/cmd/map"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
@@ -110,6 +111,7 @@ const cli = yargs(args)
   .command(StatsCommand)
   .command(EvalCommand)
   .command(LogsCommand)
+  .command(MapCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
