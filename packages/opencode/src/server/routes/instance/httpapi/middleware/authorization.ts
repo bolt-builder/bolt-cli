@@ -76,7 +76,12 @@ function credentialFromRequest(request: HttpServerRequest.HttpServerRequest) {
 
 function credentialFromURL(url: URL, request: HttpServerRequest.HttpServerRequest) {
   const token = url.searchParams.get(AUTH_TOKEN_QUERY)
-  if (token) return decodeCredential(token)
+  // Only honor credentials from the query string on safe, non-mutating requests
+  // (UI page loads, EventSource, WebSocket upgrades) that cannot set an
+  // Authorization header. Requiring the header for mutating methods keeps a
+  // password leaked via URL, Referer, or access logs from being replayed to
+  // change state.
+  if (token && (request.method === "GET" || request.method === "HEAD")) return decodeCredential(token)
   const match = /^Basic\s+(.+)$/i.exec(request.headers.authorization ?? "")
   if (match) return decodeCredential(match[1])
   return Effect.succeed(emptyCredential())
