@@ -36,6 +36,7 @@ import { Provider } from "@/provider/provider"
 
 import { WebSearchTool } from "./websearch"
 import { LspTool } from "./lsp"
+import { SemanticSearchTool } from "./semantic-search"
 import { DiagnosticsTool } from "./diagnostics"
 import { LspReferencesTool } from "./lsp-references"
 import { LspRenameTool } from "./lsp-rename"
@@ -131,6 +132,7 @@ const layer = Layer.effect(
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
     const testrun = yield* TestRunTool
+    const semantic = yield* SemanticSearchTool
     const browser = yield* BrowserTool
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
@@ -251,6 +253,7 @@ const layer = Layer.effect(
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
           testrun: Tool.init(testrun),
+          semantic: Tool.init(semantic),
           browser: Tool.init(browser),
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
@@ -290,6 +293,7 @@ const layer = Layer.effect(
             tool.bgkill,
             tool.bglist,
             tool.testrun,
+            tool.semantic,
             tool.browser,
             tool.sql,
             tool.diagnostics,
