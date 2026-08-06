@@ -4,6 +4,7 @@ import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
+import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { FramesTool } from "./frames"
@@ -130,6 +131,7 @@ const layer = Layer.effect(
     const bgkill = yield* BackgroundKillTool
     const bglist = yield* BackgroundListTool
     const testrun = yield* TestRunTool
+    const browser = yield* BrowserTool
     const sql = yield* SqlTool
     const diagtool = yield* DiagnosticsTool
     const profile = yield* ProfileTool
@@ -249,6 +251,7 @@ const layer = Layer.effect(
           bgkill: Tool.init(bgkill),
           bglist: Tool.init(bglist),
           testrun: Tool.init(testrun),
+          browser: Tool.init(browser),
           sql: Tool.init(sql),
           diagnostics: Tool.init(diagtool),
           profile: Tool.init(profile),
@@ -287,6 +290,7 @@ const layer = Layer.effect(
             tool.bgkill,
             tool.bglist,
             tool.testrun,
+            tool.browser,
             tool.sql,
             tool.diagnostics,
             tool.profile,
