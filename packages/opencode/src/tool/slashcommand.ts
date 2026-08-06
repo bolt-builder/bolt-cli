@@ -78,7 +78,9 @@ export const SlashcommandTool = Tool.define(
               `<command_instructions name="${command.name}">`,
               rendered,
               "</command_instructions>",
-              "Execute the instructions above as part of the current task.",
+              command.subtask
+                ? "Run the instructions above as a subtask via the task tool."
+                : "Execute the instructions above as part of the current task.",
             ].join("\n"),
             metadata: {
               command: command.name,
