@@ -17,6 +17,7 @@ import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
+import { MapCommand } from "./cli/cmd/map"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
@@ -30,6 +31,8 @@ import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
 import { LearnCommand } from "./cli/cmd/learn"
+import { RefactorCommand } from "./cli/cmd/refactor"
+import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
@@ -109,6 +112,7 @@ const cli = yargs(args)
   .command(StatsCommand)
   .command(EvalCommand)
   .command(LogsCommand)
+  .command(MapCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
@@ -116,6 +120,8 @@ const cli = yargs(args)
   .command(CommitCommand)
   .command(ReviewCommand)
   .command(LearnCommand)
+  .command(RefactorCommand)
+  .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)

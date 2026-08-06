@@ -180,13 +180,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 ### Next
 
 <details>
-<summary><strong>Agents that remember (1)</strong></summary>
-
-- [ ] Memory introspection: ask the agent why it believes something and where it learned it
-
-</details>
-
-<details>
 <summary><strong>Agents with better hands (7)</strong></summary>
 
 - [ ] `multiedit`: batch several edits to one file in a single tool call
@@ -196,15 +189,6 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 - [ ] Browser tool: navigate and screenshot the running app to verify UI changes visually
 - [ ] LSP power tools: rename symbol and find references, promoted out of experimental
 - [ ] Semantic codebase search: find code by meaning, not regex
-
-</details>
-
-<details>
-<summary><strong>Agents that check their work (3)</strong></summary>
-
-- [ ] Test-aware refactor loops: change, run, verify, repeat until green
-- [ ] Confidence scoring: the agent tells you when it is guessing
-- [ ] Self-review pass before any diff is handed to you
 
 </details>
 
@@ -222,6 +206,7 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 <summary><strong>Party tricks (3)</strong></summary>
 
 - [ ] Codebase visualization maps drawn by the agent
+- [ ] Design-to-code: hand the agent a Figma file, get components back
 - [ ] Pair-programming mode with a shared cursor
 - [ ] Session replays you can share like a highlight reel
 
@@ -238,6 +223,11 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 ### Done
 
 - [x] Design-to-code: `bolt figma <url>` fetches a Figma node and has the agent generate components matching your repo's conventions
+- [x] Codebase maps: `bolt map` walks your source tree and draws a mermaid map of directory dependencies with per-directory file counts
+- [x] Self-review pass: `bolt refactor --self-review` hands the green diff to the code-review agent before you see it
+- [x] Confidence scoring: `--confidence` on `bolt review` and `bolt refactor` makes the agent say when it is guessing
+- [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
+- [x] `bolt memory why`: memory introspection that answers why the agent believes something and where it learned it
 - [x] `bolt learn`: repo convention learning that saves your codebase's style into project memory
 - [x] On-red-main automation: `bolt bisect "<command>" --good <ref>` finds the culprit commit, shows blame, and `--fix` proposes the patch
 - [x] Flaky test detection and quarantining: `bolt flaky "<command>"` reruns your tests and records flaky offenders in `.bolt/quarantine.json`
