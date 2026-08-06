@@ -580,6 +580,7 @@ The roadmap is about one thing: making the agent smarter, more autonomous, and m
 
 ### Done
 
+- [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet; direct shell input may double-render, and permission prompts can be answered by either side)
 - [x] `multiedit`: batch several edits to one file in a single tool call
 - [x] Background process tools: `background` start, output, list, and kill without blocking the loop
 - [x] `test_run`: run tests and hand the agent structured failures

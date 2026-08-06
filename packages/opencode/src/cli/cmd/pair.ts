@@ -135,7 +135,6 @@ export const PairCommand = effectCmd({
         username: args.username,
         pair: true,
       }),
-    )
-    yield* Effect.promise(() => server.stop(true))
+    ).pipe(Effect.ensuring(Effect.promise(() => server.stop(true))))
   }),
 })
