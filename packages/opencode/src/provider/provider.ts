@@ -1596,16 +1596,20 @@ const layer = Layer.effect(
 
         const gitlab = ProviderV2.ID.make("gitlab")
         if (discoveryLoaders[gitlab] && providers[gitlab] && isProviderAllowed(gitlab)) {
-          yield* Effect.promise(async () => {
-            try {
-              const discovered = await discoveryLoaders[gitlab]()
-              for (const [modelID, model] of Object.entries(discovered)) {
-                if (!providers[gitlab].models[modelID]) {
-                  providers[gitlab].models[modelID] = model
-                }
-              }
-            } catch (e) {}
-          })
+          const discovered = yield* Effect.tryPromise(() => discoveryLoaders[gitlab]()).pipe(
+            Effect.catch((error) =>
+              // Discovery is best-effort; log the failure instead of swallowing
+              // it silently, and continue with the statically known models.
+              Effect.logWarning("gitlab model discovery failed; skipping discovered models", error).pipe(
+                Effect.as({} as Awaited<ReturnType<(typeof discoveryLoaders)[typeof gitlab]>>),
+              ),
+            ),
+          )
+          for (const [modelID, model] of Object.entries(discovered)) {
+            if (!providers[gitlab].models[modelID]) {
+              providers[gitlab].models[modelID] = model
+            }
+          }
         }
 
         for (const [id, provider] of Object.entries(providers)) {
