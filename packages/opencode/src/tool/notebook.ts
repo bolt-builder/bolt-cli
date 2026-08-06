@@ -59,7 +59,9 @@ export function splitSource(text: string): string[] {
 function requireCell(nb: Notebook, index: number): Cell {
   const cell = nb.cells[index]
   if (cell === undefined) {
-    throw new Error(`cell index ${index} is out of range (notebook has ${nb.cells.length} cell${nb.cells.length === 1 ? "" : "s"})`)
+    throw new Error(
+      `cell index ${index} is out of range (notebook has ${nb.cells.length} cell${nb.cells.length === 1 ? "" : "s"})`,
+    )
   }
   return cell
 }
@@ -86,9 +88,17 @@ export function editCell(nb: Notebook, index: number, source: string): Notebook 
  * Insert a new cell at index (existing cells shift down; index === cells.length
  * appends). A cell id is generated unless one is passed, matching nbformat 4.5+.
  */
-export function insertCell(nb: Notebook, index: number, type: "code" | "markdown", source: string, id?: string): Notebook {
+export function insertCell(
+  nb: Notebook,
+  index: number,
+  type: "code" | "markdown",
+  source: string,
+  id?: string,
+): Notebook {
   if (index < 0 || index > nb.cells.length) {
-    throw new Error(`insert index ${index} is out of range (notebook has ${nb.cells.length} cells; valid indices are 0 to ${nb.cells.length})`)
+    throw new Error(
+      `insert index ${index} is out of range (notebook has ${nb.cells.length} cells; valid indices are 0 to ${nb.cells.length})`,
+    )
   }
   const out = structuredClone(nb)
   const cell: Cell = {
@@ -116,7 +126,9 @@ export function outputsLabel(cell: Cell): string {
   const outputs = Array.isArray(cell.outputs) ? cell.outputs : []
   if (outputs.length === 0) return "no outputs"
   const types = outputs
-    .map((output) => (typeof output === "object" && output !== null ? String((output as Cell).output_type ?? "unknown") : "unknown"))
+    .map((output) =>
+      typeof output === "object" && output !== null ? String((output as Cell).output_type ?? "unknown") : "unknown",
+    )
     .join(", ")
   const first = outputs[0]
   const text = typeof first === "object" && first !== null ? previewText(first as Cell) : ""
@@ -133,7 +145,8 @@ function previewText(output: Cell): string {
     if (typeof plain === "string") return plain
     if (Array.isArray(plain)) return plain.join("")
   }
-  if (typeof output.ename === "string") return `${output.ename}: ${typeof output.evalue === "string" ? output.evalue : ""}`
+  if (typeof output.ename === "string")
+    return `${output.ename}: ${typeof output.evalue === "string" ? output.evalue : ""}`
   return ""
 }
 
@@ -160,7 +173,8 @@ export const Parameters = Schema.Struct({
     description: "The notebook operation to perform",
   }),
   index: Schema.optional(Schema.Number).annotate({
-    description: "0-based cell index. Required for edit, insert, and delete. For insert, the new cell is placed at this index.",
+    description:
+      "0-based cell index. Required for edit, insert, and delete. For insert, the new cell is placed at this index.",
   }),
   source: Schema.optional(Schema.String).annotate({
     description: "The full new cell source. Required for edit and insert.",

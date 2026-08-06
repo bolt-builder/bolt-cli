@@ -72,9 +72,7 @@ export function matches(expr: string, date: Date) {
   // day matches if EITHER matches; when one is `*` it matches every day, so the
   // AND below degrades to the restricted field on its own.
   const dayMatch = parts[2] !== "*" && parts[4] !== "*" ? domMatch || dowMatch : domMatch && dowMatch
-  return (
-    minute.has(date.getMinutes()) && hour.has(date.getHours()) && month.has(date.getMonth() + 1) && dayMatch
-  )
+  return minute.has(date.getMinutes()) && hour.has(date.getHours()) && month.has(date.getMonth() + 1) && dayMatch
 }
 
 function entries(): Entry[] {

@@ -29,7 +29,7 @@ describe("create", () => {
 
   test("rejects unknown blockers", () => {
     const out = create([task("1", "pending")], { subject: "s", blockers: ["9"] })
-    expect(out).toEqual({ ok: false, reason: 'unknown blocker task ids: 9' })
+    expect(out).toEqual({ ok: false, reason: "unknown blocker task ids: 9" })
   })
 
   test("rejects an empty subject", () => {

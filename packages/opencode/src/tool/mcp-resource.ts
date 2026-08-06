@@ -65,7 +65,10 @@ export function extract(
     const binary = contents.filter((item) => item.blob !== undefined)
     if (binary.length > 0) {
       const mimes = [...new Set(binary.map((item) => item.mimeType ?? "unknown"))].join(", ")
-      return { ok: false, reason: `resource has binary (blob) content with MIME type ${mimes}; only text resources are supported` }
+      return {
+        ok: false,
+        reason: `resource has binary (blob) content with MIME type ${mimes}; only text resources are supported`,
+      }
     }
     return { ok: false, reason: "resource returned no text content" }
   }

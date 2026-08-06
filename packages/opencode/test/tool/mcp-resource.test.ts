@@ -17,9 +17,13 @@ describe("shape", () => {
       },
     ])
     expect(out).toBe(
-      ["server: docs", "uri: file:///readme.md", "name: readme", "mimeType: text/markdown", "description: Project readme"].join(
-        "\n",
-      ),
+      [
+        "server: docs",
+        "uri: file:///readme.md",
+        "name: readme",
+        "mimeType: text/markdown",
+        "description: Project readme",
+      ].join("\n"),
     )
   })
 
@@ -34,9 +38,7 @@ describe("shape", () => {
       { client: "alpha", uri: "res://2", name: "a2" },
       { client: "alpha", uri: "res://1", name: "a1" },
     ])
-    const order = out
-      .split("\n\n")
-      .map((block) => block.split("\n")[1])
+    const order = out.split("\n\n").map((block) => block.split("\n")[1])
     expect(order).toEqual(["uri: res://1", "uri: res://2", "uri: res://1"])
     expect(out.indexOf("alpha")).toBeLessThan(out.indexOf("zeta"))
   })

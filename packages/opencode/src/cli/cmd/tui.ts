@@ -234,7 +234,7 @@ export const TuiThreadCommand = cmd({
       const external = hasArg("--port") || hasArg("--hostname") || resolved.mdns === true
       // An external bind exposes the file/shell API; refuse it beyond loopback
       // when no server password is set.
-      const guard = external ? enforceLoopbackWithoutAuth(resolved) : ({ ok: true as const, opts: resolved })
+      const guard = external ? enforceLoopbackWithoutAuth(resolved) : { ok: true as const, opts: resolved }
       if (!guard.ok) {
         UI.error(guard.error)
         process.exitCode = 1
