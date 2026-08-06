@@ -75,9 +75,7 @@ export const RefactorCommand = effectCmd({
           sessionID: session.id,
           messageID: MessageID.ascending(),
           model: args.model ? parseModel(args.model) : undefined,
-          parts: [
-            { id: PartID.ascending(), type: "text", text: args.confidence ? `${text}\n\n${CONFIDENCE}` : text },
-          ],
+          parts: [{ id: PartID.ascending(), type: "text", text: args.confidence ? `${text}\n\n${CONFIDENCE}` : text }],
         })
         .pipe(Effect.orDie)
       if (result.info.role === "assistant" && result.info.error) {

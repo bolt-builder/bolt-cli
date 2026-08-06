@@ -136,7 +136,9 @@ export const ReviewCommand = effectCmd({
 
     if (args.confidence) {
       const level = confidence(text)
-      UI.println(level ? `Confidence: ${level.toUpperCase()}` : "Could not determine a confidence level from the review.")
+      UI.println(
+        level ? `Confidence: ${level.toUpperCase()}` : "Could not determine a confidence level from the review.",
+      )
       UI.empty()
     }
 

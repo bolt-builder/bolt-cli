@@ -13,7 +13,8 @@ export function steps(messages: readonly SessionV1.WithParts[]): Step[] {
   return messages.flatMap((message) =>
     message.parts.flatMap((part): Step[] => {
       if (part.type === "text" && part.text.trim() === "") return []
-      if (part.type === "text" && message.info.role === "user") return [{ role: "user", label: "User", text: part.text }]
+      if (part.type === "text" && message.info.role === "user")
+        return [{ role: "user", label: "User", text: part.text }]
       if (part.type === "text") return [{ role: "assistant", label: "Assistant", text: part.text }]
       if (part.type === "tool")
         return [
