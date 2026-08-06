@@ -242,7 +242,7 @@ const layer = Layer.effect(
     // calls, then erases output of older tool calls to free context space
     const prune = Effect.fn("SessionCompaction.prune")(function* (input: { sessionID: SessionID }) {
       const cfg = yield* config.get()
-      if (!cfg.compaction?.prune) return
+      if (cfg.compaction?.prune === false) return
       yield* Effect.logInfo("pruning")
 
       const msgs = yield* session
@@ -326,9 +326,17 @@ const layer = Layer.effect(
       }
 
       const agent = yield* agents.get("compaction")
+      // Summarize with the provider's small/fast model when possible so the
+      // hidden compaction request does not cost a full slow-model turn. Only
+      // use it when its context window fits at least as much as the session
+      // model's; an explicit compaction agent model always wins.
+      const base = yield* provider.getModel(userMessage.model.providerID, userMessage.model.modelID).pipe(Effect.orDie)
+      const small = agent.model ? undefined : yield* provider.getSmallModel(userMessage.model.providerID)
       const model = agent.model
         ? yield* provider.getModel(agent.model.providerID, agent.model.modelID).pipe(Effect.orDie)
-        : yield* provider.getModel(userMessage.model.providerID, userMessage.model.modelID).pipe(Effect.orDie)
+        : small && small.limit.context >= base.limit.context
+          ? small
+          : base
       const cfg = yield* config.get()
       const history = compactionPart && messages.at(-1)?.info.id === input.parentID ? messages.slice(0, -1) : messages
       const prior = completedCompactions(history)

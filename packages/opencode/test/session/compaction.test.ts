@@ -805,6 +805,129 @@ describe("session.compaction.prune", () => {
       }),
     ),
   )
+
+  const seedPrunable = (dir: string) =>
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const info = yield* ssn.create({})
+      const a = yield* ssn.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: info.id,
+        agent: "build",
+        model: ref,
+        time: { created: Date.now() },
+      })
+      yield* ssn.updatePart({
+        id: PartID.ascending(),
+        messageID: a.id,
+        sessionID: info.id,
+        type: "text",
+        text: "first",
+      })
+      const b: SessionV1.Assistant = {
+        id: MessageID.ascending(),
+        role: "assistant",
+        sessionID: info.id,
+        mode: "build",
+        agent: "build",
+        path: { cwd: dir, root: dir },
+        cost: 0,
+        tokens: {
+          output: 0,
+          input: 0,
+          reasoning: 0,
+          cache: { read: 0, write: 0 },
+        },
+        modelID: ref.modelID,
+        providerID: ref.providerID,
+        parentID: a.id,
+        time: { created: Date.now() },
+        finish: "end_turn",
+      }
+      yield* ssn.updateMessage(b)
+      yield* ssn.updatePart({
+        id: PartID.ascending(),
+        messageID: b.id,
+        sessionID: info.id,
+        type: "tool",
+        callID: crypto.randomUUID(),
+        tool: "bash",
+        state: {
+          status: "completed",
+          input: {},
+          output: "x".repeat(200_000),
+          title: "done",
+          metadata: {},
+          time: { start: Date.now(), end: Date.now() },
+        },
+      })
+      for (const text of ["second", "third"]) {
+        const msg = yield* ssn.updateMessage({
+          id: MessageID.ascending(),
+          role: "user",
+          sessionID: info.id,
+          agent: "build",
+          model: ref,
+          time: { created: Date.now() },
+        })
+        yield* ssn.updatePart({
+          id: PartID.ascending(),
+          messageID: msg.id,
+          sessionID: info.id,
+          type: "text",
+          text,
+        })
+      }
+      return info.id
+    })
+
+  it.live(
+    "prunes by default without config",
+    provideTmpdirInstance((dir) =>
+      Effect.gen(function* () {
+        const compact = yield* SessionCompaction.Service
+        const ssn = yield* SessionNs.Service
+        const sessionID = yield* seedPrunable(dir)
+
+        yield* compact.prune({ sessionID })
+
+        const msgs = yield* ssn.messages({ sessionID })
+        const part = msgs.flatMap((msg) => msg.parts).find((part) => part.type === "tool")
+        expect(part?.type).toBe("tool")
+        expect(part?.state.status).toBe("completed")
+        if (part?.type === "tool" && part.state.status === "completed") {
+          expect(part.state.time.compacted).toBeNumber()
+        }
+      }),
+    ),
+  )
+
+  it.live(
+    "skips pruning when disabled via config",
+    provideTmpdirInstance(
+      (dir) =>
+        Effect.gen(function* () {
+          const compact = yield* SessionCompaction.Service
+          const ssn = yield* SessionNs.Service
+          const sessionID = yield* seedPrunable(dir)
+
+          yield* compact.prune({ sessionID })
+
+          const msgs = yield* ssn.messages({ sessionID })
+          const part = msgs.flatMap((msg) => msg.parts).find((part) => part.type === "tool")
+          expect(part?.type).toBe("tool")
+          if (part?.type === "tool" && part.state.status === "completed") {
+            expect(part.state.time.compacted).toBeUndefined()
+          }
+        }),
+      {
+        config: {
+          compaction: { prune: false },
+        },
+      },
+    ),
+  )
 })
 
 describe("session.compaction.process", () => {
