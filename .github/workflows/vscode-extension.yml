@@ -1,0 +1,117 @@
+name: vscode-extension
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/dev' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Change detection instead of paths: filters so this check never hangs a PR
+  # as a path-skipped required check.
+  changes:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    outputs:
+      vscode: ${{ steps.diff.outputs.vscode }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Detect extension changes
+        id: diff
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "vscode=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(sdks/vscode/|\.github/workflows/vscode-extension\.yml)'; then
+            echo "vscode=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "vscode=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    needs: changes
+    if: needs.changes.outputs.vscode == 'true'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    defaults:
+      run:
+        working-directory: sdks/vscode
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "24"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Get cache directory
+        id: cache
+        run: echo "dir=$(bun pm cache)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Bun dependencies
+        id: bun-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ steps.cache.outputs.dir }}
+          key: ${{ runner.os }}-bun-vscode-${{ hashFiles('sdks/vscode/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-vscode-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Install xvfb
+        run: |
+          if ! command -v xvfb-run > /dev/null; then
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb
+          fi
+
+      - name: Run tests
+        run: |
+          bun run compile-tests
+          xvfb-run -a bun run test
+
+      - name: Package extension
+        run: bunx @vscode/vsce package --no-dependencies -o dist/bolt.vsix
+
+      - name: Compute short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bolt-vsix-${{ steps.sha.outputs.short }}
+          path: sdks/vscode/dist/bolt.vsix
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Save Bun dependencies
+        if: steps.bun-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ${{ steps.cache.outputs.dir }}
+          key: ${{ runner.os }}-bun-vscode-${{ hashFiles('sdks/vscode/bun.lock') }}
