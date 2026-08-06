@@ -18,8 +18,8 @@ describe("gateways catalog", () => {
 
   test("gatewayProviderConfig builds an OpenAI-compatible provider config", () => {
     const gateway = gateways.find((item): item is CustomGateway => item.id === "kilo")
-    expect(gateway).toBeDefined()
-    expect(gatewayProviderConfig(gateway!)).toEqual({
+    if (!gateway) throw new Error("expected kilo gateway in catalog")
+    expect(gatewayProviderConfig(gateway)).toEqual({
       npm: "@ai-sdk/openai-compatible",
       name: "Kilo Gateway",
       options: {
