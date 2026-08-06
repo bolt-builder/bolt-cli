@@ -1,20 +1,20 @@
-import * as vscode from "vscode"
+import { commands, env, ExtensionContext, Terminal, TextEditor, Uri, ViewColumn, window, workspace, WorkspaceFolder } from "vscode"
 import { locate } from "./binary"
 import { config } from "./config"
 import { display, reference } from "./format"
 
 const DOCS = "https://github.com/bolt-builder/bolt-cli"
 
-const output = vscode.window.createOutputChannel("Bolt")
+const output = window.createOutputChannel("Bolt")
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: ExtensionContext) {
   // Seed with terminals restored by VS Code across window reloads so reuse
   // and filepath insertion keep targeting them.
-  const terminals: vscode.Terminal[] = vscode.window.terminals.filter((t) => /^Bolt( \(\d+\))?$/.test(t.name))
+  const terminals: Terminal[] = window.terminals.filter((t) => /^Bolt( \(\d+\))?$/.test(t.name))
 
   context.subscriptions.push(
     output,
-    vscode.window.onDidCloseTerminal((terminal) => {
+    window.onDidCloseTerminal((terminal) => {
       const index = terminals.indexOf(terminal)
       if (index === -1) {
         return
@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
       terminals.splice(index, 1)
       log(`terminal closed: ${terminal.name}`)
     }),
-    vscode.commands.registerCommand("bolt.openTerminal", async () => {
+    commands.registerCommand("bolt.openTerminal", async () => {
       const existing = terminals.at(-1)
       if (config().reuse && existing) {
         existing.show()
@@ -30,62 +30,50 @@ export function activate(context: vscode.ExtensionContext) {
       }
       await launch(context, terminals)
     }),
-    vscode.commands.registerCommand("bolt.openNewTerminal", async () => {
+    commands.registerCommand("bolt.openNewTerminal", async () => {
       await launch(context, terminals)
     }),
-    vscode.commands.registerCommand("bolt.addFilepathToTerminal", () => {
-      const editor = vscode.window.activeTextEditor
+    commands.registerCommand("bolt.addFilepathToTerminal", () => {
+      const editor = window.activeTextEditor
       if (!editor) {
-        vscode.window.showInformationMessage("Open a file to add its path to the Bolt terminal.")
+        window.showInformationMessage("Open a file to add its path to the Bolt terminal.")
         return
       }
       const terminal = terminals.at(-1)
       if (!terminal) {
-        vscode.window.showInformationMessage("No Bolt terminal is open. Run the Open Bolt command first.")
+        window.showInformationMessage("No Bolt terminal is open. Run the Open Bolt command first.")
         return
       }
-      terminal.sendText(active(editor) + " ", false)
+      terminal.sendText(`${active(editor)} `, false)
       terminal.show()
     }),
   )
 }
 
-async function launch(context: vscode.ExtensionContext, terminals: vscode.Terminal[]) {
+async function launch(context: ExtensionContext, terminals: Terminal[]) {
   const cfg = config()
   const found = await locate(cfg.path, process.env["PATH"] ?? "")
   log(`binary resolution: setting=${JSON.stringify(cfg.path)} resolved=${found ?? "not found"}`)
   if (!found) {
-    const action = await vscode.window.showErrorMessage(
-      cfg.path
-        ? "The bolt.path setting does not point to an executable Bolt CLI."
-        : "The Bolt CLI was not found on your PATH. Install it and try again.",
-      "Open install docs",
-      "Open Settings",
-    )
-    if (action === "Open install docs") {
-      vscode.env.openExternal(vscode.Uri.parse(DOCS))
-    }
-    if (action === "Open Settings") {
-      vscode.commands.executeCommand("workbench.action.openSettings", "bolt.path")
-    }
+    await missing(cfg.path)
     return
   }
 
-  const folders = vscode.workspace.workspaceFolders ?? []
+  const folders = workspace.workspaceFolders ?? []
   const dir = folders.length > 1 ? await pick(context, folders) : folders[0]
   if (folders.length > 1 && !dir) {
     return
   }
 
-  const terminal = vscode.window.createTerminal({
+  const terminal = window.createTerminal({
     name: terminals.length === 0 ? "Bolt" : `Bolt (${terminals.length + 1})`,
     cwd: dir?.uri,
     iconPath: {
-      light: vscode.Uri.file(context.asAbsolutePath("images/bolt-light.svg")),
-      dark: vscode.Uri.file(context.asAbsolutePath("images/bolt-dark.svg")),
+      light: Uri.file(context.asAbsolutePath("images/bolt-light.svg")),
+      dark: Uri.file(context.asAbsolutePath("images/bolt-dark.svg")),
     },
     location: {
-      viewColumn: vscode.ViewColumn.Beside,
+      viewColumn: ViewColumn.Beside,
       preserveFocus: false,
     },
     env: {
@@ -103,22 +91,40 @@ async function launch(context: vscode.ExtensionContext, terminals: vscode.Termin
   terminal.sendText([command, ...cfg.args].join(" "))
 }
 
-async function pick(context: vscode.ExtensionContext, folders: readonly vscode.WorkspaceFolder[]) {
+// Tells the user the CLI could not be resolved and offers the docs or the
+// bolt.path setting as fixes.
+async function missing(explicit: string) {
+  const action = await window.showErrorMessage(
+    explicit
+      ? "The bolt.path setting does not point to an executable Bolt CLI."
+      : "The Bolt CLI was not found on your PATH. Install it and try again.",
+    "Open install docs",
+    "Open Settings",
+  )
+  if (action === "Open install docs") {
+    env.openExternal(Uri.parse(DOCS))
+  }
+  if (action === "Open Settings") {
+    commands.executeCommand("workbench.action.openSettings", "bolt.path")
+  }
+}
+
+async function pick(context: ExtensionContext, folders: readonly WorkspaceFolder[]) {
   const last = context.workspaceState.get<string>("bolt.folder")
   const items = folders
     .map((folder) => ({ label: folder.name, description: folder.uri.fsPath, folder }))
     .sort((a, b) => Number(b.folder.uri.toString() === last) - Number(a.folder.uri.toString() === last))
-  const item = await vscode.window.showQuickPick(items, { placeHolder: "Select the folder to run Bolt in" })
+  const item = await window.showQuickPick(items, { placeHolder: "Select the folder to run Bolt in" })
   if (!item) {
-    return
+    return undefined
   }
   await context.workspaceState.update("bolt.folder", item.folder.uri.toString())
   return item.folder
 }
 
-function active(editor: vscode.TextEditor) {
+function active(editor: TextEditor) {
   const uri = editor.document.uri
-  const folder = vscode.workspace.getWorkspaceFolder(uri)
+  const folder = workspace.getWorkspaceFolder(uri)
   const file = display(uri.fsPath, folder?.uri.fsPath)
   const selection = editor.selection
   if (selection.isEmpty) {

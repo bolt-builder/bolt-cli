@@ -1,8 +1,8 @@
-import * as vscode from "vscode"
+import { workspace } from "vscode"
 
 // Single place to read the bolt.* configuration with correct types.
 export function config() {
-  const cfg = vscode.workspace.getConfiguration("bolt")
+  const cfg = workspace.getConfiguration("bolt")
   return {
     path: cfg.get<string>("path", ""),
     args: cfg.get<string[]>("args", []),

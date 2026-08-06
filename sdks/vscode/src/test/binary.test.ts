@@ -1,4 +1,4 @@
-import * as assert from "node:assert"
+import { strictEqual } from "node:assert"
 import { chmod, mkdtemp, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
@@ -20,7 +20,7 @@ suite("binary", function () {
       return
     }
     const { dir, file } = await fake("bolt")
-    assert.strictEqual(await locate("", dir), file)
+    strictEqual(await locate("", dir), file)
   })
 
   test("searches PATH directories in order", async () => {
@@ -29,7 +29,7 @@ suite("binary", function () {
     }
     const first = await fake("bolt")
     const second = await fake("bolt")
-    assert.strictEqual(await locate("", [first.dir, second.dir].join(path.delimiter)), first.file)
+    strictEqual(await locate("", [first.dir, second.dir].join(path.delimiter)), first.file)
   })
 
   test("explicit setting wins over PATH", async () => {
@@ -38,7 +38,7 @@ suite("binary", function () {
     }
     const onPath = await fake("bolt")
     const explicit = await fake("bolt")
-    assert.strictEqual(await locate(explicit.file, onPath.dir), explicit.file)
+    strictEqual(await locate(explicit.file, onPath.dir), explicit.file)
   })
 
   test("invalid explicit setting resolves to nothing", async () => {
@@ -46,11 +46,11 @@ suite("binary", function () {
       return
     }
     const { dir } = await fake("bolt")
-    assert.strictEqual(await locate(path.join(dir, "missing"), dir), undefined)
+    strictEqual(await locate(path.join(dir, "missing"), dir), undefined)
   })
 
   test("missing binary resolves to nothing", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "bolt-empty-"))
-    assert.strictEqual(await locate("", dir), undefined)
+    strictEqual(await locate("", dir), undefined)
   })
 })
