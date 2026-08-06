@@ -52,7 +52,7 @@ const EXTENSIONS = new Set([
 
 export const Parameters = Schema.Struct({
   query: Schema.String.check(Schema.isMinLength(1)).annotate({
-    description: "What to look for, described by meaning (e.g. \"where sessions get refreshed\")",
+    description: 'What to look for, described by meaning (e.g. "where sessions get refreshed")',
   }),
   path: Schema.optional(Schema.String).annotate({
     description: "Directory to scope the search to. Defaults to the current working directory.",

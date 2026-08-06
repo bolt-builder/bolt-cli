@@ -40,7 +40,10 @@ export function collect(edit: WorkspaceEdit) {
   for (const uri of Object.keys(changes)) add(uri, changes[uri])
   for (const change of edit.documentChanges ?? []) {
     if (!("textDocument" in change)) continue
-    add(change.textDocument.uri, change.edits.filter((item) => typeof item.newText === "string"))
+    add(
+      change.textDocument.uri,
+      change.edits.filter((item) => typeof item.newText === "string"),
+    )
   }
   return result
 }

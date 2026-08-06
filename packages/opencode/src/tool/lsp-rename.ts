@@ -60,13 +60,8 @@ export const LspRenameTool = Tool.define(
           if (!available) throw new Error("No LSP server available for this file type.")
 
           yield* lsp.touchFile(file, "document")
-          const results = yield* lsp.rename(
-            { file, line: args.line - 1, character: args.character - 1 },
-            args.newName,
-          )
-          const merged = results
-            .map((item) => WorkspaceEdit.collect(item))
-            .find((item) => Object.keys(item).length > 0)
+          const results = yield* lsp.rename({ file, line: args.line - 1, character: args.character - 1 }, args.newName)
+          const merged = results.map((item) => WorkspaceEdit.collect(item)).find((item) => Object.keys(item).length > 0)
           if (!merged) {
             return {
               title: `rename ${detail}`,

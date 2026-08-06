@@ -57,8 +57,10 @@ export function parsePreview(output: string): Match[] {
       if (typeof value !== "object" || value === null) return []
       const match = value as Record<string, unknown>
       if (typeof match.file !== "string" || typeof match.text !== "string") return []
-      const range = typeof match.range === "object" && match.range !== null ? (match.range as Record<string, unknown>) : {}
-      const start = typeof range.start === "object" && range.start !== null ? (range.start as Record<string, unknown>) : {}
+      const range =
+        typeof match.range === "object" && match.range !== null ? (match.range as Record<string, unknown>) : {}
+      const start =
+        typeof range.start === "object" && range.start !== null ? (range.start as Record<string, unknown>) : {}
       return [
         {
           file: match.file,
@@ -224,7 +226,9 @@ const generate = Effect.fn("Cli.codemod.generate")(function* (description: strin
   const text = extractResponseText(result.parts) ?? ""
   const transform = parseTransform(text)
   if (!transform) {
-    return yield* fail("The model did not return a usable transform. Re-run or pass --pattern and --rewrite explicitly.")
+    return yield* fail(
+      "The model did not return a usable transform. Re-run or pass --pattern and --rewrite explicitly.",
+    )
   }
   return transform
 })

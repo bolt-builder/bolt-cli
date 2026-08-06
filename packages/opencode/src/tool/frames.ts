@@ -50,7 +50,8 @@ export const Parameters = Schema.Struct({
     description: `Timestamps to extract stills at, e.g. ["0:05", "12.5", "1:02:03.5"]. Mutually exclusive with count.`,
   }),
   count: Schema.optional(Schema.Number).annotate({
-    description: "Number of evenly spaced stills to extract across the whole video. Mutually exclusive with timestamps.",
+    description:
+      "Number of evenly spaced stills to extract across the whole video. Mutually exclusive with timestamps.",
   }),
 })
 

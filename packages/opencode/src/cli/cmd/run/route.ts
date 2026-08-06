@@ -89,9 +89,7 @@ export function shared(candidates: Candidate[]) {
     for (const token of tokens) counts.set(token, (counts.get(token) ?? 0) + 1)
   }
   return new Set(
-    [...counts.entries()]
-      .filter((entry) => entry[1] >= 2 && entry[1] * 2 > candidates.length)
-      .map((entry) => entry[0]),
+    [...counts.entries()].filter((entry) => entry[1] >= 2 && entry[1] * 2 > candidates.length).map((entry) => entry[0]),
   )
 }
 

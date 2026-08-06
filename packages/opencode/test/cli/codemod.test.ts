@@ -59,7 +59,14 @@ describe("buildArgs", () => {
   })
 
   test("omits lang when not given", () => {
-    expect(buildArgs({ pattern: "a", rewrite: "b" })).toEqual(["run", "--pattern", "a", "--rewrite", "b", "--json=stream"])
+    expect(buildArgs({ pattern: "a", rewrite: "b" })).toEqual([
+      "run",
+      "--pattern",
+      "a",
+      "--rewrite",
+      "b",
+      "--json=stream",
+    ])
   })
 
   test("switches to --update-all when applying", () => {
@@ -100,7 +107,7 @@ describe("parsePreview", () => {
   })
 
   test("skips blank and malformed lines", () => {
-    const output = ['not json', "", '{"file": "src/a.ts", "text": "x()", "replacement": "y()"}'].join("\n")
+    const output = ["not json", "", '{"file": "src/a.ts", "text": "x()", "replacement": "y()"}'].join("\n")
     expect(parsePreview(output)).toEqual([{ file: "src/a.ts", line: undefined, before: "x()", after: "y()" }])
   })
 

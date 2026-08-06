@@ -5,7 +5,10 @@ function edit(
   start: [number, number],
   end: [number, number],
   text: string,
-): { range: { start: { line: number; character: number }; end: { line: number; character: number } }; newText: string } {
+): {
+  range: { start: { line: number; character: number }; end: { line: number; character: number } }
+  newText: string
+} {
   return {
     range: {
       start: { line: start[0], character: start[1] },

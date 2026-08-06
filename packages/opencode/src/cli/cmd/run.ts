@@ -732,9 +732,7 @@ export const RunCommand = effectCmd({
       // in --format json so machine output stays clean.
       async function routedAgent() {
         const { route, explain } = await import("./run/route")
-        const infos = await Effect.runPromise(
-          agentSvc.list().pipe(Effect.provideService(InstanceRef, localInstance)),
-        )
+        const infos = await Effect.runPromise(agentSvc.list().pipe(Effect.provideService(InstanceRef, localInstance)))
         const fallback = await Effect.runPromise(
           agentSvc.defaultAgent().pipe(Effect.provideService(InstanceRef, localInstance)),
         )

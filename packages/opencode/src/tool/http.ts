@@ -83,14 +83,19 @@ export function resolve(
     headers[key] = filled.value
   }
   if (missing.length) {
-    return { ok: false, reason: `profile "${name}" needs environment variables that are not set: ${missing.join(", ")}` }
+    return {
+      ok: false,
+      reason: `profile "${name}" needs environment variables that are not set: ${missing.join(", ")}`,
+    }
   }
   return { ok: true, headers, secrets }
 }
 
 /** Scrub secret values out of text that will be echoed back to the model. */
 export function redact(text: string, secrets: string[]): string {
-  return secrets.filter((secret) => secret.length >= 4).reduce((acc, secret) => acc.replaceAll(secret, "[redacted]"), text)
+  return secrets
+    .filter((secret) => secret.length >= 4)
+    .reduce((acc, secret) => acc.replaceAll(secret, "[redacted]"), text)
 }
 
 /** One-line type description of a JSON value. */
@@ -156,9 +161,7 @@ export const HttpTool = Tool.define(
           const timeout = Math.min((params.timeout ?? DEFAULT_TIMEOUT / 1000) * 1000, MAX_TIMEOUT)
           const response = yield* http
             .execute(request)
-            .pipe(
-              Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.die(new Error("Request timed out")) }),
-            )
+            .pipe(Effect.timeoutOrElse({ duration: timeout, orElse: () => Effect.die(new Error("Request timed out")) }))
 
           const buffer = yield* response.arrayBuffer
           if (buffer.byteLength > MAX_RESPONSE_SIZE) throw new Error("Response too large (exceeds 5MB limit)")
@@ -183,7 +186,8 @@ export const HttpTool = Tool.define(
           ]
           if (parsed._tag === "Some") lines.push("", "body shape:", summarize(parsed.value))
           lines.push("", "body:", body || "(empty)")
-          if (text.length > MAX_ECHO) lines.push(`(body truncated: showing first ${MAX_ECHO} of ${text.length} characters)`)
+          if (text.length > MAX_ECHO)
+            lines.push(`(body truncated: showing first ${MAX_ECHO} of ${text.length} characters)`)
 
           return {
             title: `${params.method} ${params.url} (${response.status})`,

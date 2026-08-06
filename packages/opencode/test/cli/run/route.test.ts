@@ -5,7 +5,10 @@ import { explain, route, shared, tokenize, THRESHOLD } from "../../../src/cli/cm
 // minus the default agent, which the router excludes as the fallback.
 const AGENTS = [
   { name: "plan", description: "Plan mode. Disallows all edit tools." },
-  { name: "ask", description: "Ask mode. Focused on asking questions and gathering information without making changes." },
+  {
+    name: "ask",
+    description: "Ask mode. Focused on asking questions and gathering information without making changes.",
+  },
   { name: "code-review", description: "Reviews code changes for correctness, style, and security issues" },
   { name: "debug", description: "Debugs failing tests, crashes, and logic errors" },
   { name: "refactor", description: "Safe refactoring with test verification at each step" },
