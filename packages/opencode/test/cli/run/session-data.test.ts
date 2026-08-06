@@ -176,7 +176,10 @@ describe("run session data", () => {
 
   test("flushes buffered user text once a remote message resolves to a user role", () => {
     let data = createSessionData({ includeUserText: true })
-    data = reduce(data, text({ id: "txt-remote-2", messageID: "msg-remote-2", text: "late role", time: { end: 1 } })).data
+    data = reduce(
+      data,
+      text({ id: "txt-remote-2", messageID: "msg-remote-2", text: "late role", time: { end: 1 } }),
+    ).data
 
     const out = reduce(data, user("msg-remote-2"))
 
