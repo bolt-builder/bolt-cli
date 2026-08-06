@@ -30,6 +30,7 @@ import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
 import { LearnCommand } from "./cli/cmd/learn"
+import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
@@ -115,6 +116,7 @@ const cli = yargs(args)
   .command(CommitCommand)
   .command(ReviewCommand)
   .command(LearnCommand)
+  .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
