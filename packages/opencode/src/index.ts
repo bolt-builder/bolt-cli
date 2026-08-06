@@ -30,6 +30,7 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
+import { RefactorCommand } from "./cli/cmd/refactor"
 import { LearnCommand } from "./cli/cmd/learn"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { MemoryCommand } from "./cli/cmd/memory"
@@ -119,6 +120,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(CommitCommand)
   .command(ReviewCommand)
+  .command(RefactorCommand)
   .command(LearnCommand)
   .command(RefactorCommand)
   .command(MemoryCommand)

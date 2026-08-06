@@ -193,6 +193,13 @@ The roadmap is about one thing now: making the agent itself smarter, more autono
 </details>
 
 <details>
+<summary><strong>Agents that check their work (1)</strong></summary>
+
+- [ ] Self-review pass before any diff is handed to you
+
+</details>
+
+<details>
 <summary><strong>Agents with guardrails (4)</strong></summary>
 
 - [ ] Guardrail agent that vetoes risky commands before they run
