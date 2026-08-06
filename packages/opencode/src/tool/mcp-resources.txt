@@ -1,0 +1,8 @@
+List resources exposed by connected MCP servers.
+
+Returns one line per resource with the server name, URI, resource name, MIME type, and description. Use the returned server and uri values with the mcp_resource_read tool to read a resource's content.
+
+Usage notes:
+- `server` optionally restricts the listing to a single connected MCP server; omit it to list resources across all connected servers.
+- Servers that are disconnected or expose no resources contribute nothing to the listing.
+- Resources are application-provided context (files, schemas, live data); prefer them over guessing when a connected server advertises something relevant.
