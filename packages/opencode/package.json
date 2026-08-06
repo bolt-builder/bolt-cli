@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "1.20.6",
+  "version": "1.20.7",
   "name": "@bolt-builder/bolt-cli",
   "type": "module",
   "license": "AGPL-3.0-only",

@@ -2,7 +2,7 @@
   "name": "bolt-vscode",
   "displayName": "Bolt",
   "description": "Bolt AI coding agent for VS Code: run Bolt in your terminal and add files to its context. Self-hosted and BYOK.",
-  "version": "0.1.0",
+  "version": "1.20.7",
   "publisher": "bolt-builder",
   "repository": {
     "type": "git",
