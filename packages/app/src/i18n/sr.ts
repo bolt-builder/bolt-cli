@@ -1090,7 +1090,7 @@ export const dict = {
     "Повежите AI мрежни пролаз да бисте приступили многим моделима преко једног API кључа, укључујући бесплатне моделе.",
   "settings.gateways.tag.connected": "Повезано",
   "settings.gateways.note.kilo":
-    "Мрежни пролаз компатибилан са OpenRouter-ом са бесплатним аутоматски усмераваним моделима",
+    "Мрежни пролаз компатибилан са OpenRouter-ом са бесплатним аутоматски рутираним моделима",
   "settings.gateways.note.zoo": "Мрежни пролаз заједнице из пројекта Zoo Code",
   "settings.gateways.connect.title": "Повежи {{gateway}}",
   "settings.gateways.connect.description": "Налепите свој {{gateway}} API кључ да бисте повезали његове моделе.",
