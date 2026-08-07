@@ -226,6 +226,7 @@ export namespace Memory {
           operationCount: 0,
           added: 0,
           removed: 0,
+          ids: [],
           skipped: [],
           index: {
             text: index,
