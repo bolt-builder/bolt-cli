@@ -1,7 +1,6 @@
 .root {
   position: absolute;
   opacity: 0;
-  visibility: hidden;
   transition: opacity 0.15s ease;
 
   button {
@@ -23,8 +22,8 @@
   }
 }
 
-/* Show copy button when parent is hovered */
-*:hover > .root {
+/* Show copy button when parent is hovered or the button is keyboard-focused */
+*:hover > .root,
+.root:focus-within {
   opacity: 1;
-  visibility: visible;
 }

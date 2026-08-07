@@ -14,11 +14,15 @@ type MessageWithParts = MessageV2.Info & { parts: MessageV2.Part[] }
 
 type Status = "disconnected" | "connecting" | "connected" | "error" | "reconnecting"
 
+function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+}
+
 function scrollToAnchor(id: string) {
   const el = document.getElementById(id)
   if (!el) return
 
-  el.scrollIntoView({ behavior: "smooth" })
+  el.scrollIntoView({ behavior: scrollBehavior() })
 }
 
 function getStatusText(status: [Status, string?], messages: Record<string, string>): string {
@@ -193,7 +197,7 @@ export default function Share(props: {
       if (scrollTimeout) {
         clearTimeout(scrollTimeout)
       }
-      // Hide button after 3 seconds of no scrolling (unless hovered)
+      // Hide button after 1.5 seconds of no scrolling (unless hovered)
       scrollTimeout = window.setTimeout(() => {
         if (!isButtonHovered()) {
           setShowScrollButton(false)
@@ -393,7 +397,9 @@ export default function Share(props: {
                     <span data-status={connectionStatus()[0]}></span>
                   </div>
                   <div data-section="content">
-                    <p data-section="copy">{getStatusText(connectionStatus(), props.messages)}</p>
+                    <p data-section="copy" aria-live="polite">
+                      {getStatusText(connectionStatus(), props.messages)}
+                    </p>
                     <ul data-section="stats">
                       <li>
                         <span data-element-label>{props.messages.cost}</span>
@@ -438,7 +444,7 @@ export default function Share(props: {
             <div style={{ margin: "2rem 0" }}>
               <div
                 style={{
-                  border: "1px solid #ccc",
+                  border: "1px solid var(--sl-color-divider)",
                   padding: "1rem",
                   "overflow-y": "auto",
                 }}
@@ -451,7 +457,7 @@ export default function Share(props: {
                           style={{
                             padding: "0.75rem",
                             margin: "0.75rem 0",
-                            "box-shadow": "0 1px 3px rgba(0,0,0,0.1)",
+                            border: "1px solid var(--sl-color-divider)",
                           }}
                         >
                           <div>
@@ -471,7 +477,7 @@ export default function Share(props: {
             <button
               type="button"
               class={styles["scroll-button"]}
-              onClick={() => document.body.scrollIntoView({ behavior: "smooth", block: "end" })}
+              onClick={() => document.body.scrollIntoView({ behavior: scrollBehavior(), block: "end" })}
               onMouseEnter={() => {
                 setIsButtonHovered(true)
                 if (scrollTimeout) {

@@ -59,6 +59,7 @@ export function Part(props: PartProps) {
         <div data-slot="anchor" title={messages.link_to_message}>
           <a
             href={`#${id()}`}
+            aria-label={messages.link_to_message}
             onClick={(e) => {
               e.preventDefault()
               const anchor = e.currentTarget
@@ -662,7 +663,13 @@ function ResultsButton(props: ResultsButtonProps) {
 
   return (
     <>
-      <button type="button" data-component="button-text" data-more onClick={() => setShow((e) => !e)}>
+      <button
+        type="button"
+        data-component="button-text"
+        data-more
+        aria-expanded={show()}
+        onClick={() => setShow((e) => !e)}
+      >
         <span>{show() ? props.hideCopy || messages.hide_results : props.showCopy || messages.show_results}</span>
         <span data-slot="icon">
           <Show when={show()} fallback={<IconChevronRight width={11} height={11} />}>
