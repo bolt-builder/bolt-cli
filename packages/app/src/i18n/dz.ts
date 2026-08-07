@@ -1102,6 +1102,15 @@ export const dict: Record<string, string> = {
   "settings.providers.tag.config": "རིམ་སྒྲིག།",
   "settings.providers.tag.custom": "ལུགས་སྲོལ",
   "settings.providers.tag.other": "གཞན",
+  "settings.gateways.title": "གེཊ་ཝེ་ཚུ།",
+  "settings.gateways.description":
+    "API ལྡེ་མིག་གཅིག་གི་ཐོག་ལས་ རིན་མེད་དཔེ་དབྱིབས་ཚུ་བརྩིས་ཏེ་ དཔེ་དབྱིབས་མང་རབས་ཅིག་ལུ་འཛུལ་སྤྱོད་འབད་ནིའི་དོན་ལུ་ AI གེཊ་ཝེ་ཅིག་མཐུད།",
+  "settings.gateways.tag.connected": "མཐུད་ཡོད།",
+  "settings.gateways.note.kilo": "རིན་མེད་རང་བཞིན་ལམ་སྟོན་དཔེ་དབྱིབས་ཚུ་དང་བཅས་ OpenRouter དང་མཐུན་པའི་གེཊ་ཝེ།",
+  "settings.gateways.note.zoo": "Zoo Code ལས་འགུལ་གྱི་སྤྱི་ཚོགས་གེཊ་ཝེ།",
+  "settings.gateways.connect.title": "{{gateway}}མཐུད།",
+  "settings.gateways.connect.description":
+    "འདིའི་དཔེ་དབྱིབས་ཚུ་མཐུད་ནིའི་དོན་ལུ་ ཁྱོད་ཀྱི་ {{gateway}} API ལྡེ་མིག་སྦྱར།",
   "settings.models.title": "དཔེ་ཚད།",
   "settings.models.description": "དཔེ་ཚད་སྒྲིག་སྟངས་ཚུ་ནཱ་ལུ་རིམ་སྒྲིག་འབད་བཏུབ་འོང་།",
   "settings.agents.title": "ལས་ཚབ་ཚུ།",
