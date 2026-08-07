@@ -17,6 +17,8 @@ import { InstanceState } from "@/effect/instance-state"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
+import { Config } from "@/config/config"
+import { Protection } from "@/protection"
 import * as Bom from "@/util/bom"
 
 function normalizeLineEndings(text: string): string {
@@ -63,6 +65,7 @@ export const EditTool = Tool.define(
     const afs = yield* FSUtil.Service
     const format = yield* Format.Service
     const events = yield* EventV2Bridge.Service
+    const config = yield* Config.Service
 
     return {
       description: DESCRIPTION,
@@ -82,6 +85,15 @@ export const EditTool = Tool.define(
             ? params.filePath
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filePath)
+
+          const cfg = yield* config.get().pipe(Effect.orDie)
+          const relative = path.relative(instance.worktree, filePath)
+          const guarded = Protection.match(relative, cfg.protected_paths)
+          if (guarded) {
+            throw new Error(
+              `The path "${relative}" is protected by config (protected_paths: "${guarded}") and cannot be modified.`,
+            )
+          }
 
           let diff = ""
           let contentOld = ""
