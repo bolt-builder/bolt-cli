@@ -80,6 +80,7 @@ import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
 import { ResumeCommand } from "./cli/cmd/resume"
+import { GrepCommand } from "./cli/cmd/grep"
 import { SubmodulesCommand } from "./cli/cmd/submodules"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
@@ -211,6 +212,7 @@ const cli = yargs(args)
   .command(PairCommand)
   .command(SessionCommand)
   .command(ResumeCommand)
+  .command(GrepCommand)
   .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)
