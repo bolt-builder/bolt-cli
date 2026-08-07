@@ -1090,10 +1090,10 @@ export const dict = {
   "settings.gateways.title": "Portat",
   "settings.gateways.description":
     "Lidhni një portë AI për të pasur qasje në shumë modele me një çelës të vetëm API, përfshirë modelet falas.",
-  "settings.gateways.tag.connected": "Lidhur",
+  "settings.gateways.tag.connected": "I lidhur",
   "settings.gateways.note.kilo": "Portë e përputhshme me OpenRouter me modele falas të drejtuara automatikisht",
   "settings.gateways.note.zoo": "Portë e komunitetit nga projekti Zoo Code",
-  "settings.gateways.connect.title": "Lidhni {{gateway}}",
+  "settings.gateways.connect.title": "Lidh {{gateway}}",
   "settings.gateways.connect.description": "Ngjitni çelësin tuaj API të {{gateway}} për të lidhur modelet e tij.",
   "settings.models.title": "Modelet",
   "settings.models.description": "Cilësimet e modelit do të konfigurohen këtu.",
