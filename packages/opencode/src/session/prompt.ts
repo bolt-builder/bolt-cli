@@ -47,6 +47,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
 import { SessionDistill } from "./distill"
+import { shouldPreempt } from "./overflow"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
@@ -1126,6 +1127,24 @@ const layer = Layer.effect(
                 tool: orphan.tool,
                 callID: orphan.callID,
               })
+            }
+            // Pre-emptive compaction: the turn is complete, so summarizing now
+            // happens between prompts instead of overflowing mid-prompt later.
+            // auto: false keeps processCompaction from queueing a follow-up
+            // "continue" message, so the loop exits cleanly after the summary.
+            if (
+              !tasks.length &&
+              lastAssistant.summary !== true &&
+              shouldPreempt({
+                cfg: yield* config.get(),
+                tokens: lastAssistant.tokens,
+                model: yield* getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID),
+                outputTokenMax: flags.outputTokenMax,
+              })
+            ) {
+              yield* Effect.logInfo("preemptive compaction", { "session.id": sessionID })
+              yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: false })
+              continue
             }
             yield* Effect.logInfo("exiting loop", { "session.id": sessionID })
             break
