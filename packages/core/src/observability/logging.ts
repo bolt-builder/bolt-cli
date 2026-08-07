@@ -1,6 +1,7 @@
 import { Formatter, Logger, type LogLevel } from "effect"
 import path from "path"
 import { Global } from "../global"
+import { Redact } from "../redact"
 import { runID } from "./shared"
 
 function formatter(id: string = runID) {
@@ -42,7 +43,8 @@ function plain(input: unknown): input is Record<string, unknown> {
 }
 
 function format(input: unknown) {
-  const value = typeof input === "string" ? input : Formatter.format(input)
+  // Redact secrets before log lines hit disk or stderr.
+  const value = Redact.text(typeof input === "string" ? input : Formatter.format(input))
   return /^[^\s="\\]+$/.test(value) ? value : JSON.stringify(value)
 }
 
