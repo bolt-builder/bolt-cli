@@ -60,6 +60,20 @@ export const LearnCommand = effectCmd({
     // memory_save is a no-op against a disabled store, so a learn run must enable it first.
     if (!status.state.enabled) yield* memory.enable({ ctx }).pipe(Effect.orDie)
 
+    // Deterministic pass first: build/test commands come straight from the repo's manifests,
+    // no model required, so they land even if the LLM pass saves nothing new about them.
+    const { MemoryToolchain } = yield* Effect.promise(() => import("@opencode-ai/memory/toolchain"))
+    const detected = yield* Effect.promise(() =>
+      MemoryToolchain.learn({ root: MemoryPaths.root({ ctx }), worktree: ctx.worktree }),
+    )
+    if (detected.entries.length > 0) {
+      UI.println(
+        `Auto-learned ${detected.entries.length} toolchain command${detected.entries.length === 1 ? "" : "s"}: ${detected.entries
+          .map((item) => item.command)
+          .join(", ")}`,
+      )
+    }
+
     UI.println("Learning repository conventions...")
 
     const { Session } = yield* Effect.promise(() => import("@/session/session"))
@@ -101,7 +115,16 @@ export const LearnCommand = effectCmd({
     }
 
     const writes = saved(result.parts)
-    if (writes.count === 0) return yield* fail("The run finished without saving any conventions to project memory.")
+    if (writes.count === 0 && detected.applied === 0) {
+      return yield* fail("The run finished without saving any conventions to project memory.")
+    }
+    if (writes.count === 0) {
+      UI.empty()
+      UI.println(
+        `The model pass saved nothing new, but ${detected.applied} auto-learned command${detected.applied === 1 ? "" : "s"} persisted to project memory at ${MemoryPaths.root({ ctx })}`,
+      )
+      return
+    }
     UI.empty()
     UI.println(
       `Saved ${writes.count} convention ${writes.count === 1 ? "entry" : "entries"}${
