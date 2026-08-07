@@ -34,6 +34,7 @@ import { CodemodCommand } from "./cli/cmd/codemod"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { LearnCommand } from "./cli/cmd/learn"
+import { DriftCommand } from "./cli/cmd/drift"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
@@ -126,6 +127,7 @@ const cli = yargs(args)
   .command(PipelineCommand)
   .command(RefactorCommand)
   .command(LearnCommand)
+  .command(DriftCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
