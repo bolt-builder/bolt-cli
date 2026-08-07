@@ -314,7 +314,6 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
   return stats
 })
 
-
 // One record per line, kind first. Existing kinds and field orders are frozen;
 // see the porcelain contract in ../porcelain.ts.
 function porcelainStats(stats: SessionStats) {
