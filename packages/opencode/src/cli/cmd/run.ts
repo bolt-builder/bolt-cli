@@ -1218,6 +1218,21 @@ export const RunCommand = effectCmd({
         return await execute(sdk)
       }
 
+      // Route one-shot prompts through a running `bolt daemon` so they reuse
+      // its warm server instead of booting one in-process. A stale or
+      // unreachable record falls back to the in-process server below.
+      const { Daemon } = await import("../daemon")
+      const daemon = await Daemon.detect()
+      if (daemon) {
+        const { ServerAuth } = await import("@/server/auth")
+        const sdk = createOpencodeClient({
+          baseUrl: daemon.url,
+          headers: ServerAuth.headers(),
+          directory,
+        })
+        return await execute(sdk)
+      }
+
       const sdk = createOpencodeClient({
         baseUrl: "http://opencode.internal",
         fetch: fetchFn,
