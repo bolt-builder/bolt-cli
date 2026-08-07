@@ -134,6 +134,7 @@ export namespace MemorySchema {
     if (value.includes("decision")) return "project_decision"
     if (value.includes("constraint")) return "project_constraint"
     if (value.includes("question")) return "open_question"
+    if (value.includes("failed")) return "failed_approach"
     return "project_fact"
   }
 
@@ -144,6 +145,7 @@ export namespace MemorySchema {
     if (value.includes("decision")) return "PROJECT_DECISION"
     if (value.includes("constraint")) return "PROJECT_CONSTRAINT"
     if (value.includes("question")) return "INFERENCE"
+    if (value.includes("failed")) return "FAILED_APPROACH"
     return "PROJECT_FACT"
   }
 
