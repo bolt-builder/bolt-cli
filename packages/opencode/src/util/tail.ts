@@ -3,10 +3,21 @@ import path from "node:path"
 
 // Streams bytes appended to an append-only file to stdout. Reads are
 // serialized so a burst of writes cannot spawn concurrent read streams that
-// interleave their chunks out of order.
-export function follow(file: string, initialOffset: number) {
+// interleave their chunks out of order. With a line filter, chunks are
+// buffered into whole lines first so a predicate never sees a partial line.
+export function follow(file: string, initialOffset: number, filter?: (line: string) => boolean) {
   let offset = initialOffset
   let draining = false
+  let pending = ""
+  const emit = (chunk: string) => {
+    if (!filter) return void process.stdout.write(chunk)
+    pending += chunk
+    const lines = pending.split("\n")
+    pending = lines.pop() ?? ""
+    for (const line of lines) {
+      if (filter(line)) process.stdout.write(line + "\n")
+    }
+  }
   const drain = () => {
     if (draining) return
     const size = fs.statSync(file, { throwIfNoEntry: false })?.size ?? 0
@@ -17,7 +28,7 @@ export function follow(file: string, initialOffset: number) {
     draining = true
     const stream = fs.createReadStream(file, { start: offset, end: size - 1, encoding: "utf8" })
     offset = size
-    stream.on("data", (chunk) => process.stdout.write(chunk))
+    stream.on("data", (chunk) => emit(chunk as string))
     // The file may rotate or truncate mid-read; drop the failed read and
     // resume from the next watch event instead of crashing on an unhandled
     // stream error.
