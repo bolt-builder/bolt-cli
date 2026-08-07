@@ -93,14 +93,16 @@ export const LogsCommand = effectCmd({
       Envelope.print({ file: FILE, lines: shown })
       return
     }
-    for (const line of shown) {
-      if (args.porcelain) {
-        Porcelain.print("log", line)
-        continue
-      }
-      console.log(line)
+    if (args.porcelain) {
+      for (const line of shown) Porcelain.print("log", line)
+      return
     }
-    if (!args.follow) return
+    if (!args.follow) {
+      const { Pager } = yield* Effect.promise(() => import("../pager"))
+      yield* Effect.promise(() => Pager.page(shown.join("\n")))
+      return
+    }
+    for (const line of shown) console.log(line)
     // Follow by re-reading appended bytes whenever the file changes; the log
     // is append-only so the previous size is always a valid resume offset.
     yield* Effect.callback<void>(() => {
