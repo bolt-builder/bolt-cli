@@ -4,6 +4,7 @@ import { MemoryError, type MemoryError as Failure } from "./effect/errors"
 import { MemoryPaths } from "./effect/paths"
 import { MemoryService } from "./effect/service"
 import { MemoryRecall } from "./recall/recall"
+import { MemoryScopes } from "./scopes"
 import { MemoryToken } from "./recall/token"
 import { MemorySchema } from "./schema"
 import recallDescription from "./prompts/tool-memory-recall.txt"
@@ -44,6 +45,10 @@ export namespace MemoryTool {
     }),
     key: Schema.optional(Key).annotate({
       description: "Optional stable key for remember/correct.",
+    }),
+    scope: Schema.optional(Key).annotate({
+      description:
+        "Optional repo-relative directory this fact applies to in a monorepo, e.g. packages/tui. Scoped facts only surface when working in that directory.",
     }),
     reason: Schema.optional(Schema.Literals(["out_of_scope"])).annotate({
       description: "Skip reason when action is skip.",
@@ -91,6 +96,7 @@ export namespace MemoryTool {
     root: string
     current: string
     state: MemorySchema.State
+    scope?: string
   }
 
   export function failure(err: unknown): err is Failure {
@@ -329,6 +335,7 @@ export namespace MemoryTool {
         query,
         sessionID: input.params.sessionID,
         currentSessionID: live.current,
+        scope: live.scope,
         limit,
       })
       const hits = result?.hits ?? []
@@ -379,7 +386,11 @@ export namespace MemoryTool {
       if (!state.enabled) return disabled(true)
       yield* approvalRecall(input)
 
-      const live = { root, current, state }
+      // The active monorepo scope narrows recall to facts that apply to the working directory.
+      const scope = yield* Effect.promise(() =>
+        MemoryScopes.locate({ directory: input.ctx.directory, worktree: input.ctx.worktree }),
+      )
+      const live = { root, current, state, scope: scope || undefined }
       const query = input.params.query?.trim() ?? ""
       const mode = input.params.mode
       if (mode === "catalog") return yield* recallCatalog(input, live, query)
@@ -500,10 +511,17 @@ export namespace MemoryTool {
       if (!text) return noText(input.params.action)
 
       yield* approval(input.params, input.ask, { text })
+      const scope = input.params.scope ? MemoryScopes.clean(input.params.scope) : ""
       const result =
         input.params.action === "correct"
           ? yield* input.memory.correct({ root, sessionID: input.sessionID, key: input.params.key, text })
-          : yield* input.memory.remember({ root, sessionID: input.sessionID, key: input.params.key, text })
+          : yield* input.memory.remember({
+              root,
+              sessionID: input.sessionID,
+              key: input.params.key,
+              text,
+              ...(scope ? { section: MemoryScopes.section(scope) } : {}),
+            })
       return saved({ params: input.params, result })
     })
   }
