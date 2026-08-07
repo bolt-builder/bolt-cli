@@ -82,10 +82,7 @@ export async function configure(root: string, input: { review: boolean }) {
 
 export async function stage(root: string, input: { ops: MemoryOperations.Op[]; sessionID?: string; now: number }) {
   const store = await read(root)
-  const items = [
-    ...store.items,
-    ...input.ops.map((item) => ({ op: item, sessionID: input.sessionID, at: input.now })),
-  ]
+  const items = [...store.items, ...input.ops.map((item) => ({ op: item, sessionID: input.sessionID, at: input.now }))]
   const next = { ...store, items }
   await write(root, next)
   return { count: input.ops.length, total: items.length }

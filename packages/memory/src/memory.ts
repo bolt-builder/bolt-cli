@@ -223,7 +223,12 @@ export namespace Memory {
           added: 0,
           removed: 0,
           skipped: [],
-          index: { text: index, bytes: Buffer.byteLength(index), tokens: MemoryToken.estimate(index), truncated: false },
+          index: {
+            text: index,
+            bytes: Buffer.byteLength(index),
+            tokens: MemoryToken.estimate(index),
+            truncated: false,
+          },
         },
         ok: false,
         staged: staged.count,

@@ -72,7 +72,9 @@ describe("diff rendering", () => {
           { op: { action: "remove", query: "deploy_region" }, at: 4 },
         ],
       })
-      expect(lines[0]).toBe("~ project.md > Facts > deploy_region :: Deploys go to iad. (was: Deploys go to ord.) (session ses_9)")
+      expect(lines[0]).toBe(
+        "~ project.md > Facts > deploy_region :: Deploys go to iad. (was: Deploys go to ord.) (session ses_9)",
+      )
       expect(lines[1]).toBe("= project.md > Facts > deploy_region :: Deploys go to ord.")
       expect(lines[2]).toBe("+ project.md > Facts > new_fact :: Fresh fact.")
       expect(lines[3]).toBe("- forget: deploy_region")
