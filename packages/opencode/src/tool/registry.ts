@@ -6,6 +6,8 @@ import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
 import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
+import { Approval } from "@/approval"
+import { Guardrail } from "@/guardrail"
 import { EditTool } from "./edit"
 import { FramesTool } from "./frames"
 import { GitTool } from "./git"
@@ -26,6 +28,7 @@ import {
   BackgroundStartTool,
   BackgroundStdinTool,
 } from "./background"
+import { CoverageTool } from "./coverage"
 import { McpResourceReadTool, McpResourcesTool } from "./mcp-resource"
 import { MemoryRecallTool, MemorySaveTool } from "./memory"
 import { MultiEditTool } from "./multiedit"
@@ -150,6 +153,7 @@ const layer = Layer.effect(
     const bglist = yield* BackgroundListTool
     const bgstdin = yield* BackgroundStdinTool
     const testrun = yield* TestRunTool
+    const coverage = yield* CoverageTool
     const semantic = yield* SemanticSearchTool
     const browser = yield* BrowserTool
     const taskcreate = yield* TaskCreateTool
@@ -280,6 +284,7 @@ const layer = Layer.effect(
           bglist: Tool.init(bglist),
           bgstdin: Tool.init(bgstdin),
           testrun: Tool.init(testrun),
+          coverage: Tool.init(coverage),
           semantic: Tool.init(semantic),
           browser: Tool.init(browser),
           taskcreate: Tool.init(taskcreate),
@@ -329,6 +334,7 @@ const layer = Layer.effect(
             tool.bglist,
             tool.bgstdin,
             tool.testrun,
+            tool.coverage,
             tool.semantic,
             tool.browser,
             tool.taskcreate,
@@ -550,6 +556,8 @@ export const node = LayerNode.make({
     MCP.node,
     Database.node,
     Ripgrep.node,
+    Approval.node,
+    Guardrail.node,
   ],
 })
 
