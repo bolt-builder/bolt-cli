@@ -41,11 +41,7 @@ describe("partial", () => {
       { info: { role: "user" }, parts: [{ type: "text", text: "prompt" }] },
       {
         info: { role: "assistant" },
-        parts: [
-          { type: "tool" },
-          { type: "text", text: "first chunk" },
-          { type: "text", text: "second chunk" },
-        ],
+        parts: [{ type: "tool" }, { type: "text", text: "first chunk" }, { type: "text", text: "second chunk" }],
       },
     ]
     expect(partial(messages)).toBe("first chunk\n\nsecond chunk")

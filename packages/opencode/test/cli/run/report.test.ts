@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import { add, clock, empty, json, ratio, render } from "../../../src/cli/cmd/run/report"
 
-function step(over?: Partial<{ cost: number; input: number; output: number; reasoning: number; read: number; write: number }>) {
+function step(
+  over?: Partial<{ cost: number; input: number; output: number; reasoning: number; read: number; write: number }>,
+) {
   const usage = { cost: 0.01, input: 100, output: 50, reasoning: 10, read: 200, write: 20, ...over }
   return {
     cost: usage.cost,
