@@ -82,6 +82,7 @@ import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand, TagCommand } from "./cli/cmd/session"
 import { ResumeCommand } from "./cli/cmd/resume"
 import { GrepCommand } from "./cli/cmd/grep"
+import { ForkCommand } from "./cli/cmd/fork"
 import { SubmodulesCommand } from "./cli/cmd/submodules"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
@@ -221,6 +222,7 @@ const cli = yargs(args)
   .command(ResumeCommand)
   .command(GrepCommand)
   .command(TagCommand)
+  .command(ForkCommand)
   .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)
