@@ -54,7 +54,10 @@ export function authors(log: string) {
     }
     const match = line.match(/^(?:\d+|-)\t(?:\d+|-)\t(.+)$/)
     if (!match || current === "") continue
-    const file = match[1].replace(/\{([^{}]*) => ([^{}]*)\}/g, "$2").replaceAll("//", "/").replaceAll("\\", "/")
+    const file = match[1]
+      .replace(/\{([^{}]*) => ([^{}]*)\}/g, "$2")
+      .replaceAll("//", "/")
+      .replaceAll("\\", "/")
     const counts = result.get(file) ?? new Map<string, number>()
     counts.set(current, (counts.get(current) ?? 0) + 1)
     result.set(file, counts)

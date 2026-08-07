@@ -33,7 +33,7 @@ describe("destructive", () => {
     expect(destructive('psql -c "DROP TABLE users"')).toBe("destructive sql statement")
     expect(destructive('mysql -e "truncate table logs"')).toBe("destructive sql statement")
     expect(destructive('psql -c "DELETE FROM users"')).toBe("unfiltered sql delete")
-    expect(destructive("psql -c \"DELETE FROM users WHERE id = 1\"")).toBeUndefined()
+    expect(destructive('psql -c "DELETE FROM users WHERE id = 1"')).toBeUndefined()
   })
 
   test("flags system-level destruction", () => {

@@ -25,9 +25,7 @@ export function extract(text: string) {
 
 /** Render the invariants document persisted between the state and verify phases. */
 export function document(files: string[], invariants: string[]) {
-  return ["# Invariants", "", `Files: ${files.join(", ")}`, "", ...invariants.map((line) => `- ${line}`), ""].join(
-    "\n",
-  )
+  return ["# Invariants", "", `Files: ${files.join(", ")}`, "", ...invariants.map((line) => `- ${line}`), ""].join("\n")
 }
 
 /** Parse a persisted invariants document back into its files and invariants. */

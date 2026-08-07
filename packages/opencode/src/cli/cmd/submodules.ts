@@ -127,7 +127,9 @@ export const SubmodulesCommand = effectCmd({
     }
     if (!args.sync) {
       UI.empty()
-      UI.println(`${broken.length} submodule${broken.length === 1 ? " is" : "s are"} out of sync. Rerun with --sync to fix.`)
+      UI.println(
+        `${broken.length} submodule${broken.length === 1 ? " is" : "s are"} out of sync. Rerun with --sync to fix.`,
+      )
       process.exitCode = 1
       return
     }

@@ -13,7 +13,9 @@ const BLOCK = [
 
 describe("normalize", () => {
   test("strips comments and collapses whitespace", () => {
-    const rows = normalize(["// leading comment", "const  a =   1", "/* block", "inside", "*/ const b = 2", ""].join("\n"))
+    const rows = normalize(
+      ["// leading comment", "const  a =   1", "/* block", "inside", "*/ const b = 2", ""].join("\n"),
+    )
     expect(rows).toEqual([
       { line: 2, text: "const a = N" },
       { line: 5, text: "const b = N" },
@@ -131,10 +133,7 @@ describe("clusters", () => {
 
   test("ranks bigger clusters first", () => {
     const small = ["alpha(one)", "beta(two)", "gamma(three)", "delta(four)"].join("\n")
-    const found = clusters(
-      { "a.ts": `${BLOCK}\nbreak1()\n${small}`, "b.ts": `${small}\nbreak2()\n${BLOCK}` },
-      4,
-    )
+    const found = clusters({ "a.ts": `${BLOCK}\nbreak1()\n${small}`, "b.ts": `${small}\nbreak2()\n${BLOCK}` }, 4)
     expect(found.length).toBe(2)
     expect(found[0].lines).toBe(7)
     expect(found[1].lines).toBe(4)

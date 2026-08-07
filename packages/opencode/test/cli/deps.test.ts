@@ -6,7 +6,11 @@ const NOW = Date.parse("2026-01-01T00:00:00Z")
 describe("declared", () => {
   test("collects external dependencies with stripped ranges", () => {
     const deps = declared({
-      "package.json": { name: "root", dependencies: { effect: "^3.12.0", zod: "~4.0.1" }, devDependencies: { vitest: ">=2.0.0" } },
+      "package.json": {
+        name: "root",
+        dependencies: { effect: "^3.12.0", zod: "~4.0.1" },
+        devDependencies: { vitest: ">=2.0.0" },
+      },
     })
     expect(deps.get("effect")).toBe("3.12.0")
     expect(deps.get("zod")).toBe("4.0.1")

@@ -53,7 +53,8 @@ export function convention(history: string[]) {
   const period = history.filter((line) => line.endsWith(".")).length > history.length * 0.2
   const summaries = parsed.map((entry) => entry.summary).filter(Boolean)
   const lower =
-    summaries.length > 0 && summaries.filter((line) => line[0] === line[0].toLowerCase()).length >= summaries.length * 0.8
+    summaries.length > 0 &&
+    summaries.filter((line) => line[0] === line[0].toLowerCase()).length >= summaries.length * 0.8
 
   return {
     conventional,
@@ -75,12 +76,7 @@ export function lint(line: string, rules: Convention) {
   if (rules.conventional && parsed.type !== undefined && rules.types.length && !rules.types.includes(parsed.type)) {
     found.push(`type "${parsed.type}" is not used in this repo (${rules.types.join(", ")})`)
   }
-  if (
-    rules.conventional &&
-    parsed.scope !== undefined &&
-    rules.scopes.length &&
-    !rules.scopes.includes(parsed.scope)
-  ) {
+  if (rules.conventional && parsed.scope !== undefined && rules.scopes.length && !rules.scopes.includes(parsed.scope)) {
     found.push(`scope "${parsed.scope}" is not used in this repo (${rules.scopes.join(", ")})`)
   }
   if (line.length > rules.length) {

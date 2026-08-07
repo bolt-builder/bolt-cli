@@ -358,7 +358,8 @@ const layer = Layer.effect(
       // them forward. A plugin-replaced prompt takes full ownership of the
       // compaction prompt, pins included.
       const pinned = SessionPin.resolve({ pins: cfg.compaction?.pinned ?? [], messages: history })
-      const nextPrompt = compacting.prompt ?? buildPrompt({ previousSummary, context: [...compacting.context, ...pinned] })
+      const nextPrompt =
+        compacting.prompt ?? buildPrompt({ previousSummary, context: [...compacting.context, ...pinned] })
       const msgs = structuredClone(selected.head)
       yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
       const modelMessages = yield* MessageV2.toModelMessagesEffect(msgs, model, {

@@ -3,7 +3,12 @@ import { exports, identifiers, imported, markdown, radar, starred } from "../../
 
 describe("exports", () => {
   test("finds declaration exports with line numbers", () => {
-    const text = ["const local = 1", "export const alpha = 1", "export async function beta() {}", "export interface Gamma {}"].join("\n")
+    const text = [
+      "const local = 1",
+      "export const alpha = 1",
+      "export async function beta() {}",
+      "export interface Gamma {}",
+    ].join("\n")
     expect(exports("a.ts", text)).toEqual([
       { file: "a.ts", name: "alpha", line: 2 },
       { file: "a.ts", name: "beta", line: 3 },
@@ -25,7 +30,11 @@ describe("exports", () => {
 
 describe("imported", () => {
   test("collects names from import and re-export clauses", () => {
-    const text = ['import { alpha, beta as local } from "./a"', 'export { gamma } from "./b"', 'import type { Delta } from "./c"'].join("\n")
+    const text = [
+      'import { alpha, beta as local } from "./a"',
+      'export { gamma } from "./b"',
+      'import type { Delta } from "./c"',
+    ].join("\n")
     expect(imported(text)).toEqual(["alpha", "beta", "gamma", "Delta"])
   })
 })

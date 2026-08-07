@@ -67,7 +67,7 @@ export const BUILTIN: Playbook[] = [
     title: "Tailwind CSS 3 to 4",
     steps: [
       "Run the official upgrade tool: `npx @tailwindcss/upgrade`",
-      "Replace `@tailwind base/components/utilities` directives with a single `@import \"tailwindcss\"`",
+      'Replace `@tailwind base/components/utilities` directives with a single `@import "tailwindcss"`',
       "Move theme customization from `tailwind.config.js` into CSS `@theme` blocks",
       "Swap the PostCSS plugin for `@tailwindcss/postcss` (or the Vite plugin)",
       "Visually diff key screens: default border color and ring width changed",
@@ -81,7 +81,7 @@ export const BUILTIN: Playbook[] = [
     steps: [
       "Bump `typescript` to ^5 and re-run the type checker",
       "Replace deprecated compiler flags: `importsNotUsedAsValues` and `preserveValueImports` become `verbatimModuleSyntax`",
-      "Consider `moduleResolution: \"bundler\"` for bundled projects",
+      'Consider `moduleResolution: "bundler"` for bundled projects',
       "Update decorators: TS 5 implements the stage-3 standard, legacy decorators need `experimentalDecorators`",
       "Upgrade `@typescript-eslint/*` to a major that supports TS 5",
     ],
@@ -127,7 +127,10 @@ export function version(manifests: Record<string, unknown>, name: string) {
 export function hops(name: string, from: number, to: number, books: Playbook[]) {
   return Array.from({ length: Math.max(0, to - from) }, (_, index) => {
     const start = from + index
-    return books.find((book) => book.name === name && book.from === start && book.to === start + 1) ?? generic(name, start, start + 1)
+    return (
+      books.find((book) => book.name === name && book.from === start && book.to === start + 1) ??
+      generic(name, start, start + 1)
+    )
   })
 }
 
@@ -145,12 +148,7 @@ export function applicable(manifests: Record<string, unknown>, books: Playbook[]
 /** Renders the chained playbooks as a markdown checklist. */
 export function markdown(name: string, current: string, chain: Playbook[]) {
   if (chain.length === 0) return `# Migration: ${name}\n\nAlready at or past the target major (currently ${current}).\n`
-  const sections = chain.flatMap((book) => [
-    `## ${book.title}`,
-    "",
-    ...book.steps.map((step) => `- [ ] ${step}`),
-    "",
-  ])
+  const sections = chain.flatMap((book) => [`## ${book.title}`, "", ...book.steps.map((step) => `- [ ] ${step}`), ""])
   return [
     `# Migration: ${name} ${current} to ${chain[chain.length - 1].to}.x`,
     "",
@@ -166,7 +164,10 @@ export const MigrateCommand = effectCmd({
   instance: false,
   builder: (yargs) =>
     yargs
-      .positional("package", { describe: "dependency to upgrade; omit to list applicable curated playbooks", type: "string" })
+      .positional("package", {
+        describe: "dependency to upgrade; omit to list applicable curated playbooks",
+        type: "string",
+      })
       .positional("target", { describe: "target major version, defaults to one hop up", type: "number" }),
   handler: Effect.fn("Cli.migrate")(function* (args) {
     const cwd = process.cwd()
@@ -185,12 +186,16 @@ export const MigrateCommand = effectCmd({
     if (!args.package) {
       const found = applicable(manifests, BUILTIN)
       if (found.length === 0) {
-        process.stdout.write("No curated playbooks apply. Run `bolt migrate <package> [target]` for a generic playbook.\n")
+        process.stdout.write(
+          "No curated playbooks apply. Run `bolt migrate <package> [target]` for a generic playbook.\n",
+        )
         return
       }
       process.stdout.write("Applicable curated playbooks:\n\n")
       for (const entry of found) {
-        process.stdout.write(`- ${entry.book.title}: \`bolt migrate ${entry.book.name} ${entry.book.to}\` (currently ${entry.current})\n`)
+        process.stdout.write(
+          `- ${entry.book.title}: \`bolt migrate ${entry.book.name} ${entry.book.to}\` (currently ${entry.current})\n`,
+        )
       }
       return
     }

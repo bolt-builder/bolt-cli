@@ -64,13 +64,13 @@ export function markdown(found: Violation[], checked: number) {
     .flatMap(([pair, list]) => [
       `## \`${pair}\` (${list.length} imports, rule \`${list[0].rule}\`)`,
       "",
-      ...list
-        .slice(0, 10)
-        .map((violation) => `- \`${violation.file}\` imports \`${violation.target}\``),
+      ...list.slice(0, 10).map((violation) => `- \`${violation.file}\` imports \`${violation.target}\``),
       ...(list.length > 10 ? [`- ...and ${list.length - 10} more`] : []),
       "",
     ])
-  return ["# Architectural drift", "", `${found.length} imports violate the declared contract.`, "", ...sections].join("\n")
+  return ["# Architectural drift", "", `${found.length} imports violate the declared contract.`, "", ...sections].join(
+    "\n",
+  )
 }
 
 export const ArchCommand = effectCmd({
@@ -93,7 +93,8 @@ export const ArchCommand = effectCmd({
       )
     const raw = yield* Effect.promise(() => handle.text())
     const decoded = Schema.decodeOption(Schema.UnknownFromJsonString)(raw).pipe(Option.flatMap(contract))
-    if (Option.isNone(decoded)) return yield* fail(`Invalid contract in ${args.contract}: expected {depth?, rules: [{from, allow?, deny?}]}`)
+    if (Option.isNone(decoded))
+      return yield* fail(`Invalid contract in ${args.contract}: expected {depth?, rules: [{from, allow?, deny?}]}`)
     const glob = new Bun.Glob("**/*.{ts,tsx,js,jsx}")
     const scanned = yield* Effect.promise(() => Array.fromAsync(glob.scan({ cwd })))
     const names = scanned

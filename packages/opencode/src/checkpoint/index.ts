@@ -92,9 +92,7 @@ const layer = Layer.effect(
       const infos = yield* Effect.forEach(keys, (item) =>
         storage.read<Info>(item).pipe(Effect.catch(() => Effect.succeed(undefined))),
       )
-      return infos
-        .filter((item): item is Info => item !== undefined)
-        .toSorted((a, b) => b.time - a.time)
+      return infos.filter((item): item is Info => item !== undefined).toSorted((a, b) => b.time - a.time)
     })
 
     const rewind = Effect.fn("Checkpoint.rewind")(function* (name: string) {

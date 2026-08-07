@@ -9,7 +9,9 @@ function message(parts: Partial<SessionV1.Part>[]): SessionV1.WithParts {
   } as SessionV1.WithParts
 }
 
-const attached = message([{ type: "file", url: "file:///repo/src/auth.ts?start=1", filename: "auth.ts", mime: "text/plain" }])
+const attached = message([
+  { type: "file", url: "file:///repo/src/auth.ts?start=1", filename: "auth.ts", mime: "text/plain" },
+])
 
 const read = message([
   {

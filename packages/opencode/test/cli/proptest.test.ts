@@ -4,9 +4,7 @@ import { candidates } from "../../src/cli/cmd/proptest"
 describe("candidates", () => {
   test("finds exported function declarations", () => {
     const source = "export function parse(text: string) {\n  return text\n}"
-    expect(candidates(source)).toEqual([
-      { name: "parse", line: 1, signature: "export function parse(text: string) {" },
-    ])
+    expect(candidates(source)).toEqual([{ name: "parse", line: 1, signature: "export function parse(text: string) {" }])
   })
 
   test("finds exported arrow constants", () => {

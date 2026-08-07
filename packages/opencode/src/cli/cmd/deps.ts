@@ -52,7 +52,11 @@ export function declared(manifests: Record<string, unknown>) {
 
 /** How far `current` trails `latest`: major, minor, patch, current, or unknown for unparseable versions. */
 export function behind(current: string, latest: string) {
-  const parse = (version: string) => version.match(/^(\d+)\.(\d+)\.(\d+)/)?.slice(1, 4).map(Number)
+  const parse = (version: string) =>
+    version
+      .match(/^(\d+)\.(\d+)\.(\d+)/)
+      ?.slice(1, 4)
+      .map(Number)
   const now = parse(current)
   const top = parse(latest)
   if (!now || !top) return "unknown"
@@ -68,7 +72,12 @@ export function behind(current: string, latest: string) {
  * publish within the staleness window), then outdated by distance. Healthy
  * packages are dropped.
  */
-export function report(deps: Map<string, string>, meta: Map<string, Meta>, advisories: Map<string, Advisory[]>, now: number) {
+export function report(
+  deps: Map<string, string>,
+  meta: Map<string, Meta>,
+  advisories: Map<string, Advisory[]>,
+  now: number,
+) {
   return [...deps.entries()]
     .flatMap(([name, current]) => {
       const info = meta.get(name)
@@ -79,9 +88,23 @@ export function report(deps: Map<string, string>, meta: Map<string, Meta>, advis
       const stale = Number.isNaN(modified) ? 0 : Math.max(0, Math.floor((now - modified) / DAY))
       const abandoned = stale >= STALE_DAYS
       const score =
-        found.length * 1000 + (info.deprecated ? 500 : 0) + (abandoned ? 250 : 0) + { major: 100, minor: 10, patch: 1, current: 0, unknown: 0 }[distance]
+        found.length * 1000 +
+        (info.deprecated ? 500 : 0) +
+        (abandoned ? 250 : 0) +
+        { major: 100, minor: 10, patch: 1, current: 0, unknown: 0 }[distance]
       if (score === 0) return []
-      return [{ name, current, latest: info.latest, behind: distance, deprecated: info.deprecated, stale, advisories: found, score }]
+      return [
+        {
+          name,
+          current,
+          latest: info.latest,
+          behind: distance,
+          deprecated: info.deprecated,
+          stale,
+          advisories: found,
+          score,
+        },
+      ]
     })
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
 }

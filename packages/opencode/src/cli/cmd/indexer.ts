@@ -117,7 +117,11 @@ export const IndexCommand = effectCmd({
       .positional("query", { describe: "search the index instead of only building it", type: "string" })
       .option("out", { describe: "index file path", type: "string", default: OUT })
       .option("limit", { describe: "maximum search hits", type: "number", default: LIMIT })
-      .option("watch", { describe: "keep running and reindex files as they are saved", type: "boolean", default: false }),
+      .option("watch", {
+        describe: "keep running and reindex files as they are saved",
+        type: "boolean",
+        default: false,
+      }),
   handler: Effect.fn("Cli.index")(function* (args) {
     const cwd = process.cwd()
     const out = path.join(cwd, args.out)
@@ -127,7 +131,10 @@ export const IndexCommand = effectCmd({
       return (await handle.json()) as Index
     })
     const scanned = yield* Effect.promise(() => Array.fromAsync(new Bun.Glob("**/*").scan({ cwd })))
-    const names = scanned.map((name) => name.replaceAll("\\", "/")).filter(indexable).sort()
+    const names = scanned
+      .map((name) => name.replaceAll("\\", "/"))
+      .filter(indexable)
+      .sort()
     const files: Record<string, string> = {}
     for (const name of names) {
       const handle = Bun.file(path.join(cwd, name))

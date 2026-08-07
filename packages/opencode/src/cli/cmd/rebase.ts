@@ -30,7 +30,9 @@ export function plan(text: string) {
   for (const line of last[1].split("\n")) {
     const trimmed = line.trim()
     if (!trimmed) continue
-    const match = trimmed.match(/^(pick|reword|squash|fixup|drop)\s+([0-9a-f]{7,40})(?:\s+"((?:[^"\\]|\\.)*)")?\s*::\s*(.*)$/)
+    const match = trimmed.match(
+      /^(pick|reword|squash|fixup|drop)\s+([0-9a-f]{7,40})(?:\s+"((?:[^"\\]|\\.)*)")?\s*::\s*(.*)$/,
+    )
     if (!match) return undefined
     steps.push({
       action: match[1] as Action,

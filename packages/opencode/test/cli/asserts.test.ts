@@ -29,9 +29,12 @@ describe("mine", () => {
   })
 
   test("counts weak assertions", () => {
-    const source = ['test("vague", () => {', "  expect(result).toBeTruthy()", "  expect(other).toBeDefined()", "})"].join(
-      "\n",
-    )
+    const source = [
+      'test("vague", () => {',
+      "  expect(result).toBeTruthy()",
+      "  expect(other).toBeDefined()",
+      "})",
+    ].join("\n")
     expect(mine(source)).toEqual([{ name: "vague", line: 1, expects: 2, weak: 2 }])
   })
 

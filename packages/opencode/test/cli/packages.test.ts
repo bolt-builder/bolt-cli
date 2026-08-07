@@ -4,7 +4,11 @@ import { markdown, nodes, order } from "../../src/cli/cmd/packages"
 const WORKSPACE = {
   "packages/core/package.json": { name: "core", dependencies: { schema: "*", effect: "^3.0.0" } },
   "packages/schema/package.json": { name: "schema" },
-  "packages/server/package.json": { name: "server", dependencies: { core: "*", schema: "*" }, devDependencies: { schema: "*" } },
+  "packages/server/package.json": {
+    name: "server",
+    dependencies: { core: "*", schema: "*" },
+    devDependencies: { schema: "*" },
+  },
   "package.json": { name: "root", dependencies: {} },
 }
 
@@ -22,7 +26,10 @@ describe("nodes", () => {
   })
 
   test("skips manifests without a name and self-dependencies", () => {
-    const graph = nodes({ "a/package.json": { private: true }, "b/package.json": { name: "b", dependencies: { b: "*" } } })
+    const graph = nodes({
+      "a/package.json": { private: true },
+      "b/package.json": { name: "b", dependencies: { b: "*" } },
+    })
     expect(graph).toEqual([{ name: "b", dir: "b", deps: [] }])
   })
 })

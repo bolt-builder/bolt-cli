@@ -89,9 +89,7 @@ export const WorktreeRemoveCommand = effectCmd({
     const rows = yield* worktrees.list().pipe(Effect.catch((error) => fail(error.message)))
     const row = pick(rows, args.worktree)
     if (!row) {
-      return yield* fail(
-        `Could not find exactly one worktree matching "${args.worktree}". Check bolt worktree list.`,
-      )
+      return yield* fail(`Could not find exactly one worktree matching "${args.worktree}". Check bolt worktree list.`)
     }
     yield* worktrees.remove({ directory: row.directory }).pipe(Effect.catch((error) => fail(error.message)))
     UI.println(`Removed ${row.name} (${row.directory})`)

@@ -44,7 +44,13 @@ export function exported(source: string) {
     if (!list) return []
     return list[1]
       .split(",")
-      .map((entry) => entry.trim().split(/\s+as\s+/).at(-1) ?? "")
+      .map(
+        (entry) =>
+          entry
+            .trim()
+            .split(/\s+as\s+/)
+            .at(-1) ?? "",
+      )
       .filter((name) => /^\w+$/.test(name) && name !== "default")
       .map((name) => ({ name, line: index + 1 }))
   })
@@ -161,7 +167,12 @@ export const AnalyzeCommand = effectCmd({
         const matches = yield* rg
           .grep({ cwd, pattern: `\\b${symbol.name}\\b`, include: `*{${CODE.join(",")}}`, limit: 200 })
           .pipe(Effect.catch(() => Effect.succeed([])))
-        if (dead(file, matches.map((match) => match.entry.path))) {
+        if (
+          dead(
+            file,
+            matches.map((match) => match.entry.path),
+          )
+        ) {
           suspects.push({ file, name: symbol.name, line: symbol.line })
         }
       }

@@ -93,7 +93,12 @@ export function markdown(graph: Node[], built: Order) {
     "",
   ]
   if (built.cyclic.length > 0) {
-    sections.push("## Dependency cycles", "", `No valid build order for: ${built.cyclic.map((name) => `\`${name}\``).join(", ")}`, "")
+    sections.push(
+      "## Dependency cycles",
+      "",
+      `No valid build order for: ${built.cyclic.map((name) => `\`${name}\``).join(", ")}`,
+      "",
+    )
   }
   return sections.join("\n")
 }

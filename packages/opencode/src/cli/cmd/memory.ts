@@ -99,7 +99,9 @@ export const MemoryConflictsCommand = effectCmd({
     }
     if (output.applied) {
       UI.empty()
-      UI.println(`Removed ${output.result.result.removed} superseded ${output.result.result.removed === 1 ? "fact" : "facts"}.`)
+      UI.println(
+        `Removed ${output.result.result.removed} superseded ${output.result.result.removed === 1 ? "fact" : "facts"}.`,
+      )
       return
     }
     if (output.plan.resolutions.length > 0) {

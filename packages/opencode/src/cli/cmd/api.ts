@@ -110,7 +110,12 @@ export function markdown(delta: Delta, base: string) {
     "",
   ]
   if (delta.removed.length > 0) {
-    sections.push("## Removed (breaking)", "", ...delta.removed.map((item) => `- \`${item.name}\` in \`${item.file}\``), "")
+    sections.push(
+      "## Removed (breaking)",
+      "",
+      ...delta.removed.map((item) => `- \`${item.name}\` in \`${item.file}\``),
+      "",
+    )
   }
   if (delta.changed.length > 0) {
     sections.push("## Changed (breaking)", "")
@@ -140,7 +145,8 @@ export const ApiCommand = effectCmd({
   command: "api [ref]",
   describe: "diff the exported API surface against a git ref",
   instance: false,
-  builder: (yargs) => yargs.positional("ref", { describe: "git ref to compare against", type: "string", default: "HEAD" }),
+  builder: (yargs) =>
+    yargs.positional("ref", { describe: "git ref to compare against", type: "string", default: "HEAD" }),
   handler: Effect.fn("Cli.api")(function* (args) {
     const cwd = process.cwd()
     const ref = args.ref

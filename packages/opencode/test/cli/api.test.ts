@@ -13,7 +13,9 @@ describe("signature", () => {
   })
 
   test("drops arrow bodies and trailing assignment", () => {
-    expect(signature(["export const run = (input: string) => input.trim()"], 0)).toBe("export const run = (input: string)")
+    expect(signature(["export const run = (input: string) => input.trim()"], 0)).toBe(
+      "export const run = (input: string)",
+    )
     expect(signature(["export const flag ="], 0)).toBe("export const flag")
   })
 })
@@ -63,12 +65,16 @@ describe("diff", () => {
   })
 
   test("flags interface body changes as surface changes", () => {
-    const now = surface({ "a.ts": "export function go(x: number) {}\nexport interface Shape {\n  width: number\n  height: number\n}" })
+    const now = surface({
+      "a.ts": "export function go(x: number) {}\nexport interface Shape {\n  width: number\n  height: number\n}",
+    })
     expect(diff(old, now).changed.map((change) => change.name)).toEqual(["Shape"])
   })
 
   test("ignores function body changes", () => {
-    const now = surface({ "a.ts": "export function go(x: number) { return x + 1 }\nexport interface Shape {\n  width: number\n}" })
+    const now = surface({
+      "a.ts": "export function go(x: number) { return x + 1 }\nexport interface Shape {\n  width: number\n}",
+    })
     expect(diff(old, now)).toEqual({ added: [], removed: [], changed: [] })
   })
 
@@ -93,6 +99,8 @@ describe("markdown", () => {
   })
 
   test("says so when the surface is unchanged", () => {
-    expect(markdown({ added: [], removed: [], changed: [] }, "HEAD")).toContain("No public surface changes against HEAD.")
+    expect(markdown({ added: [], removed: [], changed: [] }, "HEAD")).toContain(
+      "No public surface changes against HEAD.",
+    )
   })
 })

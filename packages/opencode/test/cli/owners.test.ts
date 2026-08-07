@@ -42,9 +42,22 @@ describe("owner", () => {
 
 describe("authors", () => {
   test("attributes numstat lines to the preceding author", () => {
-    const log = ["\u0001alice", "3\t1\tsrc/a.ts", "1\t1\tsrc/b.ts", "\u0001bob", "2\t2\tsrc/a.ts", "\u0001alice", "5\t0\tsrc/a.ts"].join("\n")
+    const log = [
+      "\u0001alice",
+      "3\t1\tsrc/a.ts",
+      "1\t1\tsrc/b.ts",
+      "\u0001bob",
+      "2\t2\tsrc/a.ts",
+      "\u0001alice",
+      "5\t0\tsrc/a.ts",
+    ].join("\n")
     const history = authors(log)
-    expect(history.get("src/a.ts")).toEqual(new Map([["alice", 2], ["bob", 1]]))
+    expect(history.get("src/a.ts")).toEqual(
+      new Map([
+        ["alice", 2],
+        ["bob", 1],
+      ]),
+    )
     expect(history.get("src/b.ts")).toEqual(new Map([["alice", 1]]))
   })
 
@@ -56,7 +69,14 @@ describe("authors", () => {
 
 describe("table", () => {
   const history = authors(
-    ["\u0001alice", "1\t0\tsrc/cli/a.ts", "1\t0\tsrc/cli/b.ts", "\u0001bob", "1\t0\tsrc/cli/a.ts", "1\t0\tdocs/guide.md"].join("\n"),
+    [
+      "\u0001alice",
+      "1\t0\tsrc/cli/a.ts",
+      "1\t0\tsrc/cli/b.ts",
+      "\u0001bob",
+      "1\t0\tsrc/cli/a.ts",
+      "1\t0\tdocs/guide.md",
+    ].join("\n"),
   )
 
   test("aggregates commits and shares per directory bucket", () => {

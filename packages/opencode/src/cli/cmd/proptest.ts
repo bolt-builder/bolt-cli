@@ -168,7 +168,9 @@ export const ProptestCommand = effectCmd({
     if (run.code !== 0) {
       UI.println(run.output.slice(-OUTPUT_LIMIT))
       UI.empty()
-      UI.println(`The generated properties FAIL (exit ${run.code}). Either a property found a real bug or the test is wrong; inspect ${file}.`)
+      UI.println(
+        `The generated properties FAIL (exit ${run.code}). Either a property found a real bug or the test is wrong; inspect ${file}.`,
+      )
       process.exitCode = 1
       return
     }

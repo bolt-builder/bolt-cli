@@ -139,7 +139,9 @@ export const BenchCommand = effectCmd({
         Effect.gen(function* () {
           const removed = yield* git.run(["worktree", "remove", "--force", worktree], { cwd }).pipe(Effect.exit)
           if (Exit.isSuccess(removed) && removed.value.exitCode === 0) return
-          UI.error(`Failed to remove the temporary worktree. Run "git worktree remove --force ${worktree}" to clean up.`)
+          UI.error(
+            `Failed to remove the temporary worktree. Run "git worktree remove --force ${worktree}" to clean up.`,
+          )
         }),
       ),
     )

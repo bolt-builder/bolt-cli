@@ -5,7 +5,8 @@ import { effectCmd } from "../effect-cmd"
 const SKIP = new Set([".git", "node_modules", "dist", "build", ".turbo"])
 const LIMIT = 40
 const WORD = /[A-Za-z_$][A-Za-z0-9_$]*/g
-const DECLARATION = /^\s*export\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-z_$][A-Za-z0-9_$]*)/
+const DECLARATION =
+  /^\s*export\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-z_$][A-Za-z0-9_$]*)/
 const BRACES = /^\s*export\s+(?:type\s+)?\{([^}]*)\}(?!\s*from)/
 const IMPORTED = /(?:import|export)\s+(?:type\s+)?\{([^}]*)\}\s*from/g
 const STAR = /export\s+\*\s+(?:as\s+[A-Za-z_$][A-Za-z0-9_$]*\s+)?from\s+['"]([^'"]+)['"]/g

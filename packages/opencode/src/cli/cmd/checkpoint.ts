@@ -116,7 +116,9 @@ export const CheckpointRewindCommand = effectCmd({
     const checkpoints = yield* Checkpoint.Service
     const info = yield* checkpoints.rewind(args.name).pipe(
       Effect.catchTag("CheckpointNotFoundError", () => fail(`No checkpoint named "${args.name}".`)),
-      Effect.catchTag("SessionBusyError", () => fail("The attached session is busy. Wait for it to go idle and retry.")),
+      Effect.catchTag("SessionBusyError", () =>
+        fail("The attached session is busy. Wait for it to go idle and retry."),
+      ),
     )
     const suffix = info.sessionID ? " Repo and conversation restored." : " Repo restored."
     UI.println(`Rewound to checkpoint "${info.name}".${suffix}`)

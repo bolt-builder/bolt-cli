@@ -14,7 +14,10 @@ export type Spot = { file: string; commits: number; changes: number; complexity:
 
 /** Rename notation in git numstat paths, e.g. `src/{old => new}/x.ts` or `old.ts => new.ts`, resolved to the new path. */
 export function rename(file: string) {
-  return file.replace(/\{([^{}]*) => ([^{}]*)\}/g, "$2").replace(/^([^{}]*) => ([^{}]*)$/, "$2").replaceAll("//", "/")
+  return file
+    .replace(/\{([^{}]*) => ([^{}]*)\}/g, "$2")
+    .replace(/^([^{}]*) => ([^{}]*)$/, "$2")
+    .replaceAll("//", "/")
 }
 
 /** Per-file churn from `git log --numstat` output: how many commits touched the file, and total lines added plus deleted. */
@@ -69,7 +72,8 @@ export function hotspots(touched: Map<string, Churn>, files: Record<string, stri
 
 /** Renders ranked hotspots as a markdown table. */
 export function markdown(spots: Spot[], since: string, limit = LIMIT) {
-  if (spots.length === 0) return `# Hotspots\n\nNo files with both high churn and high complexity in the last ${since}.\n`
+  if (spots.length === 0)
+    return `# Hotspots\n\nNo files with both high churn and high complexity in the last ${since}.\n`
   const rows = spots
     .slice(0, limit)
     .map((spot) => `| \`${spot.file}\` | ${spot.commits} | ${spot.changes} | ${spot.complexity} | ${spot.score} |`)

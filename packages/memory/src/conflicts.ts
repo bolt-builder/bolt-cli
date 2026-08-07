@@ -41,8 +41,9 @@ export function negative(text: string) {
 export function overlap(a: string, b: string) {
   const right = MemoryTopics.words(b)
   const found = new Set(right)
-  return MemoryTopics.words(a).filter((term) => found.has(term) || right.some((item) => MemoryTopics.related(item, term)))
-    .length
+  return MemoryTopics.words(a).filter(
+    (term) => found.has(term) || right.some((item) => MemoryTopics.related(item, term)),
+  ).length
 }
 
 function correction(item: Item) {

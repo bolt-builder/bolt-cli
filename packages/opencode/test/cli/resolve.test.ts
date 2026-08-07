@@ -11,15 +11,9 @@ const SIMPLE = [
   "const c = 4",
 ].join("\n")
 
-const DIFF3 = [
-  "<<<<<<< ours",
-  "left()",
-  "||||||| base",
-  "original()",
-  "=======",
-  "right()",
-  ">>>>>>> theirs",
-].join("\n")
+const DIFF3 = ["<<<<<<< ours", "left()", "||||||| base", "original()", "=======", "right()", ">>>>>>> theirs"].join(
+  "\n",
+)
 
 describe("hunks", () => {
   test("parses a simple conflict", () => {

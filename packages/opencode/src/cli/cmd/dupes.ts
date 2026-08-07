@@ -179,12 +179,14 @@ function compare(a: Cluster, b: Cluster) {
 /** Renders ranked clusters as markdown, capped at `limit` entries. */
 export function markdown(results: Cluster[], limit = LIMIT) {
   if (results.length === 0) return "# Duplicate logic\n\nNo near-identical blocks found.\n"
-  const sections = results.slice(0, limit).flatMap((cluster, index) => [
-    `## ${index + 1}. ${cluster.sites.length} sites, ~${cluster.lines} lines each`,
-    "",
-    ...cluster.sites.map((site) => `- \`${site.file}:${site.start}-${site.end}\``),
-    "",
-  ])
+  const sections = results
+    .slice(0, limit)
+    .flatMap((cluster, index) => [
+      `## ${index + 1}. ${cluster.sites.length} sites, ~${cluster.lines} lines each`,
+      "",
+      ...cluster.sites.map((site) => `- \`${site.file}:${site.start}-${site.end}\``),
+      "",
+    ])
   return ["# Duplicate logic", "", `${results.length} clusters found.`, "", ...sections].join("\n")
 }
 
@@ -229,7 +231,8 @@ function walk(fs: FSUtil.Interface, root: string, prefix: string): Effect.Effect
       Effect.forEach(entries, (entry) => {
         if (entry.name.startsWith(".")) return Effect.succeed<string[]>([])
         const name = prefix === "" ? entry.name : `${prefix}/${entry.name}`
-        if (entry.type === "directory") return SKIP.has(entry.name) ? Effect.succeed<string[]>([]) : walk(fs, root, name)
+        if (entry.type === "directory")
+          return SKIP.has(entry.name) ? Effect.succeed<string[]>([]) : walk(fs, root, name)
         if (entry.type === "file" && /\.(ts|tsx|js|jsx)$/.test(entry.name)) return Effect.succeed([name])
         return Effect.succeed<string[]>([])
       }),

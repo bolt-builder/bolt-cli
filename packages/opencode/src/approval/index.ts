@@ -67,9 +67,8 @@ const layer = Layer.effect(
       // Prefer the provider's small model for cheap sign-offs; fall back to the
       // model already running the session so approval works everywhere.
       const model =
-        (yield* provider
-          .getSmallModel(input.model.providerID)
-          .pipe(Effect.catch(() => Effect.succeed(undefined)))) ?? input.model
+        (yield* provider.getSmallModel(input.model.providerID).pipe(Effect.catch(() => Effect.succeed(undefined)))) ??
+        input.model
       const text = yield* llm
         .stream({
           agent: reviewer,

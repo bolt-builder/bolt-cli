@@ -59,7 +59,9 @@ describe("markdown", () => {
     expect(text).toContain("2 major hops. Land and verify each hop before starting the next.")
     expect(text).toContain("## React 17 to 18")
     expect(text).toContain("## React 18 to 19")
-    expect(text).toContain("- [ ] Replace `ReactDOM.render(el, node)` with `createRoot(node).render(el)` from `react-dom/client`")
+    expect(text).toContain(
+      "- [ ] Replace `ReactDOM.render(el, node)` with `createRoot(node).render(el)` from `react-dom/client`",
+    )
   })
 
   test("handles an empty chain", () => {

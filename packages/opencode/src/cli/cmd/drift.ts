@@ -134,7 +134,9 @@ export const DriftCommand = effectCmd({
       return
     }
 
-    UI.println(`Found ${findings.length} removed symbol${findings.length === 1 ? "" : "s"} still mentioned in docs or comments:`)
+    UI.println(
+      `Found ${findings.length} removed symbol${findings.length === 1 ? "" : "s"} still mentioned in docs or comments:`,
+    )
     for (const finding of findings) {
       UI.println(`  ${finding.name} (removed from ${finding.file}):`)
       for (const mention of finding.mentions.slice(0, MENTION_LIMIT)) {
