@@ -49,6 +49,7 @@ export const SessionCommand = cmd({
       .command(SessionDeleteCommand)
       .command(SessionBranchCommand)
       .command(SessionTagCommand)
+      .command(SessionPruneCommand)
       .demandCommand(),
   async handler() {},
 })
@@ -138,6 +139,65 @@ export const TagCommand = effectCmd({
   describe: "tag a session (alias of session tag)",
   builder: tagArgs,
   handler: tagHandler,
+})
+
+// Retention boundary: sessions last updated before this timestamp are stale.
+export function cutoff(days: number, now: number): number | undefined {
+  if (!Number.isFinite(days) || days <= 0) return undefined
+  return now - days * 86_400_000
+}
+
+const page = 100
+
+export const SessionPruneCommand = effectCmd({
+  command: "prune",
+  describe: "archive sessions older than a retention window",
+  builder: (yargs) =>
+    yargs
+      .option("days", {
+        describe: "archive sessions not updated in this many days",
+        type: "number",
+        default: 30,
+      })
+      .option("dry-run", {
+        describe: "list the sessions that would be archived without archiving them",
+        type: "boolean",
+        default: false,
+      }),
+  handler: Effect.fn("Cli.session.prune")(function* (args) {
+    const { Session } = yield* Effect.promise(() => import("@/session/session"))
+    const svc = yield* Session.Service
+    const boundary = cutoff(args.days, Date.now())
+    if (boundary === undefined) return yield* fail("--days must be a positive number")
+
+    // listGlobal's cursor is an exclusive time_updated upper bound and already
+    // skips archived sessions, so paging from the boundary yields exactly the
+    // stale root sessions across every project.
+    const stale: Session.Info[] = []
+    let cursor = boundary
+    while (true) {
+      const found = yield* svc.listGlobal({ roots: true, limit: page, cursor })
+      if (found.length === 0) break
+      stale.push(...found)
+      if (found.length < page) break
+      cursor = found[found.length - 1].time.updated
+    }
+
+    if (stale.length === 0) {
+      UI.println(`No sessions older than ${args.days} days`)
+      return
+    }
+
+    for (const session of stale) {
+      const verb = args.dryRun ? "would archive" : "archiving"
+      UI.println(`${verb} ${session.id}  ${Locale.todayTimeOrDateTime(session.time.updated)}  ${session.title}`)
+      if (!args.dryRun) yield* svc.setArchived({ sessionID: session.id, time: Date.now() })
+    }
+    const summary = args.dryRun
+      ? `Would archive ${stale.length} session(s) older than ${args.days} days`
+      : `Archived ${stale.length} session(s) older than ${args.days} days`
+    UI.println(UI.Style.TEXT_SUCCESS_BOLD + summary + UI.Style.TEXT_NORMAL)
+  }),
 })
 
 export const SessionBranchCommand = effectCmd({
