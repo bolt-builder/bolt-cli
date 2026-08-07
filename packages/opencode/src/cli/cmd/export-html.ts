@@ -75,6 +75,7 @@ h1 { font-size: 20px; margin: 0 0 12px; }
 nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; justify-content: center; padding: 12px; background: #0d1117e6; border-top: 1px solid #30363d; }
 nav button { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 6px 16px; font-size: 14px; cursor: pointer; }
 nav button:hover { border-color: #2f81f7; }
+nav select { background: #21262d; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 6px 8px; font-size: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -88,6 +89,13 @@ ${sections}
 </main>
 <nav>
 <button id="prev" type="button">&#8592; Prev</button>
+<button id="play" type="button">&#9654; Play</button>
+<select id="speed" aria-label="playback speed">
+<option value="2400">0.5x</option>
+<option value="1200" selected>1x</option>
+<option value="600">2x</option>
+<option value="300">4x</option>
+</select>
 <button id="next" type="button">Next &#8594;</button>
 </nav>
 <script>
@@ -108,11 +116,54 @@ ${sections}
     current = Math.min(Math.max(current + delta, 0), Math.max(steps.length - 1, 0))
     show()
   }
-  document.getElementById("prev").addEventListener("click", () => move(-1))
-  document.getElementById("next").addEventListener("click", () => move(1))
+  let timer = 0
+  const play = document.getElementById("play")
+  const speed = document.getElementById("speed")
+  const stop = () => {
+    if (!timer) return
+    clearInterval(timer)
+    timer = 0
+    play.innerHTML = "&#9654; Play"
+  }
+  const start = () => {
+    if (steps.length < 2) return
+    if (current >= steps.length - 1) {
+      current = 0
+      show()
+    }
+    timer = setInterval(() => {
+      if (current >= steps.length - 1) return stop()
+      move(1)
+    }, Number(speed.value))
+    play.innerHTML = "&#10074;&#10074; Pause"
+  }
+  play.addEventListener("click", () => (timer ? stop() : start()))
+  speed.addEventListener("change", () => {
+    if (!timer) return
+    stop()
+    start()
+  })
+  document.getElementById("prev").addEventListener("click", () => {
+    stop()
+    move(-1)
+  })
+  document.getElementById("next").addEventListener("click", () => {
+    stop()
+    move(1)
+  })
   document.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowLeft") move(-1)
-    if (event.key === "ArrowRight") move(1)
+    if (event.key === "ArrowLeft") {
+      stop()
+      move(-1)
+    }
+    if (event.key === "ArrowRight") {
+      stop()
+      move(1)
+    }
+    if (event.key === " ") {
+      event.preventDefault()
+      timer ? stop() : start()
+    }
   })
   show()
 })()
