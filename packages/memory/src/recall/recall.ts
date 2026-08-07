@@ -1,7 +1,9 @@
+import { MemoryDecay } from "../decay"
 import { MemoryDigest } from "../capture/digest"
 import { MemoryFiles } from "../storage/store"
 import { MemoryIndexer } from "./indexer"
 import { MemorySchema } from "../schema"
+import { MemoryScopes } from "../scopes"
 import { MemoryShared } from "./shared"
 import { MemoryTopics } from "./topics"
 import { MemoryToken } from "./token"
@@ -14,6 +16,7 @@ export namespace MemoryRecall {
     type: "typed" | "digest"
     kind: string
     source: string
+    section?: string
     text: string
     score: number
     topics?: MemorySchema.Topic[]
@@ -53,6 +56,7 @@ export namespace MemoryRecall {
           type: "typed",
           kind: MemorySchema.recordKind(item.file, item.section),
           source: item.file,
+          section: item.section,
           text: `${item.key} :: ${item.text}`,
           score: 0,
           topics: item.topics,
@@ -223,11 +227,29 @@ export namespace MemoryRecall {
     return MemoryIndexer.cap(lines.join("\n"), input.max).text.trim()
   }
 
-  function select(input: { hits: Hit[]; keys: string[]; limit: number; force?: boolean }) {
+  // Scoped facts stay out of recall from unrelated directories and rank first inside their own scope.
+  function scoped(hit: Hit, active?: string) {
+    if (hit.type !== "typed" || !hit.section) return { keep: true, boost: 0 }
+    const fact = MemoryScopes.parse(hit.section)
+    if (!fact) return { keep: true, boost: 0 }
+    if (!MemoryScopes.applies({ scope: fact, active })) return { keep: false, boost: 0 }
+    return { keep: true, boost: active ? 1 : 0 }
+  }
+
+  function select(input: { hits: Hit[]; keys: string[]; limit: number; scope?: string; now: number; force?: boolean }) {
     if (input.keys.length === 0) return [] as Hit[]
     const hits = input.hits
+      .filter((hit) => scoped(hit, input.scope).keep)
       .map((hit) => ({ ...hit, score: score({ hit, keys: input.keys }) }))
       .filter((hit) => hit.score > 0)
+      .map((hit) => ({ ...hit, score: hit.score + scoped(hit, input.scope).boost }))
+      // Stale typed facts age out of ambient recall until a write reconfirms them; digests already
+      // rotate out via session pruning, and a forced targeted recall still surfaces stale facts so
+      // explicit lookups never hide stored memory.
+      .filter(
+        (hit) =>
+          input.force || hit.type !== "typed" || !MemoryDecay.stale({ updatedAt: hit.updatedAt, now: input.now }),
+      )
       .sort(compare)
     if (input.force) return hits.slice(0, input.limit)
     const top = hits[0]?.score ?? 0
@@ -247,6 +269,7 @@ export namespace MemoryRecall {
     mode?: Mode
     sessionID?: string
     currentSessionID?: string
+    scope?: string
     force?: boolean
   }): Promise<Result | undefined> {
     const state = input.state ?? (await MemoryFiles.readState(input.root))
@@ -280,7 +303,7 @@ export namespace MemoryRecall {
     // Query terms absent from the corpus add zero to every hit; only corpus-ubiquitous terms need removal.
     const keys = MemoryTopics.expand(MemoryShared.terms(query, { drop: noise([...typedItems, ...digestItems]) }))
     const hits = dedupe({
-      hits: select({ hits: [...typedItems, ...digestItems], keys, limit, force: input.force }),
+      hits: select({ hits: [...typedItems, ...digestItems], keys, limit, scope: input.scope, now, force: input.force }),
       query,
     })
     if (hits.length === 0) return
