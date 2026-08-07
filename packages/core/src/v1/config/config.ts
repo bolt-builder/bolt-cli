@@ -82,6 +82,10 @@ export const Info = Schema.Struct({
     description:
       "Named configuration profiles selected with --profile or OPENCODE_PROFILE. Each profile is a partial config object (model, provider, mcp, etc.) merged over all file-based config when active",
   }),
+  alias: Schema.optional(Schema.Record(Schema.String, Schema.String)).annotate({
+    description:
+      'Command aliases expanded before argument parsing, e.g. { "deploy-check": "run --agent reviewer \'audit the deploy diff\'" }',
+  }),
   default_agent: Schema.optional(Schema.String).annotate({
     description:
       "Default agent to use when none is specified. Must be a primary agent. Falls back to 'build' if not set or if the specified agent is invalid.",

@@ -92,9 +92,13 @@ import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
 import { PluginCli } from "./plugin/cli"
+import { AliasCommand } from "./cli/cmd/alias"
+import { CliAlias } from "./cli/alias"
 import { Heap } from "./cli/heap"
 
-const args = hideBin(process.argv)
+// Persisted aliases expand before yargs ever sees argv, so an alias can carry
+// any command, flags, and quoted arguments.
+const args = CliAlias.expand(hideBin(process.argv), CliAlias.load(process.cwd()))
 
 const commands = [
   AcpCommand,
@@ -184,6 +188,7 @@ const commands = [
   WorktreeCommand,
   PluginCommand,
   DbCommand,
+  AliasCommand,
 ]
 
 // yargs only generates bash/zsh completion scripts; serve fish here before
