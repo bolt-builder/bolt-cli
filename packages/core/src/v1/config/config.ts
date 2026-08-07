@@ -131,6 +131,10 @@ export const Info = Schema.Struct({
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
+  redact: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Redact well-known secret formats (API keys, tokens, private keys) from prompts before they are sent to models. Log output is always redacted. Defaults to true.",
+  }),
   guardrail: Schema.optional(Schema.Boolean).annotate({
     description:
       "Screen risky shell commands with a guardrail agent before they run. Flagged commands are reviewed on the small model and blocked when the guardrail vetoes them. Defaults to false.",
