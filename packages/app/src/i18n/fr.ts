@@ -1011,6 +1011,15 @@ export const dict = {
   "settings.providers.tag.config": "Configuration",
   "settings.providers.tag.custom": "Personnalisé",
   "settings.providers.tag.other": "Autre",
+  "settings.gateways.title": "Passerelles",
+  "settings.gateways.description":
+    "Connectez une passerelle IA pour accéder à de nombreux modèles avec une seule clé API, y compris des modèles gratuits.",
+  "settings.gateways.tag.connected": "Connecté",
+  "settings.gateways.note.kilo":
+    "Passerelle compatible avec OpenRouter avec des modèles gratuits routés automatiquement",
+  "settings.gateways.note.zoo": "Passerelle communautaire du projet Zoo Code",
+  "settings.gateways.connect.title": "Connecter {{gateway}}",
+  "settings.gateways.connect.description": "Collez votre clé API {{gateway}} pour connecter ses modèles.",
   "settings.models.title": "Modèles",
   "settings.models.description": "Les paramètres des modèles seront configurables ici.",
   "settings.agents.title": "Agents",

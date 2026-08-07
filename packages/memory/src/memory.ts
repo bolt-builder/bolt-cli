@@ -226,7 +226,6 @@ export namespace Memory {
           operationCount: 0,
           added: 0,
           removed: 0,
-          ids: [],
           skipped: [],
           // Staged writes land no facts yet, so there are no inventory ids to attribute.
           ids: [],
