@@ -29,6 +29,7 @@ import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
+import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
 import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
@@ -126,6 +127,7 @@ const cli = yargs(args)
   .command(ImportCommand)
   .command(GithubCommand)
   .command(PrCommand)
+  .command(StackCommand)
   .command(CommitCommand)
   .command(SplitCommand)
   .command(ReviewCommand)
