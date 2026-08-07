@@ -91,6 +91,15 @@ export const ReviewCommand = effectCmd({
       return yield* fail("The diff is too large to review in one shot. Review a narrower range.")
     }
 
+    const span = range.length === 2 && range[1].includes("..") ? range[1] : undefined
+    if (span) {
+      const { Signature } = yield* Effect.promise(() => import("./signature"))
+      const signed = yield* git.run(["log", "--format=%h%x00%G?%x00%GS", span], { cwd })
+      if (signed.exitCode === 0) {
+        for (const item of Signature.summary(Signature.parse(signed.text()))) UI.println(item)
+      }
+    }
+
     UI.println("Reviewing changes...")
 
     const { Session } = yield* Effect.promise(() => import("@/session/session"))
