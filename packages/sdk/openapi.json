@@ -23600,6 +23600,9 @@
           "small_model": {
             "type": "string"
           },
+          "profile": {
+            "type": "object"
+          },
           "default_agent": {
             "type": "string"
           },

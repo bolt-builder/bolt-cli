@@ -58,9 +58,7 @@ if (import.meta.main) {
     const timings = await measure(args)
     const value = median(timings)
     const status = value <= budget ? "ok" : "OVER BUDGET"
-    console.log(
-      `bolt ${args.join(" ")}: median ${value.toFixed(0)}ms over ${runs} runs (budget ${budget}ms) ${status}`,
-    )
+    console.log(`bolt ${args.join(" ")}: median ${value.toFixed(0)}ms over ${runs} runs (budget ${budget}ms) ${status}`)
     if (value > budget) failures.push(`bolt ${args.join(" ")} took ${value.toFixed(0)}ms, budget is ${budget}ms`)
   }
   if (failures.length) {

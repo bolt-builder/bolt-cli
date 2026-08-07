@@ -20,16 +20,16 @@ jobs:
 
 ## Inputs
 
-| Input | Default | Description |
-| --- | --- | --- |
-| `prompt` | required | Prompt passed to `bolt run` |
-| `model` | | `provider/model`, or `auto` |
-| `agent` | | Primary agent to use |
-| `variant` | | Provider-specific reasoning effort |
-| `version` | `latest` | Bolt release tag to install |
-| `working-directory` | `.` | Directory to run in |
-| `format` | `default` | `default` or `json` (raw event stream) |
-| `extra-args` | | Extra `bolt run` flags, e.g. `--max-cost 2` |
+| Input               | Default   | Description                                 |
+| ------------------- | --------- | ------------------------------------------- |
+| `prompt`            | required  | Prompt passed to `bolt run`                 |
+| `model`             |           | `provider/model`, or `auto`                 |
+| `agent`             |           | Primary agent to use                        |
+| `variant`           |           | Provider-specific reasoning effort          |
+| `version`           | `latest`  | Bolt release tag to install                 |
+| `working-directory` | `.`       | Directory to run in                         |
+| `format`            | `default` | `default` or `json` (raw event stream)      |
+| `extra-args`        |           | Extra `bolt run` flags, e.g. `--max-cost 2` |
 
 ## Caching
 
