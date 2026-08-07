@@ -131,6 +131,10 @@ export const Info = Schema.Struct({
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
+  guardrail: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Screen risky shell commands with a guardrail agent before they run. Flagged commands are reviewed on the small model and blocked when the guardrail vetoes them. Defaults to false.",
+  }),
   approval: Schema.optional(Schema.Boolean).annotate({
     description:
       "Require a second agent's sign-off before destructive shell commands run. The reviewer runs on the small model and rejects when it cannot produce a verdict. Defaults to false.",

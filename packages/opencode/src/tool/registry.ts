@@ -7,6 +7,7 @@ import { QuestionTool } from "./question"
 import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
 import { Approval } from "@/approval"
+import { Guardrail } from "@/guardrail"
 import { EditTool } from "./edit"
 import { FramesTool } from "./frames"
 import { GitTool } from "./git"
@@ -556,6 +557,7 @@ export const node = LayerNode.make({
     Database.node,
     Ripgrep.node,
     Approval.node,
+    Guardrail.node,
   ],
 })
 

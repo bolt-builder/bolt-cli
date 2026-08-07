@@ -26,6 +26,7 @@ import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner
 import { ShellPrompt, type Parameters } from "./shell/prompt"
 import { BashArity } from "@/permission/arity"
 import { Approval } from "@/approval"
+import { Guardrail } from "@/guardrail"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import type { Provider } from "@/provider/provider"
 
@@ -352,6 +353,7 @@ export const ShellTool = Tool.define(
     const plugin = yield* Plugin.Service
     const flags = yield* RuntimeFlags.Service
     const approval = yield* Approval.Service
+    const guardrail = yield* Guardrail.Service
     const { db } = yield* Database.Service
     const defaultTimeoutMs = flags.bashDefaultTimeoutMs ?? 2 * 60 * 1000
 
@@ -646,6 +648,33 @@ export const ShellTool = Tool.define(
                   yield* ask(ctx, scan, params)
                 }),
               )
+
+              if (cfg.guardrail) {
+                const reason = Guardrail.risky(params.command)
+                const last = ctx.messages.findLast((item) => item.info.role === "user")
+                const user = last?.info.role === "user" ? last.info : undefined
+                const model = ctx.extra?.model as Provider.Model | undefined
+                if (reason && user && model) {
+                  const intent = last?.parts
+                    .filter((part): part is SessionV1.TextPart => part.type === "text")
+                    .map((part) => part.text)
+                    .join("\n")
+                    .slice(0, 2000)
+                  const screened = yield* guardrail.review({
+                    command: params.command,
+                    reason,
+                    intent: intent || undefined,
+                    sessionID: ctx.sessionID,
+                    user,
+                    model,
+                  })
+                  if (screened.vetoed) {
+                    throw new Error(
+                      `The guardrail agent vetoed this command (${reason}): ${screened.feedback} Use a safer alternative or ask the user to run it manually.`,
+                    )
+                  }
+                }
+              }
 
               if (cfg.approval) {
                 const reason = Approval.destructive(params.command)
