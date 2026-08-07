@@ -1,6 +1,7 @@
 import { NamedError } from "@opencode-ai/core/util/error"
 import { errorFormat } from "@/util/error"
 import { isRecord } from "@/util/record"
+import { ExitCode } from "./exit"
 
 type ConfigIssue = { message: string; path: string[] }
 
@@ -97,6 +98,7 @@ export function FormatError(input: unknown): string | undefined {
   // ConfigRemoteAuthError: { url: string, remote: string }
   const remoteAuth = configData(input, "ConfigRemoteAuthError")
   if (remoteAuth) {
+    process.exitCode = ExitCode.AUTH
     const url = stringField(remoteAuth, "url")
     const remote = stringField(remoteAuth, "remote")
     return [
