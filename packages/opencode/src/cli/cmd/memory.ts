@@ -26,7 +26,7 @@ type Digest = {
 /** Render stored memory entries and session digests as the evidence block for the why prompt. */
 export function dossier(input: { entries: Entry[]; sessions: Digest[] }) {
   const entries = input.entries.map(
-    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)}${origin(item)} ${item.text}`,
+    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)}${taughtBy(item)} ${item.text}`,
   )
   const sessions = input.sessions.map(
     (item) => `- [session ${item.id}${item.topic ? ` > ${item.topic}` : ""}] learned ${item.time}: ${item.summary}`,
@@ -44,7 +44,7 @@ function stamp(ms?: number) {
   return ` (updated ${new Date(ms).toISOString().slice(0, 10)})`
 }
 
-function origin(item: Entry) {
+function taughtBy(item: Entry) {
   if (!item.sessionID && !item.messageID) return ""
   const parts = [
     ...(item.sessionID ? [`session ${item.sessionID}`] : []),

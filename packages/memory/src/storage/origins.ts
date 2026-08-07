@@ -16,9 +16,9 @@ function rec(input: unknown): input is Record<string, unknown> {
   return typeof input === "object" && input !== null && !Array.isArray(input)
 }
 
-function origin(input: unknown): Origin | undefined {
-  if (!rec(input)) return
-  if (typeof input.at !== "number" || !Number.isFinite(input.at) || input.at < 0) return
+function decodeOrigin(input: unknown): Origin | undefined {
+  if (!rec(input)) return undefined
+  if (typeof input.at !== "number" || !Number.isFinite(input.at) || input.at < 0) return undefined
   const sessionID = typeof input.sessionID === "string" && input.sessionID ? input.sessionID : undefined
   const messageID = typeof input.messageID === "string" && input.messageID ? input.messageID : undefined
   return {
@@ -33,7 +33,7 @@ export function parse(input: unknown): Ledger {
   if (!rec(input) || input.version !== 1 || !rec(input.items)) return empty
   const items: Ledger["items"] = {}
   for (const [id, raw] of Object.entries(input.items)) {
-    const item = origin(raw)
+    const item = decodeOrigin(raw)
     if (item) items[id] = item
   }
   return { version: 1, items }
@@ -73,10 +73,11 @@ export async function record(
 export async function drop(root: string, ids: string[]) {
   if (ids.length === 0) return
   const ledger = await read(root)
-  const found = ids.filter((id) => ledger.items[id] !== undefined)
-  if (found.length === 0) return
-  for (const id of found) delete ledger.items[id]
-  await write(root, ledger)
+  const drops = new Set(ids)
+  const remaining = Object.entries(ledger.items).filter(([id]) => !drops.has(id))
+  if (remaining.length === Object.keys(ledger.items).length) return
+  // Rebuild instead of `delete` on dynamically computed keys.
+  await write(root, { version: 1, items: Object.fromEntries(remaining) })
 }
 
 export * as MemoryOrigins from "./origins"
