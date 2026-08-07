@@ -910,7 +910,9 @@ export const RunCommand = effectCmd({
                   if (!emit("budget_exceeded", { budget, message: breach })) {
                     UI.error(`${breach}; aborting the session`)
                   }
-                  await client.session.abort({ sessionID }).catch(() => {})
+                  await client.session.abort({ sessionID }).catch(() => {
+                    // best-effort abort: the breach is already reported and the exit code is set
+                  })
                 }
                 if (emit("step_finish", { part })) continue
               }
