@@ -22,8 +22,16 @@ import { testEffect } from "../lib/effect"
 import { Tool } from "@/tool/tool"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { InstanceStore } from "@/project/instance-store"
+import { Approval } from "@/approval"
+import { Guardrail } from "@/guardrail"
 
 const shellLayer = Layer.mergeAll(
+  Layer.mock(Approval.Service, {
+    review: () => Effect.succeed({ approved: true, feedback: "" }),
+  }),
+  Layer.mock(Guardrail.Service, {
+    review: () => Effect.succeed({ vetoed: false, feedback: "" }),
+  }),
   LayerNode.compile(
     LayerNode.group([
       CrossSpawnSpawner.node,

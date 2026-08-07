@@ -53,8 +53,62 @@ const INSTRUCTIONS = [
 export const MemoryCommand = cmd({
   command: "memory",
   describe: "inspect project memory",
-  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).demandCommand(),
+  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).command(MemoryConflictsCommand).demandCommand(),
   async handler() {},
+})
+
+function label(item: { file: string; section: string; key: string; text: string }) {
+  return `[${item.file} > ${item.section} > ${item.key}] ${item.text}`
+}
+
+export const MemoryConflictsCommand = effectCmd({
+  command: "conflicts",
+  describe: "detect and resolve contradictory facts in project memory",
+  builder: (yargs) =>
+    yargs.option("fix", {
+      type: "boolean",
+      default: false,
+      describe: "apply automatic resolutions (corrections win, else the newer fact)",
+    }),
+  handler: Effect.fn("Cli.memory.conflicts")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() => Memory.conflicts({ root: MemoryPaths.root({ ctx }), fix: args.fix }))
+
+    if (output.conflicts.length === 0) {
+      UI.println("No conflicting facts found in project memory.")
+      return
+    }
+
+    for (const conflict of output.conflicts) {
+      UI.println(`conflict (${conflict.reason}):`)
+      UI.println(`  ${label(conflict.left)}`)
+      UI.println(`  ${label(conflict.right)}`)
+    }
+    UI.empty()
+    for (const item of output.plan.resolutions) {
+      UI.println(`resolution: keep ${label(item.keep)}`)
+      UI.println(`            drop ${label(item.drop)}`)
+    }
+    for (const item of output.plan.unresolved) {
+      UI.println(`unresolved (${item.reason}): ${label(item.left)} vs ${label(item.right)}`)
+    }
+    if (output.applied) {
+      UI.empty()
+      UI.println(
+        `Removed ${output.result.result.removed} superseded ${output.result.result.removed === 1 ? "fact" : "facts"}.`,
+      )
+      return
+    }
+    if (output.plan.resolutions.length > 0) {
+      UI.empty()
+      UI.println("Run bolt memory conflicts --fix to apply these resolutions.")
+    }
+  }),
 })
 
 export const MemoryWhyCommand = effectCmd({
