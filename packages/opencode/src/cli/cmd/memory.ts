@@ -12,6 +12,8 @@ type Entry = {
   key: string
   text: string
   updatedAt?: number
+  sessionID?: string
+  messageID?: string
 }
 
 type Digest = {
@@ -24,7 +26,7 @@ type Digest = {
 /** Render stored memory entries and session digests as the evidence block for the why prompt. */
 export function dossier(input: { entries: Entry[]; sessions: Digest[] }) {
   const entries = input.entries.map(
-    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)} ${item.text}`,
+    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)}${origin(item)} ${item.text}`,
   )
   const sessions = input.sessions.map(
     (item) => `- [session ${item.id}${item.topic ? ` > ${item.topic}` : ""}] learned ${item.time}: ${item.summary}`,
@@ -42,6 +44,15 @@ function stamp(ms?: number) {
   return ` (updated ${new Date(ms).toISOString().slice(0, 10)})`
 }
 
+function origin(item: Entry) {
+  if (!item.sessionID && !item.messageID) return ""
+  const parts = [
+    ...(item.sessionID ? [`session ${item.sessionID}`] : []),
+    ...(item.messageID ? [`message ${item.messageID}`] : []),
+  ]
+  return ` (taught by ${parts.join(", ")})`
+}
+
 const INSTRUCTIONS = [
   "You are answering a question about this project's stored agent memory.",
   "Use only the memory dossier below as evidence. Do not use tools, read repository files, or invent memories.",
@@ -56,12 +67,70 @@ export const MemoryCommand = cmd({
   builder: (yargs: Argv) =>
     yargs
       .command(MemoryWhyCommand)
+      .command(MemoryTeamCommand)
       .command(MemoryDiffCommand)
       .command(MemoryReviewCommand)
       .command(MemorySearchCommand)
       .command(MemoryConflictsCommand)
       .demandCommand(),
   async handler() {},
+})
+
+export const MemoryTeamCommand = effectCmd({
+  command: "team <action> [query]",
+  describe: "opt-in shared project memory committed to the repository",
+  builder: (yargs) =>
+    yargs
+      .positional("action", {
+        describe: "init creates .bolt/memory.md; share copies matching facts into it",
+        type: "string",
+        choices: ["init", "share"] as const,
+        demandOption: true,
+      })
+      .positional("query", {
+        describe: "key or id of the fact to share",
+        type: "string",
+      }),
+  handler: Effect.fn("Cli.memory.team")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { MemoryTeam } = yield* Effect.promise(() => import("@opencode-ai/memory/team"))
+    if (args.action === "init") {
+      const output = yield* Effect.promise(() => MemoryTeam.init(ctx.worktree))
+      UI.println(
+        output.created
+          ? `Created ${output.file}. Commit it to share project memory with your team.`
+          : `Team memory already exists at ${output.file}.`,
+      )
+      return
+    }
+
+    if (!args.query) return yield* fail("Pass the key or id of the fact to share.")
+    const { MemoryFiles } = yield* Effect.promise(() => import("@opencode-ai/memory/store"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const inventory = yield* Effect.promise(() => MemoryFiles.deriveInventory(MemoryPaths.root({ ctx })))
+    const matched = MemoryTeam.match({
+      items: Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+      })),
+      query: args.query,
+    })
+    if (matched.length === 0) return yield* fail(`No stored fact matches "${args.query}".`)
+    const shared = yield* Effect.promise(() =>
+      MemoryTeam.share(
+        ctx.worktree,
+        matched.map((item) => ({ section: item.section, key: item.key, text: item.text })),
+      ),
+    )
+    UI.println(`Shared ${shared.count} fact${shared.count === 1 ? "" : "s"} into ${shared.file}.`)
+    UI.println("Commit the file so teammates pick it up in recall.")
+  }),
 })
 
 export const MemoryDiffCommand = effectCmd({
@@ -255,7 +324,13 @@ export const MemoryWhyCommand = effectCmd({
     const memory = MemoryService.make()
     const shown = yield* memory.show({ ctx }).pipe(Effect.orDie)
     const digests = yield* memory.recent({ root: MemoryPaths.root({ ctx }), limit: 10, max: 200 }).pipe(Effect.orDie)
-    const evidence = dossier({ entries: Object.values(shown.inventory.items), sessions: digests })
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const taught = yield* Effect.promise(() => Memory.origins({ root: MemoryPaths.root({ ctx }) }))
+    const entries = Object.entries(shown.inventory.items).map(([id, item]) => {
+      const source = taught.items[id]
+      return { ...item, sessionID: source?.sessionID, messageID: source?.messageID }
+    })
+    const evidence = dossier({ entries, sessions: digests })
     if (!evidence) {
       return yield* fail("No project memory stored for this project yet. Run bolt learn or save memories first.")
     }

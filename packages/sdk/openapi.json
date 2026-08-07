@@ -23800,6 +23800,9 @@
           "permission": {
             "$ref": "#/components/schemas/PermissionConfig"
           },
+          "redact": {
+            "type": "boolean"
+          },
           "guardrail": {
             "type": "boolean"
           },
@@ -23900,6 +23903,9 @@
                 "type": "boolean"
               },
               "symbol_graph": {
+                "type": "boolean"
+              },
+              "context_replay": {
                 "type": "boolean"
               },
               "policies": {

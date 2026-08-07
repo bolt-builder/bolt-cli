@@ -34,11 +34,12 @@ export namespace MemoryTool {
   })
 
   export const SaveParameters = Schema.Struct({
-    action: Schema.Literals(["remember", "correct", "forget", "skip"]).annotate({
+    action: Schema.Literals(["remember", "correct", "forget", "skip", "avoid"]).annotate({
       description: "Memory write action to perform.",
     }),
     text: Schema.optional(Text).annotate({
-      description: "Memory text for remember/correct. Keep it concise and durable.",
+      description:
+        "Memory text for remember/correct, or the approach that failed for avoid. Keep it concise and durable.",
     }),
     query: Schema.optional(Text).annotate({
       description: "Exact key, id, or query text for forget.",
@@ -52,6 +53,9 @@ export namespace MemoryTool {
     }),
     reason: Schema.optional(Schema.Literals(["out_of_scope"])).annotate({
       description: "Skip reason when action is skip.",
+    }),
+    outcome: Schema.optional(Text).annotate({
+      description: "For avoid: what happened when the approach was tried, e.g. the failure it caused.",
     }),
   })
 
@@ -89,6 +93,7 @@ export namespace MemoryTool {
     memory: MemoryService.Interface
     ctx: MemoryPaths.Ctx
     sessionID: string
+    messageID?: string
   }
   type Recall = Base & { params: RecallParams; ask: Ask }
   type Save = Base & { params: SaveParams; ask: Ask }
@@ -335,6 +340,7 @@ export namespace MemoryTool {
         query,
         sessionID: input.params.sessionID,
         currentSessionID: live.current,
+        worktree: input.ctx.worktree,
         scope: live.scope,
         limit,
       })
@@ -500,7 +506,7 @@ export namespace MemoryTool {
       yield* approval(input.params, input.ask, { query })
       return removed({
         params: input.params,
-        result: yield* input.memory.forget({ root, sessionID: input.sessionID, query }),
+        result: yield* input.memory.forget({ root, sessionID: input.sessionID, messageID: input.messageID, query }),
       })
     })
   }
@@ -511,18 +517,36 @@ export namespace MemoryTool {
       if (!text) return noText(input.params.action)
 
       yield* approval(input.params, input.ask, { text })
-      const scope = input.params.scope ? MemoryScopes.clean(input.params.scope) : ""
-      const result =
-        input.params.action === "correct"
-          ? yield* input.memory.correct({ root, sessionID: input.sessionID, key: input.params.key, text })
-          : yield* input.memory.remember({
-              root,
-              sessionID: input.sessionID,
-              key: input.params.key,
-              text,
-              ...(scope ? { section: MemoryScopes.section(scope) } : {}),
-            })
+      const result = yield* dispatch(input, root, text)
       return saved({ params: input.params, result })
+    })
+  }
+
+  function dispatch(input: Save, root: string, text: string) {
+    if (input.params.action === "correct")
+      return input.memory.correct({
+        root,
+        sessionID: input.sessionID,
+        messageID: input.messageID,
+        key: input.params.key,
+        text,
+      })
+    if (input.params.action === "avoid")
+      return input.memory.avoid({
+        root,
+        sessionID: input.sessionID,
+        key: input.params.key,
+        text,
+        outcome: input.params.outcome,
+      })
+    const scope = input.params.scope ? MemoryScopes.clean(input.params.scope) : ""
+    return input.memory.remember({
+      root,
+      sessionID: input.sessionID,
+      messageID: input.messageID,
+      key: input.params.key,
+      text,
+      ...(scope ? { section: MemoryScopes.section(scope) } : {}),
     })
   }
 
@@ -550,6 +574,8 @@ export namespace MemoryTool {
     if (input.added === 0) return "Bolt memory unchanged"
     if (input.action === "correct")
       return `Bolt memory correction saved: ${input.added} op${input.added === 1 ? "" : "s"}`
+    if (input.action === "avoid")
+      return `Bolt memory failed approach saved: ${input.added} op${input.added === 1 ? "" : "s"}`
     return `Bolt memory saved: ${input.added} op${input.added === 1 ? "" : "s"}`
   }
 

@@ -25,6 +25,7 @@ import { Filesystem } from "@/util/filesystem"
 import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@opencode-ai/sdk/v2"
 import { FormatError, FormatUnknownError } from "../error"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
+import { Budget } from "./run/budget"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -197,6 +198,14 @@ export const RunCommand = effectCmd({
       .option("title", {
         type: "string",
         describe: "title for the session (uses truncated prompt if no value provided)",
+      })
+      .option("max-cost", {
+        type: "number",
+        describe: "abort the run once its cost in USD reaches this budget",
+      })
+      .option("max-tokens", {
+        type: "number",
+        describe: "abort the run once its total token usage reaches this budget",
       })
       .option("attach", {
         type: "string",
@@ -485,6 +494,17 @@ export const RunCommand = effectCmd({
             "Dry run: file writes and shell commands will be reported, not executed",
           )
         }
+      }
+
+      const limits = { cost: args["max-cost"], tokens: args["max-tokens"] }
+      if (limits.cost !== undefined && !(limits.cost > 0)) {
+        die("--max-cost must be a positive number")
+      }
+      if (limits.tokens !== undefined && (!Number.isInteger(limits.tokens) || limits.tokens <= 0)) {
+        die("--max-tokens must be a positive integer")
+      }
+      if (interactive && (limits.cost !== undefined || limits.tokens !== undefined)) {
+        die("--mini cannot be used with --max-cost or --max-tokens")
       }
 
       if (args["auto-agent"]) {
@@ -835,6 +855,8 @@ export const RunCommand = effectCmd({
         async function loop(client: OpencodeClient, events: Awaited<ReturnType<typeof sdk.event.subscribe>>) {
           const toggles = new Map<string, boolean>()
           let error: string | undefined
+          let budget = Budget.empty
+          let breached = false
 
           for await (const event of events.stream) {
             if (
@@ -880,6 +902,18 @@ export const RunCommand = effectCmd({
               }
 
               if (part.type === "step-finish") {
+                budget = Budget.add(budget, part)
+                const breach = Budget.exceeded(budget, limits)
+                if (breach && !breached) {
+                  breached = true
+                  process.exitCode = 1
+                  if (!emit("budget_exceeded", { budget, message: breach })) {
+                    UI.error(`${breach}; aborting the session`)
+                  }
+                  await client.session.abort({ sessionID }).catch(() => {
+                    // best-effort abort: the breach is already reported and the exit code is set
+                  })
+                }
                 if (emit("step_finish", { part })) continue
               }
 
@@ -1138,6 +1172,10 @@ export async function runMini(input: MiniCommandInput) {
     model: input.model,
     "best-of": undefined,
     bestOf: undefined,
+    "max-cost": undefined,
+    maxCost: undefined,
+    "max-tokens": undefined,
+    maxTokens: undefined,
     agent: input.agent,
     "auto-agent": false,
     autoAgent: false,

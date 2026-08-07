@@ -30,6 +30,7 @@ export const MemorySaveTool = Tool.define(
             memory,
             params,
             sessionID: ctx.sessionID,
+            messageID: ctx.messageID,
             ctx: instance,
             ask: (input) => ctx.ask(input),
           }).pipe(

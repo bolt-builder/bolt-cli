@@ -3,6 +3,7 @@ import { MemoryIndexer } from "../recall/indexer"
 import { MemoryMarkdown } from "../storage/markdown"
 import { MemoryRedact } from "./redact"
 import { MemoryReject } from "./reject"
+import { MemoryOrigins } from "../storage/origins"
 import { MemorySchema } from "../schema"
 import { MemoryShared } from "../recall/shared"
 import { MemoryStamps } from "../storage/stamps"
@@ -32,6 +33,8 @@ export namespace MemoryOperations {
     added: number
     removed: number
     skipped: Rejection[]
+    /** Inventory ids upserted by this apply, for provenance recording by callers that know the origin. */
+    ids: string[]
     index: MemoryIndexer.Result
   }
 
@@ -283,7 +286,8 @@ export namespace MemoryOperations {
     }
     const id = MemoryFiles.inventoryKey({ file: next.file, section: next.section, key: next.key })
     const prior = plan.inventory.items[id]
-    // Re-saving an unchanged fact still reconfirms it: its stamp refreshes even though no line changed.
+    // Re-saving an unchanged fact still reconfirms it: its stamp refreshes and the fact is
+    // re-attributed to the writer confirming it, even though no line changed.
     plan.upserts.push(id)
     if (!result.changed && prior) return
     plan.inventory.items[id] = entry({ item: next, prior, now })
@@ -380,6 +384,7 @@ export namespace MemoryOperations {
       const plan = planOps({ docs, inventory, removes, adds: prepared.adds, now })
       // Commit (IO): write changed documents, then rebuild the index, persist state, and audit.
       await writeDocs({ root: input.root, plan })
+      await MemoryOrigins.drop(input.root, plan.dropped)
       await MemoryStamps.drop(input.root, plan.dropped)
       await MemoryStamps.record(input.root, { ids: plan.upserts, now })
       const index = await persist({ root: input.root, state, count: plan.count, removed: plan.removed })
@@ -388,6 +393,7 @@ export namespace MemoryOperations {
         added: plan.added,
         removed: plan.removed,
         skipped: prepared.skipped,
+        ids: plan.upserts,
         index,
       } satisfies Result
     })

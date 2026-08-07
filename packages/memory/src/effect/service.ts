@@ -38,6 +38,12 @@ type CorrectInput = BoltMemory.Input & {
   key?: string
 }
 
+type AvoidInput = BoltMemory.Input & {
+  text: string
+  outcome?: string
+  key?: string
+}
+
 type ForgetInput = BoltMemory.Input & {
   query: string
 }
@@ -141,6 +147,7 @@ export namespace MemoryService {
     readonly apply: (input: ApplyInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.apply>>, Failure>
     readonly remember: (input: RememberInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.remember>>, Failure>
     readonly correct: (input: CorrectInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.correct>>, Failure>
+    readonly avoid: (input: AvoidInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.avoid>>, Failure>
     readonly forget: (input: ForgetInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.forget>>, Failure>
     readonly purge: (input: BoltMemory.Input) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.purge>>, Failure>
     readonly recall: (input: RecallInput) => Effect.Effect<Awaited<ReturnType<typeof BoltMemory.recall>>, Failure>
@@ -184,6 +191,7 @@ export namespace MemoryService {
       apply: (input) => bridge(() => BoltMemory.apply(input)),
       remember: (input) => bridge(() => BoltMemory.remember(input)),
       correct: (input) => bridge(() => BoltMemory.correct(input)),
+      avoid: (input) => bridge(() => BoltMemory.avoid(input)),
       forget: (input) => bridge(() => BoltMemory.forget(input)),
       purge: (input) => bridge(() => BoltMemory.purge(input)),
       recall: (input) => bridge(() => BoltMemory.recall(input)),
