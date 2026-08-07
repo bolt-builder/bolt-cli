@@ -1092,7 +1092,7 @@ export const dict = {
   "settings.gateways.note.kilo": "OpenRouter-kompatibel gateway med gratis automatiskt dirigerade modeller",
   "settings.gateways.note.zoo": "Community-gateway från Zoo Code-projektet",
   "settings.gateways.connect.title": "Anslut {{gateway}}",
-  "settings.gateways.connect.description": "Klistra in din {{gateway}} API-nyckel för att ansluta dess modeller.",
+  "settings.gateways.connect.description": "Klistra in din {{gateway}}-API-nyckel för att ansluta dess modeller.",
   "settings.models.title": "Modeller",
   "settings.models.description": "Modellinställningar kommer att kunna konfigureras här.",
   "settings.agents.title": "Agenter",

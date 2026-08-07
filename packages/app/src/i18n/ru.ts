@@ -1082,7 +1082,7 @@ export const dict = {
   "settings.providers.tag.other": "Другое",
   "settings.gateways.title": "Шлюзы",
   "settings.gateways.description":
-    "Подключите AI-шлюз, чтобы получить доступ ко многим моделям, включая бесплатные, по одному ключу API.",
+    "Подключите шлюз ИИ, чтобы получить доступ ко многим моделям, включая бесплатные, по одному ключу API.",
   "settings.gateways.tag.connected": "Подключено",
   "settings.gateways.note.kilo": "Совместимый с OpenRouter шлюз с бесплатными автоматически маршрутизируемыми моделями",
   "settings.gateways.note.zoo": "Шлюз сообщества из проекта Zoo Code",

@@ -1088,7 +1088,7 @@ export const dict = {
   "settings.gateways.title": "Pasarelas",
   "settings.gateways.description":
     "Conecta una pasarela de IA para acceder a muchos modelos con una sola clave API, incluidos modelos gratuitos.",
-  "settings.gateways.tag.connected": "Conectado",
+  "settings.gateways.tag.connected": "Conectada",
   "settings.gateways.note.kilo": "Pasarela compatible con OpenRouter con modelos gratuitos enrutados automáticamente",
   "settings.gateways.note.zoo": "Pasarela comunitaria del proyecto Zoo Code",
   "settings.gateways.connect.title": "Conectar {{gateway}}",

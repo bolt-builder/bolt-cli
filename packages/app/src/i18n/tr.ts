@@ -1090,7 +1090,7 @@ export const dict = {
   "settings.gateways.note.kilo": "Ücretsiz otomatik yönlendirilen modellere sahip OpenRouter uyumlu ağ geçidi",
   "settings.gateways.note.zoo": "Zoo Code projesinden topluluk ağ geçidi",
   "settings.gateways.connect.title": "{{gateway}} ile bağlantı kur",
-  "settings.gateways.connect.description": "Modellerini bağlamak için {{gateway}} API anahtarınızı yapıştırın.",
+  "settings.gateways.connect.description": "{{gateway}} modellerine bağlanmak için API anahtarınızı yapıştırın.",
   "settings.models.title": "Modeller",
   "settings.models.description": "Model ayarları burada yapılandırılabilecek.",
   "settings.agents.title": "Ajanlar",
