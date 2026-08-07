@@ -195,6 +195,10 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      symbol_graph: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Append a cross-file symbol graph (which files reference the edited file's symbols) to edit tool output (default: false)",
+      }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
       }),
