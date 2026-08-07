@@ -159,6 +159,10 @@ export const Info = Schema.Struct({
       prune: Schema.optional(Schema.Boolean).annotate({
         description: "Enable pruning of old tool outputs (default: true)",
       }),
+      pinned: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+        description:
+          "Files and facts that must never be compacted away. Entries matching a file the conversation touched are pinned as files; other entries are preserved verbatim as facts.",
+      }),
       tail_turns: Schema.optional(NonNegativeInt).annotate({
         description:
           "Number of recent user turns, including their following assistant/tool responses, to keep verbatim during compaction (default: 2)",
