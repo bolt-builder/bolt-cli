@@ -223,6 +223,10 @@ const cli = yargs(args)
     describe: "print debug logs to stderr (implies --print-logs and --log-level DEBUG)",
     type: "boolean",
   })
+  .option("offline", {
+    describe: "fail fast on network access instead of hanging",
+    type: "boolean",
+  })
   .middleware(async (opts) => {
     if (opts.quiet) UI.setQuiet(true)
     if (opts.verbose) {
@@ -234,6 +238,12 @@ const cli = yargs(args)
     if (opts.profile) process.env.OPENCODE_PROFILE = opts.profile
     if (opts.pure) {
       process.env.OPENCODE_PURE = "1"
+    }
+    if (opts.offline || process.env.OPENCODE_OFFLINE) {
+      // The env var propagates offline mode to spawned bolt subprocesses.
+      process.env.OPENCODE_OFFLINE = "1"
+      const { Offline } = await import("./cli/offline")
+      Offline.enable()
     }
 
     Heap.start()
