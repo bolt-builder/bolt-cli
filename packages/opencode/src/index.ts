@@ -40,6 +40,7 @@ import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { TightenCommand } from "./cli/cmd/tighten"
 import { LearnCommand } from "./cli/cmd/learn"
+import { DriftCommand } from "./cli/cmd/drift"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
@@ -141,6 +142,7 @@ const cli = yargs(args)
   .command(RefactorCommand)
   .command(TightenCommand)
   .command(LearnCommand)
+  .command(DriftCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
