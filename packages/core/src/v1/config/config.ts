@@ -131,6 +131,10 @@ export const Info = Schema.Struct({
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
+  protected_paths: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+    description:
+      'Worktree-relative path patterns the agent may never modify, e.g. [".env", "secrets/*"]. Supports * and ? wildcards; a pattern also protects everything beneath a matching directory. Matching writes and edits fail before any permission prompt.',
+  }),
   redact: Schema.optional(Schema.Boolean).annotate({
     description:
       "Redact well-known secret formats (API keys, tokens, private keys) from prompts before they are sent to models. Log output is always redacted. Defaults to true.",

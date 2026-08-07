@@ -21,6 +21,7 @@ import { DryRun } from "@/dryrun"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
+import { Protection } from "@/protection"
 import * as Bom from "@/util/bom"
 
 function normalizeLineEndings(text: string): string {
@@ -88,6 +89,15 @@ export const EditTool = Tool.define(
             ? params.filePath
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filePath)
+
+          const cfg = yield* config.get().pipe(Effect.orDie)
+          const relative = path.relative(instance.worktree, filePath)
+          const guarded = Protection.match(relative, cfg.protected_paths)
+          if (guarded) {
+            throw new Error(
+              `The path "${relative}" is protected by config (protected_paths: "${guarded}") and cannot be modified.`,
+            )
+          }
 
           const dry = DryRun.enabled(
             (yield* sessions.get(ctx.sessionID).pipe(Effect.catch(() => Effect.succeed(undefined))))?.metadata,

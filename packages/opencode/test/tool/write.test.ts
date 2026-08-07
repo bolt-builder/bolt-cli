@@ -11,6 +11,7 @@ import { Format } from "../../src/format"
 import { Truncate } from "@/tool/truncate"
 import { Tool } from "@/tool/tool"
 import { Agent } from "../../src/agent/agent"
+import { Config } from "@/config/config"
 import { SessionID, MessageID } from "../../src/session/schema"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { disposeAllInstances, TestInstance } from "../fixture/fixture"
@@ -46,6 +47,9 @@ const it = testEffect(
         Agent.node,
       ]),
     ),
+    Layer.mock(Config.Service, {
+      get: () => Effect.succeed({}),
+    }),
     Layer.mock(Session.Service, {
       get: () => Effect.fail(new NotFoundError({ message: "no session in write tool tests" })),
     }),
