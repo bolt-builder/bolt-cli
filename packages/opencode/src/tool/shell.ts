@@ -25,6 +25,7 @@ import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ShellPrompt, type Parameters } from "./shell/prompt"
 import { BashArity } from "@/permission/arity"
+import { DryRun } from "@/dryrun"
 
 export { Parameters } from "./shell/prompt"
 
@@ -632,6 +633,21 @@ export const ShellTool = Tool.define(
               }
               const timeout = params.timeout ?? defaultTimeoutMs
               const ps = Shell.ps(shell)
+
+              const row = yield* db
+                .select({ metadata: SessionTable.metadata })
+                .from(SessionTable)
+                .where(eq(SessionTable.id, ctx.sessionID))
+                .get()
+                .pipe(Effect.orDie)
+              if (DryRun.enabled(row?.metadata)) {
+                return {
+                  title: params.command,
+                  metadata: { output: "", exit: null, truncated: false },
+                  output: DryRun.describeCommand(params.command, cwd),
+                }
+              }
+
               yield* Effect.scoped(
                 Effect.gen(function* () {
                   const tree = yield* Effect.acquireRelease(parse(params.command, ps), (tree) =>
@@ -643,12 +659,6 @@ export const ShellTool = Tool.define(
                 }),
               )
 
-              const row = yield* db
-                .select({ metadata: SessionTable.metadata })
-                .from(SessionTable)
-                .where(eq(SessionTable.id, ctx.sessionID))
-                .get()
-                .pipe(Effect.orDie)
               const wrapped = Sandbox.enabled(row?.metadata)
                 ? yield* Sandbox.wrap({
                     command: params.command,
