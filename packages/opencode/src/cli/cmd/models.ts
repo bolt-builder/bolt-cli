@@ -54,20 +54,21 @@ export const ModelsCommand = effectCmd({
         .map(([modelID, model]) => ({ id: `${providerID}/${modelID}`, model }))
     }
 
+    // Collect plain lines instead of streaming so long lists page through $PAGER;
+    // porcelain output stays streamed so scripted consumers never page.
+    const output: string[] = []
     const print = (providerID: ProviderV2.ID, verbose?: boolean) => {
       for (const entry of models(providerID)) {
         if (args.porcelain) {
           Porcelain.print("model", entry.id)
           continue
         }
-        process.stdout.write(entry.id)
-        process.stdout.write(EOL)
-        if (verbose) {
-          process.stdout.write(JSON.stringify(entry.model, null, 2))
-          process.stdout.write(EOL)
-        }
+        output.push(entry.id)
+        if (verbose) output.push(JSON.stringify(entry.model, null, 2))
       }
     }
+
+    const { Pager } = yield* Effect.promise(() => import("../pager"))
 
     if (args.provider) {
       const providerID = ProviderV2.ID.make(args.provider)
@@ -77,6 +78,7 @@ export const ModelsCommand = effectCmd({
         return
       }
       print(providerID, args.verbose)
+      yield* Effect.promise(() => Pager.page(output.join(EOL)))
       return
     }
 
@@ -98,5 +100,6 @@ export const ModelsCommand = effectCmd({
     }
 
     for (const providerID of ids) print(ProviderV2.ID.make(providerID), args.verbose)
+    yield* Effect.promise(() => Pager.page(output.join(EOL)))
   }),
 })
