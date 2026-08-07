@@ -30,6 +30,7 @@ import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
+import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
 import { ResolveCommand } from "./cli/cmd/resolve"
 import { CodemodCommand } from "./cli/cmd/codemod"
@@ -126,6 +127,7 @@ const cli = yargs(args)
   .command(GithubCommand)
   .command(PrCommand)
   .command(CommitCommand)
+  .command(SplitCommand)
   .command(ReviewCommand)
   .command(ResolveCommand)
   .command(CodemodCommand)
