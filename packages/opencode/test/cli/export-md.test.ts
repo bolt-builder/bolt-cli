@@ -42,7 +42,14 @@ const messages = [
         type: "tool",
         callID: "call_1",
         tool: "bash",
-        state: { status: "completed", input: { command: "ls" }, output: "files", title: "ls", metadata: {}, time: { start: 1, end: 2 } },
+        state: {
+          status: "completed",
+          input: { command: "ls" },
+          output: "files",
+          title: "ls",
+          metadata: {},
+          time: { start: 1, end: 2 },
+        },
       },
       { id: "prt_6", sessionID: "ses_1", messageID: "msg_2", type: "text", text: "done" },
     ],
@@ -87,7 +94,12 @@ describe("export.markdown", () => {
 
   test("skips blank text and synthetic parts", () => {
     expect(output).not.toContain("step-start")
-    expect(output.trimEnd().split("\n\n").every((block) => block.trim().length > 0)).toBeTrue()
+    expect(
+      output
+        .trimEnd()
+        .split("\n\n")
+        .every((block) => block.trim().length > 0),
+    ).toBeTrue()
   })
 
   test("omits messages with nothing to show", () => {
