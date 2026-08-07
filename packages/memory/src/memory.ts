@@ -6,6 +6,7 @@ import { MemoryPaths } from "./storage/paths"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
 import { MemoryShared } from "./recall/shared"
+import { MemoryStaging } from "./staging"
 import { MemoryToken } from "./recall/token"
 import { MemorySlug } from "./slug"
 import { MemoryRedact } from "./capture/redact"
@@ -27,6 +28,7 @@ export namespace Memory {
     state: MemorySchema.State
     result: MemoryOperations.Result
     ok: boolean
+    staged?: number
     detail?: {
       type: "saved"
       message: string
@@ -202,6 +204,29 @@ export namespace Memory {
   }): Promise<Apply> {
     const trigger = input.trigger ?? "explicit"
     const inputOps = trigger === "explicit" ? input.ops : input.ops.filter((item) => item.action !== "remove")
+    // Review mode stages auto-captured writes for a human diff; explicit saves are deliberate and land directly.
+    if (trigger !== "explicit" && inputOps.length > 0 && (await MemoryStaging.enabled(input.root))) {
+      const staged = await MemoryStaging.stage(input.root, {
+        ops: inputOps,
+        sessionID: input.sessionID,
+        now: Date.now(),
+      })
+      const state = await MemoryFiles.readState(input.root)
+      const index = await MemoryFiles.readIndex(input.root)
+      return {
+        root: input.root,
+        state,
+        result: {
+          operationCount: 0,
+          added: 0,
+          removed: 0,
+          skipped: [],
+          index: { text: index, bytes: Buffer.byteLength(index), tokens: MemoryToken.estimate(index), truncated: false },
+        },
+        ok: false,
+        staged: staged.count,
+      }
+    }
     const accepted = inputOps.filter((item) => item.action !== "add" || !MemoryOperations.secret(item))
     const result = await MemoryOperations.apply({ root: input.root, ops: inputOps })
     // Auto-capture skips a secret-like op and applies the rest. An explicit save whose only effect
@@ -292,6 +317,49 @@ export namespace Memory {
       file: "corrections.md",
       section: "Corrections",
     })
+  }
+
+  export async function pending(input: { root: string }) {
+    const store = await MemoryStaging.read(input.root)
+    const inventory = await MemoryFiles.deriveInventory(input.root)
+    return {
+      root: input.root,
+      review: store.review,
+      items: store.items,
+      diff: MemoryStaging.render({ items: store.items, inventory }),
+    }
+  }
+
+  export async function review(input: { root: string; review: boolean }) {
+    const store = await MemoryStaging.configure(input.root, { review: input.review })
+    return { root: input.root, review: store.review, staged: store.items.length }
+  }
+
+  export async function approve(input: { root: string; sessionID?: string }) {
+    const store = await MemoryStaging.read(input.root)
+    if (store.items.length === 0) return { root: input.root, applied: 0, added: 0, removed: 0 }
+    const state = await MemoryFiles.readState(input.root)
+    const size = Math.max(1, state.capture.maxOpsPerRun)
+    const ops = store.items.map((item) => item.op)
+    const chunks = Array.from({ length: Math.ceil(ops.length / size) }, (item, at) =>
+      ops.slice(at * size, at * size + size),
+    )
+    const results: Apply[] = []
+    for (const chunk of chunks) {
+      results.push(await apply({ root: input.root, ops: chunk, sessionID: input.sessionID }))
+    }
+    await MemoryStaging.clear(input.root)
+    return {
+      root: input.root,
+      applied: ops.length,
+      added: results.reduce((sum, item) => sum + item.result.added, 0),
+      removed: results.reduce((sum, item) => sum + item.result.removed, 0),
+    }
+  }
+
+  export async function discard(input: { root: string }) {
+    const discarded = await MemoryStaging.clear(input.root)
+    return { root: input.root, discarded }
   }
 
   export async function purge(input: { root: string }) {
