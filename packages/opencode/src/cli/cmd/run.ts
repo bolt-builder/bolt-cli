@@ -241,6 +241,11 @@ export const RunCommand = effectCmd({
         describe:
           "run the agent on a remote machine over ssh (e.g., ssh://dev-box); requires bolt preinstalled on the remote",
       })
+      .option("voice", {
+        type: "boolean",
+        default: false,
+        describe: "record a voice prompt and transcribe it locally with whisper.cpp (press Enter to stop)",
+      })
       .option("password", {
         alias: ["p"],
         type: "string",
@@ -366,6 +371,21 @@ export const RunCommand = effectCmd({
       // through the forwarded local port.
       args.attach = remote.url
       UI.println(UI.Style.TEXT_DIM + `Running on ${host} via ${remote.url}` + UI.Style.TEXT_NORMAL)
+    }
+
+    if (args.voice) {
+      if (args.mini) {
+        UI.error("--voice cannot be used with --mini")
+        process.exit(1)
+      }
+      if (!process.stdin.isTTY) {
+        UI.error("--voice requires a TTY stdin")
+        process.exit(1)
+      }
+      const { CliVoice } = yield* Effect.promise(() => import("../voice"))
+      const text = yield* CliVoice.capture()
+      // Append the transcript to any message given on the command line.
+      args.message = [...args.message, text]
     }
     const { Agent } = yield* Effect.promise(() => import("@/agent/agent"))
     const { RuntimeFlags } = yield* Effect.promise(() => import("@/effect/runtime-flags"))
@@ -1425,6 +1445,7 @@ export async function runMini(input: MiniCommandInput) {
     title: undefined,
     attach: input.attach,
     host: undefined,
+    voice: false,
     password: input.password,
     username: input.username,
     dir: input.directory,
