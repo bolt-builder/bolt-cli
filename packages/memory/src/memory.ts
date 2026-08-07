@@ -5,6 +5,7 @@ import { MemoryOperations } from "./capture/operations"
 import { MemoryPaths } from "./storage/paths"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
+import { MemoryScopes } from "./scopes"
 import { MemoryShared } from "./recall/shared"
 import { MemoryToken } from "./recall/token"
 import { MemorySlug } from "./slug"
@@ -270,15 +271,18 @@ export namespace Memory {
     key?: string
     file?: MemorySchema.Source
     section?: string
+    scope?: string
     sessionID?: string
   }) {
+    // A monorepo scope wins over an explicit section: scoped facts must live in their scope section.
+    const scoped = input.scope ? MemoryScopes.clean(input.scope) : ""
     return apply({
       ...input,
       ops: [
         {
           action: "add",
           file: input.file,
-          section: input.section,
+          section: scoped ? MemoryScopes.section(scoped) : input.section,
           key: input.key ?? key(input.text),
           text: input.text,
         },
@@ -306,7 +310,7 @@ export namespace Memory {
     })
   }
 
-  export async function recall(input: { root: string; query: string; sessionID?: string }) {
+  export async function recall(input: { root: string; query: string; sessionID?: string; scope?: string }) {
     const state = await MemoryFiles.readState(input.root)
     if (!state.enabled) return { root: input.root, state }
     const result = await MemoryRecall.search({
@@ -314,6 +318,7 @@ export namespace Memory {
       query: input.query,
       state,
       currentSessionID: input.sessionID,
+      scope: input.scope,
     })
     const hits = result?.hits ?? []
     const files = [...new Set(hits.map((hit) => hit.source))]
