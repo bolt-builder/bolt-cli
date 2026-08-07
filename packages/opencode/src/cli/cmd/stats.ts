@@ -1,5 +1,6 @@
 import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
+import { Envelope } from "../envelope"
 import { Session } from "@/session/session"
 import { NotFoundError } from "@/storage/storage"
 import { Database } from "@opencode-ai/core/database/database"
@@ -65,11 +66,20 @@ export const StatsCommand = effectCmd({
       .option("project", {
         describe: "filter by project (default: all projects, empty string: current project)",
         type: "string",
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
       }),
   handler: Effect.fn("Cli.stats")(function* (args) {
     const ctx = yield* InstanceRef
     if (!ctx) return
     const stats = yield* aggregateSessionStats(args.days, args.project, ctx.project)
+    if (args.json) {
+      Envelope.print(stats)
+      return
+    }
     let modelLimit: number | undefined
     if (args.models === true) {
       modelLimit = Infinity
@@ -146,8 +156,9 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
     medianTokensPerSession: 0,
   }
 
+  // Progress chatter goes to stderr so it never corrupts stdout consumers (e.g. --json).
   if (filteredSessions.length > 1000) {
-    console.log(`Large dataset detected (${filteredSessions.length} sessions). This may take a while...`)
+    process.stderr.write(`Large dataset detected (${filteredSessions.length} sessions). This may take a while...\n`)
   }
 
   if (filteredSessions.length === 0) {
