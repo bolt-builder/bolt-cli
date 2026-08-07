@@ -18,6 +18,16 @@ import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
 import { MapCommand } from "./cli/cmd/map"
+import { ArchCommand } from "./cli/cmd/arch"
+import { MigrateCommand } from "./cli/cmd/migrate"
+import { DepsCommand } from "./cli/cmd/deps"
+import { OwnersCommand } from "./cli/cmd/owners"
+import { HotspotsCommand } from "./cli/cmd/hotspots"
+import { PackagesCommand } from "./cli/cmd/packages"
+import { ApiCommand } from "./cli/cmd/api"
+import { IndexCommand } from "./cli/cmd/indexer"
+import { DeadCommand } from "./cli/cmd/dead"
+import { DupesCommand } from "./cli/cmd/dupes"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
@@ -28,22 +38,41 @@ import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
+import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
+import { CommitlintCommand } from "./cli/cmd/commitlint"
+import { PortCommand } from "./cli/cmd/port"
+import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
 import { UndoCommand } from "./cli/cmd/undo"
+import { AnalyzeCommand } from "./cli/cmd/analyze"
+import { CheckpointCommand } from "./cli/cmd/checkpoint"
+import { RebaseCommand } from "./cli/cmd/rebase"
+import { InvariantsCommand } from "./cli/cmd/invariants"
+import { ResolveCommand } from "./cli/cmd/resolve"
 import { CodemodCommand } from "./cli/cmd/codemod"
+import { AssertsCommand } from "./cli/cmd/asserts"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
+import { TightenCommand } from "./cli/cmd/tighten"
 import { LearnCommand } from "./cli/cmd/learn"
+import { DriftCommand } from "./cli/cmd/drift"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
+import { ProptestCommand } from "./cli/cmd/proptest"
+import { GuardCommand } from "./cli/cmd/guard"
+import { MutateCommand } from "./cli/cmd/mutate"
 import { BisectCommand } from "./cli/cmd/bisect"
+import { WhyCommand } from "./cli/cmd/why"
+import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
+import { SubmodulesCommand } from "./cli/cmd/submodules"
+import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
@@ -117,26 +146,55 @@ const cli = yargs(args)
   .command(EvalCommand)
   .command(LogsCommand)
   .command(MapCommand)
+  .command(ArchCommand)
+  .command(MigrateCommand)
+  .command(DepsCommand)
+  .command(OwnersCommand)
+  .command(HotspotsCommand)
+  .command(PackagesCommand)
+  .command(ApiCommand)
+  .command(IndexCommand)
+  .command(DeadCommand)
+  .command(DupesCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
   .command(PrCommand)
+  .command(StackCommand)
   .command(CommitCommand)
+  .command(CommitlintCommand)
+  .command(PortCommand)
+  .command(SplitCommand)
   .command(ReviewCommand)
   .command(UndoCommand)
+  .command(AnalyzeCommand)
+  .command(CheckpointCommand)
+  .command(RebaseCommand)
+  .command(InvariantsCommand)
+  .command(ResolveCommand)
   .command(CodemodCommand)
+  .command(AssertsCommand)
   .command(PipelineCommand)
   .command(RefactorCommand)
+  .command(TightenCommand)
   .command(LearnCommand)
+  .command(DriftCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
   .command(FlakyCommand)
+  .command(ProptestCommand)
+  .command(GuardCommand)
+  .command(MutateCommand)
   .command(BisectCommand)
+  .command(WhyCommand)
+  .command(BenchCommand)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
+  .command(SubmodulesCommand)
+  .command(WorktreeCommand)
   .command(PluginCommand)
   .command(DbCommand)
   .fail((msg, err) => {
