@@ -1,8 +1,7 @@
 export * as Skill from "./skill"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
-import { AbsolutePath } from "./schema"
+import { AbsolutePath, optional } from "./schema"
 
 export interface DirectorySource extends Schema.Schema.Type<typeof DirectorySource> {}
 export const DirectorySource = Schema.Struct({

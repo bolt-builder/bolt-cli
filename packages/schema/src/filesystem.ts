@@ -1,9 +1,8 @@
 export * as FileSystem from "./filesystem"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { define, inventory } from "./event"
-import { NonNegativeInt, PositiveInt, RelativePath } from "./schema"
+import { NonNegativeInt, PositiveInt, RelativePath, optional } from "./schema"
 
 const Edited = define({
   type: "file.edited",

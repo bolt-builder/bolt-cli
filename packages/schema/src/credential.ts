@@ -1,10 +1,9 @@
 export * as Credential from "./credential"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { IntegrationMethodID } from "./integration-id"
 import { ascending } from "./identifier"
-import { NonNegativeInt, statics } from "./schema"
+import { NonNegativeInt, optional, statics } from "./schema"
 
 export const ID = Schema.String.pipe(
   Schema.brand("Credential.ID"),

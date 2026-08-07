@@ -1068,16 +1068,8 @@ export const RunCommand = effectCmd({
         return
       }
 
-      // Routes requests to the in-process server, attaching auth; the Server
-      // import stays lazy so attach-only runs never load it.
-      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { Server } = await import("@/server/server")
-        const request = new Request(input, init)
-        const headers = new Headers(request.headers)
-        const auth = ServerAuth.header()
-        if (auth) headers.set("Authorization", auth)
-        return Server.Default().app.fetch(new Request(request, { headers }))
-      }) as typeof globalThis.fetch
+      const { ServerLocalFetch } = await import("@/server/local-fetch")
+      const fetchFn = ServerLocalFetch.fetchFn
 
       if (interactive && !args.attach && !args.session && !args.continue) {
         const model = pick(args.model)

@@ -1,11 +1,10 @@
 export * as Permission from "./permission"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { define, inventory } from "./event"
 import { ascending } from "./identifier"
 import { SessionID } from "./session-id"
-import { statics } from "./schema"
+import { optional, statics } from "./schema"
 
 export const ID = Schema.String.check(Schema.isStartsWith("per")).pipe(
   Schema.brand("PermissionV2.ID"),

@@ -8,7 +8,6 @@
 import type { Argv } from "yargs"
 import path from "path"
 import os from "os"
-import { EOL } from "os"
 import { mkdtemp, rm } from "node:fs/promises"
 import { Effect } from "effect"
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2"
@@ -80,7 +79,6 @@ export const EvalCommand = effectCmd({
         describe: "keep case workspaces on disk for debugging",
       }),
   handler: Effect.fn("Cli.eval")(function* (args) {
-    const { ServerAuth } = yield* Effect.promise(() => import("@/server/auth"))
     const discovered = yield* Effect.promise(() => discover(args.paths))
     if (discovered.missing.length) {
       return yield* fail(`No such file or directory: ${discovered.missing.join(", ")}`)
@@ -92,18 +90,12 @@ export const EvalCommand = effectCmd({
 
     yield* Effect.promise(async () => {
       const json = args.format === "json"
-      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { Server } = await import("@/server/server")
-        const request = new Request(input, init)
-        const headers = new Headers(request.headers)
-        const auth = ServerAuth.header()
-        if (auth) headers.set("Authorization", auth)
-        return Server.Default().app.fetch(new Request(request, { headers }))
-      }) as typeof globalThis.fetch
+      const { ServerLocalFetch } = await import("@/server/local-fetch")
+      const fetchFn = ServerLocalFetch.fetchFn
 
       function emit(type: string, data: Record<string, unknown>) {
         if (!json) return
-        process.stdout.write(JSON.stringify({ type, timestamp: Date.now(), ...data }) + EOL)
+        process.stdout.write(JSON.stringify({ type, timestamp: Date.now(), ...data }) + os.EOL)
       }
 
       async function execute(item: Info, file: string): Promise<CaseResult> {
