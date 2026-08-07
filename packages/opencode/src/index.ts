@@ -296,6 +296,12 @@ try {
   if (formatted === undefined) {
     UI.error("Unexpected error" + EOL)
     process.stderr.write(errorMessage(e) + EOL)
+    // Unexpected crashes leave a redacted local report for the /bug flow.
+    const { Crash } = await import("./cli/crash")
+    const report = await Promise.resolve()
+      .then(() => Crash.write(e))
+      .catch(() => undefined)
+    if (report) process.stderr.write(`crash report written to ${report}` + EOL)
   }
   // FormatError may have set a classed exit code (e.g. CliError exitCode, auth); keep it.
   if (!process.exitCode) process.exitCode = 1
