@@ -1,3 +1,4 @@
+import { MemoryConflicts } from "./conflicts"
 import { MemoryFiles } from "./storage/store"
 import { MemoryIndexer } from "./recall/indexer"
 import { MemoryNotice } from "./memory-notice"
@@ -5,6 +6,7 @@ import { MemoryOperations } from "./capture/operations"
 import { MemoryPaths } from "./storage/paths"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
+import { MemoryScopes } from "./scopes"
 import { MemoryShared } from "./recall/shared"
 import { MemoryToken } from "./recall/token"
 import { MemorySlug } from "./slug"
@@ -270,15 +272,18 @@ export namespace Memory {
     key?: string
     file?: MemorySchema.Source
     section?: string
+    scope?: string
     sessionID?: string
   }) {
+    // A monorepo scope wins over an explicit section: scoped facts must live in their scope section.
+    const scoped = input.scope ? MemoryScopes.clean(input.scope) : ""
     return apply({
       ...input,
       ops: [
         {
           action: "add",
           file: input.file,
-          section: input.section,
+          section: scoped ? MemoryScopes.section(scoped) : input.section,
           key: input.key ?? key(input.text),
           text: input.text,
         },
@@ -294,6 +299,32 @@ export namespace Memory {
     })
   }
 
+  export async function conflicts(input: { root: string; fix?: boolean; sessionID?: string }) {
+    const state = await MemoryFiles.readState(input.root)
+    const inventory = await MemoryFiles.deriveInventory(input.root)
+    const found = MemoryConflicts.detect(
+      Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+        updatedAt: item.updatedAt,
+      })),
+    )
+    const plan = MemoryConflicts.resolve(found)
+    if (!input.fix || plan.resolutions.length === 0) {
+      return { root: input.root, state, conflicts: found, plan, applied: false as const }
+    }
+    // Cap at the per-run op limit apply enforces; a rerun picks up any remainder.
+    const result = await apply({
+      root: input.root,
+      ops: plan.resolutions.slice(0, state.capture.maxOpsPerRun).map((item) => item.op),
+      sessionID: input.sessionID,
+    })
+    return { root: input.root, state, conflicts: found, plan, applied: true as const, result }
+  }
+
   export async function purge(input: { root: string }) {
     if (!(await MemoryFiles.owned(input.root))) {
       const exists = await MemoryFiles.exists(input.root)
@@ -306,7 +337,7 @@ export namespace Memory {
     })
   }
 
-  export async function recall(input: { root: string; query: string; sessionID?: string }) {
+  export async function recall(input: { root: string; query: string; sessionID?: string; scope?: string }) {
     const state = await MemoryFiles.readState(input.root)
     if (!state.enabled) return { root: input.root, state }
     const result = await MemoryRecall.search({
@@ -314,6 +345,7 @@ export namespace Memory {
       query: input.query,
       state,
       currentSessionID: input.sessionID,
+      scope: input.scope,
     })
     const hits = result?.hits ?? []
     const files = [...new Set(hits.map((hit) => hit.source))]

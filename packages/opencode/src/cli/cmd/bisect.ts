@@ -84,11 +84,15 @@ export const BisectCommand = effectCmd({
       },
     )
     const diff = yield* git.run(["show", sha], { cwd })
+    const signed = yield* git.run(["log", "-1", "--format=%h%x00%G?%x00%GS", sha], { cwd })
     yield* git.run(["bisect", "reset"], { cwd })
 
     UI.empty()
     UI.println("Culprit found:")
     UI.println(summary.text().trim())
+    const { Signature } = yield* Effect.promise(() => import("./signature"))
+    const entry = Signature.parse(signed.text()).at(0)
+    if (entry) UI.println(Signature.line(entry))
     UI.empty()
 
     if (!args.fix) {
