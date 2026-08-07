@@ -2,6 +2,7 @@ import { MemoryFs } from "./fs"
 import { MemoryMarkdown } from "./markdown"
 import { MemoryPaths } from "./paths"
 import { MemorySchema } from "../schema"
+import { MemoryStamps } from "./stamps"
 import { MemoryTopics } from "../recall/topics"
 import { MemorySlug } from "../slug"
 
@@ -46,6 +47,7 @@ export namespace MemorySources {
 
   export async function deriveInventory(root: string): Promise<Inventory> {
     const items: Inventory["items"] = {}
+    const stamps = await MemoryStamps.read(root)
     for (const file of MemorySchema.Sources) {
       const text = await readSource(root, file)
       const time = await MemoryFs.mtime(MemoryPaths.source(root, file)).catch((error: unknown) => {
@@ -54,13 +56,15 @@ export namespace MemorySources {
       })
       MemoryMarkdown.parse(text).forEach((entry, offset) => {
         const data = { file, section: entry.section, key: entry.key, text: entry.text }
+        const id = inventoryKey(data)
         const stamp = Math.max(0, time - offset)
-        items[inventoryKey(data)] = {
+        const known = stamps.items[id]
+        items[id] = {
           ...data,
           topics: MemoryTopics.assign(data),
           terms: MemoryTopics.terms(data),
-          createdAt: stamp,
-          updatedAt: stamp,
+          createdAt: known?.createdAt ?? stamp,
+          updatedAt: known?.updatedAt ?? stamp,
         }
       })
     }
