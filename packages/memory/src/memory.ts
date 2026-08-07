@@ -331,7 +331,7 @@ export namespace Memory {
     })
   }
 
-  export async function correct(input: {
+  export function correct(input: {
     root: string
     text: string
     key?: string
