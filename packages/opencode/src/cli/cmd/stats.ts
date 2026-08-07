@@ -1,9 +1,6 @@
 import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
 import { Envelope } from "../envelope"
-import { Session } from "@/session/session"
-import { NotFoundError } from "@/storage/storage"
-import { Database } from "@opencode-ai/core/database/database"
 import type { Project } from "@/project/project"
 
 interface SessionStats {
