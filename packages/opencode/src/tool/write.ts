@@ -13,6 +13,8 @@ import { FSUtil } from "@opencode-ai/core/fs-util"
 import { InstanceState } from "@/effect/instance-state"
 import { trimDiff } from "./edit"
 import { assertExternalDirectoryEffect } from "./external-directory"
+import { Config } from "@/config/config"
+import { Protection } from "@/protection"
 import * as Bom from "@/util/bom"
 
 const MAX_PROJECT_DIAGNOSTICS_FILES = 5
@@ -31,6 +33,7 @@ export const WriteTool = Tool.define(
     const fs = yield* FSUtil.Service
     const events = yield* EventV2Bridge.Service
     const format = yield* Format.Service
+    const config = yield* Config.Service
 
     return {
       description: DESCRIPTION,
@@ -42,6 +45,15 @@ export const WriteTool = Tool.define(
             ? params.filePath
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filepath)
+
+          const cfg = yield* config.get().pipe(Effect.orDie)
+          const relative = path.relative(instance.worktree, filepath)
+          const guarded = Protection.match(relative, cfg.protected_paths)
+          if (guarded) {
+            throw new Error(
+              `The path "${relative}" is protected by config (protected_paths: "${guarded}") and cannot be modified.`,
+            )
+          }
 
           const exists = yield* fs.existsSafe(filepath)
           const source = exists ? yield* Bom.readFile(fs, filepath) : { bom: false, text: "" }
