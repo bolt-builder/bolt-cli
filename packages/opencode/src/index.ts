@@ -67,6 +67,7 @@ import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
+import { SubmodulesCommand } from "./cli/cmd/submodules"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
@@ -184,6 +185,7 @@ const cli = yargs(args)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
+  .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)
   .command(DbCommand)
