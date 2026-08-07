@@ -330,9 +330,12 @@ export const SessionListCommand = effectCmd({
     if (args.since && start === undefined) return yield* fail(`Invalid --since value: ${args.since}`)
 
     const found = yield* Effect.gen(function* () {
-      if (args.project === undefined) return yield* svc.list({ roots: true, limit: args.maxCount, start })
+      // Fetch-time limit is only safe when nothing after the fetch can change the selection;
+      // --project, --failed, and non-default --sort all filter or reorder, so limit at the end instead.
+      const limit = !args.failed && !args.tag && args.sort === "updated" ? args.maxCount : undefined
+      if (args.project === undefined) return yield* svc.list({ roots: true, limit, start })
       const needle = args.project.toLowerCase()
-      const global = yield* svc.listGlobal({ roots: true, limit: args.maxCount, start })
+      const global = yield* svc.listGlobal({ roots: true, start })
       return global.filter((session) => {
         if (session.projectID.toLowerCase().includes(needle)) return true
         if (!session.project) return false
@@ -357,7 +360,7 @@ export const SessionListCommand = effectCmd({
     ).pipe(Effect.map((items) => items.filter((item) => item !== undefined)))
 
     const tagged = args.tag ? failed.filter((session) => tags(session.metadata).includes(args.tag!)) : failed
-    const sessions = order(tagged, args.sort)
+    const sessions = order(tagged, args.sort).slice(0, args.maxCount)
 
     if (sessions.length === 0) {
       UI.println(
