@@ -44,6 +44,35 @@ interface SessionStats {
   costPerDay: number
   tokensPerSession: number
   medianTokensPerSession: number
+  projects: ProjectUsage[]
+  hours: number[]
+}
+
+export interface ProjectUsage {
+  label: string
+  sessions: number
+  cost: number
+}
+
+/** Aggregates session counts and cost per project, most active first. */
+export function topProjects(sessions: { projectID: string; directory: string; cost?: number }[]): ProjectUsage[] {
+  const usage = new Map<string, ProjectUsage>()
+  for (const session of sessions) {
+    const entry = usage.get(session.projectID) ?? { label: session.directory, sessions: 0, cost: 0 }
+    entry.sessions += 1
+    entry.cost += session.cost ?? 0
+    usage.set(session.projectID, entry)
+  }
+  return [...usage.values()].sort((a, b) => b.sessions - a.sessions)
+}
+
+/** Buckets session start times into 24 local-time hour slots. */
+export function busiestHours(times: number[]): number[] {
+  const buckets = Array.from({ length: 24 }, () => 0)
+  for (const time of times) {
+    buckets[new Date(time).getHours()] += 1
+  }
+  return buckets
 }
 
 export const StatsCommand = effectCmd({
@@ -168,6 +197,8 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
     costPerDay: 0,
     tokensPerSession: 0,
     medianTokensPerSession: 0,
+    projects: topProjects(filteredSessions),
+    hours: busiestHours(filteredSessions.map((session) => session.time.created)),
   }
 
   // Progress chatter goes to stderr so it never corrupts stdout consumers (e.g. --json or --porcelain).
@@ -376,6 +407,45 @@ export function displayStats(stats: SessionStats, toolLimit?: number, modelLimit
   console.log(renderRow("Cache Write", formatNumber(stats.totalTokens.cache.write)))
   console.log("└────────────────────────────────────────────────────────┘")
   console.log()
+
+  // Top Projects section
+  if (stats.projects.length > 0) {
+    console.log("┌────────────────────────────────────────────────────────┐")
+    console.log("│                     TOP PROJECTS                       │")
+    console.log("├────────────────────────────────────────────────────────┤")
+    for (const project of stats.projects.slice(0, 5)) {
+      const label = project.label.length > 34 ? "…" + project.label.slice(-33) : project.label
+      const value = `${project.sessions.toLocaleString()} runs  $${project.cost.toFixed(2)}`
+      console.log(renderRow(` ${label}`, value))
+    }
+    console.log("└────────────────────────────────────────────────────────┘")
+    console.log()
+  }
+
+  // Busiest Hours section
+  const totalHourRuns = stats.hours.reduce((a, b) => a + b, 0)
+  if (totalHourRuns > 0) {
+    const ranked = stats.hours
+      .map((count, hour) => ({ hour, count }))
+      .filter((entry) => entry.count > 0)
+      .sort((a, b) => b.count - a.count || a.hour - b.hour)
+      .slice(0, 8)
+    const maxHourCount = ranked[0].count
+
+    console.log("┌────────────────────────────────────────────────────────┐")
+    console.log("│                     BUSIEST HOURS                      │")
+    console.log("├────────────────────────────────────────────────────────┤")
+    for (const entry of ranked) {
+      const bar = "█".repeat(Math.max(1, Math.floor((entry.count / maxHourCount) * 20)))
+      const percentage = ((entry.count / totalHourRuns) * 100).toFixed(1)
+      const label = `${String(entry.hour).padStart(2, "0")}:00`
+      const content = ` ${label.padEnd(18)} ${bar.padEnd(20)} ${entry.count.toString().padStart(3)} (${percentage.padStart(4)}%)`
+      const padding = Math.max(0, width - content.length - 1)
+      console.log(`│${content}${" ".repeat(padding)} │`)
+    }
+    console.log("└────────────────────────────────────────────────────────┘")
+    console.log()
+  }
 
   // Model Usage section
   if (modelLimit !== undefined && Object.keys(stats.modelUsage).length > 0) {
