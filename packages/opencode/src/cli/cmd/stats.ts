@@ -4,9 +4,7 @@ import { Envelope } from "../envelope"
 import { Session } from "@/session/session"
 import { NotFoundError } from "@/storage/storage"
 import { Database } from "@opencode-ai/core/database/database"
-import { SessionTable } from "@opencode-ai/core/session/sql"
-import { Project } from "@/project/project"
-import { InstanceRef } from "@/effect/instance-ref"
+import type { Project } from "@/project/project"
 
 interface SessionStats {
   totalSessions: number
@@ -73,6 +71,7 @@ export const StatsCommand = effectCmd({
         default: false,
       }),
   handler: Effect.fn("Cli.stats")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const ctx = yield* InstanceRef
     if (!ctx) return
     const stats = yield* aggregateSessionStats(args.days, args.project, ctx.project)
@@ -90,18 +89,22 @@ export const StatsCommand = effectCmd({
   }),
 })
 
-const getAllSessions = Effect.fnUntraced(function* () {
-  const { db } = yield* Database.Service
-  return (yield* db.select().from(SessionTable).all().pipe(Effect.orDie)).map((row) => Session.fromRow(row))
-})
-
 const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
   days?: number,
   projectFilter?: string,
   currentProject?: Project.Info,
 ) {
+  // Loaded lazily so the CLI entrypoint does not pull the session/database
+  // graph at startup for unrelated commands.
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
+  const { Database } = yield* Effect.promise(() => import("@opencode-ai/core/database/database"))
+  const { SessionTable } = yield* Effect.promise(() => import("@opencode-ai/core/session/sql"))
+  const database = yield* Database.Service
   const svc = yield* Session.Service
-  const sessions = yield* getAllSessions()
+  const sessions = (yield* database.db.select().from(SessionTable).all().pipe(Effect.orDie)).map((row) =>
+    Session.fromRow(row),
+  )
   const MS_IN_DAY = 24 * 60 * 60 * 1000
 
   const cutoffTime = (() => {
