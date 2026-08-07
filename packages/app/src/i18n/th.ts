@@ -1063,7 +1063,7 @@ export const dict = {
   "settings.gateways.note.kilo": "เกตเวย์ที่เข้ากันได้กับ OpenRouter พร้อมโมเดลฟรีที่กำหนดเส้นทางอัตโนมัติ",
   "settings.gateways.note.zoo": "เกตเวย์ชุมชนจากโปรเจกต์ Zoo Code",
   "settings.gateways.connect.title": "เชื่อมต่อ {{gateway}}",
-  "settings.gateways.connect.description": "วางคีย์ API {{gateway}} ของคุณเพื่อเชื่อมต่อโมเดลของเกตเวย์นั้น",
+  "settings.gateways.connect.description": "วางคีย์ API {{gateway}} ของคุณเพื่อเข้าถึงโมเดลของเกตเวย์นั้น",
   "settings.models.title": "โมเดล",
   "settings.models.description": "การตั้งค่าโมเดลจะสามารถกำหนดค่าได้ที่นี่",
   "settings.agents.title": "เอเจนต์",
