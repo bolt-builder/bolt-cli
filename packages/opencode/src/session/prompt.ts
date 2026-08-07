@@ -6,6 +6,7 @@ import os from "os"
 import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
 import { SessionRevert } from "./revert"
+import { SessionToolBudget } from "./tool-budget"
 import { Session } from "./session"
 import { Agent } from "../agent/agent"
 import { Provider } from "@/provider/provider"
@@ -129,6 +130,7 @@ const layer = Layer.effect(
     const commands = yield* Command.Service
     const config = yield* Config.Service
     const permission = yield* Permission.Service
+    const toolBudget = yield* SessionToolBudget.Service
     const fsys = yield* FSUtil.Service
     const mcp = yield* MCP.Service
     const lsp = yield* LSP.Service
@@ -1284,6 +1286,7 @@ const layer = Layer.effect(
               Effect.provideService(MCP.Service, mcp),
               Effect.provideService(Truncate.Service, truncate),
               Effect.provideService(RuntimeFlags.Service, flags),
+              Effect.provideService(SessionToolBudget.Service, toolBudget),
             )
 
             if (lastUser.format?.type === "json_schema") {
@@ -1698,6 +1701,7 @@ export const node = LayerNode.make({
     Instruction.node,
     SessionRunState.node,
     SessionRevert.node,
+    SessionToolBudget.node,
     SessionSummary.node,
     SystemPrompt.node,
     LLM.node,

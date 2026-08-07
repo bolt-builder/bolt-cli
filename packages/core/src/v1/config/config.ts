@@ -143,6 +143,10 @@ export const Info = Schema.Struct({
     description:
       "Require a second agent's sign-off before destructive shell commands run. The reviewer runs on the small model and rejects when it cannot produce a verdict. Defaults to false.",
   }),
+  tool_budget: Schema.optional(Schema.Record(Schema.String, PositiveInt)).annotate({
+    description:
+      'Maximum number of times each tool may run per session, e.g. { "webfetch": 10 }. Calls beyond the budget fail without executing.',
+  }),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   attachment: Schema.optional(ConfigAttachmentV1.Info).annotate({
     description: "Attachment processing configuration, including image size limits and resizing behavior",
