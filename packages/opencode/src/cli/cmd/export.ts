@@ -2,6 +2,7 @@ import type { Session } from "@/session/session"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
+import { Envelope } from "../envelope"
 import * as prompts from "@clack/prompts"
 import { EOL } from "os"
 import { Effect } from "effect"
@@ -247,8 +248,14 @@ export const ExportCommand = effectCmd({
         type: "string",
         default: "replay.html",
       })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
       .conflicts("html", ["md", "jsonl"])
-      .conflicts("md", "jsonl"),
+      .conflicts("md", "jsonl")
+      .conflicts("json", ["html", "md", "jsonl"]),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
@@ -261,6 +268,7 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   md?: boolean
   jsonl?: boolean
   out: string
+  json?: boolean
 }) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
   const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
@@ -319,22 +327,26 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
     return
   }
 
-  const data = args.sanitize ? sanitize(exportData) : exportData
+  const payload = args.sanitize ? sanitize(exportData) : exportData
 
   if (args.md) {
     const { markdown } = yield* Effect.promise(() => import("./export-md"))
-    process.stdout.write(markdown(data.info.title, data.messages))
+    process.stdout.write(markdown(payload.info.title, payload.messages))
     return
   }
 
   if (args.jsonl) {
-    for (const message of data.messages) {
+    for (const message of payload.messages) {
       process.stdout.write(JSON.stringify(message))
       process.stdout.write(EOL)
     }
     return
   }
 
-  process.stdout.write(JSON.stringify(data, null, 2))
+  if (args.json) {
+    Envelope.print(payload)
+    return
+  }
+  process.stdout.write(JSON.stringify(payload, null, 2))
   process.stdout.write(EOL)
 })

@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
+import { AskCommand } from "./cli/cmd/ask"
 import { ArenaCommand } from "./cli/cmd/arena"
 import { GenerateCommand } from "./cli/cmd/generate"
 import { ConsoleCommand } from "./cli/cmd/account"
@@ -30,6 +31,7 @@ import { DeadCommand } from "./cli/cmd/dead"
 import { DupesCommand } from "./cli/cmd/dupes"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
+import { ExecCommand } from "./cli/cmd/exec"
 import { ExportCommand } from "./cli/cmd/export"
 import { ImportCommand } from "./cli/cmd/import"
 import { AttachCommand } from "./cli/cmd/attach"
@@ -66,12 +68,14 @@ import { FlakyCommand } from "./cli/cmd/flaky"
 import { ProptestCommand } from "./cli/cmd/proptest"
 import { GuardCommand } from "./cli/cmd/guard"
 import { MutateCommand } from "./cli/cmd/mutate"
+import { MuxCommand } from "./cli/cmd/mux"
 import { BisectCommand } from "./cli/cmd/bisect"
 import { WhyCommand } from "./cli/cmd/why"
 import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
+import { ResumeCommand } from "./cli/cmd/resume"
 import { SubmodulesCommand } from "./cli/cmd/submodules"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
@@ -132,6 +136,7 @@ const cli = yargs(args)
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)
+  .command(AskCommand)
   .command(ArenaCommand)
   .command(GenerateCommand)
   .command(DebugCommand)
@@ -157,6 +162,7 @@ const cli = yargs(args)
   .command(IndexCommand)
   .command(DeadCommand)
   .command(DupesCommand)
+  .command(ExecCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
@@ -189,12 +195,14 @@ const cli = yargs(args)
   .command(ProptestCommand)
   .command(GuardCommand)
   .command(MutateCommand)
+  .command(MuxCommand)
   .command(BisectCommand)
   .command(WhyCommand)
   .command(BenchCommand)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
+  .command(ResumeCommand)
   .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)

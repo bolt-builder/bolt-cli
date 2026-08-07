@@ -3,6 +3,7 @@ import { Effect } from "effect"
 import { ModelsDev } from "@opencode-ai/core/models-dev"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
+import { Envelope } from "../envelope"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 
 export const ModelsCommand = effectCmd({
@@ -22,6 +23,11 @@ export const ModelsCommand = effectCmd({
       .option("refresh", {
         describe: "refresh the models cache from models.dev",
         type: "boolean",
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
       }),
   handler: Effect.fn("Cli.models")(function* (args) {
     const { Provider } = yield* Effect.promise(() => import("@/provider/provider"))
@@ -33,14 +39,19 @@ export const ModelsCommand = effectCmd({
     const provider = yield* Provider.Service
     const providers = yield* provider.list()
 
-    const print = (providerID: ProviderV2.ID, verbose?: boolean) => {
+    const models = (providerID: ProviderV2.ID) => {
       const p = providers[providerID]
-      const sorted = Object.entries(p.models).sort(([a], [b]) => a.localeCompare(b))
-      for (const [modelID, model] of sorted) {
-        process.stdout.write(`${providerID}/${modelID}`)
+      return Object.entries(p.models)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([modelID, model]) => ({ id: `${providerID}/${modelID}`, model }))
+    }
+
+    const print = (providerID: ProviderV2.ID, verbose?: boolean) => {
+      for (const entry of models(providerID)) {
+        process.stdout.write(entry.id)
         process.stdout.write(EOL)
         if (verbose) {
-          process.stdout.write(JSON.stringify(model, null, 2))
+          process.stdout.write(JSON.stringify(entry.model, null, 2))
           process.stdout.write(EOL)
         }
       }
@@ -49,6 +60,10 @@ export const ModelsCommand = effectCmd({
     if (args.provider) {
       const providerID = ProviderV2.ID.make(args.provider)
       if (!providers[providerID]) return yield* fail(`Provider not found: ${args.provider}`)
+      if (args.json) {
+        Envelope.print(models(providerID).map((entry) => (args.verbose ? entry : { id: entry.id })))
+        return
+      }
       print(providerID, args.verbose)
       return
     }
@@ -60,6 +75,15 @@ export const ModelsCommand = effectCmd({
       if (!aIsOpencode && bIsOpencode) return 1
       return a.localeCompare(b)
     })
+
+    if (args.json) {
+      Envelope.print(
+        ids.flatMap((providerID) =>
+          models(ProviderV2.ID.make(providerID)).map((entry) => (args.verbose ? entry : { id: entry.id })),
+        ),
+      )
+      return
+    }
 
     for (const providerID of ids) print(ProviderV2.ID.make(providerID), args.verbose)
   }),
