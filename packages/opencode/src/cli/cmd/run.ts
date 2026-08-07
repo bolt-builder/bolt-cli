@@ -564,8 +564,8 @@ export const RunCommand = effectCmd({
         const file = Bun.file(path.resolve(root, args["output-schema"]))
         if (!(await file.exists())) die(`Schema file not found: ${args["output-schema"]}`)
         const parsed = OutputSchema.payload(await file.text())
-        if (!parsed) die(`Schema file is not valid JSON: ${args["output-schema"]}`)
-        return parsed!.value
+        if (!parsed) return die(`Schema file is not valid JSON: ${args["output-schema"]}`)
+        return parsed.value
       })()
 
       if (args["auto-agent"]) {
@@ -1133,8 +1133,8 @@ export const RunCommand = effectCmd({
           for (let attempt = 1; ; attempt++) {
             const value = OutputSchema.payload(text)
             const errors = value ? OutputSchema.validate(schema, value.value) : ["$: the answer is not valid JSON"]
-            if (errors.length === 0) {
-              emit("schema_valid", { attempt, value: value!.value })
+            if (value && errors.length === 0) {
+              emit("schema_valid", { attempt, value: value.value })
               return
             }
             if (attempt >= OutputSchema.ATTEMPTS) {
