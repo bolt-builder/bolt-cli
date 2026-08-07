@@ -43,6 +43,19 @@ describe("steps", () => {
     expect(parsed[0].body).toContain("after fence")
   })
 
+  test("keeps a longer fence open across shorter or mismatched delimiters", () => {
+    const parsed = steps(["## Real", "````md", "```", "## Fake", "~~~", "````", "after fence"].join("\n"))
+    expect(parsed).toHaveLength(1)
+    expect(parsed[0].title).toBe("Real")
+    expect(parsed[0].body).toContain("## Fake")
+    expect(parsed[0].body).toContain("after fence")
+  })
+
+  test("does not close a fence with the other delimiter character", () => {
+    const parsed = steps(["## Real", "```", "~~~", "## Fake", "```", "after"].join("\n"))
+    expect(parsed.map((step) => step.title)).toEqual(["Real"])
+  })
+
   test("returns no steps for structureless text", () => {
     expect(steps("just a paragraph\nanother line")).toEqual([])
   })
@@ -54,8 +67,21 @@ describe("outcome", () => {
     expect(outcome("could not apply\n\nstep: failed")).toBe("failed")
   })
 
-  test("uses the last marker when several appear", () => {
+  test("uses the final line when markers are quoted earlier", () => {
     expect(outcome('End with "Step: DONE".\n\nStep: FAILED')).toBe("failed")
+  })
+
+  test("tolerates trailing whitespace and blank lines", () => {
+    expect(outcome("all good\n\nStep: DONE  \n\n")).toBe("done")
+  })
+
+  test("ignores markers that are not on the final line", () => {
+    expect(outcome('I will end with "Step: DONE" as instructed.\n\nStill working on it.')).toBeUndefined()
+  })
+
+  test("rejects a final line with extra text around the marker", () => {
+    expect(outcome("Step: DONE and then some")).toBeUndefined()
+    expect(outcome('The last line is "Step: DONE"')).toBeUndefined()
   })
 
   test("returns undefined without a marker", () => {

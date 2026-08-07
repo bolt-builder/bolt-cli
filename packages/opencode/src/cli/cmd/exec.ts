@@ -19,11 +19,16 @@ export interface Step {
 export function steps(markdown: string): Step[] {
   const lines = markdown.split("\n")
   const fences: boolean[] = []
-  let inside = false
+  let fence: string | undefined
   for (const line of lines) {
-    const edge = /^\s*(```|~~~)/.test(line)
-    if (edge) inside = !inside
-    fences.push(inside || edge)
+    if (fence) {
+      fences.push(true)
+      const closing = /^\s*(`{3,}|~{3,})\s*$/.exec(line)?.[1]
+      if (closing && closing[0] === fence[0] && closing.length >= fence.length) fence = undefined
+      continue
+    }
+    fence = /^\s*(`{3,}|~{3,})/.exec(line)?.[1]
+    fences.push(Boolean(fence))
   }
 
   const heading = /^#{2,6}\s+(.+)$/
@@ -33,24 +38,28 @@ export function steps(markdown: string): Step[] {
   const hasHeading = lines.some((line, index) => !fences[index] && heading.test(line))
   const marker = hasHeading ? heading : item
   for (const [index, line] of lines.entries()) {
-    if (!fences[index] && marker.test(line)) {
-      found.push({ title: line.match(marker)![1].trim(), body: "" })
+    const match = fences[index] ? null : line.match(marker)
+    if (match) {
+      found.push({ title: match[1].trim(), body: "" })
       continue
     }
     const last = found.at(-1)
     if (!last) continue
     if (!hasHeading && !fences[index] && /^\S/.test(line) && line.trim() !== "") continue
-    last.body = last.body ? last.body + "\n" + line : line
+    last.body = last.body ? `${last.body}\n${line}` : line
   }
   return found.map((step) => ({ title: step.title, body: step.body.trim() })).filter((step) => step.title.length > 0)
 }
 
-/** Parse the last step outcome marker from an agent response. */
+/**
+ * Parse the step outcome marker from the final non-empty line of an agent
+ * response. Markers quoted or embedded mid-response do not count; the prompt
+ * contract requires the response to end with the marker.
+ */
 export function outcome(text: string) {
-  const matches = [...text.matchAll(/step:\s*(done|failed)/gi)]
-  const last = matches.at(-1)
-  if (!last) return undefined
-  return last[1].toLowerCase() as "done" | "failed"
+  const match = /^step:\s*(done|failed)\s*$/i.exec(text.trimEnd().split("\n").at(-1) ?? "")
+  if (!match) return undefined
+  return match[1].toLowerCase() as "done" | "failed"
 }
 
 /** Prompt sent for one playbook step. */
