@@ -905,7 +905,7 @@ export const dict = {
   "settings.gateways.note.zoo": "Community-Gateway aus dem Zoo Code-Projekt",
   "settings.gateways.connect.title": "{{gateway}} verbinden",
   "settings.gateways.connect.description":
-    "Fügen Sie Ihren {{gateway}} API-Schlüssel ein, um dessen Modelle zu verbinden.",
+    "Fügen Sie Ihren API-Schlüssel für {{gateway}} ein, um dessen Modelle zu nutzen.",
   "settings.models.title": "Modelle",
   "settings.models.description": "Modelleinstellungen können hier konfiguriert werden.",
   "settings.agents.title": "Agenten",

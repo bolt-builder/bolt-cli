@@ -1013,7 +1013,7 @@ export const dict = {
   "settings.gateways.note.kilo": "Gateway compatibile con OpenRouter con modelli gratuiti instradati automaticamente",
   "settings.gateways.note.zoo": "Gateway della community del progetto Zoo Code",
   "settings.gateways.connect.title": "Connetti {{gateway}}",
-  "settings.gateways.connect.description": "Incolla la tua chiave API di {{gateway}} per connettere i suoi modelli.",
+  "settings.gateways.connect.description": "Incolla la tua chiave API di {{gateway}} per connetterti ai suoi modelli.",
   "settings.models.title": "Modelli",
   "settings.models.description": "Le impostazioni del modello saranno configurabili qui.",
   "settings.agents.title": "Agenti",

@@ -1000,11 +1000,11 @@ export const dict = {
   "settings.gateways.title": "البوابات",
   "settings.gateways.description":
     "اتصل ببوابة ذكاء اصطناعي للوصول إلى العديد من النماذج عبر مفتاح API واحد، بما في ذلك نماذج مجانية.",
-  "settings.gateways.tag.connected": "متصل",
+  "settings.gateways.tag.connected": "متصلة",
   "settings.gateways.note.kilo": "بوابة متوافقة مع OpenRouter مع نماذج مجانية موجهة تلقائيًا",
   "settings.gateways.note.zoo": "بوابة مجتمعية من مشروع Zoo Code",
   "settings.gateways.connect.title": "الاتصال بـ {{gateway}}",
-  "settings.gateways.connect.description": "الصق مفتاح API الخاص بـ {{gateway}} للاتصال بنماذجه.",
+  "settings.gateways.connect.description": "الصق مفتاح API الخاص بـ {{gateway}} للاتصال بنماذجها.",
   "settings.models.title": "النماذج",
   "settings.models.description": "ستكون إعدادات النموذج قابلة للتكوين هنا.",
   "settings.agents.title": "الوكلاء",

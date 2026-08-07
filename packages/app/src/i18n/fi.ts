@@ -985,7 +985,7 @@ export const dict = {
   "settings.providers.tag.other": "Muut",
   "settings.gateways.title": "Yhdyskäytävät",
   "settings.gateways.description":
-    "Yhdistä tekoäly-yhdyskäytävä käyttääksesi useita malleja yhdellä API-avaimella, mukaan lukien ilmaiset mallit.",
+    "Yhdistä tekoäly-yhdyskäytävään käyttääksesi useita malleja yhdellä API-avaimella, mukaan lukien ilmaiset mallit.",
   "settings.gateways.tag.connected": "Yhdistetty",
   "settings.gateways.note.kilo":
     "OpenRouter-yhteensopiva yhdyskäytävä, jossa on ilmaisia automaattisesti reititettyjä malleja",

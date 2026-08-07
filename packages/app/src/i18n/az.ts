@@ -1098,7 +1098,7 @@ export const dict = {
   "settings.gateways.note.kilo": "Avtomatik yönləndirilən pulsuz modellərlə OpenRouter ilə uyğun şlüz",
   "settings.gateways.note.zoo": "Zoo Code layihəsindən icma şlüzü",
   "settings.gateways.connect.title": "{{gateway}} şlüzünü qoş",
-  "settings.gateways.connect.description": "Modellərini qoşmaq üçün {{gateway}} API açarını yapışdırın.",
+  "settings.gateways.connect.description": "Modellərinə qoşulmaq üçün {{gateway}} API açarını yapışdırın.",
   "settings.models.title": "Modellər",
   "settings.models.description": "Model tənzimləmələri burada konfiqurasiya edilə biləcək.",
   "settings.agents.title": "Agentlər",
