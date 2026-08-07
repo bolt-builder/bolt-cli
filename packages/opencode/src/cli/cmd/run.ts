@@ -31,6 +31,7 @@ import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.
 import { Budget } from "./run/budget"
 import { OutputSchema } from "./run/schema"
 import { Plan } from "./run/plan"
+import { split } from "./run/attach"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -133,12 +134,13 @@ async function toolError(part: ToolPart) {
 export const RunCommand = effectCmd({
   command: "run [message..]",
   describe: "run bolt with a message",
-  // --attach and --host connect to a remote server (no local instance needed);
-  // the default path runs an in-process server and needs the project instance.
-  instance: (args) => !args.attach && !args.host,
-  // For --dir without --attach, load instance for the resolved target dir.
-  // The handler also chdirs (preserving the legacy order: chdir → file resolution).
-  directory: (args) => (args.dir && !args.attach ? path.resolve(process.cwd(), args.dir) : process.cwd()),
+  // --attach with a URL and --host connect to a remote server (no local
+  // instance needed); the default path runs an in-process server and needs
+  // the project instance.
+  instance: (args) => !split(args.attach).server && !args.host,
+  // For --dir without a server attach, load instance for the resolved target
+  // dir. The handler also chdirs (preserving the legacy order: chdir → file resolution).
+  directory: (args) => (args.dir && !split(args.attach).server ? path.resolve(process.cwd(), args.dir) : process.cwd()),
   builder: (yargs: Argv) =>
     yargs
       .positional("message", {
@@ -234,7 +236,9 @@ export const RunCommand = effectCmd({
       })
       .option("attach", {
         type: "string",
-        describe: "attach to a running bolt server (e.g., http://localhost:4096)",
+        array: true,
+        describe:
+          "attach to a running bolt server (e.g., http://localhost:4096), or inject file/dir paths as context without mentioning them in the prompt (repeatable)",
       })
       .option("host", {
         type: "string",
@@ -342,9 +346,14 @@ export const RunCommand = effectCmd({
         `exit codes: ${ExitCode.OK} success, ${ExitCode.ERROR} failure, ${ExitCode.BUDGET} budget hit (--max-cost/--max-tokens)`,
       ),
   handler: Effect.fn("Cli.run")(function* (args) {
+    const attach = split(args.attach)
+    if (attach.error) {
+      UI.error(attach.error)
+      process.exit(1)
+    }
     if (args.background) {
-      if (args.interactive || args.attach) {
-        UI.error("--background cannot be used with --interactive or --attach")
+      if (args.interactive || attach.server) {
+        UI.error("--background cannot be used with --interactive or a server --attach")
         process.exit(1)
       }
       const { spawnJob } = yield* Effect.promise(() => import("./jobs"))
@@ -369,9 +378,10 @@ export const RunCommand = effectCmd({
       }).pipe(Effect.catch((message) => fail(message)))
       // Reuse the whole --attach path: SDK, session, and streaming all work
       // through the forwarded local port.
-      args.attach = remote.url
+      attach.server = remote.url
       UI.println(UI.Style.TEXT_DIM + `Running on ${host} via ${remote.url}` + UI.Style.TEXT_NORMAL)
     }
+    const server = attach.server
 
     if (args.voice) {
       if (args.mini) {
@@ -443,8 +453,8 @@ export const RunCommand = effectCmd({
         die("--json cannot be used with --best-of")
       }
 
-      if (args.json && args.attach) {
-        die("--json cannot be used with --attach")
+      if (args.json && server) {
+        die("--json cannot be used with a server --attach")
       }
 
       if (args.emit && args.json) {
@@ -463,8 +473,8 @@ export const RunCommand = effectCmd({
         die("--emit cannot be used with --best-of")
       }
 
-      if (args.emit && args.attach) {
-        die("--emit cannot be used with --attach")
+      if (args.emit && server) {
+        die("--emit cannot be used with a server --attach")
       }
 
       if (args.porcelain && args.json) {
@@ -510,8 +520,8 @@ export const RunCommand = effectCmd({
 
       const root = Filesystem.resolve(process.env.PWD ?? process.cwd())
       const directory = (() => {
-        if (!args.dir) return args.attach ? undefined : root
-        if (args.attach) return args.dir
+        if (!args.dir) return server ? undefined : root
+        if (server) return args.dir
 
         try {
           process.chdir(path.isAbsolute(args.dir) ? args.dir : path.join(root, args.dir))
@@ -521,23 +531,24 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
       })()
-      const attachHeaders = args.attach
+      const attachHeaders = server
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined
       const attachSDK = (dir?: string) => {
         return createOpencodeClient({
-          baseUrl: args.attach!,
+          baseUrl: server!,
           directory: dir,
           headers: attachHeaders,
         })
       }
 
       const files: FilePart[] = []
-      if (args.file) {
-        const list = Array.isArray(args.file) ? args.file : [args.file]
-
+      // Context paths passed via --attach ride the same file-part pipeline as
+      // --file: they reach the model as attachments, never as prompt text.
+      const list = [...(args.file ? (Array.isArray(args.file) ? args.file : [args.file]) : []), ...attach.paths]
+      if (list.length > 0) {
         for (const filePath of list) {
-          const resolvedPath = path.resolve(args.attach ? root : (directory ?? root), filePath)
+          const resolvedPath = path.resolve(server ? root : (directory ?? root), filePath)
           if (!(await Filesystem.exists(resolvedPath))) {
             UI.error(`File not found: ${filePath}`)
             process.exit(1)
@@ -545,13 +556,13 @@ export const RunCommand = effectCmd({
 
           const stat = Filesystem.stat(resolvedPath)
           const isDirectory = stat?.isDirectory() ?? false
-          if (args.attach && isDirectory) {
+          if (server && isDirectory) {
             UI.error(`Cannot attach local directory without a shared filesystem: ${filePath}`)
             process.exit(1)
           }
 
           const content = await (async () => {
-            if (!args.attach) return
+            if (!server) return
             const handle = await open(resolvedPath, "r")
             try {
               const opened = await handle.stat()
@@ -574,7 +585,7 @@ export const RunCommand = effectCmd({
           })()
           const detected = FSUtil.mimeType(resolvedPath)
           const text = content?.toString("utf8")
-          const mime = !args.attach
+          const mime = !server
             ? isDirectory
               ? "application/x-directory"
               : "text/plain"
@@ -618,7 +629,7 @@ export const RunCommand = effectCmd({
         if (interactive) die(`${flag} cannot be used with --mini`)
         if (args["best-of"]) die(`${flag} cannot be used with --best-of`)
         if (args.session || args.continue) die(`${flag} requires a fresh session`)
-        if (args["plan-only"] && args.attach) die("--plan-only cannot be used with --attach")
+        if (args["plan-only"] && server) die("--plan-only cannot be used with a server --attach")
         if (args["plan-only"] && args.command) die("--plan-only cannot be used with --command")
         if (args.format !== "json") {
           UI.println(
@@ -657,7 +668,7 @@ export const RunCommand = effectCmd({
       if (args["auto-agent"]) {
         if (args.agent) die("--auto-agent cannot be used with --agent")
         if (interactive) die("--auto-agent cannot be used with --mini")
-        if (args.attach) die("--auto-agent cannot be used with --attach")
+        if (server) die("--auto-agent cannot be used with --attach")
         if (args.command) die("--auto-agent cannot be used with --command")
         if (args["best-of"]) die("--auto-agent cannot be used with --best-of")
       }
@@ -824,7 +835,7 @@ export const RunCommand = effectCmd({
       }
 
       async function current(sdk: OpencodeClient): Promise<string> {
-        if (!args.attach) {
+        if (!server) {
           return directory ?? root
         }
 
@@ -889,7 +900,7 @@ export const RunCommand = effectCmd({
           UI.println(
             UI.Style.TEXT_WARNING_BOLD + "!",
             UI.Style.TEXT_NORMAL,
-            `failed to list agents from ${args.attach}. Falling back to default agent`,
+            `failed to list agents from ${server}. Falling back to default agent`,
           )
           return undefined
         }
@@ -941,7 +952,7 @@ export const RunCommand = effectCmd({
       async function pickAgent(sdk: OpencodeClient) {
         if (args["auto-agent"]) return routedAgent()
         if (!args.agent) return undefined
-        if (args.attach) {
+        if (server) {
           return attachAgent(sdk)
         }
 
@@ -955,7 +966,7 @@ export const RunCommand = effectCmd({
           if (typeof candidates === "string") return die(candidates)
           const resolvedModel = resolveAutoModel(pick(args.model))
           const exit = await runBestOf({
-            sdk: args.attach ? attachSDK(directory ?? (await current(sdk))) : sdk,
+            sdk: server ? attachSDK(directory ?? (await current(sdk))) : sdk,
             candidates,
             judge: resolvedModel ?? candidates[0],
             message,
@@ -1165,8 +1176,8 @@ export const RunCommand = effectCmd({
           }
           return error
         }
-        const cwd = args.attach ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
-        const client = args.attach ? attachSDK(cwd) : sdk
+        const cwd = server ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
+        const client = server ? attachSDK(cwd) : sdk
 
         // Validate agent if specified
         const agent = await pickAgent(client)
@@ -1183,7 +1194,7 @@ export const RunCommand = effectCmd({
             process.exitCode = 1
           })
           async function finish() {
-            if (args.attach) return
+            if (server) return
             const error = await completed
             // Do not clobber a more specific class (e.g. a budget breach) already set by the loop.
             if (error && !process.exitCode) process.exitCode = ExitCode.ERROR
@@ -1338,7 +1349,7 @@ export const RunCommand = effectCmd({
       const { ServerLocalFetch } = await import("@/server/local-fetch")
       const fetchFn = ServerLocalFetch.fetchFn
 
-      if (interactive && !args.attach && !args.session && !args.continue) {
+      if (interactive && !server && !args.session && !args.continue) {
         const model = pick(args.model)
         const resolvedModel = model === "auto" ? undefined : model
         const { runInteractiveLocalMode } = await import("./run/runtime")
@@ -1367,7 +1378,7 @@ export const RunCommand = effectCmd({
         }
       }
 
-      if (args.attach) {
+      if (server) {
         const sdk = attachSDK(directory)
         return await execute(sdk)
       }
@@ -1443,7 +1454,7 @@ export async function runMini(input: MiniCommandInput) {
     porcelain: false,
     file: undefined,
     title: undefined,
-    attach: input.attach,
+    attach: input.attach ? [input.attach] : undefined,
     host: undefined,
     voice: false,
     password: input.password,
