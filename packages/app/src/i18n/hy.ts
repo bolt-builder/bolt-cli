@@ -1092,9 +1092,9 @@ export const dict = {
   "settings.gateways.description":
     "Միացրեք AI դարպաս՝ մեկ API բանալիով բազմաթիվ մոդելների, ներառյալ անվճար մոդելների, հասանելիության համար։",
   "settings.gateways.tag.connected": "Միացված",
-  "settings.gateways.note.kilo": "OpenRouter-ի հետ համատեղելի դարպաս՝ անվճար ավտոմատ ուղղորդվող մոդելներով",
+  "settings.gateways.note.kilo": "OpenRouter-ի հետ համատեղելի դարպաս՝ անվճար ավտոմատ երթուղավորվող մոդելներով",
   "settings.gateways.note.zoo": "Համայնքային դարպաս Zoo Code նախագծից",
-  "settings.gateways.connect.title": "Միացեք {{gateway}}",
+  "settings.gateways.connect.title": "Միացնել {{gateway}}-ը",
   "settings.gateways.connect.description": "Տեղադրեք ձեր {{gateway}} API բանալին՝ նրա մոդելները միացնելու համար։",
   "settings.models.title": "Մոդելներ",
   "settings.models.description": "Մոդելի կարգավորումները կարգավորելի կլինեն այստեղ։",
