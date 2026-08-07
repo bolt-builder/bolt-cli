@@ -104,6 +104,31 @@ describe("clusters", () => {
     ])
   })
 
+  test("keeps the longer two-site block when a third site shares only its prefix", () => {
+    const prefix = BLOCK.split("\n").slice(0, 4).join("\n")
+    const found = clusters({ "a.ts": BLOCK, "b.ts": BLOCK, "c.ts": prefix }, 4)
+    expect(found.length).toBe(2)
+    expect(found[0].sites.map((site) => site.file)).toEqual(["a.ts", "b.ts", "c.ts"])
+    expect(found[0].lines).toBe(4)
+    expect(found[1].sites).toEqual([
+      { file: "a.ts", start: 2, end: 7 },
+      { file: "b.ts", start: 2, end: 7 },
+    ])
+  })
+
+  test("ranks by duplicated volume, excluding the original site", () => {
+    const small = ["alpha(one)", "beta(two)", "gamma(three)", "delta(four)"].join("\n")
+    const found = clusters(
+      { "a.ts": `${BLOCK}\nbreak1()\n${small}`, "b.ts": `${small}\nbreak2()\n${BLOCK}`, "c.ts": small },
+      4,
+    )
+    expect(found.length).toBe(2)
+    // 4 lines x 2 duplicate sites (8) outranks 7 lines x 1 duplicate site (7)
+    expect(found[0].sites.length).toBe(3)
+    expect(found[0].lines).toBe(4)
+    expect(found[1].lines).toBe(7)
+  })
+
   test("ranks bigger clusters first", () => {
     const small = ["alpha(one)", "beta(two)", "gamma(three)", "delta(four)"].join("\n")
     const found = clusters(

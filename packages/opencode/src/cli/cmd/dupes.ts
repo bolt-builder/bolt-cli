@@ -1,7 +1,7 @@
 import path from "node:path"
 import { Effect } from "effect"
 import { FSUtil } from "@opencode-ai/core/fs-util"
-import { effectCmd } from "../effect-cmd"
+import { effectCmd, fail } from "../effect-cmd"
 
 const SKIP = new Set([".git", "node_modules", "dist", "build", ".turbo"])
 const WINDOW = 6
@@ -124,7 +124,7 @@ export function clusters(files: Record<string, string>, window = WINDOW) {
   const results: Cluster[] = []
   for (const members of groups.values()) {
     if (members.length < 2) continue
-    if (subsumed(members, keys)) continue
+    if (subsumed(members, keys, groups)) continue
     const length = extent(members, keys, window)
     const sites = members.map((member) => {
       const list = rows.get(member.file) ?? []
@@ -134,14 +134,25 @@ export function clusters(files: Record<string, string>, window = WINDOW) {
   }
   return results
     .filter((cluster) => cluster.sites.length > 1)
-    .sort((a, b) => b.lines * b.sites.length - a.lines * a.sites.length || compare(a, b))
+    .sort((a, b) => b.lines * (b.sites.length - 1) - a.lines * (a.sites.length - 1) || compare(a, b))
 }
 
-/** True when every member's preceding window exists and all share one key, meaning a longer cluster already covers this one. */
-function subsumed(members: { file: string; index: number }[], keys: Map<string, string[]>) {
+/**
+ * True when a longer cluster already covers this one: every member's preceding
+ * window exists, all share one key, and that predecessor group has exactly the
+ * same members. A larger predecessor group does not subsume, because a subgroup
+ * that diverged from it can extend farther and must be reported on its own.
+ */
+function subsumed(
+  members: { file: string; index: number }[],
+  keys: Map<string, string[]>,
+  groups: Map<string, { file: string; index: number }[]>,
+) {
   const previous = members.map((member) => (member.index > 0 ? (keys.get(member.file) ?? [])[member.index - 1] : ""))
   if (previous.some((key) => key === "" || key === undefined)) return false
-  return new Set(previous).size === 1
+  if (new Set(previous).size !== 1) return false
+  // each member's predecessor is in that group by construction, so equal size means equal membership
+  return (groups.get(previous[0]) ?? []).length === members.length
 }
 
 /** Number of normalized rows the cluster spans once extended while every member keeps matching. */
@@ -194,6 +205,8 @@ export const DupesCommand = effectCmd({
         default: LIMIT,
       }),
   handler: Effect.fn("Cli.dupes")(function* (args) {
+    if (!Number.isFinite(args.window) || !Number.isFinite(args.limit))
+      return yield* fail("--window and --limit must be finite numbers")
     const fs = yield* FSUtil.Service
     const cwd = process.cwd()
     const names = (yield* Effect.orDie(walk(fs, cwd, ""))).sort()
