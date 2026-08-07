@@ -1,80 +1,94 @@
 import { describe, expect, test } from "bun:test"
-import { Option } from "effect"
-import { contract, markdown, violations, within } from "../../src/cli/cmd/drift"
+import { classify, comment, docfile, removed } from "../../src/cli/cmd/drift"
 
-const EDGE = { from: "src/cli", to: "src/session", file: "src/cli/run.ts", target: "src/session/core.ts" }
-
-describe("contract", () => {
-  test("decodes rules and defaults depth to 2", () => {
-    const decoded = contract({ rules: [{ from: "src/util", allow: [] }] })
-    expect(Option.isSome(decoded)).toBe(true)
-    if (Option.isSome(decoded)) {
-      expect(decoded.value.depth).toBe(2)
-      expect(decoded.value.rules[0].from).toBe("src/util")
-    }
+describe("removed", () => {
+  test("extracts deleted declarations with their file", () => {
+    const diff = [
+      "diff --git a/src/parser.ts b/src/parser.ts",
+      "--- a/src/parser.ts",
+      "+++ b/src/parser.ts",
+      "@@ -1,3 +1,1 @@",
+      "-export function parseLegacy(text: string) {",
+      "-  return text",
+      "-}",
+      "+export function parse(text: string) {",
+    ].join("\n")
+    expect(removed(diff)).toEqual([{ file: "src/parser.ts", name: "parseLegacy" }])
   })
 
-  test("rejects malformed contracts", () => {
-    expect(Option.isNone(contract({ rules: [{ allow: [] }] }))).toBe(true)
-    expect(Option.isNone(contract("nope"))).toBe(true)
-  })
-})
-
-describe("within", () => {
-  test("matches exact buckets and subdirectories only", () => {
-    expect(within("src/cli", "src/cli")).toBe(true)
-    expect(within("src/cli/cmd", "src/cli")).toBe(true)
-    expect(within("src/climate", "src/cli")).toBe(false)
-  })
-})
-
-describe("violations", () => {
-  test("allow lists permit only listed targets and self", () => {
-    const rules = [{ from: "src/cli", allow: ["src/util"] }]
-    expect(violations([EDGE], rules).map((violation) => violation.rule)).toEqual(["src/cli"])
-    expect(violations([{ ...EDGE, to: "src/util" }], rules)).toEqual([])
-    expect(violations([{ ...EDGE, to: "src/cli/cmd" }], rules)).toEqual([])
+  test("supports classes, consts, types, and python defs", () => {
+    const diff = [
+      "--- a/src/mixed.ts",
+      "-export class Runner {",
+      "-export const LIMIT = 5",
+      "-export type Entry = string",
+      "--- a/tool/script.py",
+      "-def build(target):",
+    ].join("\n")
+    expect(removed(diff).map((entry) => entry.name)).toEqual(["Runner", "LIMIT", "Entry", "build"])
   })
 
-  test("deny lists forbid listed targets and permit the rest", () => {
-    const rules = [{ from: "src/util", deny: ["src/cli"] }]
-    expect(violations([{ ...EDGE, from: "src/util", to: "src/cli" }], rules).length).toBe(1)
-    expect(violations([{ ...EDGE, from: "src/util", to: "src/session" }], rules)).toEqual([])
+  test("ignores added lines and context lines", () => {
+    const diff = "--- a/src/a.ts\n+export function added() {}\n export function context() {}"
+    expect(removed(diff)).toEqual([])
   })
 
-  test("sources without a covering rule are unconstrained", () => {
-    expect(violations([EDGE], [{ from: "src/tool", allow: [] }])).toEqual([])
+  test("ignores deleted lines that are not declarations", () => {
+    expect(removed("--- a/src/a.ts\n-  return total + 1")).toEqual([])
   })
 
-  test("empty allow list freezes a directory to itself", () => {
-    const rules = [{ from: "src/util", allow: [] }]
-    expect(violations([{ ...EDGE, from: "src/util" }], rules).length).toBe(1)
-    expect(violations([{ ...EDGE, from: "src/util", to: "src/util/deep" }], rules)).toEqual([])
-  })
-
-  test("the first covering rule wins", () => {
-    const rules = [
-      { from: "src/cli", allow: ["src/session"] },
-      { from: "src/cli", allow: [] },
-    ]
-    expect(violations([EDGE], rules)).toEqual([])
+  test("dedupes symbols deleted in several hunks", () => {
+    const diff = "--- a/src/a.ts\n-export function twice() {\n--- a/src/b.ts\n-export function twice() {"
+    expect(removed(diff)).toHaveLength(1)
   })
 })
 
-describe("markdown", () => {
-  test("groups violations by directory pair with evidence", () => {
-    const found = violations(
-      [EDGE, { ...EDGE, file: "src/cli/other.ts" }, { ...EDGE, to: "src/db", target: "src/db/schema.ts" }],
-      [{ from: "src/cli", allow: [] }],
-    )
-    const text = markdown(found, 3)
-    expect(text).toContain("3 imports violate the declared contract.")
-    expect(text).toContain("## `src/cli -> src/session` (2 imports, rule `src/cli`)")
-    expect(text).toContain("- `src/cli/run.ts` imports `src/session/core.ts`")
-    expect(text.indexOf("src/cli -> src/session")).toBeLessThan(text.indexOf("src/cli -> src/db"))
+describe("docfile", () => {
+  test("recognizes markdown family files", () => {
+    expect(docfile("README.md")).toBe(true)
+    expect(docfile("docs/guide.mdx")).toBe(true)
+    expect(docfile("notes.rst")).toBe(true)
   })
 
-  test("reports a clean pass with the edge count", () => {
-    expect(markdown([], 42)).toContain("No drift: 42 import edges satisfy the contract.")
+  test("rejects source files", () => {
+    expect(docfile("src/readme-generator.ts")).toBe(false)
+  })
+})
+
+describe("comment", () => {
+  test("recognizes comment lines", () => {
+    expect(comment("  // parseLegacy handles old input")).toBe(true)
+    expect(comment(" * See parseLegacy for details.")).toBe(true)
+    expect(comment("# uses parseLegacy under the hood")).toBe(true)
+  })
+
+  test("rejects code lines", () => {
+    expect(comment("const legacy = parseLegacy(input)")).toBe(false)
+  })
+})
+
+describe("classify", () => {
+  test("alive when referenced by live code", () => {
+    const outcome = classify([
+      { path: "src/caller.ts", line: 3, text: "parseLegacy(input)" },
+      { path: "README.md", line: 10, text: "Use parseLegacy for old files." },
+    ])
+    expect(outcome.alive).toBe(true)
+    expect(outcome.mentions).toHaveLength(1)
+  })
+
+  test("stale when only docs and comments mention it", () => {
+    const outcome = classify([
+      { path: "README.md", line: 10, text: "Use parseLegacy for old files." },
+      { path: "src/parser.ts", line: 2, text: "// parseLegacy used to live here" },
+    ])
+    expect(outcome.alive).toBe(false)
+    expect(outcome.mentions).toHaveLength(2)
+  })
+
+  test("clean when nothing references it", () => {
+    const outcome = classify([])
+    expect(outcome.alive).toBe(false)
+    expect(outcome.mentions).toEqual([])
   })
 })

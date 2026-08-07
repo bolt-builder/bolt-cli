@@ -3,7 +3,8 @@ import { Effect } from "effect"
 import { cmd } from "./cmd"
 import { effectCmd, fail } from "../effect-cmd"
 import { Session } from "@/session/session"
-import { SessionID } from "../../session/schema"
+import { SessionBranch } from "@/session/branch"
+import { MessageID, SessionID } from "../../session/schema"
 import { UI } from "../ui"
 import { Locale } from "@/util/locale"
 import { Flag } from "@opencode-ai/core/flag/flag"
@@ -44,8 +45,38 @@ function pagerCmd(): string[] {
 export const SessionCommand = cmd({
   command: "session",
   describe: "manage sessions",
-  builder: (yargs: Argv) => yargs.command(SessionListCommand).command(SessionDeleteCommand).demandCommand(),
+  builder: (yargs: Argv) =>
+    yargs.command(SessionListCommand).command(SessionDeleteCommand).command(SessionBranchCommand).demandCommand(),
   async handler() {},
+})
+
+export const SessionBranchCommand = effectCmd({
+  command: "branch <sessionID> [messageID]",
+  describe: "branch a session into a new one sharing its prefix",
+  builder: (yargs) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session ID to branch from",
+        type: "string",
+        demandOption: true,
+      })
+      .positional("messageID", {
+        describe: "branch at this message (inclusive); defaults to the full history",
+        type: "string",
+      }),
+  handler: Effect.fn("Cli.session.branch")(function* (args) {
+    const svc = yield* Session.Service
+    const sessionID = SessionID.make(args.sessionID)
+    const messages = yield* svc
+      .messages({ sessionID })
+      .pipe(Effect.catchIf(NotFoundError.isInstance, () => fail(`Session not found: ${args.sessionID}`)))
+    const split = SessionBranch.boundary(messages, args.messageID ? MessageID.make(args.messageID) : undefined)
+    if (!split) return yield* fail(`Message not found in session: ${args.messageID}`)
+    const session = yield* svc
+      .fork({ sessionID, messageID: split.fork })
+      .pipe(Effect.catchIf(NotFoundError.isInstance, () => fail(`Session not found: ${args.sessionID}`)))
+    UI.println(UI.Style.TEXT_SUCCESS_BOLD + `Branched into ${session.id}` + UI.Style.TEXT_NORMAL + ` ${session.title}`)
+  }),
 })
 
 export const SessionDeleteCommand = effectCmd({
