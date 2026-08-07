@@ -16,6 +16,8 @@ import { Watcher } from "@opencode-ai/core/filesystem/watcher"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
+import { Session } from "@/session/session"
+import { DryRun } from "@/dryrun"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
@@ -65,6 +67,7 @@ export const EditTool = Tool.define(
     const afs = yield* FSUtil.Service
     const format = yield* Format.Service
     const events = yield* EventV2Bridge.Service
+    const sessions = yield* Session.Service
     const config = yield* Config.Service
 
     return {
@@ -86,6 +89,10 @@ export const EditTool = Tool.define(
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filePath)
 
+          const dry = DryRun.enabled(
+            (yield* sessions.get(ctx.sessionID).pipe(Effect.catch(() => Effect.succeed(undefined))))?.metadata,
+          )
+
           let diff = ""
           let contentOld = ""
           let contentNew = ""
@@ -103,6 +110,7 @@ export const EditTool = Tool.define(
                 contentOld = ""
                 contentNew = next.text
                 diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
+                if (dry) return
                 yield* ctx.ask({
                   permission: "edit",
                   patterns: [path.relative(instance.worktree, filePath)],
@@ -146,6 +154,7 @@ export const EditTool = Tool.define(
                   normalizeLineEndings(contentNew),
                 ),
               )
+              if (dry) return
               yield* ctx.ask({
                 permission: "edit",
                 patterns: [path.relative(instance.worktree, filePath)],
@@ -196,6 +205,14 @@ export const EditTool = Tool.define(
               diagnostics: {},
             },
           })
+
+          if (dry) {
+            return {
+              metadata: { diagnostics: {}, diff, filediff },
+              title: `${path.relative(instance.worktree, filePath)}`,
+              output: DryRun.describeWrite(path.relative(instance.worktree, filePath), diff),
+            }
+          }
 
           let output = "Edit applied successfully."
           yield* lsp.touchFile(filePath, "document")
