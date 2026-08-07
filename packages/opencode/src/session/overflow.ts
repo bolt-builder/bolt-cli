@@ -19,6 +19,26 @@ export function usable(input: { cfg: ConfigV1.Info; model: Provider.Model; outpu
     : Math.max(0, context - ProviderTransform.maxOutputTokens(input.model, input.outputTokenMax))
 }
 
+export const PREEMPT_RATIO = 0.8
+
+// Pre-emptive compaction fires once the context passes PREEMPT_RATIO of the
+// usable window so the summary happens between turns, never mid-prompt. Opt-in
+// via compaction.preemptive; disabling auto compaction disables it too.
+export function shouldPreempt(input: {
+  cfg: ConfigV1.Info
+  tokens: SessionV1.Assistant["tokens"]
+  model: Provider.Model
+  outputTokenMax?: number
+}) {
+  if (input.cfg.compaction?.preemptive !== true) return false
+  if (input.cfg.compaction?.auto === false) return false
+  if (input.model.limit.context === 0) return false
+
+  const count =
+    input.tokens.total || input.tokens.input + input.tokens.output + input.tokens.cache.read + input.tokens.cache.write
+  return count >= usable(input) * PREEMPT_RATIO
+}
+
 export function isOverflow(input: {
   cfg: ConfigV1.Info
   tokens: SessionV1.Assistant["tokens"]

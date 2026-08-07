@@ -131,6 +131,18 @@ export const Info = Schema.Struct({
   }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
+  redact: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Redact well-known secret formats (API keys, tokens, private keys) from prompts before they are sent to models. Log output is always redacted. Defaults to true.",
+  }),
+  guardrail: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Screen risky shell commands with a guardrail agent before they run. Flagged commands are reviewed on the small model and blocked when the guardrail vetoes them. Defaults to false.",
+  }),
+  approval: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Require a second agent's sign-off before destructive shell commands run. The reviewer runs on the small model and rejects when it cannot produce a verdict. Defaults to false.",
+  }),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   attachment: Schema.optional(ConfigAttachmentV1.Info).annotate({
     description: "Attachment processing configuration, including image size limits and resizing behavior",
@@ -159,6 +171,14 @@ export const Info = Schema.Struct({
       prune: Schema.optional(Schema.Boolean).annotate({
         description: "Enable pruning of old tool outputs (default: true)",
       }),
+      pinned: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+        description:
+          "Files and facts that must never be compacted away. Entries matching a file the conversation touched are pinned as files; other entries are preserved verbatim as facts.",
+      }),
+      preemptive: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Compact in the background once context passes 80% of the usable window, after a response finishes instead of mid-prompt when it overflows (default: false)",
+      }),
       tail_turns: Schema.optional(NonNegativeInt).annotate({
         description:
           "Number of recent user turns, including their following assistant/tool responses, to keep verbatim during compaction (default: 2)",
@@ -186,6 +206,14 @@ export const Info = Schema.Struct({
       }),
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
+      }),
+      diff_context: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Attach only the changed hunks (diff against HEAD) when a locally modified file is attached without an explicit range, instead of the whole file (default: false)",
+      }),
+      symbol_graph: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Append a cross-file symbol graph (which files reference the edited file's symbols) to edit tool output (default: false)",
       }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
