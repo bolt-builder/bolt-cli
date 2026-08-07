@@ -7,6 +7,8 @@ import * as path from "path"
 import { Effect, Schema, Semaphore } from "effect"
 import * as Tool from "./tool"
 import { LSP } from "@/lsp/lsp"
+import { LspGraph } from "@/lsp/graph"
+import { Config } from "@/config/config"
 import { createTwoFilesPatch, diffLines } from "diff"
 import DESCRIPTION from "./edit.txt"
 import { FileSystem } from "@opencode-ai/core/filesystem"
@@ -63,6 +65,7 @@ export const EditTool = Tool.define(
     const afs = yield* FSUtil.Service
     const format = yield* Format.Service
     const events = yield* EventV2Bridge.Service
+    const config = yield* Config.Service
 
     return {
       description: DESCRIPTION,
@@ -200,6 +203,13 @@ export const EditTool = Tool.define(
           const normalizedFilePath = FSUtil.normalizePath(filePath)
           const block = LSP.Diagnostic.report(filePath, diagnostics[normalizedFilePath] ?? [])
           if (block) output += `\n\nLSP errors detected in this file, please fix:\n${block}`
+
+          // Cross-file symbol graph for the code under edit, so the model
+          // sees which files depend on the symbols it just touched.
+          if ((yield* config.get()).experimental?.symbol_graph === true) {
+            const graph = yield* LspGraph.build({ lsp, file: filePath, root: instance.worktree })
+            if (graph) output += `\n\n${graph}`
+          }
 
           return {
             metadata: {
