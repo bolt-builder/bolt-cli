@@ -43,6 +43,7 @@ import { BisectCommand } from "./cli/cmd/bisect"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
+import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
@@ -135,6 +136,7 @@ const cli = yargs(args)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
+  .command(WorktreeCommand)
   .command(PluginCommand)
   .command(DbCommand)
   .fail((msg, err) => {
