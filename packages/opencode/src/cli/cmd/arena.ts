@@ -49,7 +49,6 @@ export const ArenaCommand = effectCmd({
         describe: "remove losing worktrees and their branches after judging",
       }),
   handler: Effect.fn("Cli.arena")(function* (args) {
-    const { ServerAuth } = yield* Effect.promise(() => import("@/server/auth"))
     const { parseModels, runArena } = yield* Effect.promise(() => import("./run/arena"))
     yield* Effect.promise(async () => {
       function die(message: string): never {
@@ -80,14 +79,8 @@ export const ArenaCommand = effectCmd({
         { permission: "plan_exit", action: "deny", pattern: "*" },
       ]
 
-      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { Server } = await import("@/server/server")
-        const request = new Request(input, init)
-        const headers = new Headers(request.headers)
-        const auth = ServerAuth.header()
-        if (auth) headers.set("Authorization", auth)
-        return Server.Default().app.fetch(new Request(request, { headers }))
-      }) as typeof globalThis.fetch
+      const { ServerLocalFetch } = await import("@/server/local-fetch")
+      const fetchFn = ServerLocalFetch.fetchFn
       const client = (directory: string) =>
         createOpencodeClient({ baseUrl: "http://opencode.internal", fetch: fetchFn, directory })
 

@@ -1,11 +1,10 @@
 export * as Agent from "./agent"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { Model } from "./model"
 import { Permission } from "./permission"
 import { Provider } from "./provider"
-import { PositiveInt, statics } from "./schema"
+import { PositiveInt, optional, statics } from "./schema"
 
 export const ID = Schema.String.pipe(Schema.brand("AgentV2.ID"))
 export type ID = typeof ID.Type

@@ -64,14 +64,14 @@ To compile a standalone executable:
 Then run it with:
 
 ```bash
-./packages/opencode/dist/opencode-<platform>/bin/opencode
+./packages/opencode/dist/@bolt-builder/bolt-cli-<platform>/bin/bolt
 ```
 
 Replace `<platform>` with your platform (e.g., `darwin-arm64`, `linux-x64`).
 
 - Core pieces:
   - `packages/opencode`: OpenCode core business logic & server.
-  - `packages/opencode/src/cli/cmd/tui/`: The TUI code, written in SolidJS with [opentui](https://github.com/sst/opentui)
+  - `packages/tui`: The TUI code, written in SolidJS with [opentui](https://github.com/sst/opentui)
   - `packages/app`: The shared web UI components, written in SolidJS
   - `packages/desktop`: The native desktop app, built with Electron (wraps `packages/app`)
   - `packages/plugin`: Source for `@opencode-ai/plugin`

@@ -177,8 +177,6 @@ const layer = Layer.effect(
         }
 
         const plugins = flags.pure ? [] : (cfg.plugin_origins ?? [])
-        if (flags.pure && cfg.plugin_origins?.length) {
-        }
         if (plugins.length) yield* config.waitForDependencies()
 
         const loaded = yield* Effect.promise(() =>
@@ -186,8 +184,6 @@ const layer = Layer.effect(
             items: plugins,
             kind: "server",
             report: {
-              start(candidate) {},
-              missing(candidate, _retry, message) {},
               error(candidate, _retry, stage, error, resolved) {
                 const spec = candidate.plan.spec
                 const cause = error instanceof Error ? (error.cause ?? error) : error
@@ -204,11 +200,6 @@ const layer = Layer.effect(
                   return
                 }
 
-                if (stage === "entry") {
-                  publishPluginError(`Failed to load plugin ${spec}: ${message}`)
-                  return
-                }
-
                 publishPluginError(`Failed to load plugin ${spec}: ${message}`)
               },
             },
@@ -221,21 +212,10 @@ const layer = Layer.effect(
           // order remains deterministic across plugin runs.
           yield* Effect.tryPromise({
             try: () => applyPlugin(load, input, hooks),
-            catch: (err) => {
-              const message = errorMessage(err)
-              return message
-            },
+            catch: errorMessage,
           }).pipe(
             Effect.tapError((error) => Effect.logError("failed to load plugin", { path: load.spec, error })),
-            Effect.catch(() => {
-              // TODO: make proper events for this
-              // events.publish(Session.Event.Error, {
-              //   error: new NamedError.Unknown({
-              //     message: `Failed to load plugin ${load.spec}: ${message}`,
-              //   }).toObject(),
-              // })
-              return Effect.void
-            }),
+            Effect.catch(() => Effect.void),
           )
         }
 

@@ -1,9 +1,8 @@
 export * as TuiEvent from "./tui-event"
 
 import { Effect, Schema } from "effect"
-import { optional } from "./schema"
 import { Event } from "./event"
-import { PositiveInt } from "./schema"
+import { PositiveInt, optional } from "./schema"
 import { SessionID } from "./session-id"
 
 const DEFAULT_TOAST_DURATION = 5000

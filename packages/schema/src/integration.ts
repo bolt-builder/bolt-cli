@@ -1,11 +1,10 @@
 export * as Integration from "./integration"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { define, inventory } from "./event"
 import { Connection } from "./connection"
 import { ascending } from "./identifier"
-import { statics } from "./schema"
+import { optional, statics } from "./schema"
 import { IntegrationID, IntegrationMethodID } from "./integration-id"
 
 export const ID = IntegrationID

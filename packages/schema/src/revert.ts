@@ -1,8 +1,7 @@
 export * as Revert from "./revert"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
-import { NonNegativeInt, RelativePath } from "./schema"
+import { NonNegativeInt, RelativePath, optional } from "./schema"
 import { SessionMessage } from "./session-message"
 
 export const FileDiff = Schema.Struct({

@@ -393,8 +393,8 @@ git clone https://github.com/Bolt-builder/bolt-cli.git
 cd bolt-cli
 bun install
 
-# Start the TUI in dev mode (from packages/bolt)
-cd packages/bolt
+# Start the TUI in dev mode (from packages/opencode)
+cd packages/opencode
 bun dev
 
 # Run tests (from package directories)

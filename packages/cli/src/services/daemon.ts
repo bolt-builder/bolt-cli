@@ -130,7 +130,7 @@ export const layer = Layer.effect(
       return yield* compatible().pipe(
         Effect.retry(Schedule.spaced("50 millis").pipe(Schedule.both(Schedule.recurs(100)))),
         Effect.map((info) => info.url),
-        Effect.mapError(() => new Error("Failed to start server")),
+        Effect.mapError(() => new Error("Server started but never became healthy")),
       )
     })
 

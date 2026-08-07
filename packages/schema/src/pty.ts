@@ -1,10 +1,9 @@
 export * as Pty from "./pty"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { define, inventory } from "./event"
 import { ascending } from "./identifier"
-import { NonNegativeInt, PositiveInt, statics } from "./schema"
+import { NonNegativeInt, PositiveInt, optional, statics } from "./schema"
 
 const IDSchema = Schema.String.check(Schema.isStartsWith("pty")).pipe(Schema.brand("PtyID"))
 

@@ -1,12 +1,11 @@
 export * as SessionEvent from "./session-event"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { Event } from "./event"
 import { ProviderMetadata, ToolContent } from "./llm"
 import { Delivery } from "./session-delivery"
 import { Model } from "./model"
-import { DateTimeUtcFromMillis, NonNegativeInt, RelativePath } from "./schema"
+import { DateTimeUtcFromMillis, NonNegativeInt, RelativePath, optional } from "./schema"
 import { FileAttachment, Prompt } from "./prompt"
 import { SessionID } from "./session-id"
 import { Location } from "./location"
