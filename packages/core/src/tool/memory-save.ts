@@ -86,6 +86,7 @@ const layer = Layer.effectDiscard(
                 memory,
                 params: input,
                 sessionID: context.sessionID,
+                messageID: context.assistantMessageID,
                 ctx,
                 ask: () => Effect.void,
               }).pipe(Effect.catchIf(MemoryTool.failure, (err) => Effect.succeed(MemoryTool.error("save", err))))

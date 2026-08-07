@@ -21,6 +21,7 @@ import { EventV2Bridge } from "@/event-v2-bridge"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { buildPrompt } from "@opencode-ai/core/session/compaction"
+import { SessionPin } from "./pin"
 import { SessionCompactionEvent } from "@opencode-ai/schema/session-compaction-event"
 
 export const Event = SessionCompactionEvent
@@ -353,7 +354,12 @@ const layer = Layer.effect(
         { sessionID: input.sessionID },
         { context: [], prompt: undefined },
       )
-      const nextPrompt = compacting.prompt ?? buildPrompt({ previousSummary, context: compacting.context })
+      // Configured pins ride along as prompt context so the summary carries
+      // them forward. A plugin-replaced prompt takes full ownership of the
+      // compaction prompt, pins included.
+      const pinned = SessionPin.resolve({ pins: cfg.compaction?.pinned ?? [], messages: history })
+      const nextPrompt =
+        compacting.prompt ?? buildPrompt({ previousSummary, context: [...compacting.context, ...pinned] })
       const msgs = structuredClone(selected.head)
       yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
       const modelMessages = yield* MessageV2.toModelMessagesEffect(msgs, model, {

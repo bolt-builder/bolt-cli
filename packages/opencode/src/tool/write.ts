@@ -11,6 +11,8 @@ import { Watcher } from "@opencode-ai/core/filesystem/watcher"
 import { Format } from "../format"
 import { FSUtil } from "@opencode-ai/core/fs-util"
 import { InstanceState } from "@/effect/instance-state"
+import { Session } from "@/session/session"
+import { DryRun } from "@/dryrun"
 import { trimDiff } from "./edit"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { Config } from "@/config/config"
@@ -34,6 +36,7 @@ export const WriteTool = Tool.define(
     const events = yield* EventV2Bridge.Service
     const format = yield* Format.Service
     const config = yield* Config.Service
+    const sessions = yield* Session.Service
 
     return {
       description: DESCRIPTION,
@@ -63,6 +66,16 @@ export const WriteTool = Tool.define(
           const contentNew = next.text
 
           const diff = trimDiff(createTwoFilesPatch(filepath, filepath, contentOld, contentNew))
+          const dry = DryRun.enabled(
+            (yield* sessions.get(ctx.sessionID).pipe(Effect.catch(() => Effect.succeed(undefined))))?.metadata,
+          )
+          if (dry) {
+            return {
+              title: path.relative(instance.worktree, filepath),
+              metadata: { diagnostics: {}, filepath, exists: exists },
+              output: DryRun.describeWrite(path.relative(instance.worktree, filepath), diff),
+            }
+          }
           yield* ctx.ask({
             permission: "edit",
             patterns: [path.relative(instance.worktree, filepath)],

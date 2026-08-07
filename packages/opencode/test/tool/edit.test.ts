@@ -11,11 +11,13 @@ import { Format } from "../../src/format"
 import { Agent } from "../../src/agent/agent"
 import { EventV2Bridge } from "../../src/event-v2-bridge"
 import { Truncate } from "@/tool/truncate"
-import { Config } from "@/config/config"
 import { SessionID, MessageID } from "../../src/session/schema"
 import * as Tool from "../../src/tool/tool"
 import { testEffect } from "../lib/effect"
 import { Watcher } from "@opencode-ai/core/filesystem/watcher"
+import { Session } from "@/session/session"
+import { NotFoundError } from "@/storage/storage"
+import { TestConfig } from "../fixture/config"
 
 const ctx = {
   sessionID: SessionID.make("ses_test-edit-session"),
@@ -36,9 +38,10 @@ const layer = Layer.mergeAll(
   LayerNode.compile(
     LayerNode.group([LSP.node, FSUtil.node, Format.node, EventV2Bridge.node, Truncate.node, Agent.node]),
   ),
-  Layer.mock(Config.Service, {
-    get: () => Effect.succeed({}),
+  Layer.mock(Session.Service, {
+    get: () => Effect.fail(new NotFoundError({ message: "no session in edit tool tests" })),
   }),
+  TestConfig.layer(),
 )
 
 const it = testEffect(layer)
