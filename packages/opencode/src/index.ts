@@ -35,6 +35,7 @@ import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
 import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
+import { CheckpointCommand } from "./cli/cmd/checkpoint"
 import { RebaseCommand } from "./cli/cmd/rebase"
 import { InvariantsCommand } from "./cli/cmd/invariants"
 import { ResolveCommand } from "./cli/cmd/resolve"
@@ -142,6 +143,7 @@ const cli = yargs(args)
   .command(CommitCommand)
   .command(SplitCommand)
   .command(ReviewCommand)
+  .command(CheckpointCommand)
   .command(RebaseCommand)
   .command(InvariantsCommand)
   .command(ResolveCommand)
