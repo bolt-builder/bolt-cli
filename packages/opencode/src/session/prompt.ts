@@ -46,6 +46,8 @@ import { Cause, Effect, Exit, Latch, Layer, Option, Scope, Context, Schema, Type
 import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
+import { SessionDistill } from "./distill"
+import { shouldPreempt } from "./overflow"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
@@ -1126,6 +1128,24 @@ const layer = Layer.effect(
                 callID: orphan.callID,
               })
             }
+            // Pre-emptive compaction: the turn is complete, so summarizing now
+            // happens between prompts instead of overflowing mid-prompt later.
+            // auto: false keeps processCompaction from queueing a follow-up
+            // "continue" message, so the loop exits cleanly after the summary.
+            if (
+              !tasks.length &&
+              lastAssistant.summary !== true &&
+              shouldPreempt({
+                cfg: yield* config.get(),
+                tokens: lastAssistant.tokens,
+                model: yield* getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID),
+                outputTokenMax: flags.outputTokenMax,
+              })
+            ) {
+              yield* Effect.logInfo("preemptive compaction", { "session.id": sessionID })
+              yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: false })
+              continue
+            }
             yield* Effect.logInfo("exiting loop", { "session.id": sessionID })
             break
           }
@@ -1260,16 +1280,19 @@ const layer = Layer.effect(
               sys.environment(model),
               instruction.system().pipe(Effect.orDie),
               sys.mcp(agent, session.permission),
-              MessageV2.toModelMessagesEffect(msgs, model),
+              MessageV2.toModelMessagesEffect(msgs, model, SessionDistill.options(model)),
               MemoryHost.context({ sessionID, sessions }),
             ])
-            const system = [
-              ...env,
-              ...instructions,
-              ...(mcpInstructions ? [mcpInstructions] : []),
-              ...(skills ? [skills] : []),
-              ...memory,
-            ]
+            const optional = [...(mcpInstructions ? [mcpInstructions] : []), ...(skills ? [skills] : []), ...memory]
+            // Small-context models get distilled context: optional sections are
+            // dropped once the system prompt blows its share of the window.
+            const system = SessionDistill.small(model)
+              ? SessionDistill.select({
+                  context: model.limit.context,
+                  required: [...env, ...instructions],
+                  optional,
+                })
+              : [...env, ...instructions, ...optional]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
             const result = yield* handle.process({
