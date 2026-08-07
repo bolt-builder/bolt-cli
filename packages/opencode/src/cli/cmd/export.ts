@@ -219,7 +219,7 @@ function sanitize(data: { info: Session.Info; messages: SessionV1.WithParts[] })
 
 export const ExportCommand = effectCmd({
   command: "export [sessionID]",
-  describe: "export session data as JSON",
+  describe: "export session data as JSON, markdown, JSONL, or an HTML replay",
   builder: (yargs) =>
     yargs
       .positional("sessionID", {
@@ -234,11 +234,21 @@ export const ExportCommand = effectCmd({
         describe: "write a self-contained HTML replay instead of JSON",
         type: "boolean",
       })
+      .option("md", {
+        describe: "print the transcript as clean markdown",
+        type: "boolean",
+      })
+      .option("jsonl", {
+        describe: "print one JSON message per line for piping",
+        type: "boolean",
+      })
       .option("out", {
         describe: "output file for the HTML replay",
         type: "string",
         default: "replay.html",
-      }),
+      })
+      .conflicts("html", ["md", "jsonl"])
+      .conflicts("md", "jsonl"),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
@@ -248,6 +258,8 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   sessionID?: string
   sanitize?: boolean
   html?: boolean
+  md?: boolean
+  jsonl?: boolean
   out: string
 }) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
@@ -307,6 +319,22 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
     return
   }
 
-  process.stdout.write(JSON.stringify(args.sanitize ? sanitize(exportData) : exportData, null, 2))
+  const data = args.sanitize ? sanitize(exportData) : exportData
+
+  if (args.md) {
+    const { markdown } = yield* Effect.promise(() => import("./export-md"))
+    process.stdout.write(markdown(data.info.title, data.messages))
+    return
+  }
+
+  if (args.jsonl) {
+    for (const message of data.messages) {
+      process.stdout.write(JSON.stringify(message))
+      process.stdout.write(EOL)
+    }
+    return
+  }
+
+  process.stdout.write(JSON.stringify(data, null, 2))
   process.stdout.write(EOL)
 })
