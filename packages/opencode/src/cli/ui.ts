@@ -9,6 +9,28 @@ const GRADIENT_TO = [0x2d, 0x7b, 0xff] as const
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
 
+// Suppresses non-essential stderr chatter (print/println); errors always print.
+let quiet = false
+export function setQuiet(value: boolean) {
+  quiet = value
+}
+
+/** Honor https://no-color.org: any non-empty NO_COLOR value disables ANSI colors. */
+export function colors() {
+  return !process.env.NO_COLOR
+}
+
+/** Remove ANSI color/style sequences from a string. */
+export function strip(text: string) {
+  return text.replaceAll(/\x1b\[[0-9;]*m/g, "")
+}
+
+function render(message: string[]) {
+  const text = message.join(" ")
+  if (colors()) return text
+  return strip(text)
+}
+
 export const Style = {
   TEXT_HIGHLIGHT: "\x1b[96m",
   TEXT_HIGHLIGHT_BOLD: "\x1b[96m\x1b[1m",
@@ -27,13 +49,15 @@ export const Style = {
 }
 
 export function println(...message: string[]) {
+  if (quiet) return
   print(...message)
   process.stderr.write(EOL)
 }
 
 export function print(...message: string[]) {
+  if (quiet) return
   blank = false
-  process.stderr.write(message.join(" "))
+  process.stderr.write(render(message))
 }
 
 let blank = false
@@ -47,7 +71,7 @@ export function logo(pad?: string) {
   const leftWidth = glyphs.left[0].length
   const totalWidth = leftWidth + 1 + glyphs.right[0].length
 
-  if (!process.stdout.isTTY && !process.stderr.isTTY) {
+  if (!colors() || (!process.stdout.isTTY && !process.stderr.isTTY)) {
     return glyphs.left.map((row, index) => `${pad ?? ""}${row} ${glyphs.right[index] ?? ""}`).join(EOL)
   }
 
@@ -105,7 +129,9 @@ export function error(message: string) {
   if (message.startsWith("Error: ")) {
     message = message.slice("Error: ".length)
   }
-  println(Style.TEXT_DANGER_BOLD + "Error: " + Style.TEXT_NORMAL + message)
+  // Errors bypass --quiet: write directly instead of going through println.
+  blank = false
+  process.stderr.write(render([Style.TEXT_DANGER_BOLD + "Error: " + Style.TEXT_NORMAL + message]) + EOL)
 }
 
 export function markdown(text: string): string {
