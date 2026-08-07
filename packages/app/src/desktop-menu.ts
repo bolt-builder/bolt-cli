@@ -286,12 +286,12 @@ export const DESKTOP_MENU: DesktopMenu[] = [
       {
         type: "item",
         labelKey: "desktop.menu.shareFeedback",
-        href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues/new?template=feature_request.yml",
+        href: "https://github.com/Bolt-builder/bolt-cli/issues/new?template=feature_request.yml",
       },
       {
         type: "item",
         labelKey: "desktop.menu.reportBug",
-        href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/issues/new?template=bug_report.yml",
+        href: "https://github.com/Bolt-builder/bolt-cli/issues/new?template=bug_report.yml",
       },
     ],
   },

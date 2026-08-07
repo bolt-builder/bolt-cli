@@ -7,7 +7,7 @@ export const config = {
 
   // GitHub
   github: {
-    repoUrl: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym",
+    repoUrl: "https://github.com/Bolt-builder/bolt-cli",
     starsFormatted: {
       compact: "195K",
       full: "195,000",

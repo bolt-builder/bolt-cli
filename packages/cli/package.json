@@ -23,7 +23,6 @@
     "@opencode-ai/tui": "workspace:*",
     "@opentui/core": "catalog:",
     "@opentui/solid": "catalog:",
-    "@parcel/watcher": "2.5.1",
     "effect": "catalog:",
     "solid-js": "catalog:"
   },

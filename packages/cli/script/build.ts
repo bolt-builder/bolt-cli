@@ -107,7 +107,7 @@ for (const item of targets) {
         license: "AGPL-3.0-only",
         repository: {
           type: "git",
-          url: "git+https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym.git",
+          url: "git+https://github.com/Bolt-builder/bolt-cli.git",
         },
         os: [item.os],
         cpu: [item.arch],
