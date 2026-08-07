@@ -18,6 +18,7 @@ import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
 import { MapCommand } from "./cli/cmd/map"
+import { ApiCommand } from "./cli/cmd/api"
 import { IndexCommand } from "./cli/cmd/indexer"
 import { DeadCommand } from "./cli/cmd/dead"
 import { DupesCommand } from "./cli/cmd/dupes"
@@ -132,6 +133,7 @@ const cli = yargs(args)
   .command(EvalCommand)
   .command(LogsCommand)
   .command(MapCommand)
+  .command(ApiCommand)
   .command(IndexCommand)
   .command(DeadCommand)
   .command(DupesCommand)
