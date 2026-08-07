@@ -215,6 +215,10 @@ export const Info = Schema.Struct({
         description:
           "Append a cross-file symbol graph (which files reference the edited file's symbols) to edit tool output (default: false)",
       }),
+      context_replay: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Record the exact system prompt, messages, and tools sent to the model for each turn so they can be inspected with bolt debug context (default: false)",
+      }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
       }),
