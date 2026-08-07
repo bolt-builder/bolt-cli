@@ -2,15 +2,12 @@ import type { Argv } from "yargs"
 import { Effect, Option } from "effect"
 import { cmd } from "./cmd"
 import { effectCmd, fail } from "../effect-cmd"
-import { Session } from "@/session/session"
-import { SessionBranch } from "@/session/branch"
-import { MessageID, SessionID } from "../../session/schema"
+import type { Session } from "@/session/session"
 import { UI } from "../ui"
 import { Locale } from "@/util/locale"
 import { Flag } from "@opencode-ai/core/flag/flag"
 import { Filesystem } from "@/util/filesystem"
 import { Process } from "@/util/process"
-import { NotFoundError } from "@/storage/storage"
 import { EOL } from "os"
 import path from "path"
 import { which } from "@opencode-ai/core/util/which"
@@ -93,6 +90,9 @@ const tagHandler = Effect.fn("Cli.session.tag")(function* (args: {
   tags: string[]
   remove: boolean
 }) {
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { SessionID } = yield* Effect.promise(() => import("@/session/schema"))
+  const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
   const svc = yield* Session.Service
   const sessionID = SessionID.make(args.sessionID)
   const session = yield* svc
@@ -155,6 +155,12 @@ export const SessionBranchCommand = effectCmd({
         type: "string",
       }),
   handler: Effect.fn("Cli.session.branch")(function* (args) {
+    // Loaded lazily so the CLI entrypoint does not pull the session graph at
+    // startup for unrelated commands.
+    const { Session } = yield* Effect.promise(() => import("@/session/session"))
+    const { SessionBranch } = yield* Effect.promise(() => import("@/session/branch"))
+    const { MessageID, SessionID } = yield* Effect.promise(() => import("../../session/schema"))
+    const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
     const svc = yield* Session.Service
     const sessionID = SessionID.make(args.sessionID)
     const messages = yield* svc
@@ -179,6 +185,9 @@ export const SessionDeleteCommand = effectCmd({
       demandOption: true,
     }),
   handler: Effect.fn("Cli.session.delete")(function* (args) {
+    const { Session } = yield* Effect.promise(() => import("@/session/session"))
+    const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
+    const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
     const svc = yield* Session.Service
     const sessionID = SessionID.make(args.sessionID)
     yield* svc
@@ -254,6 +263,8 @@ export const SessionListCommand = effectCmd({
         default: "table",
       }),
   handler: Effect.fn("Cli.session.list")(function* (args) {
+    const { Session } = yield* Effect.promise(() => import("@/session/session"))
+    const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
     const svc = yield* Session.Service
     const start = args.since ? since(args.since, Date.now()) : undefined
     if (args.since && start === undefined) return yield* fail(`Invalid --since value: ${args.since}`)
