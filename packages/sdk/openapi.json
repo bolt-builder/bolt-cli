@@ -23800,6 +23800,9 @@
           "permission": {
             "$ref": "#/components/schemas/PermissionConfig"
           },
+          "redact": {
+            "type": "boolean"
+          },
           "guardrail": {
             "type": "boolean"
           },
