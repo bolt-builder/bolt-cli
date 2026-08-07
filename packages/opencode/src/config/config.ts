@@ -118,9 +118,13 @@ type Info = ConfigV1.Info & {
   plugin_origins?: ConfigPlugin.Origin[]
 }
 
+// One merged config source in load order, kept for diagnostics like `bolt config doctor`.
+export type Origin = { source: string; config: Info }
+
 type State = {
   config: Info
   directories: string[]
+  origins: Origin[]
   deps: Fiber.Fiber<void>[]
   consoleState: ConsoleState
 }
@@ -133,6 +137,7 @@ export interface Interface {
   readonly updateGlobal: (config: Info) => Effect.Effect<{ info: Info; changed: boolean }>
   readonly invalidate: () => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
+  readonly origins: () => Effect.Effect<Origin[]>
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
@@ -325,6 +330,7 @@ const layer = Layer.effect(
         let result: Info = {}
         const authEnv: Record<string, string> = {}
         const consoleManagedProviders = new Set<string>()
+        const origins: Origin[] = []
         let activeOrgName: string | undefined
 
         const pluginScopeForSource = Effect.fnUntraced(function* (source: string) {
@@ -356,6 +362,7 @@ const layer = Layer.effect(
         })
 
         const merge = (source: string, next: Info, kind?: ConfigPlugin.Scope) => {
+          origins.push({ source, config: next })
           result = mergeConfigConcatArrays(result, next)
           return mergePluginOrigins(source, next.plugin, kind)
         }
@@ -465,9 +472,24 @@ const layer = Layer.effect(
             )
           deps.push(dep)
 
-          result.command = mergeDeep(result.command ?? {}, yield* Effect.promise(() => ConfigCommand.load(dir)))
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.load(dir)))
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.loadMode(dir)))
+          const commands = yield* Effect.promise(() => ConfigCommand.load(dir))
+          const agents = mergeDeep(
+            yield* Effect.promise(() => ConfigAgent.load(dir)),
+            yield* Effect.promise(() => ConfigAgent.loadMode(dir)),
+          )
+          // Markdown-defined commands and agents bypass merge(); record them so diagnostics can
+          // attribute their keys to the directory that declared them.
+          if (Object.keys(commands).length || Object.keys(agents).length) {
+            origins.push({
+              source: dir,
+              config: {
+                ...(Object.keys(commands).length ? { command: commands } : {}),
+                ...(Object.keys(agents).length ? { agent: agents } : {}),
+              },
+            })
+          }
+          result.command = mergeDeep(result.command ?? {}, commands)
+          result.agent = mergeDeep(result.agent ?? {}, agents)
           // Auto-discovered plugins under `.opencode/plugin(s)` are already local files, so ConfigPlugin.load
           // returns normalized Specs and we only need to attach origin metadata here.
           const list = yield* Effect.promise(() => ConfigPlugin.load(dir))
@@ -533,13 +555,12 @@ const layer = Layer.effect(
         // macOS managed preferences (.mobileconfig deployed via MDM) override everything
         const managed = yield* Effect.promise(() => ConfigManaged.readManagedPreferences())
         if (managed) {
-          result = mergeConfigConcatArrays(
-            result,
-            yield* loadConfig(managed.text, {
-              dir: path.dirname(managed.source),
-              source: managed.source,
-            }),
-          )
+          const next = yield* loadConfig(managed.text, {
+            dir: path.dirname(managed.source),
+            source: managed.source,
+          })
+          origins.push({ source: managed.source, config: next })
+          result = mergeConfigConcatArrays(result, next)
         }
 
         for (const [name, mode] of Object.entries(result.mode ?? {})) {
@@ -634,6 +655,7 @@ const layer = Layer.effect(
         return {
           config: result,
           directories,
+          origins,
           deps,
           consoleState: {
             consoleManagedProviders: Array.from(consoleManagedProviders),
@@ -661,6 +683,10 @@ const layer = Layer.effect(
 
     const getConsoleState = Effect.fn("Config.getConsoleState")(function* () {
       return yield* InstanceState.use(state, (s) => s.consoleState)
+    })
+
+    const origins = Effect.fn("Config.origins")(function* () {
+      return yield* InstanceState.use(state, (s) => s.origins)
     })
 
     const waitForDependencies = Effect.fn("Config.waitForDependencies")(function* () {
@@ -715,6 +741,7 @@ const layer = Layer.effect(
       updateGlobal,
       invalidate,
       directories,
+      origins,
       waitForDependencies,
     })
   }),
