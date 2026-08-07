@@ -1,5 +1,6 @@
 import { Effect } from "effect"
 import { UI } from "../ui"
+import { Envelope } from "../envelope"
 import { effectCmd, fail } from "../effect-cmd"
 
 const LIMIT = 120_000
@@ -53,6 +54,11 @@ export const ReviewCommand = effectCmd({
         describe: "ask the model to report how confident it is in the review",
         default: false,
       })
+      .option("json", {
+        type: "boolean",
+        describe: Envelope.DESCRIBE,
+        default: false,
+      })
       .conflicts("staged", "branch"),
   handler: Effect.fn("Cli.review")(function* (args) {
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
@@ -84,6 +90,10 @@ export const ReviewCommand = effectCmd({
     if (diff.exitCode !== 0) return yield* fail(diff.stderr.toString().trim() || "git diff failed")
     const patch = diff.text().trim()
     if (!patch) {
+      if (args.json) {
+        Envelope.print({ verdict: null, confidence: null, text: "" })
+        return
+      }
       UI.println("Nothing to review.")
       return
     }
@@ -91,7 +101,7 @@ export const ReviewCommand = effectCmd({
       return yield* fail("The diff is too large to review in one shot. Review a narrower range.")
     }
 
-    const span = range.length === 2 && range[1].includes("..") ? range[1] : undefined
+    const span = range.length === 2 && range[1].includes("..") && !args.json ? range[1] : undefined
     if (span) {
       const { Signature } = yield* Effect.promise(() => import("./signature"))
       const signed = yield* git.run(["log", "--format=%h%x00%G?%x00%GS", span], { cwd })
@@ -100,7 +110,7 @@ export const ReviewCommand = effectCmd({
       }
     }
 
-    UI.println("Reviewing changes...")
+    if (!args.json) UI.println("Reviewing changes...")
 
     const { Session } = yield* Effect.promise(() => import("@/session/session"))
     const { SessionPrompt } = yield* Effect.promise(() => import("@/session/prompt"))
@@ -139,6 +149,18 @@ export const ReviewCommand = effectCmd({
     const text = extractResponseText(result.parts) ?? ""
     if (!text) return yield* fail("The model returned an empty review.")
 
+    const outcome = verdict(text)
+    if (args.json) {
+      Envelope.print({
+        verdict: outcome ?? null,
+        confidence: args.confidence ? (confidence(text) ?? null) : null,
+        text,
+      })
+      if (outcome === "fail") process.exitCode = 1
+      if (!outcome) process.exitCode = 2
+      return
+    }
+
     UI.empty()
     UI.println(UI.markdown(text))
     UI.empty()
@@ -151,7 +173,6 @@ export const ReviewCommand = effectCmd({
       UI.empty()
     }
 
-    const outcome = verdict(text)
     if (outcome === "pass") return
     if (outcome === "fail") {
       process.exitCode = 1

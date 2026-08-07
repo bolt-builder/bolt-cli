@@ -20,6 +20,7 @@ import { open } from "node:fs/promises"
 import { Effect } from "effect"
 import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
+import { Envelope } from "../envelope"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
 import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@opencode-ai/sdk/v2"
@@ -189,6 +190,11 @@ export const RunCommand = effectCmd({
         default: "default",
         describe: "format: default (formatted) or json (raw JSON events)",
       })
+      .option("json", {
+        type: "boolean",
+        default: false,
+        describe: Envelope.DESCRIBE,
+      })
       .option("file", {
         alias: ["f"],
         type: "string",
@@ -353,6 +359,22 @@ export const RunCommand = effectCmd({
 
       if (interactive && args.format === "json") {
         die("--mini cannot be used with --format json")
+      }
+
+      if (args.json && args.format === "json") {
+        die("--json cannot be used with --format json")
+      }
+
+      if (args.json && interactive) {
+        die("--json cannot be used with --mini")
+      }
+
+      if (args.json && args["best-of"]) {
+        die("--json cannot be used with --best-of")
+      }
+
+      if (args.json && args.attach) {
+        die("--json cannot be used with --attach")
       }
 
       if (args["replay-limit"] !== undefined && !interactive) {
@@ -827,6 +849,8 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
         const sessionID = sess.id
+        // Final text parts collected for the --json envelope printed on finish.
+        const collected: string[] = []
 
         function emit(type: string, data: Record<string, unknown>) {
           if (args.format === "json") {
@@ -916,6 +940,10 @@ export const RunCommand = effectCmd({
                 if (emit("text", { part })) continue
                 const text = part.text.trim()
                 if (!text) continue
+                if (args.json) {
+                  collected.push(text)
+                  continue
+                }
                 if (!process.stdout.isTTY) {
                   process.stdout.write(text + EOL)
                   continue
@@ -927,6 +955,7 @@ export const RunCommand = effectCmd({
 
               if (part.type === "reasoning" && part.time?.end && thinking) {
                 if (emit("reasoning", { part })) continue
+                if (args.json) continue
                 const text = part.text.trim()
                 if (!text) continue
                 const line = `Thinking: ${text}`
@@ -1005,6 +1034,12 @@ export const RunCommand = effectCmd({
             if (args.attach) return
             const error = await completed
             if (error) process.exitCode = 1
+            if (!args.json) return
+            if (error) {
+              Envelope.printError("SessionError", error)
+              return
+            }
+            Envelope.print({ sessionID, text: collected.join("\n\n") })
           }
 
           if (args.command) {
@@ -1017,8 +1052,12 @@ export const RunCommand = effectCmd({
               variant: args.variant,
             })
             if (result.error) {
-              if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
               process.exitCode = 1
+              if (args.json) {
+                Envelope.printError("CommandError", formatRunError(result.error))
+                return
+              }
+              if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
               return
             }
             await finish()
@@ -1033,8 +1072,12 @@ export const RunCommand = effectCmd({
             parts: [...files, { type: "text", text: message }],
           })
           if (result.error) {
-            if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
             process.exitCode = 1
+            if (args.json) {
+              Envelope.printError("PromptError", formatRunError(result.error))
+              return
+            }
+            if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
             return
           }
           await finish()
@@ -1154,6 +1197,7 @@ export async function runMini(input: MiniCommandInput) {
     "auto-agent": false,
     autoAgent: false,
     format: "default",
+    json: false,
     file: undefined,
     title: undefined,
     attach: input.attach,

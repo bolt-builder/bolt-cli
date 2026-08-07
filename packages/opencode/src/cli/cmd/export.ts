@@ -2,6 +2,7 @@ import type { Session } from "@/session/session"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
+import { Envelope } from "../envelope"
 import * as prompts from "@clack/prompts"
 import { EOL } from "os"
 import { Effect } from "effect"
@@ -238,7 +239,13 @@ export const ExportCommand = effectCmd({
         describe: "output file for the HTML replay",
         type: "string",
         default: "replay.html",
-      }),
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("json", "html"),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
@@ -249,6 +256,7 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   sanitize?: boolean
   html?: boolean
   out: string
+  json?: boolean
 }) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
   const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
@@ -307,6 +315,11 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
     return
   }
 
-  process.stdout.write(JSON.stringify(args.sanitize ? sanitize(exportData) : exportData, null, 2))
+  const payload = args.sanitize ? sanitize(exportData) : exportData
+  if (args.json) {
+    Envelope.print(payload)
+    return
+  }
+  process.stdout.write(JSON.stringify(payload, null, 2))
   process.stdout.write(EOL)
 })
