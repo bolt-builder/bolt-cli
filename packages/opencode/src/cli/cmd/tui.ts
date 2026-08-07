@@ -57,7 +57,8 @@ async function target() {
 }
 
 async function input(value?: string) {
-  const piped = process.stdin.isTTY ? undefined : await Bun.stdin.text()
+  const { Stdin } = await import("../stdin")
+  const piped = await Stdin.piped()
   if (!value) return piped
   if (!piped) return value
   return piped + "\n" + value
