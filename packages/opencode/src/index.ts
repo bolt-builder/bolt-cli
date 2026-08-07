@@ -35,6 +35,7 @@ import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
 import { ResolveCommand } from "./cli/cmd/resolve"
 import { CodemodCommand } from "./cli/cmd/codemod"
+import { AssertsCommand } from "./cli/cmd/asserts"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
 import { TightenCommand } from "./cli/cmd/tighten"
@@ -135,6 +136,7 @@ const cli = yargs(args)
   .command(ReviewCommand)
   .command(ResolveCommand)
   .command(CodemodCommand)
+  .command(AssertsCommand)
   .command(PipelineCommand)
   .command(RefactorCommand)
   .command(TightenCommand)
