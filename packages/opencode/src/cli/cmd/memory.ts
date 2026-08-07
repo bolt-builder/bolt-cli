@@ -53,8 +53,48 @@ const INSTRUCTIONS = [
 export const MemoryCommand = cmd({
   command: "memory",
   describe: "inspect project memory",
-  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).demandCommand(),
+  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).command(MemorySearchCommand).demandCommand(),
   async handler() {},
+})
+
+export const MemorySearchCommand = effectCmd({
+  command: "search <query>",
+  describe: "search everything stored in project memory",
+  builder: (yargs) =>
+    yargs
+      .positional("query", {
+        describe: "what to search stored memory for",
+        type: "string",
+        demandOption: true,
+      })
+      .option("limit", {
+        alias: "n",
+        type: "number",
+        default: 10,
+        describe: "maximum results to print",
+      }),
+  handler: Effect.fn("Cli.memory.search")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { MemorySearch } = yield* Effect.promise(() => import("@opencode-ai/memory/search"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() =>
+      MemorySearch.search({ root: MemoryPaths.root({ ctx }), query: args.query, limit: args.limit }),
+    )
+    if (!output.enabled) return yield* fail("Project memory is disabled. Enable it with /memory on or bolt learn.")
+    if (output.hits.length === 0) {
+      UI.println("No stored memory matches that query.")
+      return
+    }
+
+    output.hits.forEach((hit, index) => {
+      const doc = hit.doc
+      const where = doc.source === "sessions" ? `session ${doc.key}` : `${doc.source} > ${doc.section} > ${doc.key}`
+      UI.println(`${index + 1}. [${where}]${stamp(doc.updatedAt)} ${doc.text}`)
+    })
+  }),
 })
 
 export const MemoryWhyCommand = effectCmd({
