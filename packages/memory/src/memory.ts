@@ -336,13 +336,7 @@ export namespace Memory {
     })
   }
 
-  export function correct(input: {
-    root: string
-    text: string
-    key?: string
-    sessionID?: string
-    messageID?: string
-  }) {
+  export function correct(input: { root: string; text: string; key?: string; sessionID?: string; messageID?: string }) {
     return remember({
       ...input,
       file: "corrections.md",
