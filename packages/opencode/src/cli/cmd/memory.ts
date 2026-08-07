@@ -54,8 +54,86 @@ export const MemoryCommand = cmd({
   command: "memory",
   describe: "inspect project memory",
   builder: (yargs: Argv) =>
-    yargs.command(MemoryWhyCommand).command(MemorySearchCommand).command(MemoryConflictsCommand).demandCommand(),
+    yargs
+      .command(MemoryWhyCommand)
+      .command(MemoryDiffCommand)
+      .command(MemoryReviewCommand)
+      .command(MemorySearchCommand)
+      .command(MemoryConflictsCommand)
+      .demandCommand(),
   async handler() {},
+})
+
+export const MemoryDiffCommand = effectCmd({
+  command: "diff",
+  describe: "show memory staged by sessions before it persists",
+  builder: (yargs) =>
+    yargs
+      .option("apply", { type: "boolean", default: false, describe: "persist the staged memory" })
+      .option("discard", { type: "boolean", default: false, describe: "drop the staged memory" }),
+  handler: Effect.fn("Cli.memory.diff")(function* (args) {
+    if (args.apply && args.discard) return yield* fail("Pass only one of --apply or --discard.")
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const root = MemoryPaths.root({ ctx })
+    const output = yield* Effect.promise(() => Memory.pending({ root }))
+    if (output.items.length === 0) {
+      UI.println(
+        output.review
+          ? "No staged memory. Review mode is on; session captures will queue here."
+          : "No staged memory. Review mode is off; enable it with bolt memory review on.",
+      )
+      return
+    }
+
+    for (const line of output.diff) UI.println(line)
+    if (args.apply) {
+      const result = yield* Effect.promise(() => Memory.approve({ root }))
+      UI.empty()
+      UI.println(`Applied ${result.applied} staged operation${result.applied === 1 ? "" : "s"}.`)
+      return
+    }
+    if (args.discard) {
+      const result = yield* Effect.promise(() => Memory.discard({ root }))
+      UI.empty()
+      UI.println(`Discarded ${result.discarded} staged operation${result.discarded === 1 ? "" : "s"}.`)
+      return
+    }
+    UI.empty()
+    UI.println("Run bolt memory diff --apply to persist or bolt memory diff --discard to drop.")
+  }),
+})
+
+export const MemoryReviewCommand = effectCmd({
+  command: "review <mode>",
+  describe: "toggle review mode for auto-captured memory",
+  builder: (yargs) =>
+    yargs.positional("mode", {
+      describe: "on to stage session captures for review, off to persist them directly",
+      type: "string",
+      choices: ["on", "off"] as const,
+      demandOption: true,
+    }),
+  handler: Effect.fn("Cli.memory.review")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() =>
+      Memory.review({ root: MemoryPaths.root({ ctx }), review: args.mode === "on" }),
+    )
+    UI.println(
+      output.review
+        ? "Review mode on: session captures stage in bolt memory diff before persisting."
+        : `Review mode off: session captures persist directly.${output.staged ? ` ${output.staged} staged operation${output.staged === 1 ? "" : "s"} still pending in bolt memory diff.` : ""}`,
+    )
+  }),
 })
 
 export const MemorySearchCommand = effectCmd({
