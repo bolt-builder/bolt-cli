@@ -32,6 +32,7 @@ import { CompatMCP } from "@/compat/mcp"
 import { CompatSettings } from "@/compat/settings"
 import { ConfigAgent } from "./agent"
 import { ConfigCommand } from "./command"
+import { ConfigEnv } from "./env"
 import { ConfigManaged } from "./managed"
 import { ConfigParse } from "./parse"
 import { ConfigPaths } from "./paths"
@@ -520,6 +521,15 @@ const layer = Layer.effect(
               }),
             ),
           )
+        }
+
+        // BOLT_* env vars override any file-based config; managed settings below still win.
+        const envOverrides = ConfigEnv.overrides(process.env)
+        for (const warning of envOverrides.warnings) {
+          yield* Effect.logWarning(warning)
+        }
+        if (Object.keys(envOverrides.config).length) {
+          yield* merge("BOLT environment", envOverrides.config, "local")
         }
 
         const managedDir = ConfigManaged.managedConfigDir()
