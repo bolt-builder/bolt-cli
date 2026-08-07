@@ -11,6 +11,7 @@
  * 3 a --max-cost or --max-tokens budget was hit
  * 4 authentication is missing, invalid, or expired
  * 5 an operation timed out
+ * 6 the --plan-only gate detected destructive actions
  */
 export const OK = 0
 export const ERROR = 1
@@ -19,5 +20,6 @@ export const UNKNOWN = 2
 export const BUDGET = 3
 export const AUTH = 4
 export const TIMEOUT = 5
+export const GATE = 6
 
 export * as ExitCode from "./exit"
