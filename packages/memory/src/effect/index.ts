@@ -242,6 +242,20 @@ export namespace BoltMemory {
     return output.result
   }
 
+  export async function avoid(input: Input & { text: string; outcome?: string; key?: string }) {
+    const dir = await prepare(input)
+    await requireEnabled(dir)
+    const output = await Memory.avoid({
+      root: dir,
+      text: input.text,
+      outcome: input.outcome,
+      key: input.key,
+      sessionID: input.sessionID,
+    })
+    await publish({ output, sessionID: input.sessionID })
+    return output.result
+  }
+
   export async function purge(input: Input) {
     const dir = root(input)
     MemoryTimers.clear(dir)
