@@ -263,6 +263,7 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 - [ ] Plugin-defined subcommands: plugins can register `bolt <theirs>` commands
 - [ ] Session handoff: start on your laptop, `bolt push <id>`, resume on another machine
 - [ ] Voice input for one-shots behind a flag, fully local transcription
+
 ### Done
 
 - [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet; direct shell input may double-render, and permission prompts can be answered by either side)
