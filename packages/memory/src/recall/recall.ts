@@ -3,6 +3,7 @@ import { MemoryFiles } from "../storage/store"
 import { MemoryIndexer } from "./indexer"
 import { MemorySchema } from "../schema"
 import { MemoryShared } from "./shared"
+import { MemoryTeam } from "../team"
 import { MemoryTopics } from "./topics"
 import { MemoryToken } from "./token"
 import { MemorySlug } from "../slug"
@@ -80,6 +81,25 @@ export namespace MemoryRecall {
       ),
     )
     return rows.flat()
+  }
+
+  // Team memory reads are opt-in by construction: the repo commits .bolt/memory.md to enable them.
+  async function team(worktree: string | undefined) {
+    if (!worktree) return [] as Hit[]
+    const shared = await MemoryTeam.read(worktree)
+    return shared.items.map(
+      (item) =>
+        ({
+          type: "typed",
+          kind: "TEAM",
+          source: MemoryTeam.SOURCE,
+          text: `${item.key} :: ${item.text}`,
+          score: 0,
+          topics: [],
+          current: true,
+          updatedAt: shared.updatedAt || undefined,
+        }) satisfies Hit,
+    )
   }
 
   function time(input: string | undefined) {
@@ -247,6 +267,7 @@ export namespace MemoryRecall {
     mode?: Mode
     sessionID?: string
     currentSessionID?: string
+    worktree?: string
     force?: boolean
   }): Promise<Result | undefined> {
     const state = input.state ?? (await MemoryFiles.readState(input.root))
@@ -257,6 +278,7 @@ export namespace MemoryRecall {
     const inventory = await MemoryFiles.deriveInventory(input.root)
     const now = Date.now()
     const typedItems = mode === "digest" ? [] : await typedAll({ root: input.root, state, inventory, now })
+    const teamItems = mode === "digest" ? [] : await team(input.worktree)
     const digestItems = await digests({
       root: input.root,
       state,
@@ -278,9 +300,11 @@ export namespace MemoryRecall {
       }
     }
     // Query terms absent from the corpus add zero to every hit; only corpus-ubiquitous terms need removal.
-    const keys = MemoryTopics.expand(MemoryShared.terms(query, { drop: noise([...typedItems, ...digestItems]) }))
+    const keys = MemoryTopics.expand(
+      MemoryShared.terms(query, { drop: noise([...typedItems, ...teamItems, ...digestItems]) }),
+    )
     const hits = dedupe({
-      hits: select({ hits: [...typedItems, ...digestItems], keys, limit, force: input.force }),
+      hits: select({ hits: [...typedItems, ...teamItems, ...digestItems], keys, limit, force: input.force }),
       query,
     })
     if (hits.length === 0) return
