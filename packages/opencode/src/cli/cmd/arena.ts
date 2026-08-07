@@ -56,7 +56,8 @@ export const ArenaCommand = effectCmd({
         process.exit(1)
       }
 
-      const piped = process.stdin.isTTY ? undefined : await Bun.stdin.text()
+      const { Stdin } = await import("../stdin")
+      const piped = await Stdin.piped()
       const message = [[...args.message, ...(args["--"] || [])].join(" "), piped?.trim() ?? ""]
         .filter(Boolean)
         .join("\n")
