@@ -17,6 +17,7 @@ import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
 import { DaemonCommand } from "./cli/cmd/daemon"
 import { WarmCommand } from "./cli/cmd/warm"
+import { DoctorCommand } from "./cli/cmd/doctor"
 import { DebugCommand } from "./cli/cmd/debug"
 import { ConfigCommand } from "./cli/cmd/config"
 import { StatsCommand } from "./cli/cmd/stats"
@@ -120,6 +121,7 @@ const commands = [
   ServeCommand,
   DaemonCommand,
   WarmCommand,
+  DoctorCommand,
   WebCommand,
   ModelsCommand,
   StatsCommand,
