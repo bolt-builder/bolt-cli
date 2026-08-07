@@ -4,6 +4,7 @@ import { RunCommand } from "./cli/cmd/run"
 import { AskCommand } from "./cli/cmd/ask"
 import { ArenaCommand } from "./cli/cmd/arena"
 import { GenerateCommand } from "./cli/cmd/generate"
+import { InitCommand } from "./cli/cmd/init"
 import { ConsoleCommand } from "./cli/cmd/account"
 import { ProvidersCommand } from "./cli/cmd/providers"
 import { AgentCommand } from "./cli/cmd/agent"
@@ -104,6 +105,7 @@ const commands = [
   AskCommand,
   ArenaCommand,
   GenerateCommand,
+  InitCommand,
   DebugCommand,
   ConfigCommand,
   ConsoleCommand,
