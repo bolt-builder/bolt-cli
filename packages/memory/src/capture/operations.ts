@@ -6,6 +6,7 @@ import { MemoryReject } from "./reject"
 import { MemoryOrigins } from "../storage/origins"
 import { MemorySchema } from "../schema"
 import { MemoryShared } from "../recall/shared"
+import { MemoryStamps } from "../storage/stamps"
 import { MemoryText } from "../text"
 import { MemoryTopics } from "../recall/topics"
 import { MemorySlug } from "../slug"
@@ -285,7 +286,8 @@ export namespace MemoryOperations {
     }
     const id = MemoryFiles.inventoryKey({ file: next.file, section: next.section, key: next.key })
     const prior = plan.inventory.items[id]
-    // An unchanged re-save still re-attributes the fact to the writer confirming it.
+    // Re-saving an unchanged fact still reconfirms it: its stamp refreshes and the fact is
+    // re-attributed to the writer confirming it, even though no line changed.
     plan.upserts.push(id)
     if (!result.changed && prior) return
     plan.inventory.items[id] = entry({ item: next, prior, now })
@@ -378,10 +380,13 @@ export namespace MemoryOperations {
       // Plan (pure): validate/normalize ops, then dedupe + edit documents + update inventory in memory.
       const prepared = prepare({ state, ops: input.ops, max: state.limits.maxLineChars })
       const removes = input.ops.filter((item): item is Remove => item.action === "remove")
-      const plan = planOps({ docs, inventory, removes, adds: prepared.adds, now: Date.now() })
+      const now = Date.now()
+      const plan = planOps({ docs, inventory, removes, adds: prepared.adds, now })
       // Commit (IO): write changed documents, then rebuild the index, persist state, and audit.
       await writeDocs({ root: input.root, plan })
       await MemoryOrigins.drop(input.root, plan.dropped)
+      await MemoryStamps.drop(input.root, plan.dropped)
+      await MemoryStamps.record(input.root, { ids: plan.upserts, now })
       const index = await persist({ root: input.root, state, count: plan.count, removed: plan.removed })
       return {
         operationCount: plan.count,

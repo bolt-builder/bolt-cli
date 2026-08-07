@@ -37,11 +37,14 @@
     "./paths": "./src/storage/paths.ts",
     "./recall": "./src/recall/recall.ts",
     "./redact": "./src/capture/redact.ts",
+    "./search": "./src/search.ts",
     "./token": "./src/recall/token.ts",
     "./schema": "./src/schema.ts",
     "./shared": "./src/recall/shared.ts",
     "./store": "./src/storage/store.ts",
-    "./tool": "./src/tool.ts"
+    "./team": "./src/team.ts",
+    "./tool": "./src/tool.ts",
+    "./toolchain": "./src/toolchain.ts"
   },
   "files": [
     "dist",
