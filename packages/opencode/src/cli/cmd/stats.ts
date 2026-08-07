@@ -1,6 +1,7 @@
 import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
 import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import { Session } from "@/session/session"
 import { NotFoundError } from "@/storage/storage"
 import { Database } from "@opencode-ai/core/database/database"
@@ -69,7 +70,13 @@ export const StatsCommand = effectCmd({
         describe: Envelope.DESCRIBE,
         type: "boolean",
         default: false,
-      }),
+      })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("porcelain", "json"),
   handler: Effect.fn("Cli.stats")(function* (args) {
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const ctx = yield* InstanceRef
@@ -77,6 +84,10 @@ export const StatsCommand = effectCmd({
     const stats = yield* aggregateSessionStats(args.days, args.project, ctx.project)
     if (args.json) {
       Envelope.print(stats)
+      return
+    }
+    if (args.porcelain) {
+      porcelainStats(stats)
       return
     }
     let modelLimit: number | undefined
@@ -159,7 +170,7 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
     medianTokensPerSession: 0,
   }
 
-  // Progress chatter goes to stderr so it never corrupts stdout consumers (e.g. --json).
+  // Progress chatter goes to stderr so it never corrupts stdout consumers (e.g. --json or --porcelain).
   if (filteredSessions.length > 1000) {
     process.stderr.write(`Large dataset detected (${filteredSessions.length} sessions). This may take a while...\n`)
   }
@@ -302,6 +313,30 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
 
   return stats
 })
+
+// One record per line, kind first. Existing kinds and field orders are frozen;
+// see the porcelain contract in ../porcelain.ts.
+function porcelainStats(stats: SessionStats) {
+  Porcelain.print("sessions", String(stats.totalSessions))
+  Porcelain.print("messages", String(stats.totalMessages))
+  Porcelain.print("days", String(stats.days))
+  Porcelain.print("cost", stats.totalCost.toFixed(4))
+  Porcelain.print("cost-per-day", stats.costPerDay.toFixed(4))
+  Porcelain.print(
+    "tokens",
+    String(stats.totalTokens.input),
+    String(stats.totalTokens.output),
+    String(stats.totalTokens.reasoning),
+    String(stats.totalTokens.cache.read),
+    String(stats.totalTokens.cache.write),
+  )
+  for (const [model, usage] of Object.entries(stats.modelUsage).sort(([, a], [, b]) => b.messages - a.messages)) {
+    Porcelain.print("model", model, String(usage.messages), usage.cost.toFixed(4))
+  }
+  for (const [tool, count] of Object.entries(stats.toolUsage).sort(([, a], [, b]) => b - a)) {
+    Porcelain.print("tool", tool, String(count))
+  }
+}
 
 export function displayStats(stats: SessionStats, toolLimit?: number, modelLimit?: number) {
   const width = 56
