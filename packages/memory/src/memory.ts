@@ -1,12 +1,16 @@
+import { MemoryConflicts } from "./conflicts"
 import { MemoryFiles } from "./storage/store"
 import { MemoryIndexer } from "./recall/indexer"
 import { MemoryNegative } from "./negative"
 import { MemoryNotice } from "./memory-notice"
 import { MemoryOperations } from "./capture/operations"
+import { MemoryOrigins } from "./storage/origins"
 import { MemoryPaths } from "./storage/paths"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
+import { MemoryScopes } from "./scopes"
 import { MemoryShared } from "./recall/shared"
+import { MemoryStaging } from "./staging"
 import { MemoryToken } from "./recall/token"
 import { MemorySlug } from "./slug"
 import { MemoryRedact } from "./capture/redact"
@@ -28,6 +32,7 @@ export namespace Memory {
     state: MemorySchema.State
     result: MemoryOperations.Result
     ok: boolean
+    staged?: number
     detail?: {
       type: "saved"
       message: string
@@ -199,12 +204,48 @@ export namespace Memory {
     ops: MemoryOperations.Op[]
     trigger?: Trigger
     sessionID?: string
+    messageID?: string
     tokens?: number
   }): Promise<Apply> {
     const trigger = input.trigger ?? "explicit"
     const inputOps = trigger === "explicit" ? input.ops : input.ops.filter((item) => item.action !== "remove")
+    // Review mode stages auto-captured writes for a human diff; explicit saves are deliberate and land directly.
+    if (trigger !== "explicit" && inputOps.length > 0 && (await MemoryStaging.enabled(input.root))) {
+      const staged = await MemoryStaging.stage(input.root, {
+        ops: inputOps,
+        sessionID: input.sessionID,
+        now: Date.now(),
+      })
+      const state = await MemoryFiles.readState(input.root)
+      const index = await MemoryFiles.readIndex(input.root)
+      return {
+        root: input.root,
+        state,
+        result: {
+          operationCount: 0,
+          added: 0,
+          removed: 0,
+          skipped: [],
+          index: {
+            text: index,
+            bytes: Buffer.byteLength(index),
+            tokens: MemoryToken.estimate(index),
+            truncated: false,
+          },
+        },
+        ok: false,
+        staged: staged.count,
+      }
+    }
     const accepted = inputOps.filter((item) => item.action !== "add" || !MemoryOperations.secret(item))
     const result = await MemoryOperations.apply({ root: input.root, ops: inputOps })
+    // Every written fact links back to the session and message that taught it.
+    await MemoryOrigins.record(input.root, {
+      ids: result.ids,
+      sessionID: input.sessionID,
+      messageID: input.messageID,
+      at: Date.now(),
+    })
     // Auto-capture skips a secret-like op and applies the rest. An explicit save whose only effect
     // was rejecting secret content must fail loudly rather than silently drop it; a mixed explicit
     // batch that still applied something keeps the skip as a record.
@@ -261,7 +302,7 @@ export namespace Memory {
     }
   }
 
-  export async function forget(input: { root: string; query: string; sessionID?: string }) {
+  export async function forget(input: { root: string; query: string; sessionID?: string; messageID?: string }) {
     return apply({ ...input, ops: [{ action: "remove", query: input.query }] })
   }
 
@@ -271,15 +312,19 @@ export namespace Memory {
     key?: string
     file?: MemorySchema.Source
     section?: string
+    scope?: string
     sessionID?: string
+    messageID?: string
   }) {
+    // A monorepo scope wins over an explicit section: scoped facts must live in their scope section.
+    const scoped = input.scope ? MemoryScopes.clean(input.scope) : ""
     return apply({
       ...input,
       ops: [
         {
           action: "add",
           file: input.file,
-          section: input.section,
+          section: scoped ? MemoryScopes.section(scoped) : input.section,
           key: input.key ?? key(input.text),
           text: input.text,
         },
@@ -287,7 +332,13 @@ export namespace Memory {
     })
   }
 
-  export async function correct(input: { root: string; text: string; key?: string; sessionID?: string }) {
+  export async function correct(input: {
+    root: string
+    text: string
+    key?: string
+    sessionID?: string
+    messageID?: string
+  }) {
     return remember({
       ...input,
       file: "corrections.md",
@@ -312,6 +363,80 @@ export namespace Memory {
     })
   }
 
+  export async function origins(input: { root: string }) {
+    const ledger = await MemoryOrigins.read(input.root)
+    return { root: input.root, items: ledger.items }
+  }
+
+  export async function pending(input: { root: string }) {
+    const store = await MemoryStaging.read(input.root)
+    const inventory = await MemoryFiles.deriveInventory(input.root)
+    return {
+      root: input.root,
+      review: store.review,
+      items: store.items,
+      diff: MemoryStaging.render({ items: store.items, inventory }),
+    }
+  }
+
+  export async function review(input: { root: string; review: boolean }) {
+    const store = await MemoryStaging.configure(input.root, { review: input.review })
+    return { root: input.root, review: store.review, staged: store.items.length }
+  }
+
+  export async function approve(input: { root: string; sessionID?: string }) {
+    const store = await MemoryStaging.read(input.root)
+    if (store.items.length === 0) return { root: input.root, applied: 0, added: 0, removed: 0 }
+    const state = await MemoryFiles.readState(input.root)
+    const size = Math.max(1, state.capture.maxOpsPerRun)
+    const ops = store.items.map((item) => item.op)
+    const chunks = Array.from({ length: Math.ceil(ops.length / size) }, (item, at) =>
+      ops.slice(at * size, at * size + size),
+    )
+    const results: Apply[] = []
+    for (const chunk of chunks) {
+      results.push(await apply({ root: input.root, ops: chunk, sessionID: input.sessionID }))
+    }
+    await MemoryStaging.clear(input.root)
+    return {
+      root: input.root,
+      applied: ops.length,
+      added: results.reduce((sum, item) => sum + item.result.added, 0),
+      removed: results.reduce((sum, item) => sum + item.result.removed, 0),
+    }
+  }
+
+  export async function discard(input: { root: string }) {
+    const discarded = await MemoryStaging.clear(input.root)
+    return { root: input.root, discarded }
+  }
+
+  export async function conflicts(input: { root: string; fix?: boolean; sessionID?: string }) {
+    const state = await MemoryFiles.readState(input.root)
+    const inventory = await MemoryFiles.deriveInventory(input.root)
+    const found = MemoryConflicts.detect(
+      Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+        updatedAt: item.updatedAt,
+      })),
+    )
+    const plan = MemoryConflicts.resolve(found)
+    if (!input.fix || plan.resolutions.length === 0) {
+      return { root: input.root, state, conflicts: found, plan, applied: false as const }
+    }
+    // Cap at the per-run op limit apply enforces; a rerun picks up any remainder.
+    const result = await apply({
+      root: input.root,
+      ops: plan.resolutions.slice(0, state.capture.maxOpsPerRun).map((item) => item.op),
+      sessionID: input.sessionID,
+    })
+    return { root: input.root, state, conflicts: found, plan, applied: true as const, result }
+  }
+
   export async function purge(input: { root: string }) {
     if (!(await MemoryFiles.owned(input.root))) {
       const exists = await MemoryFiles.exists(input.root)
@@ -324,7 +449,13 @@ export namespace Memory {
     })
   }
 
-  export async function recall(input: { root: string; query: string; sessionID?: string }) {
+  export async function recall(input: {
+    root: string
+    query: string
+    sessionID?: string
+    worktree?: string
+    scope?: string
+  }) {
     const state = await MemoryFiles.readState(input.root)
     if (!state.enabled) return { root: input.root, state }
     const result = await MemoryRecall.search({
@@ -332,6 +463,8 @@ export namespace Memory {
       query: input.query,
       state,
       currentSessionID: input.sessionID,
+      worktree: input.worktree,
+      scope: input.scope,
     })
     const hits = result?.hits ?? []
     const files = [...new Set(hits.map((hit) => hit.source))]

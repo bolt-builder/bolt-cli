@@ -5,6 +5,9 @@ import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { FSUtil } from "@opencode-ai/core/fs-util"
 import { Location } from "@opencode-ai/core/location"
 import { AbsolutePath, RelativePath } from "@opencode-ai/core/schema"
+import { FileRank } from "@/file/rank"
+import { Git } from "@/git"
+import { LSP } from "@/lsp/lsp"
 import { Effect, Layer, Option } from "effect"
 import ignore from "ignore"
 import path from "path"
@@ -15,6 +18,8 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
   Effect.gen(function* () {
     const ripgrep = yield* Ripgrep.Service
     const locations = yield* LocationServiceMap.Service
+    const git = yield* Git.Service
+    const lsp = yield* LSP.Service
 
     const filesystem = Effect.fnUntraced(function* <A, E, R>(effect: Effect.Effect<A, E, R>) {
       return yield* effect.pipe(
@@ -47,16 +52,32 @@ export const fileHandlers = HttpApiBuilder.group(InstanceHttpApi, "file", (handl
       const limit = ctx.query.limit ?? 10
       const type = ctx.query.type ?? (ctx.query.dirs === "false" ? "file" : undefined)
       const started = performance.now()
-      const found = yield* filesystem(FileSystem.Service.use((fs) => fs.find({ query: ctx.query.query, limit, type })))
+      // Overfetch so ranking has candidates to promote: failing and hot files
+      // deserve a spot even when fuzzy relevance alone would cut them.
+      const found = yield* filesystem(
+        FileSystem.Service.use((fs) => fs.find({ query: ctx.query.query, limit: limit * 3, type })),
+      )
+      const signals: Record<string, FileRank.Signal> = {}
+      for (const item of yield* git.status(directory)) {
+        if (item.status === "deleted") continue
+        signals[item.file] = { hot: true }
+      }
+      const diagnostics = yield* lsp.diagnostics()
+      for (const file of Object.keys(diagnostics)) {
+        if (!diagnostics[file].some((item) => item.severity === 1)) continue
+        const rel = path.relative(directory, file)
+        signals[rel] = { ...signals[rel], failing: true }
+      }
+      const ranked = FileRank.rank({ paths: found.map((item) => item.path), signals }).slice(0, limit)
       yield* Effect.logInfo("find file", {
         query: ctx.query.query,
         type,
         directory,
         limit,
-        results: found.length,
+        results: ranked.length,
         duration: Math.round(performance.now() - started),
       })
-      return found.map((item) => item.path)
+      return ranked
     })
 
     const findSymbol = Effect.fn("FileHttpApi.findSymbol")(function* () {

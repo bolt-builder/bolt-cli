@@ -12,6 +12,8 @@ type Entry = {
   key: string
   text: string
   updatedAt?: number
+  sessionID?: string
+  messageID?: string
 }
 
 type Digest = {
@@ -24,7 +26,7 @@ type Digest = {
 /** Render stored memory entries and session digests as the evidence block for the why prompt. */
 export function dossier(input: { entries: Entry[]; sessions: Digest[] }) {
   const entries = input.entries.map(
-    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)} ${item.text}`,
+    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)}${origin(item)} ${item.text}`,
   )
   const sessions = input.sessions.map(
     (item) => `- [session ${item.id}${item.topic ? ` > ${item.topic}` : ""}] learned ${item.time}: ${item.summary}`,
@@ -42,6 +44,15 @@ function stamp(ms?: number) {
   return ` (updated ${new Date(ms).toISOString().slice(0, 10)})`
 }
 
+function origin(item: Entry) {
+  if (!item.sessionID && !item.messageID) return ""
+  const parts = [
+    ...(item.sessionID ? [`session ${item.sessionID}`] : []),
+    ...(item.messageID ? [`message ${item.messageID}`] : []),
+  ]
+  return ` (taught by ${parts.join(", ")})`
+}
+
 const INSTRUCTIONS = [
   "You are answering a question about this project's stored agent memory.",
   "Use only the memory dossier below as evidence. Do not use tools, read repository files, or invent memories.",
@@ -53,8 +64,239 @@ const INSTRUCTIONS = [
 export const MemoryCommand = cmd({
   command: "memory",
   describe: "inspect project memory",
-  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).demandCommand(),
+  builder: (yargs: Argv) =>
+    yargs
+      .command(MemoryWhyCommand)
+      .command(MemoryTeamCommand)
+      .command(MemoryDiffCommand)
+      .command(MemoryReviewCommand)
+      .command(MemorySearchCommand)
+      .command(MemoryConflictsCommand)
+      .demandCommand(),
   async handler() {},
+})
+
+export const MemoryTeamCommand = effectCmd({
+  command: "team <action> [query]",
+  describe: "opt-in shared project memory committed to the repository",
+  builder: (yargs) =>
+    yargs
+      .positional("action", {
+        describe: "init creates .bolt/memory.md; share copies matching facts into it",
+        type: "string",
+        choices: ["init", "share"] as const,
+        demandOption: true,
+      })
+      .positional("query", {
+        describe: "key or id of the fact to share",
+        type: "string",
+      }),
+  handler: Effect.fn("Cli.memory.team")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { MemoryTeam } = yield* Effect.promise(() => import("@opencode-ai/memory/team"))
+    if (args.action === "init") {
+      const output = yield* Effect.promise(() => MemoryTeam.init(ctx.worktree))
+      UI.println(
+        output.created
+          ? `Created ${output.file}. Commit it to share project memory with your team.`
+          : `Team memory already exists at ${output.file}.`,
+      )
+      return
+    }
+
+    if (!args.query) return yield* fail("Pass the key or id of the fact to share.")
+    const { MemoryFiles } = yield* Effect.promise(() => import("@opencode-ai/memory/store"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const inventory = yield* Effect.promise(() => MemoryFiles.deriveInventory(MemoryPaths.root({ ctx })))
+    const matched = MemoryTeam.match({
+      items: Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+      })),
+      query: args.query,
+    })
+    if (matched.length === 0) return yield* fail(`No stored fact matches "${args.query}".`)
+    const shared = yield* Effect.promise(() =>
+      MemoryTeam.share(
+        ctx.worktree,
+        matched.map((item) => ({ section: item.section, key: item.key, text: item.text })),
+      ),
+    )
+    UI.println(`Shared ${shared.count} fact${shared.count === 1 ? "" : "s"} into ${shared.file}.`)
+    UI.println("Commit the file so teammates pick it up in recall.")
+  }),
+})
+
+export const MemoryDiffCommand = effectCmd({
+  command: "diff",
+  describe: "show memory staged by sessions before it persists",
+  builder: (yargs) =>
+    yargs
+      .option("apply", { type: "boolean", default: false, describe: "persist the staged memory" })
+      .option("discard", { type: "boolean", default: false, describe: "drop the staged memory" }),
+  handler: Effect.fn("Cli.memory.diff")(function* (args) {
+    if (args.apply && args.discard) return yield* fail("Pass only one of --apply or --discard.")
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const root = MemoryPaths.root({ ctx })
+    const output = yield* Effect.promise(() => Memory.pending({ root }))
+    if (output.items.length === 0) {
+      UI.println(
+        output.review
+          ? "No staged memory. Review mode is on; session captures will queue here."
+          : "No staged memory. Review mode is off; enable it with bolt memory review on.",
+      )
+      return
+    }
+
+    for (const line of output.diff) UI.println(line)
+    if (args.apply) {
+      const result = yield* Effect.promise(() => Memory.approve({ root }))
+      UI.empty()
+      UI.println(`Applied ${result.applied} staged operation${result.applied === 1 ? "" : "s"}.`)
+      return
+    }
+    if (args.discard) {
+      const result = yield* Effect.promise(() => Memory.discard({ root }))
+      UI.empty()
+      UI.println(`Discarded ${result.discarded} staged operation${result.discarded === 1 ? "" : "s"}.`)
+      return
+    }
+    UI.empty()
+    UI.println("Run bolt memory diff --apply to persist or bolt memory diff --discard to drop.")
+  }),
+})
+
+export const MemoryReviewCommand = effectCmd({
+  command: "review <mode>",
+  describe: "toggle review mode for auto-captured memory",
+  builder: (yargs) =>
+    yargs.positional("mode", {
+      describe: "on to stage session captures for review, off to persist them directly",
+      type: "string",
+      choices: ["on", "off"] as const,
+      demandOption: true,
+    }),
+  handler: Effect.fn("Cli.memory.review")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() =>
+      Memory.review({ root: MemoryPaths.root({ ctx }), review: args.mode === "on" }),
+    )
+    UI.println(
+      output.review
+        ? "Review mode on: session captures stage in bolt memory diff before persisting."
+        : `Review mode off: session captures persist directly.${output.staged ? ` ${output.staged} staged operation${output.staged === 1 ? "" : "s"} still pending in bolt memory diff.` : ""}`,
+    )
+  }),
+})
+
+export const MemorySearchCommand = effectCmd({
+  command: "search <query>",
+  describe: "search everything stored in project memory",
+  builder: (yargs) =>
+    yargs
+      .positional("query", {
+        describe: "what to search stored memory for",
+        type: "string",
+        demandOption: true,
+      })
+      .option("limit", {
+        alias: "n",
+        type: "number",
+        default: 10,
+        describe: "maximum results to print",
+      }),
+  handler: Effect.fn("Cli.memory.search")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { MemorySearch } = yield* Effect.promise(() => import("@opencode-ai/memory/search"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() =>
+      MemorySearch.search({ root: MemoryPaths.root({ ctx }), query: args.query, limit: args.limit }),
+    )
+    if (!output.enabled) return yield* fail("Project memory is disabled. Enable it with /memory on or bolt learn.")
+    if (output.hits.length === 0) {
+      UI.println("No stored memory matches that query.")
+      return
+    }
+
+    output.hits.forEach((hit, index) => {
+      const doc = hit.doc
+      const where = doc.source === "sessions" ? `session ${doc.key}` : `${doc.source} > ${doc.section} > ${doc.key}`
+      UI.println(`${index + 1}. [${where}]${stamp(doc.updatedAt)} ${doc.text}`)
+    })
+  }),
+})
+
+function label(item: { file: string; section: string; key: string; text: string }) {
+  return `[${item.file} > ${item.section} > ${item.key}] ${item.text}`
+}
+
+export const MemoryConflictsCommand = effectCmd({
+  command: "conflicts",
+  describe: "detect and resolve contradictory facts in project memory",
+  builder: (yargs) =>
+    yargs.option("fix", {
+      type: "boolean",
+      default: false,
+      describe: "apply automatic resolutions (corrections win, else the newer fact)",
+    }),
+  handler: Effect.fn("Cli.memory.conflicts")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const output = yield* Effect.promise(() => Memory.conflicts({ root: MemoryPaths.root({ ctx }), fix: args.fix }))
+
+    if (output.conflicts.length === 0) {
+      UI.println("No conflicting facts found in project memory.")
+      return
+    }
+
+    for (const conflict of output.conflicts) {
+      UI.println(`conflict (${conflict.reason}):`)
+      UI.println(`  ${label(conflict.left)}`)
+      UI.println(`  ${label(conflict.right)}`)
+    }
+    UI.empty()
+    for (const item of output.plan.resolutions) {
+      UI.println(`resolution: keep ${label(item.keep)}`)
+      UI.println(`            drop ${label(item.drop)}`)
+    }
+    for (const item of output.plan.unresolved) {
+      UI.println(`unresolved (${item.reason}): ${label(item.left)} vs ${label(item.right)}`)
+    }
+    if (output.applied) {
+      UI.empty()
+      UI.println(
+        `Removed ${output.result.result.removed} superseded ${output.result.result.removed === 1 ? "fact" : "facts"}.`,
+      )
+      return
+    }
+    if (output.plan.resolutions.length > 0) {
+      UI.empty()
+      UI.println("Run bolt memory conflicts --fix to apply these resolutions.")
+    }
+  }),
 })
 
 export const MemoryWhyCommand = effectCmd({
@@ -82,7 +324,13 @@ export const MemoryWhyCommand = effectCmd({
     const memory = MemoryService.make()
     const shown = yield* memory.show({ ctx }).pipe(Effect.orDie)
     const digests = yield* memory.recent({ root: MemoryPaths.root({ ctx }), limit: 10, max: 200 }).pipe(Effect.orDie)
-    const evidence = dossier({ entries: Object.values(shown.inventory.items), sessions: digests })
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const taught = yield* Effect.promise(() => Memory.origins({ root: MemoryPaths.root({ ctx }) }))
+    const entries = Object.entries(shown.inventory.items).map(([id, item]) => {
+      const source = taught.items[id]
+      return { ...item, sessionID: source?.sessionID, messageID: source?.messageID }
+    })
+    const evidence = dossier({ entries, sessions: digests })
     if (!evidence) {
       return yield* fail("No project memory stored for this project yet. Run bolt learn or save memories first.")
     }

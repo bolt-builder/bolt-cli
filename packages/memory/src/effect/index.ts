@@ -14,11 +14,13 @@ export namespace BoltMemory {
     | {
         root: string
         sessionID?: string
+        messageID?: string
         record?: boolean
       }
     | {
         ctx: MemoryPaths.Ctx
         sessionID?: string
+        messageID?: string
         record?: boolean
       }
 
@@ -36,7 +38,7 @@ export namespace BoltMemory {
       tokens: MemoryToken.estimate(text),
       truncated: false,
     }
-    return { operationCount: 0, added: 0, removed: 0, skipped: [], index }
+    return { operationCount: 0, added: 0, removed: 0, skipped: [], ids: [], index }
   }
 
   async function requireEnabled(dir: string) {
@@ -187,6 +189,7 @@ export namespace BoltMemory {
       ops: input.ops,
       trigger: input.trigger,
       sessionID: input.sessionID,
+      messageID: input.messageID,
       tokens: input.tokens,
     })
     await publish({
@@ -202,7 +205,12 @@ export namespace BoltMemory {
   export async function forget(input: Input & { query: string }) {
     const dir = await prepare(input)
     await requireEnabled(dir)
-    const output = await Memory.forget({ root: dir, query: input.query, sessionID: input.sessionID })
+    const output = await Memory.forget({
+      root: dir,
+      query: input.query,
+      sessionID: input.sessionID,
+      messageID: input.messageID,
+    })
     await publish({ output, sessionID: input.sessionID })
     return output.result
   }
@@ -224,6 +232,7 @@ export namespace BoltMemory {
       file: input.file,
       section: input.section,
       sessionID: input.sessionID,
+      messageID: input.messageID,
     })
     await publish({ output, sessionID: input.sessionID })
     return output.result
@@ -237,6 +246,7 @@ export namespace BoltMemory {
       text: input.text,
       key: input.key,
       sessionID: input.sessionID,
+      messageID: input.messageID,
     })
     await publish({ output, sessionID: input.sessionID })
     return output.result
