@@ -17,6 +17,7 @@ import { testEffect } from "../lib/effect"
 import { Watcher } from "@opencode-ai/core/filesystem/watcher"
 import { Session } from "@/session/session"
 import { NotFoundError } from "@/storage/storage"
+import { TestConfig } from "../fixture/config"
 
 const ctx = {
   sessionID: SessionID.make("ses_test-edit-session"),
@@ -40,6 +41,7 @@ const layer = Layer.mergeAll(
   Layer.mock(Session.Service, {
     get: () => Effect.fail(new NotFoundError({ message: "no session in edit tool tests" })),
   }),
+  TestConfig.layer(),
 )
 
 const it = testEffect(layer)
