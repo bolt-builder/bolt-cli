@@ -32,6 +32,7 @@ import { Budget } from "./run/budget"
 import { OutputSchema } from "./run/schema"
 import { Plan } from "./run/plan"
 import { split } from "./run/attach"
+import { Attempt } from "./run/attempt"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -225,6 +226,15 @@ export const RunCommand = effectCmd({
       .option("max-cost", {
         type: "number",
         describe: "abort the run once its cost in USD reaches this budget",
+      })
+      .option("timeout", {
+        type: "number",
+        describe: "abort the run after this many seconds, capturing any partial result",
+      })
+      .option("retries", {
+        type: "number",
+        default: 0,
+        describe: "retry a failed or timed-out run this many times",
       })
       .option("max-tokens", {
         type: "number",
@@ -664,6 +674,16 @@ export const RunCommand = effectCmd({
         if (!parsed) return die(`Schema file is not valid JSON: ${args["output-schema"]}`)
         return parsed.value
       })()
+
+      const bounds = { timeout: args.timeout, retries: args.retries }
+      const invalid = Attempt.invalid(bounds)
+      if (invalid) die(invalid)
+      if (interactive && (args.timeout !== undefined || args.retries > 0)) {
+        die("--mini cannot be used with --timeout or --retries")
+      }
+      if (args["best-of"] && (args.timeout !== undefined || args.retries > 0)) {
+        die("--best-of cannot be used with --timeout or --retries")
+      }
 
       if (args["auto-agent"]) {
         if (args.agent) die("--auto-agent cannot be used with --agent")
@@ -1224,48 +1244,120 @@ export const RunCommand = effectCmd({
             process.stdout.write(context(sessionID, collected) + EOL)
           }
 
-          if (args.command) {
-            const result = await client.session.command({
-              sessionID,
-              agent,
-              model: resolvedModel ? `${resolvedModel.providerID}/${resolvedModel.modelID}` : undefined,
-              command: args.command,
-              arguments: message,
-              variant: args.variant,
+          // Race one attempt against the --timeout clock. The work promise is
+          // silenced when the clock wins so a late rejection stays handled.
+          async function bounded<T>(work: Promise<T>): Promise<T | "timeout"> {
+            if (!args.timeout) return work
+            let handle: ReturnType<typeof setTimeout> | undefined
+            const clock = new Promise<"timeout">((resolve) => {
+              handle = setTimeout(() => resolve("timeout"), args.timeout! * 1000)
             })
-            if (result.error) {
-              process.exitCode = 1
-              if (args.json) {
-                Envelope.printError("CommandError", formatRunError(result.error))
-                return
+            const raced = await Promise.race([work, clock])
+            if (handle !== undefined) clearTimeout(handle)
+            if (raced === "timeout") void Promise.resolve(work).catch(() => {})
+            return raced
+          }
+
+          // Abort the timed-out attempt and surface whatever partial result
+          // the assistant already produced.
+          async function timedOut(index: number) {
+            await client.session.abort({ sessionID }).catch(() => {
+              // best-effort abort: the timeout is already reported
+            })
+            const messages = await client.session.messages({ sessionID }).catch(() => undefined)
+            const text = Attempt.partial(messages?.data ?? [])
+            if (emit("timeout", { attempt: index, attempts: Attempt.attempts(bounds), partial: text })) return
+            UI.error(Attempt.report(index, bounds))
+            if (!text) return
+            UI.println("Partial result before the timeout:")
+            UI.empty()
+            UI.println(text)
+            UI.empty()
+          }
+
+          // Send the prompt or command, retrying failed and timed-out
+          // attempts while the --retries budget lasts.
+          async function deliver<T extends { error?: unknown }>(
+            label: string,
+            send: () => Promise<T>,
+          ): Promise<{ result: T; index: number } | undefined> {
+            for (let index = 1; ; index++) {
+              const result = await bounded(send())
+              if (result === "timeout") {
+                await timedOut(index)
+                if (Attempt.again(index, bounds)) continue
+                process.exitCode = ExitCode.TIMEOUT
+                return undefined
               }
-              if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
-              return
+              if (result.error) {
+                if (args.json && !Attempt.again(index, bounds)) {
+                  Envelope.printError(label, formatRunError(result.error))
+                  process.exitCode = ExitCode.ERROR
+                  return undefined
+                }
+                if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
+                if (Attempt.again(index, bounds)) {
+                  if (args.format !== "json") {
+                    UI.println(
+                      UI.Style.TEXT_WARNING_BOLD + "!",
+                      UI.Style.TEXT_NORMAL + `attempt ${index}/${Attempt.attempts(bounds)} failed; retrying`,
+                    )
+                  }
+                  continue
+                }
+                process.exitCode = ExitCode.ERROR
+                return undefined
+              }
+              return { result, index }
             }
+          }
+
+          if (args.command) {
+            const done = await deliver("CommandError", () =>
+              client.session.command({
+                sessionID,
+                agent,
+                model: resolvedModel ? `${resolvedModel.providerID}/${resolvedModel.modelID}` : undefined,
+                command: args.command!,
+                arguments: message,
+                variant: args.variant,
+              }),
+            )
+            if (!done) return
             await finish()
+            // the run succeeded on a retry; earlier attempts must not fail the exit code
+            if (done.index > 1) process.exitCode = 0
             return
           }
 
-          const result = await client.session.prompt({
-            sessionID,
-            agent,
-            model: resolvedModel,
-            variant: args.variant,
-            parts: [
-              ...files,
-              { type: "text", text: schema ? `${message}\n\n${OutputSchema.instructions(schema)}` : message },
-            ],
-          })
-          if (result.error) {
-            process.exitCode = 1
-            if (args.json) {
-              Envelope.printError("PromptError", formatRunError(result.error))
-              return
+          const done = await deliver("PromptError", () =>
+            client.session.prompt({
+              sessionID,
+              agent,
+              model: resolvedModel,
+              variant: args.variant,
+              parts: [
+                ...files,
+                { type: "text", text: schema ? `${message}\n\n${OutputSchema.instructions(schema)}` : message },
+              ],
+            }),
+          )
+          if (!done) return
+          const result = done.result
+          if (done.index > 1 && args.format !== "json") {
+            // the event loop ended when the first attempt went idle, so print the retried answer here
+            const parts = result.data?.parts ?? []
+            const retried = parts.findLast((part) => part.type === "text")?.text?.trim()
+            if (retried && process.stdout.isTTY) {
+              UI.empty()
+              UI.println(retried)
+              UI.empty()
             }
-            if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
-            return
+            if (retried && !process.stdout.isTTY) process.stdout.write(retried + EOL)
           }
           await finish()
+          // the run succeeded on a retry; earlier attempts must not fail the exit code
+          if (done.index > 1) process.exitCode = 0
           if (schema === undefined) return
 
           // Validate the final answer against the schema, re-prompting with the
@@ -1445,6 +1537,8 @@ export async function runMini(input: MiniCommandInput) {
     maxTokens: undefined,
     "output-schema": undefined,
     outputSchema: undefined,
+    timeout: undefined,
+    retries: 0,
     agent: input.agent,
     "auto-agent": false,
     autoAgent: false,
