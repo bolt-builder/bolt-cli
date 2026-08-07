@@ -56,12 +56,70 @@ export const MemoryCommand = cmd({
   builder: (yargs: Argv) =>
     yargs
       .command(MemoryWhyCommand)
+      .command(MemoryTeamCommand)
       .command(MemoryDiffCommand)
       .command(MemoryReviewCommand)
       .command(MemorySearchCommand)
       .command(MemoryConflictsCommand)
       .demandCommand(),
   async handler() {},
+})
+
+export const MemoryTeamCommand = effectCmd({
+  command: "team <action> [query]",
+  describe: "opt-in shared project memory committed to the repository",
+  builder: (yargs) =>
+    yargs
+      .positional("action", {
+        describe: "init creates .bolt/memory.md; share copies matching facts into it",
+        type: "string",
+        choices: ["init", "share"] as const,
+        demandOption: true,
+      })
+      .positional("query", {
+        describe: "key or id of the fact to share",
+        type: "string",
+      }),
+  handler: Effect.fn("Cli.memory.team")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { MemoryTeam } = yield* Effect.promise(() => import("@opencode-ai/memory/team"))
+    if (args.action === "init") {
+      const output = yield* Effect.promise(() => MemoryTeam.init(ctx.worktree))
+      UI.println(
+        output.created
+          ? `Created ${output.file}. Commit it to share project memory with your team.`
+          : `Team memory already exists at ${output.file}.`,
+      )
+      return
+    }
+
+    if (!args.query) return yield* fail("Pass the key or id of the fact to share.")
+    const { MemoryFiles } = yield* Effect.promise(() => import("@opencode-ai/memory/store"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const inventory = yield* Effect.promise(() => MemoryFiles.deriveInventory(MemoryPaths.root({ ctx })))
+    const matched = MemoryTeam.match({
+      items: Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+      })),
+      query: args.query,
+    })
+    if (matched.length === 0) return yield* fail(`No stored fact matches "${args.query}".`)
+    const shared = yield* Effect.promise(() =>
+      MemoryTeam.share(
+        ctx.worktree,
+        matched.map((item) => ({ section: item.section, key: item.key, text: item.text })),
+      ),
+    )
+    UI.println(`Shared ${shared.count} fact${shared.count === 1 ? "" : "s"} into ${shared.file}.`)
+    UI.println("Commit the file so teammates pick it up in recall.")
+  }),
 })
 
 export const MemoryDiffCommand = effectCmd({

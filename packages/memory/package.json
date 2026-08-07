@@ -42,6 +42,7 @@
     "./schema": "./src/schema.ts",
     "./shared": "./src/recall/shared.ts",
     "./store": "./src/storage/store.ts",
+    "./team": "./src/team.ts",
     "./tool": "./src/tool.ts",
     "./toolchain": "./src/toolchain.ts"
   },

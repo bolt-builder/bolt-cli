@@ -410,7 +410,13 @@ export namespace Memory {
     })
   }
 
-  export async function recall(input: { root: string; query: string; sessionID?: string; scope?: string }) {
+  export async function recall(input: {
+    root: string
+    query: string
+    sessionID?: string
+    worktree?: string
+    scope?: string
+  }) {
     const state = await MemoryFiles.readState(input.root)
     if (!state.enabled) return { root: input.root, state }
     const result = await MemoryRecall.search({
@@ -418,6 +424,7 @@ export namespace Memory {
       query: input.query,
       state,
       currentSessionID: input.sessionID,
+      worktree: input.worktree,
       scope: input.scope,
     })
     const hits = result?.hits ?? []

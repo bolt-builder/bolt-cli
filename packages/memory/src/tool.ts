@@ -335,6 +335,7 @@ export namespace MemoryTool {
         query,
         sessionID: input.params.sessionID,
         currentSessionID: live.current,
+        worktree: input.ctx.worktree,
         scope: live.scope,
         limit,
       })
