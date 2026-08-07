@@ -93,6 +93,7 @@ async function collectRemovalTargets(args: UninstallArgs, method: Installation.M
     { path: Global.Path.cache, label: "Cache", keep: false },
     { path: Global.Path.config, label: "Config", keep: args.keepConfig },
     { path: Global.Path.state, label: "State", keep: false },
+    { path: Global.Path.tmp, label: "Temp", keep: false },
   ]
 
   const shellConfig = method === "curl" ? await getShellConfigFile() : null
@@ -210,13 +211,27 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   if (method === "curl" && targets.binary) {
-    UI.empty()
-    prompts.log.message("To finish removing the binary, run:")
-    prompts.log.info(`  rm "${targets.binary}"`)
+    // POSIX allows unlinking the running executable (the inode stays alive
+    // until the process exits); Windows locks it, so fall back to manual
+    // instructions there or when removal fails.
+    const removable = process.platform !== "win32"
+    const err = removable ? await fs.rm(targets.binary, { force: true }).catch((e) => e) : new Error("locked")
+    if (!err) {
+      const binDir = path.dirname(targets.binary)
+      if (binDir.includes(".bolt") || binDir.includes(".opencode")) {
+        await fs.rmdir(binDir).catch(() => {})
+      }
+      prompts.log.step("Removed binary")
+    }
+    if (err) {
+      UI.empty()
+      prompts.log.message("To finish removing the binary, run:")
+      prompts.log.info(`  rm "${targets.binary}"`)
 
-    const binDir = path.dirname(targets.binary)
-    if (binDir.includes(".bolt") || binDir.includes(".opencode")) {
-      prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
+      const binDir = path.dirname(targets.binary)
+      if (binDir.includes(".bolt") || binDir.includes(".opencode")) {
+        prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
+      }
     }
   }
 
@@ -229,7 +244,8 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using Bolt!")
+  // Survey-free goodbye: no exit questionnaire, no feedback prompt.
+  prompts.log.success("bolt is fully removed. Thanks for using it, and goodbye!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {
@@ -279,7 +295,7 @@ async function getShellConfigFile(): Promise<string | null> {
   return null
 }
 
-async function cleanShellConfig(file: string) {
+export async function cleanShellConfig(file: string) {
   const content = await Filesystem.readText(file)
   const lines = content.split("\n")
 
@@ -342,14 +358,14 @@ async function getDirectorySize(dir: string): Promise<number> {
   return total
 }
 
-function formatSize(bytes: number): string {
+export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
 }
 
-function shortenPath(p: string): string {
+export function shortenPath(p: string): string {
   const home = os.homedir()
   if (p.startsWith(home)) {
     return p.replace(home, "~")
