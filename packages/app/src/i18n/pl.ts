@@ -1014,7 +1014,7 @@ export const dict = {
   "settings.gateways.note.kilo": "Brama zgodna z OpenRouter z bezpłatnymi, automatycznie kierowanymi modelami",
   "settings.gateways.note.zoo": "Brama społecznościowa z projektu Zoo Code",
   "settings.gateways.connect.title": "Połącz {{gateway}}",
-  "settings.gateways.connect.description": "Wklej swój klucz API {{gateway}}, aby połączyć jego modele.",
+  "settings.gateways.connect.description": "Wklej swój klucz API {{gateway}}, aby połączyć modele tej bramy.",
   "settings.models.title": "Modele",
   "settings.models.description": "Ustawienia modeli będą tutaj konfigurowalne.",
   "settings.agents.title": "Agenci",
