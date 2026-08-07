@@ -2,6 +2,7 @@ import { cmd } from "../cmd"
 import { DiffCommand } from "./diff"
 import { DoctorCommand } from "./doctor"
 import { GetCommand, SetCommand, UnsetCommand } from "./edit"
+import { EditCommand } from "./editor"
 
 export const ConfigCommand = cmd({
   command: "config",
@@ -10,6 +11,7 @@ export const ConfigCommand = cmd({
     yargs
       .command(DiffCommand)
       .command(DoctorCommand)
+      .command(EditCommand)
       .command(GetCommand)
       .command(SetCommand)
       .command(UnsetCommand)
