@@ -7,6 +7,8 @@ import * as path from "path"
 import { Effect, Schema, Semaphore } from "effect"
 import * as Tool from "./tool"
 import { LSP } from "@/lsp/lsp"
+import { LspGraph } from "@/lsp/graph"
+import { Config } from "@/config/config"
 import { createTwoFilesPatch, diffLines } from "diff"
 import DESCRIPTION from "./edit.txt"
 import { FileSystem } from "@opencode-ai/core/filesystem"
@@ -14,9 +16,12 @@ import { Watcher } from "@opencode-ai/core/filesystem/watcher"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Format } from "../format"
 import { InstanceState } from "@/effect/instance-state"
+import { Session } from "@/session/session"
+import { DryRun } from "@/dryrun"
 import { Snapshot } from "@/snapshot"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { FSUtil } from "@opencode-ai/core/fs-util"
+import { Protection } from "@/protection"
 import * as Bom from "@/util/bom"
 
 function normalizeLineEndings(text: string): string {
@@ -63,6 +68,8 @@ export const EditTool = Tool.define(
     const afs = yield* FSUtil.Service
     const format = yield* Format.Service
     const events = yield* EventV2Bridge.Service
+    const sessions = yield* Session.Service
+    const config = yield* Config.Service
 
     return {
       description: DESCRIPTION,
@@ -83,6 +90,19 @@ export const EditTool = Tool.define(
             : path.join(instance.directory, params.filePath)
           yield* assertExternalDirectoryEffect(ctx, filePath)
 
+          const cfg = yield* config.get().pipe(Effect.orDie)
+          const relative = path.relative(instance.worktree, filePath)
+          const guarded = Protection.match(relative, cfg.protected_paths)
+          if (guarded) {
+            throw new Error(
+              `The path "${relative}" is protected by config (protected_paths: "${guarded}") and cannot be modified.`,
+            )
+          }
+
+          const dry = DryRun.enabled(
+            (yield* sessions.get(ctx.sessionID).pipe(Effect.catch(() => Effect.succeed(undefined))))?.metadata,
+          )
+
           let diff = ""
           let contentOld = ""
           let contentNew = ""
@@ -100,6 +120,7 @@ export const EditTool = Tool.define(
                 contentOld = ""
                 contentNew = next.text
                 diff = trimDiff(createTwoFilesPatch(filePath, filePath, contentOld, contentNew))
+                if (dry) return
                 yield* ctx.ask({
                   permission: "edit",
                   patterns: [path.relative(instance.worktree, filePath)],
@@ -143,6 +164,7 @@ export const EditTool = Tool.define(
                   normalizeLineEndings(contentNew),
                 ),
               )
+              if (dry) return
               yield* ctx.ask({
                 permission: "edit",
                 patterns: [path.relative(instance.worktree, filePath)],
@@ -194,12 +216,27 @@ export const EditTool = Tool.define(
             },
           })
 
+          if (dry) {
+            return {
+              metadata: { diagnostics: {}, diff, filediff },
+              title: `${path.relative(instance.worktree, filePath)}`,
+              output: DryRun.describeWrite(path.relative(instance.worktree, filePath), diff),
+            }
+          }
+
           let output = "Edit applied successfully."
           yield* lsp.touchFile(filePath, "document")
           const diagnostics = yield* lsp.diagnostics()
           const normalizedFilePath = FSUtil.normalizePath(filePath)
           const block = LSP.Diagnostic.report(filePath, diagnostics[normalizedFilePath] ?? [])
           if (block) output += `\n\nLSP errors detected in this file, please fix:\n${block}`
+
+          // Cross-file symbol graph for the code under edit, so the model
+          // sees which files depend on the symbols it just touched.
+          if ((yield* config.get()).experimental?.symbol_graph === true) {
+            const graph = yield* LspGraph.build({ lsp, file: filePath, root: instance.worktree })
+            if (graph) output += `\n\n${graph}`
+          }
 
           return {
             metadata: {

@@ -23800,6 +23800,22 @@
           "permission": {
             "$ref": "#/components/schemas/PermissionConfig"
           },
+          "redact": {
+            "type": "boolean"
+          },
+          "guardrail": {
+            "type": "boolean"
+          },
+          "approval": {
+            "type": "boolean"
+          },
+          "tool_budget": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
           "tools": {
             "type": "object",
             "additionalProperties": {
@@ -23841,6 +23857,15 @@
               "prune": {
                 "type": "boolean"
               },
+              "pinned": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "preemptive": {
+                "type": "boolean"
+              },
               "tail_turns": {
                 "type": "integer",
                 "minimum": 0
@@ -23880,6 +23905,15 @@
               "mcp_timeout": {
                 "type": "integer",
                 "exclusiveMinimum": 0
+              },
+              "diff_context": {
+                "type": "boolean"
+              },
+              "symbol_graph": {
+                "type": "boolean"
+              },
+              "context_replay": {
+                "type": "boolean"
               },
               "policies": {
                 "type": "array",

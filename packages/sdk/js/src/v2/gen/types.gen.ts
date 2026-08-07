@@ -1987,6 +1987,12 @@ export type Config = {
   compat?: boolean | CompatConfig
   layout?: LayoutConfig
   permission?: PermissionConfig
+  redact?: boolean
+  guardrail?: boolean
+  approval?: boolean
+  tool_budget?: {
+    [key: string]: number
+  }
   tools?: {
     [key: string]: boolean
   }
@@ -2001,6 +2007,8 @@ export type Config = {
   compaction?: {
     auto?: boolean
     prune?: boolean
+    pinned?: Array<string>
+    preemptive?: boolean
     tail_turns?: number
     preserve_recent_tokens?: number
     reserved?: number
@@ -2012,6 +2020,9 @@ export type Config = {
     primary_tools?: Array<string>
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
+    diff_context?: boolean
+    symbol_graph?: boolean
+    context_replay?: boolean
     policies?: Array<ConfigV2ExperimentalPolicy>
   }
 }

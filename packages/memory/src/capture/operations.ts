@@ -3,8 +3,10 @@ import { MemoryIndexer } from "../recall/indexer"
 import { MemoryMarkdown } from "../storage/markdown"
 import { MemoryRedact } from "./redact"
 import { MemoryReject } from "./reject"
+import { MemoryOrigins } from "../storage/origins"
 import { MemorySchema } from "../schema"
 import { MemoryShared } from "../recall/shared"
+import { MemoryStamps } from "../storage/stamps"
 import { MemoryText } from "../text"
 import { MemoryTopics } from "../recall/topics"
 import { MemorySlug } from "../slug"
@@ -31,6 +33,8 @@ export namespace MemoryOperations {
     added: number
     removed: number
     skipped: Rejection[]
+    /** Inventory ids upserted by this apply, for provenance recording by callers that know the origin. */
+    ids: string[]
     index: MemoryIndexer.Result
   }
 
@@ -234,6 +238,8 @@ export namespace MemoryOperations {
     added: number
     removed: number
     count: number
+    upserts: string[]
+    dropped: string[]
   }
 
   // Pure: delete matching lines from the in-memory documents and drop them from the working inventory.
@@ -251,10 +257,15 @@ export namespace MemoryOperations {
       plan.touched.add(source)
       plan.removed += next.count
     }
-    for (const id of exact.ids) delete plan.inventory.items[id]
+    for (const id of exact.ids) {
+      delete plan.inventory.items[id]
+      plan.dropped.push(id)
+    }
     if (exact.fallback) {
       for (const [id, item] of Object.entries(plan.inventory.items)) {
-        if (exact.fallback === item.key) delete plan.inventory.items[id]
+        if (exact.fallback !== item.key) continue
+        delete plan.inventory.items[id]
+        plan.dropped.push(id)
       }
     }
     plan.count++
@@ -275,6 +286,9 @@ export namespace MemoryOperations {
     }
     const id = MemoryFiles.inventoryKey({ file: next.file, section: next.section, key: next.key })
     const prior = plan.inventory.items[id]
+    // Re-saving an unchanged fact still reconfirms it: its stamp refreshes and the fact is
+    // re-attributed to the writer confirming it, even though no line changed.
+    plan.upserts.push(id)
     if (!result.changed && prior) return
     plan.inventory.items[id] = entry({ item: next, prior, now })
     plan.added++
@@ -296,6 +310,8 @@ export namespace MemoryOperations {
       added: 0,
       removed: 0,
       count: 0,
+      upserts: [],
+      dropped: [],
     }
     for (const op of input.removes) planRemove(plan, op)
     for (const item of input.adds) planAdd(plan, item, input.now)
@@ -364,15 +380,20 @@ export namespace MemoryOperations {
       // Plan (pure): validate/normalize ops, then dedupe + edit documents + update inventory in memory.
       const prepared = prepare({ state, ops: input.ops, max: state.limits.maxLineChars })
       const removes = input.ops.filter((item): item is Remove => item.action === "remove")
-      const plan = planOps({ docs, inventory, removes, adds: prepared.adds, now: Date.now() })
+      const now = Date.now()
+      const plan = planOps({ docs, inventory, removes, adds: prepared.adds, now })
       // Commit (IO): write changed documents, then rebuild the index, persist state, and audit.
       await writeDocs({ root: input.root, plan })
+      await MemoryOrigins.drop(input.root, plan.dropped)
+      await MemoryStamps.drop(input.root, plan.dropped)
+      await MemoryStamps.record(input.root, { ids: plan.upserts, now })
       const index = await persist({ root: input.root, state, count: plan.count, removed: plan.removed })
       return {
         operationCount: plan.count,
         added: plan.added,
         removed: plan.removed,
         skipped: prepared.skipped,
+        ids: plan.upserts,
         index,
       } satisfies Result
     })
