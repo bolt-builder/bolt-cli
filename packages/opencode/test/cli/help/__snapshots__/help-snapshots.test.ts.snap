@@ -101,10 +101,16 @@ Options:
                                                                           [boolean] [default: false]
       --format            format: default (formatted) or json (raw JSON events)
                                           [string] [choices: "default", "json"] [default: "default"]
+      --json              emit a versioned JSON envelope on stdout:
+                          {"version":1,"ok":true,"result":...} on success,
+                          {"version":1,"ok":false,"error":{"name":...,"message":...}} on failure
+                                                                          [boolean] [default: false]
   -f, --file              file(s) to attach to message                                       [array]
       --title             title for the session (uses truncated prompt if no value provided)[string]
       --max-cost          abort the run once its cost in USD reaches this budget            [number]
       --max-tokens        abort the run once its total token usage reaches this budget      [number]
+      --output-schema     JSON Schema file the final answer must validate against (retries until it
+                          does, bounded)                                                    [string]
       --attach            attach to a running bolt server (e.g., http://localhost:4096)     [string]
   -p, --password          basic auth password (defaults to OPENCODE_SERVER_PASSWORD)        [string]
   -u, --username          basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
@@ -273,7 +279,9 @@ Options:
                                                                           [boolean] [default: false]
       --mdns-domain  custom domain name for mDNS service (default: opencode.local)
                                                                 [string] [default: "opencode.local"]
-      --cors         additional domains to allow for CORS                      [array] [default: []]"
+      --cors         additional domains to allow for CORS                      [array] [default: []]
+      --api          print the stable REST API surface as JSON, then keep serving
+                                                                          [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode web --help 1`] = `
@@ -313,7 +321,10 @@ Options:
       --pure        run without external plugins                                           [boolean]
       --profile     use a named config profile                                              [string]
       --verbose     use more verbose model output (includes metadata like costs)           [boolean]
-      --refresh     refresh the models cache from models.dev                               [boolean]"
+      --refresh     refresh the models cache from models.dev                               [boolean]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode stats --help 1`] = `
@@ -332,7 +343,10 @@ Options:
       --tools       number of tools to show (default: all)                                  [number]
       --models      show model statistics (default: hidden). Pass a number to show top N, otherwise
                     shows all
-      --project     filter by project (default: all projects, empty string: current project)[string]"
+      --project     filter by project (default: all projects, empty string: current project)[string]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode export --help 1`] = `
@@ -352,7 +366,10 @@ Options:
       --profile     use a named config profile                                              [string]
       --sanitize    redact sensitive transcript and file data                              [boolean]
       --html        write a self-contained HTML replay instead of JSON                     [boolean]
-      --out         output file for the HTML replay                [string] [default: "replay.html"]"
+      --out         output file for the HTML replay                [string] [default: "replay.html"]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode import --help 1`] = `
@@ -413,7 +430,7 @@ exports[`opencode CLI help-text snapshots every documented command emits stable 
 manage sessions
 
 Commands:
-  bolt session list                            list sessions
+  bolt session list                            list sessions                           [aliases: ls]
   bolt session delete <sessionID>              delete a session
   bolt session branch <sessionID> [messageID]  branch a session into a new one sharing its prefix
 
@@ -636,6 +653,15 @@ Options:
       --pure        run without external plugins                                           [boolean]
       --profile     use a named config profile                                              [string]
   -n, --max-count   limit to N most recent sessions                                         [number]
+      --since       only sessions updated after this date or relative duration (e.g. 24h, 7d)
+                                                                                            [string]
+      --project     search all projects, filtered by project name, worktree path, or id substring
+                                                                                            [string]
+      --failed      only sessions whose latest assistant message ended in an error
+                                                                          [boolean] [default: false]
+      --sort        sort order
+                      [string] [choices: "updated", "created", "title", "cost"] [default: "updated"]
+      --json        output as JSON (same as --format json)                [boolean] [default: false]
       --format      output format             [string] [choices: "table", "json"] [default: "table"]"
 `;
 
