@@ -14,6 +14,8 @@ import { UI } from "./cli/ui"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
+import { DaemonCommand } from "./cli/cmd/daemon"
+import { WarmCommand } from "./cli/cmd/warm"
 import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
@@ -22,6 +24,7 @@ import { MapCommand } from "./cli/cmd/map"
 import { ArchCommand } from "./cli/cmd/arch"
 import { MigrateCommand } from "./cli/cmd/migrate"
 import { DepsCommand } from "./cli/cmd/deps"
+import { DiffGateCommand } from "./cli/cmd/diff-gate"
 import { OwnersCommand } from "./cli/cmd/owners"
 import { HotspotsCommand } from "./cli/cmd/hotspots"
 import { PackagesCommand } from "./cli/cmd/packages"
@@ -70,12 +73,14 @@ import { GuardCommand } from "./cli/cmd/guard"
 import { MutateCommand } from "./cli/cmd/mutate"
 import { MuxCommand } from "./cli/cmd/mux"
 import { BisectCommand } from "./cli/cmd/bisect"
+import { BatchCommand } from "./cli/cmd/batch"
 import { WhyCommand } from "./cli/cmd/why"
 import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
-import { SessionCommand } from "./cli/cmd/session"
+import { SessionCommand, TagCommand } from "./cli/cmd/session"
 import { ResumeCommand } from "./cli/cmd/resume"
+import { GrepCommand } from "./cli/cmd/grep"
 import { SubmodulesCommand } from "./cli/cmd/submodules"
 import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
@@ -146,6 +151,8 @@ const cli = yargs(args)
   .command(UpgradeCommand)
   .command(UninstallCommand)
   .command(ServeCommand)
+  .command(DaemonCommand)
+  .command(WarmCommand)
   .command(WebCommand)
   .command(ModelsCommand)
   .command(StatsCommand)
@@ -155,6 +162,7 @@ const cli = yargs(args)
   .command(ArchCommand)
   .command(MigrateCommand)
   .command(DepsCommand)
+  .command(DiffGateCommand)
   .command(OwnersCommand)
   .command(HotspotsCommand)
   .command(PackagesCommand)
@@ -197,12 +205,15 @@ const cli = yargs(args)
   .command(MutateCommand)
   .command(MuxCommand)
   .command(BisectCommand)
+  .command(BatchCommand)
   .command(WhyCommand)
   .command(BenchCommand)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
   .command(ResumeCommand)
+  .command(GrepCommand)
+  .command(TagCommand)
   .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)

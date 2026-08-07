@@ -1019,6 +1019,23 @@ it.effect("merges plugin arrays from global and local configs", () =>
   ),
 )
 
+it.effect("BOLT_ env vars override global and project config", () =>
+  withConfigTree(
+    {
+      global: { model: "global/model" },
+      project: { model: "project/model", snapshot: true },
+    },
+    withProcessEnvs(
+      { BOLT_MODEL: "env/model", BOLT_SNAPSHOT: "false" },
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("env/model")
+        expect(config.snapshot).toBe(false)
+      }),
+    ),
+  ),
+)
+
 it.effect("global config remains global when project config is disabled", () =>
   withConfigTree(
     {

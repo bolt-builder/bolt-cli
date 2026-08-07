@@ -19,7 +19,7 @@ import { pathToFileURL } from "url"
 import { open } from "node:fs/promises"
 import { Effect } from "effect"
 import { UI } from "../ui"
-import { effectCmd } from "../effect-cmd"
+import { effectCmd, fail } from "../effect-cmd"
 import { Envelope } from "../envelope"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
@@ -130,9 +130,9 @@ async function toolError(part: ToolPart) {
 export const RunCommand = effectCmd({
   command: "run [message..]",
   describe: "run bolt with a message",
-  // --attach connects to a remote server (no local instance needed); the
-  // default path runs an in-process server and needs the project instance.
-  instance: (args) => !args.attach,
+  // --attach and --host connect to a remote server (no local instance needed);
+  // the default path runs an in-process server and needs the project instance.
+  instance: (args) => !args.attach && !args.host,
   // For --dir without --attach, load instance for the resolved target dir.
   // The handler also chdirs (preserving the legacy order: chdir → file resolution).
   directory: (args) => (args.dir && !args.attach ? path.resolve(process.cwd(), args.dir) : process.cwd()),
@@ -221,6 +221,11 @@ export const RunCommand = effectCmd({
       .option("attach", {
         type: "string",
         describe: "attach to a running bolt server (e.g., http://localhost:4096)",
+      })
+      .option("host", {
+        type: "string",
+        describe:
+          "run the agent on a remote machine over ssh (e.g., ssh://dev-box); requires bolt preinstalled on the remote",
       })
       .option("password", {
         alias: ["p"],
@@ -321,6 +326,23 @@ export const RunCommand = effectCmd({
       UI.println(`Started background job ${job.id} (pid ${job.pid}).`)
       UI.println(`Tail it with: bolt jobs tail ${job.id} --follow`)
       return
+    }
+    if (args.host) {
+      if (args.attach) {
+        UI.error("--host cannot be used with --attach")
+        process.exit(1)
+      }
+      const host = args.host
+      const { Ssh } = yield* Effect.promise(() => import("../ssh"))
+      const { errorMessage } = yield* Effect.promise(() => import("@/util/error"))
+      const remote = yield* Effect.tryPromise({
+        try: () => Ssh.connect({ host }),
+        catch: (error) => errorMessage(error),
+      }).pipe(Effect.catch((message) => fail(message)))
+      // Reuse the whole --attach path: SDK, session, and streaming all work
+      // through the forwarded local port.
+      args.attach = remote.url
+      UI.println(UI.Style.TEXT_DIM + `Running on ${host} via ${remote.url}` + UI.Style.TEXT_NORMAL)
     }
     const { Agent } = yield* Effect.promise(() => import("@/agent/agent"))
     const { RuntimeFlags } = yield* Effect.promise(() => import("@/effect/runtime-flags"))
@@ -1218,6 +1240,21 @@ export const RunCommand = effectCmd({
         return await execute(sdk)
       }
 
+      // Route one-shot prompts through a running `bolt daemon` so they reuse
+      // its warm server instead of booting one in-process. A stale or
+      // unreachable record falls back to the in-process server below.
+      const { Daemon } = await import("../daemon")
+      const daemon = await Daemon.detect()
+      if (daemon) {
+        const { ServerAuth } = await import("@/server/auth")
+        const sdk = createOpencodeClient({
+          baseUrl: daemon.url,
+          headers: ServerAuth.headers(),
+          directory,
+        })
+        return await execute(sdk)
+      }
+
       const sdk = createOpencodeClient({
         baseUrl: "http://opencode.internal",
         fetch: fetchFn,
@@ -1273,6 +1310,7 @@ export async function runMini(input: MiniCommandInput) {
     file: undefined,
     title: undefined,
     attach: input.attach,
+    host: undefined,
     password: input.password,
     username: input.username,
     dir: input.directory,
