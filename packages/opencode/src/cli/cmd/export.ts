@@ -3,6 +3,7 @@ import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import * as prompts from "@clack/prompts"
 import { EOL } from "os"
 import { Effect } from "effect"
@@ -253,9 +254,15 @@ export const ExportCommand = effectCmd({
         type: "boolean",
         default: false,
       })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
       .conflicts("html", ["md", "jsonl"])
       .conflicts("md", "jsonl")
-      .conflicts("json", ["html", "md", "jsonl"]),
+      .conflicts("json", ["html", "md", "jsonl"])
+      .conflicts("porcelain", ["html", "md", "jsonl", "json"]),
   handler: Effect.fn("Cli.export")(function* (args) {
     return yield* run(args)
   }),
@@ -269,6 +276,7 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   jsonl?: boolean
   out: string
   json?: boolean
+  porcelain?: boolean
 }) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
   const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
@@ -345,6 +353,20 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
 
   if (args.json) {
     Envelope.print(payload)
+    return
+  }
+
+  if (args.porcelain) {
+    // One record per line, kind first: `session id title` then `message id role text`.
+    // Field order is frozen; see the porcelain contract in ../porcelain.ts.
+    Porcelain.print("session", payload.info.id, payload.info.title)
+    for (const msg of payload.messages) {
+      const text = msg.parts
+        .filter((part): part is SessionV1.TextPart => part.type === "text")
+        .map((part) => part.text)
+        .join("\n")
+      Porcelain.print("message", msg.info.id, msg.info.role, text)
+    }
     return
   }
   process.stdout.write(JSON.stringify(payload, null, 2))
