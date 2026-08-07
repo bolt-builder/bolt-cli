@@ -5,8 +5,9 @@ Use this when the user explicitly asks to remember, save, correct, update, or fo
 Actions:
 1. **remember** - Save a durable project fact, decision, command, workflow note, or constraint.
 2. **correct** - Save a correction when the user says prior memory is wrong, stale, or should be interpreted differently.
-3. **forget** - Remove memory by exact key, id, or normalized query text.
-4. **skip** - Decline a requested save when the content is outside project-memory scope.
+3. **avoid** - Save an approach that did NOT work so future sessions stop repeating it. Pass the failed approach as text and optionally what happened as outcome.
+4. **forget** - Remove memory by exact key, id, or normalized query text.
+5. **skip** - Decline a requested save when the content is outside project-memory scope.
 
 Usage notes:
   - Memory describes the project, never the user. User-level memory is not supported.
