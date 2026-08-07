@@ -22,8 +22,12 @@ import { testEffect } from "../lib/effect"
 import { Tool } from "@/tool/tool"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { InstanceStore } from "@/project/instance-store"
+import { Approval } from "@/approval"
 
 const shellLayer = Layer.mergeAll(
+  Layer.mock(Approval.Service, {
+    review: () => Effect.succeed({ approved: true, feedback: "" }),
+  }),
   LayerNode.compile(
     LayerNode.group([
       CrossSpawnSpawner.node,
