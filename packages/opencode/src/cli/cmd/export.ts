@@ -219,55 +219,6 @@ function sanitize(data: { info: Session.Info; messages: SessionV1.WithParts[] })
   }
 }
 
-export const ExportCommand = effectCmd({
-  command: "export [sessionID]",
-  describe: "export session data as JSON, markdown, JSONL, or an HTML replay",
-  builder: (yargs) =>
-    yargs
-      .positional("sessionID", {
-        describe: "session id to export",
-        type: "string",
-      })
-      .option("sanitize", {
-        describe: "redact sensitive transcript and file data",
-        type: "boolean",
-      })
-      .option("html", {
-        describe: "write a self-contained HTML replay instead of JSON",
-        type: "boolean",
-      })
-      .option("md", {
-        describe: "print the transcript as clean markdown",
-        type: "boolean",
-      })
-      .option("jsonl", {
-        describe: "print one JSON message per line for piping",
-        type: "boolean",
-      })
-      .option("out", {
-        describe: "output file for the HTML replay",
-        type: "string",
-        default: "replay.html",
-      })
-      .option("json", {
-        describe: Envelope.DESCRIBE,
-        type: "boolean",
-        default: false,
-      })
-      .option("porcelain", {
-        describe: Porcelain.DESCRIBE,
-        type: "boolean",
-        default: false,
-      })
-      .conflicts("html", ["md", "jsonl"])
-      .conflicts("md", "jsonl")
-      .conflicts("json", ["html", "md", "jsonl"])
-      .conflicts("porcelain", ["html", "md", "jsonl", "json"]),
-  handler: Effect.fn("Cli.export")(function* (args) {
-    return yield* run(args)
-  }),
-})
-
 const run = Effect.fn("Cli.export.body")(function* (args: {
   sessionID?: string
   sanitize?: boolean
@@ -371,4 +322,53 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   }
   process.stdout.write(JSON.stringify(payload, null, 2))
   process.stdout.write(EOL)
+})
+
+export const ExportCommand = effectCmd({
+  command: "export [sessionID]",
+  describe: "export session data as JSON, markdown, JSONL, or an HTML replay",
+  builder: (yargs) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session id to export",
+        type: "string",
+      })
+      .option("sanitize", {
+        describe: "redact sensitive transcript and file data",
+        type: "boolean",
+      })
+      .option("html", {
+        describe: "write a self-contained HTML replay instead of JSON",
+        type: "boolean",
+      })
+      .option("md", {
+        describe: "print the transcript as clean markdown",
+        type: "boolean",
+      })
+      .option("jsonl", {
+        describe: "print one JSON message per line for piping",
+        type: "boolean",
+      })
+      .option("out", {
+        describe: "output file for the HTML replay",
+        type: "string",
+        default: "replay.html",
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("html", ["md", "jsonl"])
+      .conflicts("md", "jsonl")
+      .conflicts("json", ["html", "md", "jsonl"])
+      .conflicts("porcelain", ["html", "md", "jsonl", "json"]),
+  handler: Effect.fn("Cli.export")(function* (args) {
+    return yield* run(args)
+  }),
 })
