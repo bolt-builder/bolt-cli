@@ -4,6 +4,7 @@ import { ModelsDev } from "@opencode-ai/core/models-dev"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 
 export const ModelsCommand = effectCmd({
@@ -28,7 +29,14 @@ export const ModelsCommand = effectCmd({
         describe: Envelope.DESCRIBE,
         type: "boolean",
         default: false,
-      }),
+      })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("porcelain", "verbose")
+      .conflicts("porcelain", "json"),
   handler: Effect.fn("Cli.models")(function* (args) {
     const { Provider } = yield* Effect.promise(() => import("@/provider/provider"))
     if (args.refresh) {
@@ -48,6 +56,10 @@ export const ModelsCommand = effectCmd({
 
     const print = (providerID: ProviderV2.ID, verbose?: boolean) => {
       for (const entry of models(providerID)) {
+        if (args.porcelain) {
+          Porcelain.print("model", entry.id)
+          continue
+        }
         process.stdout.write(entry.id)
         process.stdout.write(EOL)
         if (verbose) {
