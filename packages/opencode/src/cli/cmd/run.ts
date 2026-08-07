@@ -26,6 +26,7 @@ import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@openc
 import { FormatError, FormatUnknownError } from "../error"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
 import { Budget } from "./run/budget"
+import { OutputSchema } from "./run/schema"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -206,6 +207,10 @@ export const RunCommand = effectCmd({
       .option("max-tokens", {
         type: "number",
         describe: "abort the run once its total token usage reaches this budget",
+      })
+      .option("output-schema", {
+        type: "string",
+        describe: "JSON Schema file the final answer must validate against (retries until it does, bounded)",
       })
       .option("attach", {
         type: "string",
@@ -506,6 +511,18 @@ export const RunCommand = effectCmd({
       if (interactive && (limits.cost !== undefined || limits.tokens !== undefined)) {
         die("--mini cannot be used with --max-cost or --max-tokens")
       }
+
+      const schema = await (async () => {
+        if (!args["output-schema"]) return undefined
+        if (interactive) die("--output-schema cannot be used with --mini")
+        if (args.command) die("--output-schema cannot be used with --command")
+        if (args["best-of"]) die("--output-schema cannot be used with --best-of")
+        const file = Bun.file(path.resolve(root, args["output-schema"]))
+        if (!(await file.exists())) die(`Schema file not found: ${args["output-schema"]}`)
+        const parsed = OutputSchema.payload(await file.text())
+        if (!parsed) die(`Schema file is not valid JSON: ${args["output-schema"]}`)
+        return parsed!.value
+      })()
 
       if (args["auto-agent"]) {
         if (args.agent) die("--auto-agent cannot be used with --agent")
@@ -1030,7 +1047,10 @@ export const RunCommand = effectCmd({
             agent,
             model: resolvedModel,
             variant: args.variant,
-            parts: [...files, { type: "text", text: message }],
+            parts: [
+              ...files,
+              { type: "text", text: schema ? `${message}\n\n${OutputSchema.instructions(schema)}` : message },
+            ],
           })
           if (result.error) {
             if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
@@ -1038,7 +1058,57 @@ export const RunCommand = effectCmd({
             return
           }
           await finish()
-          return
+          if (schema === undefined) return
+
+          // Validate the final answer against the schema, re-prompting with the
+          // validation errors until it passes or the attempt budget runs out.
+          const answer = (parts: { type: string; text?: string }[]) =>
+            parts.findLast((part) => part.type === "text")?.text ?? ""
+          let text = answer(result.data?.parts ?? [])
+          for (let attempt = 1; ; attempt++) {
+            const value = OutputSchema.payload(text)
+            const errors = value ? OutputSchema.validate(schema, value.value) : ["$: the answer is not valid JSON"]
+            if (errors.length === 0) {
+              emit("schema_valid", { attempt, value: value!.value })
+              return
+            }
+            if (attempt >= OutputSchema.ATTEMPTS) {
+              process.exitCode = 1
+              if (emit("schema_invalid", { attempt, errors })) return
+              UI.error(`The answer failed schema validation after ${attempt} attempts`)
+              for (const error of errors) UI.error(error)
+              return
+            }
+            if (!emit("schema_retry", { attempt, errors })) {
+              UI.println(
+                UI.Style.TEXT_WARNING_BOLD + "!",
+                UI.Style.TEXT_NORMAL +
+                  `answer failed schema validation (attempt ${attempt}/${OutputSchema.ATTEMPTS}); retrying`,
+              )
+            }
+            const retry = await client.session.prompt({
+              sessionID,
+              agent,
+              model: resolvedModel,
+              variant: args.variant,
+              parts: [{ type: "text", text: OutputSchema.feedback(errors) }],
+            })
+            if (retry.error) {
+              if (!emit("error", { error: retry.error })) UI.error(formatRunError(retry.error))
+              process.exitCode = 1
+              return
+            }
+            text = answer(retry.data?.parts ?? [])
+            // The event loop ended at the first idle, so print retry answers here.
+            if (text.trim() && args.format !== "json") {
+              if (process.stdout.isTTY) {
+                UI.empty()
+                UI.println(text.trim())
+                UI.empty()
+              }
+              if (!process.stdout.isTTY) process.stdout.write(text.trim() + EOL)
+            }
+          }
         }
 
         const { runInteractiveMode } = await import("./run/runtime")
@@ -1150,6 +1220,8 @@ export async function runMini(input: MiniCommandInput) {
     maxCost: undefined,
     "max-tokens": undefined,
     maxTokens: undefined,
+    "output-schema": undefined,
+    outputSchema: undefined,
     agent: input.agent,
     "auto-agent": false,
     autoAgent: false,
