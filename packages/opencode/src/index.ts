@@ -70,6 +70,7 @@ import { GuardCommand } from "./cli/cmd/guard"
 import { MutateCommand } from "./cli/cmd/mutate"
 import { MuxCommand } from "./cli/cmd/mux"
 import { BisectCommand } from "./cli/cmd/bisect"
+import { BatchCommand } from "./cli/cmd/batch"
 import { WhyCommand } from "./cli/cmd/why"
 import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
@@ -197,6 +198,7 @@ const cli = yargs(args)
   .command(MutateCommand)
   .command(MuxCommand)
   .command(BisectCommand)
+  .command(BatchCommand)
   .command(WhyCommand)
   .command(BenchCommand)
   .command(FigmaCommand)
