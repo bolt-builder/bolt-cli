@@ -1990,6 +1990,9 @@ export type Config = {
   redact?: boolean
   guardrail?: boolean
   approval?: boolean
+  tool_budget?: {
+    [key: string]: number
+  }
   tools?: {
     [key: string]: boolean
   }

@@ -23809,6 +23809,13 @@
           "approval": {
             "type": "boolean"
           },
+          "tool_budget": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            }
+          },
           "tools": {
             "type": "object",
             "additionalProperties": {
