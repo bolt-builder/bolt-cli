@@ -1,6 +1,7 @@
 import { Effect } from "effect"
 import { UI } from "../ui"
 import { Envelope } from "../envelope"
+import { ExitCode } from "../exit"
 import { effectCmd, fail } from "../effect-cmd"
 
 const LIMIT = 120_000
@@ -59,7 +60,10 @@ export const ReviewCommand = effectCmd({
         describe: Envelope.DESCRIBE,
         default: false,
       })
-      .conflicts("staged", "branch"),
+      .conflicts("staged", "branch")
+      .epilogue(
+        `exit codes: ${ExitCode.OK} pass, ${ExitCode.VERDICT} fail verdict, ${ExitCode.UNKNOWN} no verdict determined`,
+      ),
   handler: Effect.fn("Cli.review")(function* (args) {
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const { Git } = yield* Effect.promise(() => import("@/git"))
@@ -156,8 +160,8 @@ export const ReviewCommand = effectCmd({
         confidence: args.confidence ? (confidence(text) ?? null) : null,
         text,
       })
-      if (outcome === "fail") process.exitCode = 1
-      if (!outcome) process.exitCode = 2
+      if (outcome === "fail") process.exitCode = ExitCode.VERDICT
+      if (!outcome) process.exitCode = ExitCode.UNKNOWN
       return
     }
 
@@ -175,10 +179,10 @@ export const ReviewCommand = effectCmd({
 
     if (outcome === "pass") return
     if (outcome === "fail") {
-      process.exitCode = 1
+      process.exitCode = ExitCode.VERDICT
       return
     }
     UI.println("Could not determine a verdict from the review.")
-    process.exitCode = 2
+    process.exitCode = ExitCode.UNKNOWN
   }),
 })
