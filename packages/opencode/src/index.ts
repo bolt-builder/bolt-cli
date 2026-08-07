@@ -88,9 +88,97 @@ import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
+import { PluginCli } from "./plugin/cli"
 import { Heap } from "./cli/heap"
 
 const args = hideBin(process.argv)
+
+const commands = [
+  AcpCommand,
+  McpCommand,
+  TuiThreadCommand,
+  AttachCommand,
+  RunCommand,
+  AskCommand,
+  ArenaCommand,
+  GenerateCommand,
+  DebugCommand,
+  ConfigCommand,
+  ConsoleCommand,
+  ProvidersCommand,
+  AgentCommand,
+  UpgradeCommand,
+  UninstallCommand,
+  ServeCommand,
+  DaemonCommand,
+  WarmCommand,
+  WebCommand,
+  ModelsCommand,
+  StatsCommand,
+  EvalCommand,
+  LogsCommand,
+  MapCommand,
+  ArchCommand,
+  MigrateCommand,
+  DepsCommand,
+  DiffGateCommand,
+  OwnersCommand,
+  HotspotsCommand,
+  PackagesCommand,
+  ApiCommand,
+  IndexCommand,
+  DeadCommand,
+  DupesCommand,
+  ExecCommand,
+  ExportCommand,
+  ImportCommand,
+  GithubCommand,
+  PrCommand,
+  StackCommand,
+  CommitCommand,
+  CommitlintCommand,
+  PortCommand,
+  SplitCommand,
+  ReviewCommand,
+  BlastCommand,
+  UndoCommand,
+  AnalyzeCommand,
+  CheckpointCommand,
+  RebaseCommand,
+  InvariantsCommand,
+  ResolveCommand,
+  CodemodCommand,
+  AssertsCommand,
+  PipelineCommand,
+  RefactorCommand,
+  TightenCommand,
+  LearnCommand,
+  DriftCommand,
+  MemoryCommand,
+  WatchCommand,
+  JobsCommand,
+  CronCommand,
+  FlakyCommand,
+  ProptestCommand,
+  GuardCommand,
+  MutateCommand,
+  MuxCommand,
+  BisectCommand,
+  BatchCommand,
+  WhyCommand,
+  BenchCommand,
+  FigmaCommand,
+  PairCommand,
+  SessionCommand,
+  ResumeCommand,
+  GrepCommand,
+  TagCommand,
+  ForkCommand,
+  SubmodulesCommand,
+  WorktreeCommand,
+  PluginCommand,
+  DbCommand,
+]
 
 function show(out: string) {
   const text = out.trimStart()
@@ -156,90 +244,6 @@ const cli = yargs(args)
   })
   .usage("")
   .completion("completion", "generate shell completion script")
-  .command(AcpCommand)
-  .command(McpCommand)
-  .command(TuiThreadCommand)
-  .command(AttachCommand)
-  .command(RunCommand)
-  .command(AskCommand)
-  .command(ArenaCommand)
-  .command(GenerateCommand)
-  .command(DebugCommand)
-  .command(ConfigCommand)
-  .command(ConsoleCommand)
-  .command(ProvidersCommand)
-  .command(AgentCommand)
-  .command(UpgradeCommand)
-  .command(UninstallCommand)
-  .command(ServeCommand)
-  .command(DaemonCommand)
-  .command(WarmCommand)
-  .command(WebCommand)
-  .command(ModelsCommand)
-  .command(StatsCommand)
-  .command(EvalCommand)
-  .command(LogsCommand)
-  .command(MapCommand)
-  .command(ArchCommand)
-  .command(MigrateCommand)
-  .command(DepsCommand)
-  .command(DiffGateCommand)
-  .command(OwnersCommand)
-  .command(HotspotsCommand)
-  .command(PackagesCommand)
-  .command(ApiCommand)
-  .command(IndexCommand)
-  .command(DeadCommand)
-  .command(DupesCommand)
-  .command(ExecCommand)
-  .command(ExportCommand)
-  .command(ImportCommand)
-  .command(GithubCommand)
-  .command(PrCommand)
-  .command(StackCommand)
-  .command(CommitCommand)
-  .command(CommitlintCommand)
-  .command(PortCommand)
-  .command(SplitCommand)
-  .command(ReviewCommand)
-  .command(BlastCommand)
-  .command(UndoCommand)
-  .command(AnalyzeCommand)
-  .command(CheckpointCommand)
-  .command(RebaseCommand)
-  .command(InvariantsCommand)
-  .command(ResolveCommand)
-  .command(CodemodCommand)
-  .command(AssertsCommand)
-  .command(PipelineCommand)
-  .command(RefactorCommand)
-  .command(TightenCommand)
-  .command(LearnCommand)
-  .command(DriftCommand)
-  .command(MemoryCommand)
-  .command(WatchCommand)
-  .command(JobsCommand)
-  .command(CronCommand)
-  .command(FlakyCommand)
-  .command(ProptestCommand)
-  .command(GuardCommand)
-  .command(MutateCommand)
-  .command(MuxCommand)
-  .command(BisectCommand)
-  .command(BatchCommand)
-  .command(WhyCommand)
-  .command(BenchCommand)
-  .command(FigmaCommand)
-  .command(PairCommand)
-  .command(SessionCommand)
-  .command(ResumeCommand)
-  .command(GrepCommand)
-  .command(TagCommand)
-  .command(ForkCommand)
-  .command(SubmodulesCommand)
-  .command(WorktreeCommand)
-  .command(PluginCommand)
-  .command(DbCommand)
   .fail((msg, err) => {
     if (err) throw err
     if (msg) process.stderr.write(msg + EOL)
@@ -254,7 +258,19 @@ const cli = yargs(args)
   })
   .strict()
 
+for (const command of commands) cli.command(command as never)
+
 try {
+  // Plugin-defined subcommands: dispatch unknown top-level commands to plugin
+  // `cli` registrations before yargs parses (the default `$0 [project]`
+  // command would otherwise treat the token as a project path).
+  const builtin = PluginCli.known(commands)
+  builtin.add("completion")
+  const name = PluginCli.candidate(args, builtin)
+  if (name) {
+    const handled = await PluginCli.dispatch({ name, args: args.slice(1), directory: process.cwd() })
+    if (handled) process.exit(0)
+  }
   if (args.includes("-h") || args.includes("--help")) {
     await cli.parse(args, (err: Error | undefined, _argv: unknown, out: string) => {
       if (err) throw err
