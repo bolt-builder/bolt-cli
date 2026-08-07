@@ -47,8 +47,97 @@ export const SessionCommand = cmd({
   aliases: ["sessions"],
   describe: "manage sessions",
   builder: (yargs: Argv) =>
-    yargs.command(SessionListCommand).command(SessionDeleteCommand).command(SessionBranchCommand).demandCommand(),
+    yargs
+      .command(SessionListCommand)
+      .command(SessionDeleteCommand)
+      .command(SessionBranchCommand)
+      .command(SessionTagCommand)
+      .demandCommand(),
   async handler() {},
+})
+
+// Reads the tag list from session metadata, tolerating foreign shapes.
+export function tags(metadata: Session.Info["metadata"]): string[] {
+  const value = metadata?.["tags"]
+  if (!Array.isArray(value)) return []
+  return value.filter((item): item is string => typeof item === "string")
+}
+
+// Adds or removes tags, deduplicating while preserving order.
+export function toggle(current: string[], input: string[], remove: boolean): string[] {
+  if (remove) return current.filter((tag) => !input.includes(tag))
+  return [...new Set([...current, ...input])]
+}
+
+const tagArgs = <T>(yargs: Argv<T>) =>
+  yargs
+    .positional("sessionID", {
+      describe: "session id to tag",
+      type: "string",
+      demandOption: true,
+    })
+    .positional("tags", {
+      describe: "tags to add; omit to list the session's tags",
+      type: "string",
+      array: true,
+      default: [] as string[],
+    })
+    .option("remove", {
+      describe: "remove the given tags instead of adding them",
+      type: "boolean",
+      default: false,
+    })
+
+const tagHandler = Effect.fn("Cli.session.tag")(function* (args: {
+  sessionID: string
+  tags: string[]
+  remove: boolean
+}) {
+  const svc = yield* Session.Service
+  const sessionID = SessionID.make(args.sessionID)
+  const session = yield* svc
+    .get(sessionID)
+    .pipe(Effect.catchIf(NotFoundError.isInstance, () => fail(`Session not found: ${args.sessionID}`)))
+
+  const input = args.tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0)
+  const current = tags(session.metadata)
+
+  if (input.length === 0) {
+    if (args.remove) return yield* fail("Pass at least one tag to remove")
+    if (current.length === 0) {
+      UI.println("No tags")
+      return
+    }
+    for (const tag of current) UI.println(tag)
+    return
+  }
+
+  const updated = toggle(current, input, args.remove)
+  const metadata = { ...session.metadata }
+  if (updated.length > 0) metadata["tags"] = updated
+  if (updated.length === 0) delete metadata["tags"]
+  yield* svc.setMetadata({ sessionID, metadata })
+  UI.println(
+    UI.Style.TEXT_SUCCESS_BOLD +
+      `Tags for ${sessionID}: ` +
+      UI.Style.TEXT_NORMAL +
+      (updated.length > 0 ? updated.join(", ") : "(none)"),
+  )
+})
+
+export const SessionTagCommand = effectCmd({
+  command: "tag <sessionID> [tags..]",
+  describe: "add, remove, or list session tags",
+  builder: tagArgs,
+  handler: tagHandler,
+})
+
+// Top-level `bolt tag <id> billing-bug` alias for the session subcommand.
+export const TagCommand = effectCmd({
+  command: "tag <sessionID> [tags..]",
+  describe: "tag a session (alias of session tag)",
+  builder: tagArgs,
+  handler: tagHandler,
 })
 
 export const SessionBranchCommand = effectCmd({
@@ -154,6 +243,10 @@ export const SessionListCommand = effectCmd({
         type: "boolean",
         default: false,
       })
+      .option("tag", {
+        describe: "only sessions carrying this tag",
+        type: "string",
+      })
       .option("format", {
         describe: "output format",
         type: "string",
@@ -192,7 +285,8 @@ export const SessionListCommand = effectCmd({
       { concurrency: 10 },
     ).pipe(Effect.map((items) => items.filter((item) => item !== undefined)))
 
-    const sessions = order(failed, args.sort)
+    const tagged = args.tag ? failed.filter((session) => tags(session.metadata).includes(args.tag!)) : failed
+    const sessions = order(tagged, args.sort)
 
     if (sessions.length === 0) {
       UI.println(
@@ -258,6 +352,7 @@ function formatSessionJSON(sessions: Session.Info[]): string {
     created: session.time.created,
     projectId: session.projectID,
     directory: session.directory,
+    tags: tags(session.metadata),
   }))
   return JSON.stringify(jsonData, null, 2)
 }

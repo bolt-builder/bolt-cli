@@ -78,7 +78,7 @@ import { WhyCommand } from "./cli/cmd/why"
 import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
-import { SessionCommand } from "./cli/cmd/session"
+import { SessionCommand, TagCommand } from "./cli/cmd/session"
 import { ResumeCommand } from "./cli/cmd/resume"
 import { GrepCommand } from "./cli/cmd/grep"
 import { SubmodulesCommand } from "./cli/cmd/submodules"
@@ -213,6 +213,7 @@ const cli = yargs(args)
   .command(SessionCommand)
   .command(ResumeCommand)
   .command(GrepCommand)
+  .command(TagCommand)
   .command(SubmodulesCommand)
   .command(WorktreeCommand)
   .command(PluginCommand)
