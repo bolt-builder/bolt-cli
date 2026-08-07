@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { compare, render, stats } from "../../src/cli/cmd/bench"
+import { compare, normalize, render, stats } from "../../src/cli/cmd/bench"
 
 describe("stats", () => {
   test("summarizes a single sample", () => {
@@ -36,6 +36,25 @@ describe("compare", () => {
 
   test("reports the head to base ratio", () => {
     expect(compare(100, 150, 10).ratio).toBe(1.5)
+  })
+})
+
+describe("normalize", () => {
+  test("rejects non-finite runs and warmup", () => {
+    expect(normalize({ runs: Infinity, warmup: 1, threshold: 10 })).toBeTypeOf("string")
+    expect(normalize({ runs: 5, warmup: Infinity, threshold: 10 })).toBeTypeOf("string")
+    expect(normalize({ runs: Number.NaN, warmup: 1, threshold: 10 })).toBeTypeOf("string")
+  })
+
+  test("rejects negative and non-finite thresholds", () => {
+    expect(normalize({ runs: 5, warmup: 1, threshold: -1 })).toBeTypeOf("string")
+    expect(normalize({ runs: 5, warmup: 1, threshold: Infinity })).toBeTypeOf("string")
+    expect(normalize({ runs: 5, warmup: 1, threshold: Number.NaN })).toBeTypeOf("string")
+  })
+
+  test("floors fractional values and clamps to minimums", () => {
+    expect(normalize({ runs: 3.7, warmup: 1.2, threshold: 10 })).toEqual({ runs: 3, warmup: 1, threshold: 10 })
+    expect(normalize({ runs: 0, warmup: -2, threshold: 0 })).toEqual({ runs: 1, warmup: 0, threshold: 0 })
   })
 })
 

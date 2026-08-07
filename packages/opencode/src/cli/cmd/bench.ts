@@ -1,6 +1,6 @@
 import os from "node:os"
 import path from "node:path"
-import { Effect } from "effect"
+import { Effect, Exit } from "effect"
 import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
 
@@ -22,6 +22,19 @@ export function compare(base: number, head: number, threshold: number) {
   if (ratio > 1 + threshold / 100) return { ratio, verdict: "regression" as const }
   if (ratio < 1 - threshold / 100) return { ratio, verdict: "improvement" as const }
   return { ratio, verdict: "neutral" as const }
+}
+
+/** Validate and normalize the numeric bench options. Returns an error message string for invalid input. */
+export function normalize(options: { runs: number; warmup: number; threshold: number }) {
+  if (!Number.isFinite(options.runs) || !Number.isFinite(options.warmup))
+    return "--runs and --warmup must be finite numbers."
+  if (!Number.isFinite(options.threshold) || options.threshold < 0)
+    return "--threshold must be a finite, non-negative percentage."
+  return {
+    runs: Math.max(1, Math.floor(options.runs)),
+    warmup: Math.max(0, Math.floor(options.warmup)),
+    threshold: options.threshold,
+  }
 }
 
 /** Render a stats line like "mean 124.3ms (stddev 3.1ms, min 120.9ms, max 129.0ms)". */
@@ -73,8 +86,10 @@ export const BenchCommand = effectCmd({
     const git = yield* Git.Service
     const cwd = ctx.worktree
     const command = args.command
-    const runs = Math.max(1, Math.floor(args.runs))
-    const warmup = Math.max(0, Math.floor(args.warmup))
+    const options = normalize(args)
+    if (typeof options === "string") return yield* fail(options)
+    const runs = options.runs
+    const warmup = options.warmup
 
     const base = yield* Effect.gen(function* () {
       if (args.base) return args.base
@@ -121,7 +136,11 @@ export const BenchCommand = effectCmd({
       return { before, after }
     }).pipe(
       Effect.ensuring(
-        git.run(["worktree", "remove", "--force", worktree], { cwd }).pipe(Effect.catch(() => Effect.void)),
+        Effect.gen(function* () {
+          const removed = yield* git.run(["worktree", "remove", "--force", worktree], { cwd }).pipe(Effect.exit)
+          if (Exit.isSuccess(removed) && removed.value.exitCode === 0) return
+          UI.error(`Failed to remove the temporary worktree. Run "git worktree remove --force ${worktree}" to clean up.`)
+        }),
       ),
     )
 
