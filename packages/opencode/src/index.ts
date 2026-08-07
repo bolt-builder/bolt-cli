@@ -30,6 +30,7 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { CommitCommand } from "./cli/cmd/commit"
 import { ReviewCommand } from "./cli/cmd/review"
+import { ResolveCommand } from "./cli/cmd/resolve"
 import { CodemodCommand } from "./cli/cmd/codemod"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
@@ -122,6 +123,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(CommitCommand)
   .command(ReviewCommand)
+  .command(ResolveCommand)
   .command(CodemodCommand)
   .command(PipelineCommand)
   .command(RefactorCommand)
