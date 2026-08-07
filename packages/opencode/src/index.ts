@@ -33,6 +33,7 @@ import { ReviewCommand } from "./cli/cmd/review"
 import { CodemodCommand } from "./cli/cmd/codemod"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
+import { TightenCommand } from "./cli/cmd/tighten"
 import { LearnCommand } from "./cli/cmd/learn"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
@@ -125,6 +126,7 @@ const cli = yargs(args)
   .command(CodemodCommand)
   .command(PipelineCommand)
   .command(RefactorCommand)
+  .command(TightenCommand)
   .command(LearnCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
