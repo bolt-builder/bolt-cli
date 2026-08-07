@@ -6,6 +6,7 @@ import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
 import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
+import { Guardrail } from "@/guardrail"
 import { EditTool } from "./edit"
 import { FramesTool } from "./frames"
 import { GitTool } from "./git"
@@ -550,6 +551,7 @@ export const node = LayerNode.make({
     MCP.node,
     Database.node,
     Ripgrep.node,
+    Guardrail.node,
   ],
 })
 
