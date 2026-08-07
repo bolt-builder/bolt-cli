@@ -23800,6 +23800,12 @@
           "permission": {
             "$ref": "#/components/schemas/PermissionConfig"
           },
+          "protected_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "redact": {
             "type": "boolean"
           },

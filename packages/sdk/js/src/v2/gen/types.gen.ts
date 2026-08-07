@@ -1987,6 +1987,7 @@ export type Config = {
   compat?: boolean | CompatConfig
   layout?: LayoutConfig
   permission?: PermissionConfig
+  protected_paths?: Array<string>
   redact?: boolean
   guardrail?: boolean
   approval?: boolean
