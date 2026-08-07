@@ -12,6 +12,8 @@ type Entry = {
   key: string
   text: string
   updatedAt?: number
+  sessionID?: string
+  messageID?: string
 }
 
 type Digest = {
@@ -24,7 +26,7 @@ type Digest = {
 /** Render stored memory entries and session digests as the evidence block for the why prompt. */
 export function dossier(input: { entries: Entry[]; sessions: Digest[] }) {
   const entries = input.entries.map(
-    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)} ${item.text}`,
+    (item) => `- [${item.file} > ${item.section} > ${item.key}]${stamp(item.updatedAt)}${origin(item)} ${item.text}`,
   )
   const sessions = input.sessions.map(
     (item) => `- [session ${item.id}${item.topic ? ` > ${item.topic}` : ""}] learned ${item.time}: ${item.summary}`,
@@ -40,6 +42,15 @@ export function dossier(input: { entries: Entry[]; sessions: Digest[] }) {
 function stamp(ms?: number) {
   if (!ms || ms <= 0) return ""
   return ` (updated ${new Date(ms).toISOString().slice(0, 10)})`
+}
+
+function origin(item: Entry) {
+  if (!item.sessionID && !item.messageID) return ""
+  const parts = [
+    ...(item.sessionID ? [`session ${item.sessionID}`] : []),
+    ...(item.messageID ? [`message ${item.messageID}`] : []),
+  ]
+  return ` (taught by ${parts.join(", ")})`
 }
 
 const INSTRUCTIONS = [
@@ -82,7 +93,13 @@ export const MemoryWhyCommand = effectCmd({
     const memory = MemoryService.make()
     const shown = yield* memory.show({ ctx }).pipe(Effect.orDie)
     const digests = yield* memory.recent({ root: MemoryPaths.root({ ctx }), limit: 10, max: 200 }).pipe(Effect.orDie)
-    const evidence = dossier({ entries: Object.values(shown.inventory.items), sessions: digests })
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const taught = yield* Effect.promise(() => Memory.origins({ root: MemoryPaths.root({ ctx }) }))
+    const entries = Object.entries(shown.inventory.items).map(([id, item]) => {
+      const source = taught.items[id]
+      return { ...item, sessionID: source?.sessionID, messageID: source?.messageID }
+    })
+    const evidence = dossier({ entries, sessions: digests })
     if (!evidence) {
       return yield* fail("No project memory stored for this project yet. Run bolt learn or save memories first.")
     }
