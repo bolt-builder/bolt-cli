@@ -329,6 +329,7 @@ export namespace MemoryTool {
         query,
         sessionID: input.params.sessionID,
         currentSessionID: live.current,
+        worktree: input.ctx.worktree,
         limit,
       })
       const hits = result?.hits ?? []
