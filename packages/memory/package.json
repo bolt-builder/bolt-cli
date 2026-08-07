@@ -35,6 +35,7 @@
     "./memory": "./src/memory.ts",
     "./operations": "./src/capture/operations.ts",
     "./paths": "./src/storage/paths.ts",
+    "./portable": "./src/portable.ts",
     "./recall": "./src/recall/recall.ts",
     "./redact": "./src/capture/redact.ts",
     "./token": "./src/recall/token.ts",
