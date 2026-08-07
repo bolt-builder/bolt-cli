@@ -1,3 +1,4 @@
+import { MemoryConflicts } from "./conflicts"
 import { MemoryFiles } from "./storage/store"
 import { MemoryIndexer } from "./recall/indexer"
 import { MemoryNotice } from "./memory-notice"
@@ -292,6 +293,32 @@ export namespace Memory {
       file: "corrections.md",
       section: "Corrections",
     })
+  }
+
+  export async function conflicts(input: { root: string; fix?: boolean; sessionID?: string }) {
+    const state = await MemoryFiles.readState(input.root)
+    const inventory = await MemoryFiles.deriveInventory(input.root)
+    const found = MemoryConflicts.detect(
+      Object.entries(inventory.items).map(([id, item]) => ({
+        id,
+        file: item.file,
+        section: item.section,
+        key: item.key,
+        text: item.text,
+        updatedAt: item.updatedAt,
+      })),
+    )
+    const plan = MemoryConflicts.resolve(found)
+    if (!input.fix || plan.resolutions.length === 0) {
+      return { root: input.root, state, conflicts: found, plan, applied: false as const }
+    }
+    // Cap at the per-run op limit apply enforces; a rerun picks up any remainder.
+    const result = await apply({
+      root: input.root,
+      ops: plan.resolutions.slice(0, state.capture.maxOpsPerRun).map((item) => item.op),
+      sessionID: input.sessionID,
+    })
+    return { root: input.root, state, conflicts: found, plan, applied: true as const, result }
   }
 
   export async function purge(input: { root: string }) {
