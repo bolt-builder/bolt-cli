@@ -13,7 +13,7 @@ import { Effect } from "effect"
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2"
 import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
-import { discover, load, runCheck, describeCheck, type CheckResult, type Info } from "./eval/case"
+import type { CheckResult, Info } from "./eval/case"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -79,6 +79,9 @@ export const EvalCommand = effectCmd({
         describe: "keep case workspaces on disk for debugging",
       }),
   handler: Effect.fn("Cli.eval")(function* (args) {
+    // Loaded lazily so the CLI entrypoint does not pull the eval/session graph
+    // at startup for unrelated commands.
+    const { discover, load, runCheck, describeCheck } = yield* Effect.promise(() => import("./eval/case"))
     const discovered = yield* Effect.promise(() => discover(args.paths))
     if (discovered.missing.length) {
       return yield* fail(`No such file or directory: ${discovered.missing.join(", ")}`)
