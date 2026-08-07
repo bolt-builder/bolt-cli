@@ -1103,9 +1103,9 @@ export const dict = {
     "အခမဲ့မော်ဒယ်များအပါအဝင် မော်ဒယ်များစွာကို API ကီးတစ်ခုတည်းဖြင့် အသုံးပြုနိုင်ရန် AI ဂိတ်ဝေးတစ်ခုကို ချိတ်ဆက်ပါ။",
   "settings.gateways.tag.connected": "ချိတ်ဆက်ထားသည်",
   "settings.gateways.note.kilo":
-    "အခမဲ့ အလိုအလျောက်လမ်းကြောင်းသတ်မှတ်သော မော်ဒယ်များပါရှိသည့် OpenRouter နှင့်ကိုက်ညီသော ဂိတ်ဝေး",
+    "အခမဲ့ အလိုအလျောက်လမ်းကြောင်းသတ်မှတ်ထားသော မော်ဒယ်များပါရှိသည့် OpenRouter နှင့်တွဲဖက်အသုံးပြုနိုင်သော ဂိတ်ဝေး",
   "settings.gateways.note.zoo": "Zoo Code ပရောဂျက်မှ အသိုင်းအဝိုင်းဂိတ်ဝေး",
-  "settings.gateways.connect.title": "{{gateway}} ကို ချိတ်ဆက်ပါ။",
+  "settings.gateways.connect.title": "{{gateway}} ချိတ်ဆက်ရန်",
   "settings.gateways.connect.description": "၎င်း၏မော်ဒယ်များကို ချိတ်ဆက်ရန် သင့် {{gateway}} API ကီးကို ကူးထည့်ပါ။",
   "settings.models.title": "မော်ဒယ်များ",
   "settings.models.description": "မော်ဒယ်လ်ဆက်တင်များကို ဤနေရာတွင် စီစဉ်သတ်မှတ်နိုင်မည်ဖြစ်သည်။",
