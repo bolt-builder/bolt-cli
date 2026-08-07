@@ -118,9 +118,14 @@ const cli = yargs(args)
     describe: "run without external plugins",
     type: "boolean",
   })
+  .option("profile", {
+    describe: "use a named config profile",
+    type: "string",
+  })
   .middleware(async (opts) => {
     if (opts.printLogs) process.env.OPENCODE_PRINT_LOGS = "1"
     if (opts.logLevel) process.env.OPENCODE_LOG_LEVEL = opts.logLevel
+    if (opts.profile) process.env.OPENCODE_PROFILE = opts.profile
     if (opts.pure) {
       process.env.OPENCODE_PURE = "1"
     }
