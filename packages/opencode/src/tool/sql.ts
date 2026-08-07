@@ -179,8 +179,7 @@ async function sqlite(target: string, root: string, query: string): Promise<Row[
 }
 
 async function remote(target: string, query: string): Promise<Row[]> {
-  const mod = await import("bun")
-  const db = new mod.SQL({ url: target, max: 1 })
+  const db = new Bun.SQL({ url: target, max: 1 })
   try {
     return (await db.unsafe(query)) as Row[]
   } finally {
