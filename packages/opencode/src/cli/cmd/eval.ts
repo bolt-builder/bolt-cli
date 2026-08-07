@@ -4,7 +4,7 @@
 // ./eval/case.ts). The harness runs every case against an in-process server in
 // its own isolated temp workspace, waits for the session to finish, grades the
 // workspace with the case's checks, and reports pass/fail plus cost and token
-// usage. Exit code is 1 when any case fails.
+// usage. Exit code is 1 when any case fails, 5 when any case timed out.
 import type { Argv } from "yargs"
 import path from "path"
 import os from "os"
@@ -12,6 +12,7 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { Effect } from "effect"
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2"
 import { UI } from "../ui"
+import { ExitCode } from "../exit"
 import { effectCmd, fail } from "../effect-cmd"
 import { discover, load, runCheck, describeCheck, type CheckResult, type Info } from "./eval/case"
 
@@ -34,6 +35,7 @@ interface CaseResult {
   passed: boolean
   checks: CheckResult[]
   errors: string[]
+  timedOut?: boolean
   durationMs: number
   cost?: number
   tokens?: unknown
@@ -77,7 +79,10 @@ export const EvalCommand = effectCmd({
         type: "boolean",
         default: false,
         describe: "keep case workspaces on disk for debugging",
-      }),
+      })
+      .epilogue(
+        `exit codes: ${ExitCode.OK} all passed, ${ExitCode.ERROR} a case failed, ${ExitCode.TIMEOUT} a case timed out`,
+      ),
   handler: Effect.fn("Cli.eval")(function* (args) {
     const discovered = yield* Effect.promise(() => discover(args.paths))
     if (discovered.missing.length) {
@@ -199,6 +204,7 @@ export const EvalCommand = effectCmd({
           passed: errors.length === 0 && checks.every((check) => check.passed),
           checks,
           errors,
+          timedOut,
           durationMs: Date.now() - start,
           cost: info?.cost,
           tokens: info?.tokens,
@@ -263,7 +269,9 @@ export const EvalCommand = effectCmd({
           `${style}${passed}/${results.length} passed${UI.Style.TEXT_NORMAL} ${UI.Style.TEXT_DIM}${(durationMs / 1000).toFixed(1)}s${cost ? ` · $${cost.toFixed(4)}` : ""}${UI.Style.TEXT_NORMAL}`,
         )
       }
-      if (passed !== results.length) process.exitCode = 1
+      if (passed !== results.length) {
+        process.exitCode = results.some((result) => result.timedOut) ? ExitCode.TIMEOUT : ExitCode.ERROR
+      }
     })
   }),
 })
