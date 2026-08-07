@@ -86,7 +86,7 @@ export function merged(text: string) {
   if (!last) return undefined
   const content = last[1]
   if (!content.trim()) return undefined
-  if (/^(<{7}|={7}$|>{7}|\|{7})/m.test(content)) return undefined
+  if (/^(<{7}|={7}$|>{7}|\|{7})/mu.test(content)) return undefined
   return content.endsWith("\n") ? content : `${content}\n`
 }
 
