@@ -194,7 +194,14 @@ export const SessionListCommand = effectCmd({
 
     const sessions = order(failed, args.sort)
 
-    if (sessions.length === 0) return
+    if (sessions.length === 0) {
+      UI.println(
+        UI.Style.TEXT_DIM +
+          "No sessions in this project yet. Sessions are stored per project directory; run this from the directory where you used bolt." +
+          UI.Style.TEXT_NORMAL,
+      )
+      return
+    }
 
     const json = args.json || args.format === "json"
     const output = json ? formatSessionJSON(sessions) : formatSessionTable(sessions)
