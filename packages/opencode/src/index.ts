@@ -30,6 +30,7 @@ import { DeadCommand } from "./cli/cmd/dead"
 import { DupesCommand } from "./cli/cmd/dupes"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
+import { ExecCommand } from "./cli/cmd/exec"
 import { ExportCommand } from "./cli/cmd/export"
 import { ImportCommand } from "./cli/cmd/import"
 import { AttachCommand } from "./cli/cmd/attach"
@@ -157,6 +158,7 @@ const cli = yargs(args)
   .command(IndexCommand)
   .command(DeadCommand)
   .command(DupesCommand)
+  .command(ExecCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
