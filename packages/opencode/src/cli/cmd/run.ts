@@ -198,6 +198,12 @@ export const RunCommand = effectCmd({
         default: false,
         describe: Envelope.DESCRIBE,
       })
+      .option("emit", {
+        type: "string",
+        choices: ["context"],
+        describe:
+          "emit machine-consumable output on stdout after the run: 'context' prints the run's findings so they can be piped into another run (`bolt run ... --emit context | bolt run ...`)",
+      })
       .option("file", {
         alias: ["f"],
         type: "string",
@@ -413,6 +419,26 @@ export const RunCommand = effectCmd({
 
       if (args.json && args.attach) {
         die("--json cannot be used with --attach")
+      }
+
+      if (args.emit && args.json) {
+        die("--emit cannot be used with --json")
+      }
+
+      if (args.emit && args.format === "json") {
+        die("--emit cannot be used with --format json")
+      }
+
+      if (args.emit && interactive) {
+        die("--emit cannot be used with --mini")
+      }
+
+      if (args.emit && args["best-of"]) {
+        die("--emit cannot be used with --best-of")
+      }
+
+      if (args.emit && args.attach) {
+        die("--emit cannot be used with --attach")
       }
 
       if (args["replay-limit"] !== undefined && !interactive) {
@@ -906,7 +932,7 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
         const sessionID = sess.id
-        // Final text parts collected for the --json envelope printed on finish.
+        // Final text parts collected for the --json envelope or --emit context, printed on finish.
         const collected: string[] = []
 
         function emit(type: string, data: Record<string, unknown>) {
@@ -1003,7 +1029,7 @@ export const RunCommand = effectCmd({
                 if (emit("text", { part })) continue
                 const text = part.text.trim()
                 if (!text) continue
-                if (args.json) {
+                if (args.json || args.emit === "context") {
                   collected.push(text)
                   continue
                 }
@@ -1111,12 +1137,17 @@ export const RunCommand = effectCmd({
               }
               if (findings.length > 0) process.exitCode = ExitCode.GATE
             }
-            if (!args.json) return
-            if (error) {
-              Envelope.printError("SessionError", error)
+            if (args.json) {
+              if (error) {
+                Envelope.printError("SessionError", error)
+                return
+              }
+              Envelope.print({ sessionID, text: collected.join("\n\n") })
               return
             }
-            Envelope.print({ sessionID, text: collected.join("\n\n") })
+            if (args.emit !== "context") return
+            const { context } = await import("./run/emit")
+            process.stdout.write(context(sessionID, collected) + EOL)
           }
 
           if (args.command) {
@@ -1345,6 +1376,7 @@ export async function runMini(input: MiniCommandInput) {
     autoAgent: false,
     format: "default",
     json: false,
+    emit: undefined,
     file: undefined,
     title: undefined,
     attach: input.attach,
