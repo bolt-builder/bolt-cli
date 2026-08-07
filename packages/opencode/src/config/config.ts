@@ -23,7 +23,7 @@ import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/
 import { EffectFlock } from "@opencode-ai/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
 import { ConfigV1 } from "@opencode-ai/core/v1/config/config"
-import { RemoteAuthError } from "@opencode-ai/core/v1/config/error"
+import { InvalidError, RemoteAuthError } from "@opencode-ai/core/v1/config/error"
 import { ConfigPermissionV1 } from "@opencode-ai/core/v1/config/permission"
 import { ConfigPluginV1 } from "@opencode-ai/core/v1/config/plugin"
 import { CompatAgent } from "@/compat/agent"
@@ -523,7 +523,38 @@ const layer = Layer.effect(
           )
         }
 
-        // BOLT_* env vars override any file-based config; managed settings below still win.
+        // A profile is a named partial config merged over everything file-based once selected via
+        // --profile or OPENCODE_PROFILE; env overrides and managed settings below still win.
+        // Profiles must be defined in regular (non-managed) config sources to be visible here.
+        if (Flag.OPENCODE_PROFILE) {
+          const name = Flag.OPENCODE_PROFILE
+          const profiles = result.profile ?? {}
+          const selected = profiles[name]
+          if (selected === undefined) {
+            const available = Object.keys(profiles)
+            throw new InvalidError({
+              path: "profile",
+              issues: [
+                {
+                  message: available.length
+                    ? `Unknown profile "${name}". Available profiles: ${available.join(", ")}`
+                    : `Unknown profile "${name}". No profiles are defined in config.`,
+                  path: ["profile", name],
+                },
+              ],
+            })
+          }
+          const next = ConfigParse.schema(ConfigV1.Info, selected, `profile.${name}`)
+          if (next.profile) {
+            throw new InvalidError({
+              path: `profile.${name}`,
+              issues: [{ message: "Profiles cannot define nested profiles", path: ["profile", name, "profile"] }],
+            })
+          }
+          yield* merge(`profile.${name}`, next, "local")
+        }
+
+        // BOLT_* env vars override any file-based config (including profiles); managed settings below still win.
         const envOverrides = ConfigEnv.overrides(process.env)
         for (const warning of envOverrides.warnings) {
           yield* Effect.logWarning(warning)
