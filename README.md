@@ -166,7 +166,7 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 </details>
 
-## Roadmap: CLI first For this round
+## Roadmap: CLI first for this round
 
 ### Now
 
@@ -266,6 +266,85 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ### Done
 
+- [x] Multi-agent pipelines: one agent plans, one codes, one reviews; a tiny eng team in your terminal
+- [x] Automatic agent selection: Bolt reads your prompt and quietly routes it to the right specialist
+- [x] `diagnostics` tool: pull compiler and LSP diagnostics on demand, not only after a failed run
+- [x] Service supervision: health-check a background dev server and restart it when it dies mid-run
+- [x] `profile` tool: run a command under a profiler and hand the agent the hot frames
+- [x] Frame extraction: pull stills from a screen recording so the agent can inspect a repro video
+- [x] Browser tool: navigate and screenshot the running app to verify UI changes visually
+- [x] LSP power tools: rename symbol and find references, promoted out of experimental
+- [x] Semantic codebase search: find code by meaning, not regex
+- [x] `sql` tool: run read-only queries against the project database with schema awareness
+- [x] `http` tool: call APIs with saved auth profiles and typed response capture
+- [x] Codemod runner: generate an ast-grep or jscodeshift transform, preview the diff, then apply it
+- [x] Mutation testing: the agent mutates code to prove your tests actually catch bugs
+- [x] Property-based test generation for pure functions the agent touches
+- [x] Static analysis pass folded into every diff (lint, types, dead code) before handoff
+- [x] Regression guard: auto-generate a failing test from every bug before fixing it
+- [x] Assertion mining: suggest missing assertions in existing tests
+- [x] Coverage-aware planning: prefer changes in well-tested code, flag changes in untested code
+- [x] Invariant checks: the agent states invariants before refactoring and verifies them after
+- [x] Doc-code drift detection: flag READMEs and comments the diff just made stale
+- [x] Type-tightening pass: propose stricter types for code the agent touched
+- [x] Performance regression check: benchmark hot paths before and after the change
+- [x] Guardrail agent that vetoes risky commands before they run
+- [x] Budget guards: `--max-cost` and `--max-tokens` on any run
+- [x] `bolt undo`: one-command rollback when an experiment goes sideways
+- [x] Named checkpoints: save points you can rewind the repo and the conversation to
+- [x] Secrets firewall: redact tokens and keys from prompts, logs, and replays automatically
+- [x] Dry-run mode: show every file write and command the plan would execute without doing it
+- [x] Blast-radius estimates: how many callers, tests, and packages a diff touches, before applying
+- [x] Protected paths: glob-based no-touch zones the agent cannot edit
+- [x] Rate-limited tool budgets per session (max shell commands, max file writes)
+- [x] Two-agent approval: destructive commands need a second agent's sign-off
+- [x] Memory decay: stale facts age out unless reconfirmed
+- [x] Memory conflicts: detect and resolve contradictory learned facts
+- [x] Team memory: opt-in shared project memory across teammates
+- [x] Memory diffs: see exactly what a session added to memory before it persists
+- [x] Negative memory: remember what did NOT work to avoid repeating it
+- [x] Memory search: full-text and semantic search over everything learned
+- [x] Per-directory memory scopes for monorepos
+- [x] Memory import/export as reviewable markdown
+- [x] Auto-learned build/test commands per project, no config needed
+- [x] Memory provenance: every fact links to the session and message that taught it
+- [x] Pre-emptive compaction: summarize in the background at 80% context, never mid-prompt
+- [x] Context pinning: mark files and facts that must never be compacted away
+- [x] Smart file ranking: recently failing tests and hot files first
+- [x] Diff-aware context: load only the hunks that matter, not whole files
+- [x] Context budget meter live in the TUI status bar
+- [x] Cross-file symbol graphs injected for the code under edit
+- [x] Context replay: inspect exactly what the model saw for any past turn
+- [x] Adaptive context per model: small models get distilled context automatically
+- [x] Conversation branching with shared prefix caching
+- [x] Context lint: warn when the prompt contains contradictory instructions
+- [x] Whole-repo embedding index with incremental updates on save
+- [x] Ownership map: who owns what, inferred from history and CODEOWNERS
+- [x] Dead code radar: confidently unused exports, ranked by deletion safety
+- [x] Dependency health report: outdated, vulnerable, and abandoned packages
+- [x] Architectural drift detection against a declared module contract
+- [x] Hotspot analysis: files with high churn and high complexity flagged for refactor
+- [x] API surface tracking: public interface diffs across versions
+- [x] Duplicate logic finder: near-identical code across the repo
+- [x] Migration assistant: framework and major-version upgrade playbooks
+- [x] Monorepo package graph with build-order awareness
+- [x] Stacked PR support: split one big change into an ordered, reviewable stack
+- [x] Semantic conflict resolution: merge conflicts resolved by intent, not lines
+- [x] `bolt rebase`: agent-driven interactive rebase with explained decisions
+- [x] Commit message linting against your repo's own conventions
+- [x] Auto-split commits: one logical change per commit from a messy worktree
+- [x] Worktree manager: create, list, and clean agent worktrees safely
+- [x] Cherry-pick assistant: port a fix across release branches
+- [x] Git archaeology: "when and why did this behavior change?" answered with evidence
+- [x] Submodule-aware operations end to end
+- [x] Signed-commit verification surfaced in review and bisect output
+- [x] Read-only `git` tool: status, log, diff, and blame handed to the agent without shelling out
+- [x] `slashcommand` tool: the agent can invoke your custom slash commands mid-run
+- [x] MCP resource tools: list and read resources exposed by connected MCP servers
+- [x] `background_stdin`: type into running background processes like dev servers and REPLs
+- [x] Structured task tools: the agent tracks work as structured tasks with states instead of free-text todos
+- [x] Notebook tool: edit Jupyter notebook cells natively
+- [x] `/bug` slash command: file a Bolt bug report from inside the TUI
 - [x] Pair programming: `bolt pair` shares one live session across two terminals, prompts and replies from either side appear in both (no shared cursor yet; direct shell input may double-render, and permission prompts can be answered by either side)
 - [x] `multiedit`: batch several edits to one file in a single tool call
 - [x] Background process tools: `background` start, output, list, and kill without blocking the loop

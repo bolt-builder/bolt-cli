@@ -226,7 +226,10 @@ export namespace Memory {
           operationCount: 0,
           added: 0,
           removed: 0,
+          ids: [],
           skipped: [],
+          // Staged writes land no facts yet, so there are no inventory ids to attribute.
+          ids: [],
           index: {
             text: index,
             bytes: Buffer.byteLength(index),
@@ -333,13 +336,7 @@ export namespace Memory {
     })
   }
 
-  export async function correct(input: {
-    root: string
-    text: string
-    key?: string
-    sessionID?: string
-    messageID?: string
-  }) {
+  export function correct(input: { root: string; text: string; key?: string; sessionID?: string; messageID?: string }) {
     return remember({
       ...input,
       file: "corrections.md",

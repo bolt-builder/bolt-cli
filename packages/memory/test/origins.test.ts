@@ -33,65 +33,66 @@ describe("origin ledger", () => {
   })
 
   test("skips recording when no origin is known", async () => {
-    const t = await tmp()
+    const temp = await tmp()
     try {
-      await MemoryOrigins.record(t.root, { ids: ["a"], at: 1 })
-      expect((await MemoryOrigins.read(t.root)).items).toEqual({})
+      await MemoryOrigins.record(temp.root, { ids: ["a"], at: 1 })
+      expect((await MemoryOrigins.read(temp.root)).items).toEqual({})
     } finally {
-      await t.done()
+      await temp.done()
     }
   })
 })
 
 describe("write provenance", () => {
   test("links facts to the session and message that taught them", async () => {
-    const t = await tmp()
+    const temp = await tmp()
     try {
-      await Memory.enable({ root: t.root })
+      await Memory.enable({ root: temp.root })
       await Memory.remember({
-        root: t.root,
+        root: temp.root,
         text: "Deploys go through the release pipeline.",
         sessionID: "ses_teacher",
         messageID: "msg_lesson",
       })
 
-      const taught = await Memory.origins({ root: t.root })
+      const taught = await Memory.origins({ root: temp.root })
       const ids = Object.keys(taught.items)
       expect(ids.length).toBe(1)
-      expect(taught.items[ids[0]!]!.sessionID).toBe("ses_teacher")
-      expect(taught.items[ids[0]!]!.messageID).toBe("msg_lesson")
+      const entry = taught.items[ids[0] ?? ""]
+      expect(entry?.sessionID).toBe("ses_teacher")
+      expect(entry?.messageID).toBe("msg_lesson")
     } finally {
-      await t.done()
+      await temp.done()
     }
   })
 
   test("re-teaching re-attributes and forgetting drops the origin", async () => {
-    const t = await tmp()
+    const temp = await tmp()
     try {
-      await Memory.enable({ root: t.root })
-      await Memory.remember({ root: t.root, key: "deploy_region", text: "Deploys go to ord.", sessionID: "ses_a" })
-      await Memory.remember({ root: t.root, key: "deploy_region", text: "Deploys go to iad.", sessionID: "ses_b" })
+      await Memory.enable({ root: temp.root })
+      await Memory.remember({ root: temp.root, key: "deploy_region", text: "Deploys go to ord.", sessionID: "ses_a" })
+      await Memory.remember({ root: temp.root, key: "deploy_region", text: "Deploys go to iad.", sessionID: "ses_b" })
 
-      const taught = await Memory.origins({ root: t.root })
+      const taught = await Memory.origins({ root: temp.root })
       const ids = Object.keys(taught.items)
       expect(ids.length).toBe(1)
-      expect(taught.items[ids[0]!]!.sessionID).toBe("ses_b")
+      expect(taught.items[ids[0] ?? ""]?.sessionID).toBe("ses_b")
 
-      await Memory.forget({ root: t.root, query: "deploy_region" })
-      expect(Object.keys((await Memory.origins({ root: t.root })).items)).toEqual([])
+      await Memory.forget({ root: temp.root, query: "deploy_region" })
+      expect(Object.keys((await Memory.origins({ root: temp.root })).items)).toEqual([])
     } finally {
-      await t.done()
+      await temp.done()
     }
   })
 
   test("writes without a session leave no origin claim", async () => {
-    const t = await tmp()
+    const temp = await tmp()
     try {
-      await Memory.enable({ root: t.root })
-      await Memory.remember({ root: t.root, text: "An anonymous fact with no teacher." })
-      expect(Object.keys((await Memory.origins({ root: t.root })).items)).toEqual([])
+      await Memory.enable({ root: temp.root })
+      await Memory.remember({ root: temp.root, text: "An anonymous fact with no teacher." })
+      expect(Object.keys((await Memory.origins({ root: temp.root })).items)).toEqual([])
     } finally {
-      await t.done()
+      await temp.done()
     }
   })
 })
