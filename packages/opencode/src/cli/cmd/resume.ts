@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import * as prompts from "@clack/prompts"
+import { autocomplete, isCancel } from "@clack/prompts"
 import { effectCmd, fail } from "../effect-cmd"
 import { Session } from "@/session/session"
 import { SessionID } from "../../session/schema"
@@ -68,7 +68,7 @@ export const ResumeCommand = effectCmd({
       }))
 
       const picked = yield* Effect.promise(() =>
-        prompts.autocomplete<SessionID>({
+        autocomplete<SessionID>({
           message: "Resume session",
           maxItems: 10,
           options() {
@@ -76,7 +76,7 @@ export const ResumeCommand = effectCmd({
           },
         }),
       )
-      if (prompts.isCancel(picked)) return yield* Effect.die(new UI.CancelledError())
+      if (isCancel(picked)) return yield* Effect.die(new UI.CancelledError())
       return picked
     })
 
