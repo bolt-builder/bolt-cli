@@ -29,6 +29,7 @@ import { FormatError, FormatUnknownError } from "../error"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
 import { Budget } from "./run/budget"
 import { OutputSchema } from "./run/schema"
+import { Plan } from "./run/plan"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -286,6 +287,12 @@ export const RunCommand = effectCmd({
         default: false,
         describe: "show every file write and command the plan would execute without doing it",
       })
+      .option("plan-only", {
+        type: "boolean",
+        default: false,
+        describe:
+          "CI gate: dry-run the prompt, print the full intended diff and commands, and exit nonzero if anything looks destructive",
+      })
       .option("background", {
         alias: ["bg"],
         type: "boolean",
@@ -537,15 +544,21 @@ export const RunCommand = effectCmd({
         if (args.session || args.continue || args.fork) die("--best-of always runs in fresh sessions")
       }
 
-      if (args["dry-run"]) {
-        if (interactive) die("--dry-run cannot be used with --mini")
-        if (args["best-of"]) die("--dry-run cannot be used with --best-of")
-        if (args.session || args.continue) die("--dry-run requires a fresh session")
+      const dry = args["dry-run"] || args["plan-only"]
+      if (dry) {
+        const flag = args["dry-run"] ? "--dry-run" : "--plan-only"
+        if (interactive) die(`${flag} cannot be used with --mini`)
+        if (args["best-of"]) die(`${flag} cannot be used with --best-of`)
+        if (args.session || args.continue) die(`${flag} requires a fresh session`)
+        if (args["plan-only"] && args.attach) die("--plan-only cannot be used with --attach")
+        if (args["plan-only"] && args.command) die("--plan-only cannot be used with --command")
         if (args.format !== "json") {
           UI.println(
             UI.Style.TEXT_INFO_BOLD + "→",
             UI.Style.TEXT_NORMAL,
-            "Dry run: file writes and shell commands will be reported, not executed",
+            args["plan-only"]
+              ? "Plan only: file writes and shell commands will be reported and gated, not executed"
+              : "Dry run: file writes and shell commands will be reported, not executed",
           )
         }
       }
@@ -672,7 +685,7 @@ export const RunCommand = effectCmd({
         const name = title()
         const result = await sdk.session.create({
           title: name,
-          metadata: args["dry-run"] ? { dryrun: true } : undefined,
+          metadata: dry ? { dryrun: true } : undefined,
           permission: [...rules],
         })
         const id = result.data?.id
@@ -719,7 +732,7 @@ export const RunCommand = effectCmd({
         const resolvedModel = resolveAutoModel(input.model)
         const result = await sdk.session.create({
           title: args.title !== undefined && args.title !== "" ? args.title : undefined,
-          metadata: args["dry-run"] ? { dryrun: true } : undefined,
+          metadata: dry ? { dryrun: true } : undefined,
           agent: input.agent,
           model: resolvedModel
             ? {
@@ -911,6 +924,8 @@ export const RunCommand = effectCmd({
           return false
         }
 
+        const plan: Plan.Entry[] = []
+
         // Consume one subscribed event stream for the active session and mirror it
         // to stdout/UI. `client` is passed explicitly because attach mode may
         // rebind the SDK to the session's directory after the subscription is
@@ -940,6 +955,10 @@ export const RunCommand = effectCmd({
               if (part.sessionID !== sessionID) continue
 
               if (part.type === "tool" && (part.state.status === "completed" || part.state.status === "error")) {
+                if (args["plan-only"]) {
+                  const entry = Plan.collect(part)
+                  if (entry) plan.push(entry)
+                }
                 if (emit("tool_use", { part })) continue
                 if (part.state.status === "completed") {
                   await tool(part)
@@ -1079,6 +1098,19 @@ export const RunCommand = effectCmd({
             const error = await completed
             // Do not clobber a more specific class (e.g. a budget breach) already set by the loop.
             if (error && !process.exitCode) process.exitCode = ExitCode.ERROR
+            if (args["plan-only"]) {
+              const findings = Plan.verdict(plan)
+              if (!emit("plan", { entries: plan, findings })) {
+                UI.empty()
+                UI.println(Plan.render(plan))
+                UI.empty()
+                for (const finding of findings) {
+                  UI.error(`destructive ${finding.entry.kind}: ${finding.entry.detail} (${finding.reason})`)
+                }
+                if (findings.length === 0) UI.println("Plan gate: nothing destructive detected.")
+              }
+              if (findings.length > 0) process.exitCode = ExitCode.GATE
+            }
             if (!args.json) return
             if (error) {
               Envelope.printError("SessionError", error)
@@ -1332,6 +1364,8 @@ export async function runMini(input: MiniCommandInput) {
     background: false,
     "dry-run": false,
     dryRun: false,
+    "plan-only": false,
+    planOnly: false,
     yolo: false,
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,
