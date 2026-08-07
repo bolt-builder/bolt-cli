@@ -70,25 +70,41 @@ const messages = {
 }
 
 const id = Astro.params.id || ""
-const res = await fetch(`${apiUrl}/share_data?id=${id}`)
-const data = res.ok
-  ? ((await res.json().catch(() => null)) as {
-      info?: Session.Info
-      messages: Record<string, { role?: string; modelID?: string }>
-    } | null)
-  : null
+const res = await fetch(`${apiUrl}/share_data?id=${id}`).catch(() => null)
 
-if (!res.ok && res.status !== 404) {
+if (!res || (!res.ok && res.status !== 404)) {
   return new Response(null, {
     status: 502,
     statusText: tx("share.status_error"),
   })
 }
 
+// `undefined` marks a JSON parse failure, which is an upstream error, not a missing session
+const body = res.ok ? await res.json().catch(() => undefined) : null
+
+if (body === undefined) {
+  return new Response(null, {
+    status: 502,
+    statusText: tx("share.status_error"),
+  })
+}
+
+const data = body as {
+  info?: Session.Info
+  messages?: Record<string, { role?: string; modelID?: string }>
+} | null
+
 if (!data?.info) {
   return new Response(null, {
     status: 404,
     statusText: tx("share.not_found"),
+  })
+}
+
+if (typeof data.info.title !== "string" || typeof data.messages !== "object" || data.messages === null) {
+  return new Response(null, {
+    status: 502,
+    statusText: tx("share.status_error"),
   })
 }
 

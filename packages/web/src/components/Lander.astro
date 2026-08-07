@@ -736,8 +736,16 @@ section.footer {
   const timers = new WeakMap<HTMLButtonElement, number>()
 
   buttons.forEach(button => {
-    button.addEventListener("click", () => {
-      navigator.clipboard.writeText(button.dataset.command!)
+    button.addEventListener("click", async () => {
+      // Clipboard access can be unavailable (insecure context) or rejected (permissions)
+      const copied = navigator.clipboard
+        ? await navigator.clipboard.writeText(button.dataset.command!).then(() => true, () => false)
+        : false
+      if (!copied) {
+        button.classList.remove("success")
+        if (announcer) announcer.textContent = ""
+        return
+      }
       button.classList.add("success")
       if (announcer) announcer.textContent = announcer.getAttribute("data-copied-label")
       clearTimeout(timers.get(button))
