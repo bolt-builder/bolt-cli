@@ -25,6 +25,28 @@ describe("normalize", () => {
     expect(rows).toEqual([{ line: 1, text: "const greeting = S + N" }])
   })
 
+  test("keeps URL-like strings intact instead of truncating them as comments", () => {
+    const rows = normalize('const url = "https://host/path" + suffix')
+    expect(rows).toEqual([{ line: 1, text: "const url = S + suffix" }])
+  })
+
+  test("does not open a block comment inside a string literal", () => {
+    const rows = normalize('const s = "/* not a comment */"\nreturn 1')
+    expect(rows).toEqual([
+      { line: 1, text: "const s = S" },
+      { line: 2, text: "return N" },
+    ])
+  })
+
+  test("carries template literals across lines", () => {
+    const rows = normalize(["const s = `first // not a comment", "second`", "return 1"].join("\n"))
+    expect(rows).toEqual([
+      { line: 1, text: "const s =" },
+      { line: 2, text: "S" },
+      { line: 3, text: "return N" },
+    ])
+  })
+
   test("drops blank rows and lone braces but keeps line numbers", () => {
     const rows = normalize(["function foo() {", "}", "", "return 1", "{"].join("\n"))
     expect(rows).toEqual([
@@ -49,6 +71,15 @@ describe("clusters", () => {
     const other = BLOCK.replaceAll("fallback", "fallback  ").replace("load(input)", 'load("path")')
     const found = clusters({ "a.ts": BLOCK, "b.ts": other }, 4)
     expect(found.length).toBe(1)
+    expect(found[0].sites.map((site) => site.file)).toEqual(["a.ts", "b.ts"])
+  })
+
+  test("matches blocks that differ only in URL string literals", () => {
+    const first = BLOCK.replace("load(input)", 'load("https://host/first")')
+    const second = BLOCK.replace("load(input)", 'load("https://other/second")')
+    const found = clusters({ "a.ts": first, "b.ts": second }, 4)
+    expect(found.length).toBe(1)
+    expect(found[0].lines).toBe(7)
     expect(found[0].sites.map((site) => site.file)).toEqual(["a.ts", "b.ts"])
   })
 

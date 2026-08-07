@@ -1,5 +1,6 @@
 import path from "node:path"
 import { Effect } from "effect"
+import { FSUtil } from "@opencode-ai/core/fs-util"
 import { effectCmd } from "../effect-cmd"
 
 const SKIP = new Set([".git", "node_modules", "dist", "build", ".turbo"])
@@ -18,25 +19,75 @@ export type Cluster = { sites: Site[]; lines: number }
  */
 export function normalize(text: string) {
   const rows: Row[] = []
-  let block = false
+  let mode: Mode = "code"
   text.split("\n").forEach((raw, index) => {
-    const closed = block ? raw.replace(/^.*?\*\//, "") : raw
-    const open = block && !/\*\//.test(raw)
-    block = open || /\/\*(?!.*\*\/)/.test(closed)
-    const body = open
-      ? ""
-      : closed
-          .replace(/\/\*.*?\*\//g, "")
-          .replace(/\/\*.*$/, "")
-          .replace(/\/\/.*$/, "")
-          .replace(/(["'`])(?:\\.|(?!\1).)*\1/g, "S")
-          .replace(/\b\d[\w.]*/g, "N")
-          .replace(/\s+/g, " ")
-          .trim()
+    const scanned = scan(raw, mode)
+    mode = scanned.mode
+    const body = scanned.body
+      .replace(/\b\d[\w.]*/g, "N")
+      .replace(/\s+/g, " ")
+      .trim()
     if (body === "" || body === "}" || body === "};" || body === "{") return
     rows.push({ line: index + 1, text: body })
   })
   return rows
+}
+
+type Mode = "code" | "block" | "template"
+
+/**
+ * Scans one line with state carried across lines, recognizing string and
+ * template literals before comment syntax so `//` or `/*` inside a literal
+ * (e.g. a URL) is not treated as a comment. Literals collapse to `S`;
+ * comments are dropped.
+ */
+function scan(line: string, mode: Mode) {
+  let out = ""
+  let i = 0
+  while (i < line.length) {
+    if (mode === "block") {
+      const end = line.indexOf("*/", i)
+      if (end === -1) return { body: out, mode }
+      mode = "code"
+      i = end + 2
+      continue
+    }
+    if (mode === "template") {
+      if (line[i] === "\\") {
+        i += 2
+        continue
+      }
+      if (line[i] === "`") {
+        out += "S"
+        mode = "code"
+      }
+      i += 1
+      continue
+    }
+    const char = line[i]
+    if (char === "/" && line[i + 1] === "/") break
+    if (char === "/" && line[i + 1] === "*") {
+      mode = "block"
+      i += 2
+      continue
+    }
+    if (char === '"' || char === "'") {
+      // consume to the closing quote on this line; an unterminated string ends at EOL
+      let end = i + 1
+      while (end < line.length && line[end] !== char) end += line[end] === "\\" ? 2 : 1
+      out += "S"
+      i = end + 1
+      continue
+    }
+    if (char === "`") {
+      mode = "template"
+      i += 1
+      continue
+    }
+    out += char
+    i += 1
+  }
+  return { body: out, mode }
 }
 
 /**
@@ -143,20 +194,33 @@ export const DupesCommand = effectCmd({
         default: LIMIT,
       }),
   handler: Effect.fn("Cli.dupes")(function* (args) {
+    const fs = yield* FSUtil.Service
     const cwd = process.cwd()
-    const glob = new Bun.Glob("**/*.{ts,tsx,js,jsx}")
-    const scanned = yield* Effect.promise(() => Array.fromAsync(glob.scan({ cwd })))
-    const names = scanned
-      .map((name) => name.replaceAll("\\", "/"))
-      .filter((name) => !name.split("/").some((part) => SKIP.has(part)))
-      .sort()
-    const files: Record<string, string> = {}
-    for (const name of names) {
-      files[name] = yield* Effect.promise(() => Bun.file(path.join(cwd, name)).text())
-    }
+    const names = (yield* Effect.orDie(walk(fs, cwd, ""))).sort()
+    const pairs = yield* Effect.orDie(
+      Effect.forEach(names, (name) =>
+        fs.readFileString(path.join(cwd, name)).pipe(Effect.map((text) => [name, text] as const)),
+      ),
+    )
     const window = Math.max(3, Math.floor(args.window))
-    const found = clusters(files, window)
+    const found = clusters(Object.fromEntries(pairs), window)
     process.stdout.write(markdown(found, Math.max(1, Math.floor(args.limit))))
     process.stderr.write(`Scanned ${names.length} files, found ${found.length} duplicate clusters\n`)
   }),
 })
+
+/** Recursively collects source file paths, pruning hidden and SKIP directories before listing their children. */
+function walk(fs: FSUtil.Interface, root: string, prefix: string): Effect.Effect<string[], FSUtil.Error> {
+  return fs.readDirectoryEntries(path.join(root, prefix)).pipe(
+    Effect.flatMap((entries) =>
+      Effect.forEach(entries, (entry) => {
+        if (entry.name.startsWith(".")) return Effect.succeed<string[]>([])
+        const name = prefix === "" ? entry.name : `${prefix}/${entry.name}`
+        if (entry.type === "directory") return SKIP.has(entry.name) ? Effect.succeed<string[]>([]) : walk(fs, root, name)
+        if (entry.type === "file" && /\.(ts|tsx|js|jsx)$/.test(entry.name)) return Effect.succeed([name])
+        return Effect.succeed<string[]>([])
+      }),
+    ),
+    Effect.map((lists) => lists.flat()),
+  )
+}
