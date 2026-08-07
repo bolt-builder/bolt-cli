@@ -17,6 +17,7 @@ import { ServeCommand } from "./cli/cmd/serve"
 import { DaemonCommand } from "./cli/cmd/daemon"
 import { WarmCommand } from "./cli/cmd/warm"
 import { DebugCommand } from "./cli/cmd/debug"
+import { ConfigCommand } from "./cli/cmd/config"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
@@ -150,6 +151,7 @@ const cli = yargs(args)
   .command(ArenaCommand)
   .command(GenerateCommand)
   .command(DebugCommand)
+  .command(ConfigCommand)
   .command(ConsoleCommand)
   .command(ProvidersCommand)
   .command(AgentCommand)
