@@ -19,6 +19,14 @@ export type Method = "curl" | "npm" | "yarn" | "pnpm" | "bun" | "brew" | "scoop"
 
 export type ReleaseType = "patch" | "minor" | "major"
 
+export type Channel = "stable" | "beta" | "nightly"
+
+/** Maps a user-facing release channel to its npm dist-tag. */
+export function tag(channel: Channel) {
+  if (channel === "stable") return "latest"
+  return channel
+}
+
 export const Event = InstallationEvent
 
 export function getReleaseType(current: string, latest: string): ReleaseType {
@@ -72,7 +80,7 @@ const ScoopManifest = NpmPackage
 export interface Interface {
   readonly info: () => Effect.Effect<Info>
   readonly method: () => Effect.Effect<Method>
-  readonly latest: (method?: Method) => Effect.Effect<string>
+  readonly latest: (method?: Method, channel?: Channel) => Effect.Effect<string>
   readonly upgrade: (method: Method, target: string) => Effect.Effect<void, UpgradeFailedError>
 }
 
@@ -210,8 +218,21 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
         return "unknown" as Method
       }),
-      latest: Effect.fn("Installation.latest")(function* (installMethod?: Method) {
+      latest: Effect.fn("Installation.latest")(function* (installMethod?: Method, channel?: Channel) {
         const detectedMethod = installMethod || (yield* result.method())
+
+        // Every release channel publishes an npm dist-tag, so the registry is
+        // the source of truth for channel resolution regardless of install
+        // method; the resulting version installs through the usual path.
+        if (channel) {
+          const response = yield* httpOk.execute(
+            HttpClientRequest.get(
+              `${yield* NpmConfig.registry(process.cwd())}/@bolt-builder/bolt-cli/${tag(channel)}`,
+            ).pipe(HttpClientRequest.acceptJson),
+          )
+          const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
+          return data.version
+        }
 
         if (detectedMethod === "brew") {
           const formula = yield* getBrewFormula()
