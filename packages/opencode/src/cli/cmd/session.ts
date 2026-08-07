@@ -1,5 +1,5 @@
 import type { Argv } from "yargs"
-import { Effect } from "effect"
+import { Effect, Option } from "effect"
 import { cmd } from "./cmd"
 import { effectCmd, fail } from "../effect-cmd"
 import { Session } from "@/session/session"
@@ -44,6 +44,7 @@ function pagerCmd(): string[] {
 
 export const SessionCommand = cmd({
   command: "session",
+  aliases: ["sessions"],
   describe: "manage sessions",
   builder: (yargs: Argv) =>
     yargs.command(SessionListCommand).command(SessionDeleteCommand).command(SessionBranchCommand).demandCommand(),
@@ -98,8 +99,29 @@ export const SessionDeleteCommand = effectCmd({
   }),
 })
 
+// Parses --since values: relative durations like 30m, 24h, 7d, 2w, or any Date.parse-able date.
+export function since(value: string, now: number): number | undefined {
+  const relative = value.match(/^(\d+)([mhdw])$/)
+  if (relative) {
+    const units = { m: 60_000, h: 3_600_000, d: 86_400_000, w: 604_800_000 }
+    return now - parseInt(relative[1], 10) * units[relative[2] as keyof typeof units]
+  }
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) return undefined
+  return parsed
+}
+
+export function order(sessions: Session.Info[], key?: string): Session.Info[] {
+  const sorted = [...sessions]
+  if (key === "created") return sorted.sort((a, b) => b.time.created - a.time.created)
+  if (key === "title") return sorted.sort((a, b) => a.title.localeCompare(b.title))
+  if (key === "cost") return sorted.sort((a, b) => (b.cost ?? 0) - (a.cost ?? 0))
+  return sorted.sort((a, b) => b.time.updated - a.time.updated)
+}
+
 export const SessionListCommand = effectCmd({
   command: "list",
+  aliases: ["ls"],
   describe: "list sessions",
   builder: (yargs) =>
     yargs
@@ -108,6 +130,30 @@ export const SessionListCommand = effectCmd({
         describe: "limit to N most recent sessions",
         type: "number",
       })
+      .option("since", {
+        describe: "only sessions updated after this date or relative duration (e.g. 24h, 7d)",
+        type: "string",
+      })
+      .option("project", {
+        describe: "search all projects, filtered by project name, worktree path, or id substring",
+        type: "string",
+      })
+      .option("failed", {
+        describe: "only sessions whose latest assistant message ended in an error",
+        type: "boolean",
+        default: false,
+      })
+      .option("sort", {
+        describe: "sort order",
+        type: "string",
+        choices: ["updated", "created", "title", "cost"],
+        default: "updated",
+      })
+      .option("json", {
+        describe: "output as JSON (same as --format json)",
+        type: "boolean",
+        default: false,
+      })
       .option("format", {
         describe: "output format",
         type: "string",
@@ -115,13 +161,45 @@ export const SessionListCommand = effectCmd({
         default: "table",
       }),
   handler: Effect.fn("Cli.session.list")(function* (args) {
-    const sessions = yield* Session.Service.use((svc) => svc.list({ roots: true, limit: args.maxCount }))
+    const svc = yield* Session.Service
+    const start = args.since ? since(args.since, Date.now()) : undefined
+    if (args.since && start === undefined) return yield* fail(`Invalid --since value: ${args.since}`)
+
+    const found = yield* Effect.gen(function* () {
+      if (args.project === undefined) return yield* svc.list({ roots: true, limit: args.maxCount, start })
+      const needle = args.project.toLowerCase()
+      const global = yield* svc.listGlobal({ roots: true, limit: args.maxCount, start })
+      return global.filter((session) => {
+        if (session.projectID.toLowerCase().includes(needle)) return true
+        if (!session.project) return false
+        if (session.project.name?.toLowerCase().includes(needle)) return true
+        return session.project.worktree.toLowerCase().includes(needle)
+      })
+    })
+
+    const failed = yield* Effect.forEach(
+      found,
+      (session) =>
+        Effect.gen(function* () {
+          if (!args.failed) return session
+          const last = yield* svc
+            .findMessage(session.id, (msg) => msg.info.role === "assistant")
+            .pipe(Effect.catchIf(NotFoundError.isInstance, () => Effect.succeedNone))
+          if (Option.isNone(last)) return undefined
+          const info = last.value.info
+          return info.role === "assistant" && info.error !== undefined ? session : undefined
+        }),
+      { concurrency: 10 },
+    ).pipe(Effect.map((items) => items.filter((item) => item !== undefined)))
+
+    const sessions = order(failed, args.sort)
 
     if (sessions.length === 0) return
 
-    const output = args.format === "json" ? formatSessionJSON(sessions) : formatSessionTable(sessions)
+    const json = args.json || args.format === "json"
+    const output = json ? formatSessionJSON(sessions) : formatSessionTable(sessions)
 
-    const shouldPaginate = process.stdout.isTTY && !args.maxCount && args.format === "table"
+    const shouldPaginate = process.stdout.isTTY && !args.maxCount && !json
 
     if (shouldPaginate) {
       yield* Effect.promise(async () => {
