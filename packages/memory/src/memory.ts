@@ -228,6 +228,8 @@ export namespace Memory {
           removed: 0,
           ids: [],
           skipped: [],
+          // Staged writes land no facts yet, so there are no inventory ids to attribute.
+          ids: [],
           index: {
             text: index,
             bytes: Buffer.byteLength(index),
@@ -334,7 +336,7 @@ export namespace Memory {
     })
   }
 
-  export async function correct(input: {
+  export function correct(input: {
     root: string
     text: string
     key?: string

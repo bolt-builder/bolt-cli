@@ -257,16 +257,16 @@ export namespace MemoryOperations {
       plan.touched.add(source)
       plan.removed += next.count
     }
-    for (const id of exact.ids) {
-      delete plan.inventory.items[id]
-      plan.dropped.push(id)
-    }
+    const drops = new Set(exact.ids)
     if (exact.fallback) {
       for (const [id, item] of Object.entries(plan.inventory.items)) {
-        if (exact.fallback !== item.key) continue
-        delete plan.inventory.items[id]
-        plan.dropped.push(id)
+        if (exact.fallback === item.key) drops.add(id)
       }
+    }
+    if (drops.size > 0) {
+      // Rebuild instead of `delete` on dynamically computed keys.
+      plan.inventory.items = Object.fromEntries(Object.entries(plan.inventory.items).filter(([id]) => !drops.has(id)))
+      plan.dropped.push(...drops)
     }
     plan.count++
   }
