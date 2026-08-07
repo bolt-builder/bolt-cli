@@ -11,9 +11,7 @@ export const assertFetchable = (url: URL) =>
   Effect.tryPromise({
     try: async () => {
       const host = url.hostname.replace(/^\[|\]$/g, "")
-      const addresses = isIP(host)
-        ? [host]
-        : (await lookup(host, { all: true })).map((entry) => entry.address)
+      const addresses = isIP(host) ? [host] : (await lookup(host, { all: true })).map((entry) => entry.address)
       for (const address of addresses) {
         if (isLinkLocal(address)) throw new Error(`Refusing to fetch link-local address ${address} for ${url.hostname}`)
       }
