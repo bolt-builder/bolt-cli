@@ -9,6 +9,37 @@ import { Tail } from "@/util/tail"
 
 const FILE = path.join(Global.Path.log, "opencode.log")
 
+export const LEVELS = ["DEBUG", "INFO", "WARN", "ERROR"] as const
+
+/** Parses the level=... field from a logfmt line, if present. */
+export function level(line: string) {
+  const match = line.match(/(?:^|\s)level=(\w+)/)
+  return match ? match[1] : undefined
+}
+
+/**
+ * Builds a stateful line predicate. Level filtering keeps entries at or above
+ * the minimum severity; lines without a level field (stack traces, wrapped
+ * output) inherit the decision of the entry they continue. Session filtering
+ * matches the ID anywhere in the line (session.id=..., sessionID=...).
+ */
+export function filter(opts: { level?: string; session?: string }) {
+  const minimum = opts.level ? LEVELS.indexOf(opts.level as (typeof LEVELS)[number]) : 0
+  const flags = { keep: true }
+  return (line: string) => {
+    const parsed = level(line)
+    if (parsed !== undefined) {
+      const severity = LEVELS.indexOf(parsed as (typeof LEVELS)[number])
+      flags.keep = severity === -1 || severity >= minimum
+      if (flags.keep && opts.session) flags.keep = line.includes(opts.session)
+      return flags.keep
+    }
+    // Continuation line: follow the previous entry, but still honor an
+    // explicit session match so orphaned lines do not leak between sessions.
+    return flags.keep
+  }
+}
+
 export const LogsCommand = effectCmd({
   command: "logs",
   describe: "print the agent log",
@@ -25,6 +56,15 @@ export const LogsCommand = effectCmd({
         describe: "stream new log lines as they are written",
         type: "boolean",
         default: false,
+      })
+      .option("level", {
+        describe: "minimum log level to show",
+        type: "string",
+        choices: [...LEVELS],
+      })
+      .option("session", {
+        describe: "only show lines mentioning this session ID",
+        type: "string",
       })
       .option("json", {
         describe: Envelope.DESCRIBE,
@@ -44,10 +84,11 @@ export const LogsCommand = effectCmd({
     const text = yield* Effect.promise(() => Bun.file(FILE).text())
     const lines = text.split("\n")
     if (lines.at(-1) === "") lines.pop()
+    const filtered = args.level || args.session ? lines.filter(filter(args)) : lines
     const count = Math.max(0, Math.floor(args.tail))
     // slice(-0) === slice(0) returns the whole array, so guard 0 explicitly to
     // mean "print no history" (e.g. `logs --tail 0 --follow` to stream only new lines).
-    const shown = count === 0 ? [] : lines.slice(-count)
+    const shown = count === 0 ? [] : filtered.slice(-count)
     if (args.json) {
       Envelope.print({ file: FILE, lines: shown })
       return
@@ -63,7 +104,8 @@ export const LogsCommand = effectCmd({
     // Follow by re-reading appended bytes whenever the file changes; the log
     // is append-only so the previous size is always a valid resume offset.
     yield* Effect.callback<void>(() => {
-      const close = Tail.follow(FILE, Buffer.byteLength(text))
+      const live = args.level || args.session ? filter(args) : undefined
+      const close = Tail.follow(FILE, Buffer.byteLength(text), live)
       return Effect.sync(close)
     })
   }),
