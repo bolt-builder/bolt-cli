@@ -127,7 +127,20 @@ const cli = yargs(args)
     describe: "use a named config profile",
     type: "string",
   })
+  .option("quiet", {
+    describe: "suppress non-essential output on stderr (errors still print)",
+    type: "boolean",
+  })
+  .option("verbose", {
+    describe: "print debug logs to stderr (implies --print-logs and --log-level DEBUG)",
+    type: "boolean",
+  })
   .middleware(async (opts) => {
+    if (opts.quiet) UI.setQuiet(true)
+    if (opts.verbose) {
+      process.env.OPENCODE_PRINT_LOGS = "1"
+      process.env.OPENCODE_LOG_LEVEL = "DEBUG"
+    }
     if (opts.printLogs) process.env.OPENCODE_PRINT_LOGS = "1"
     if (opts.logLevel) process.env.OPENCODE_LOG_LEVEL = opts.logLevel
     if (opts.profile) process.env.OPENCODE_PROFILE = opts.profile
