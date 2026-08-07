@@ -534,9 +534,9 @@ export const RunCommand = effectCmd({
       const attachHeaders = server
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined
-      const attachSDK = (dir?: string) => {
+      const attachSDK = (baseUrl: string, dir?: string) => {
         return createOpencodeClient({
-          baseUrl: server!,
+          baseUrl,
           directory: dir,
           headers: attachHeaders,
         })
@@ -966,7 +966,7 @@ export const RunCommand = effectCmd({
           if (typeof candidates === "string") return die(candidates)
           const resolvedModel = resolveAutoModel(pick(args.model))
           const exit = await runBestOf({
-            sdk: server ? attachSDK(directory ?? (await current(sdk))) : sdk,
+            sdk: server ? attachSDK(server, directory ?? (await current(sdk))) : sdk,
             candidates,
             judge: resolvedModel ?? candidates[0],
             message,
@@ -1177,7 +1177,7 @@ export const RunCommand = effectCmd({
           return error
         }
         const cwd = server ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
-        const client = server ? attachSDK(cwd) : sdk
+        const client = server ? attachSDK(server, cwd) : sdk
 
         // Validate agent if specified
         const agent = await pickAgent(client)
@@ -1379,7 +1379,7 @@ export const RunCommand = effectCmd({
       }
 
       if (server) {
-        const sdk = attachSDK(directory)
+        const sdk = attachSDK(server, directory)
         return await execute(sdk)
       }
 

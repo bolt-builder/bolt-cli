@@ -8,7 +8,7 @@ export interface Split {
   error?: string
 }
 
-export function split(values: string | string[] | undefined): Split {
+export function split(values?: string | string[]): Split {
   const list = values === undefined ? [] : Array.isArray(values) ? values : [values]
   const servers = list.filter((value) => value.startsWith("http://") || value.startsWith("https://"))
   if (servers.length > 1) return { paths: [], error: "Pass at most one server URL to --attach" }

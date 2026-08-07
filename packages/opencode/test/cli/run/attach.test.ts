@@ -3,7 +3,7 @@ import { split } from "../../../src/cli/cmd/run/attach"
 
 describe("run.attach.split", () => {
   test("returns nothing for an omitted flag", () => {
-    expect(split(undefined)).toEqual({ server: undefined, paths: [] })
+    expect(split()).toEqual({ server: undefined, paths: [] })
   })
 
   test("treats http and https values as the server", () => {
