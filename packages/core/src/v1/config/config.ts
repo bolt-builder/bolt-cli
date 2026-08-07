@@ -187,6 +187,10 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      diff_context: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Attach only the changed hunks (diff against HEAD) when a locally modified file is attached without an explicit range, instead of the whole file (default: false)",
+      }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
       }),
