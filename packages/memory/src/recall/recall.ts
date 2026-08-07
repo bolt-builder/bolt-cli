@@ -1,3 +1,4 @@
+import { MemoryDecay } from "../decay"
 import { MemoryDigest } from "../capture/digest"
 import { MemoryFiles } from "../storage/store"
 import { MemoryIndexer } from "./indexer"
@@ -223,11 +224,18 @@ export namespace MemoryRecall {
     return MemoryIndexer.cap(lines.join("\n"), input.max).text.trim()
   }
 
-  function select(input: { hits: Hit[]; keys: string[]; limit: number; force?: boolean }) {
+  function select(input: { hits: Hit[]; keys: string[]; limit: number; now: number; force?: boolean }) {
     if (input.keys.length === 0) return [] as Hit[]
     const hits = input.hits
       .map((hit) => ({ ...hit, score: score({ hit, keys: input.keys }) }))
       .filter((hit) => hit.score > 0)
+      // Stale typed facts age out of ambient recall until a write reconfirms them; digests already
+      // rotate out via session pruning, and a forced targeted recall still surfaces stale facts so
+      // explicit lookups never hide stored memory.
+      .filter(
+        (hit) =>
+          input.force || hit.type !== "typed" || !MemoryDecay.stale({ updatedAt: hit.updatedAt, now: input.now }),
+      )
       .sort(compare)
     if (input.force) return hits.slice(0, input.limit)
     const top = hits[0]?.score ?? 0
@@ -280,7 +288,7 @@ export namespace MemoryRecall {
     // Query terms absent from the corpus add zero to every hit; only corpus-ubiquitous terms need removal.
     const keys = MemoryTopics.expand(MemoryShared.terms(query, { drop: noise([...typedItems, ...digestItems]) }))
     const hits = dedupe({
-      hits: select({ hits: [...typedItems, ...digestItems], keys, limit, force: input.force }),
+      hits: select({ hits: [...typedItems, ...digestItems], keys, limit, now, force: input.force }),
       query,
     })
     if (hits.length === 0) return

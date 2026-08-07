@@ -15,6 +15,7 @@ import { SessionID, MessageID } from "../../src/session/schema"
 import * as Tool from "../../src/tool/tool"
 import { testEffect } from "../lib/effect"
 import { Watcher } from "@opencode-ai/core/filesystem/watcher"
+import { TestConfig } from "../fixture/config"
 
 const ctx = {
   sessionID: SessionID.make("ses_test-edit-session"),
@@ -31,8 +32,11 @@ afterEach(async () => {
   await disposeAllInstances()
 })
 
-const layer = LayerNode.compile(
-  LayerNode.group([LSP.node, FSUtil.node, Format.node, EventV2Bridge.node, Truncate.node, Agent.node]),
+const layer = Layer.merge(
+  LayerNode.compile(
+    LayerNode.group([LSP.node, FSUtil.node, Format.node, EventV2Bridge.node, Truncate.node, Agent.node]),
+  ),
+  TestConfig.layer(),
 )
 
 const it = testEffect(layer)

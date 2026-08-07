@@ -18,6 +18,9 @@ import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
 import { MapCommand } from "./cli/cmd/map"
+import { IndexCommand } from "./cli/cmd/indexer"
+import { DeadCommand } from "./cli/cmd/dead"
+import { DupesCommand } from "./cli/cmd/dupes"
 import { McpCommand } from "./cli/cmd/mcp"
 import { GithubCommand } from "./cli/cmd/github"
 import { ExportCommand } from "./cli/cmd/export"
@@ -28,22 +31,34 @@ import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
+import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
+import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
 import { CheckpointCommand } from "./cli/cmd/checkpoint"
+import { RebaseCommand } from "./cli/cmd/rebase"
+import { InvariantsCommand } from "./cli/cmd/invariants"
+import { ResolveCommand } from "./cli/cmd/resolve"
 import { CodemodCommand } from "./cli/cmd/codemod"
+import { AssertsCommand } from "./cli/cmd/asserts"
 import { PipelineCommand } from "./cli/cmd/pipeline"
 import { RefactorCommand } from "./cli/cmd/refactor"
+import { TightenCommand } from "./cli/cmd/tighten"
 import { LearnCommand } from "./cli/cmd/learn"
+import { DriftCommand } from "./cli/cmd/drift"
 import { MemoryCommand } from "./cli/cmd/memory"
 import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
+import { GuardCommand } from "./cli/cmd/guard"
+import { MutateCommand } from "./cli/cmd/mutate"
 import { BisectCommand } from "./cli/cmd/bisect"
+import { BenchCommand } from "./cli/cmd/bench"
 import { FigmaCommand } from "./cli/cmd/figma"
 import { PairCommand } from "./cli/cmd/pair"
 import { SessionCommand } from "./cli/cmd/session"
+import { WorktreeCommand } from "./cli/cmd/worktree"
 import { DbCommand } from "./cli/cmd/db"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
@@ -117,26 +132,41 @@ const cli = yargs(args)
   .command(EvalCommand)
   .command(LogsCommand)
   .command(MapCommand)
+  .command(IndexCommand)
+  .command(DeadCommand)
+  .command(DupesCommand)
   .command(ExportCommand)
   .command(ImportCommand)
   .command(GithubCommand)
   .command(PrCommand)
+  .command(StackCommand)
   .command(CommitCommand)
+  .command(SplitCommand)
   .command(ReviewCommand)
   .command(CheckpointCommand)
+  .command(RebaseCommand)
+  .command(InvariantsCommand)
+  .command(ResolveCommand)
   .command(CodemodCommand)
+  .command(AssertsCommand)
   .command(PipelineCommand)
   .command(RefactorCommand)
+  .command(TightenCommand)
   .command(LearnCommand)
+  .command(DriftCommand)
   .command(MemoryCommand)
   .command(WatchCommand)
   .command(JobsCommand)
   .command(CronCommand)
   .command(FlakyCommand)
+  .command(GuardCommand)
+  .command(MutateCommand)
   .command(BisectCommand)
+  .command(BenchCommand)
   .command(FigmaCommand)
   .command(PairCommand)
   .command(SessionCommand)
+  .command(WorktreeCommand)
   .command(PluginCommand)
   .command(DbCommand)
   .fail((msg, err) => {
