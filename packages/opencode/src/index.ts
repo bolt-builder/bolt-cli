@@ -1,6 +1,7 @@
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"
+import { AskCommand } from "./cli/cmd/ask"
 import { ArenaCommand } from "./cli/cmd/arena"
 import { GenerateCommand } from "./cli/cmd/generate"
 import { ConsoleCommand } from "./cli/cmd/account"
@@ -132,6 +133,7 @@ const cli = yargs(args)
   .command(TuiThreadCommand)
   .command(AttachCommand)
   .command(RunCommand)
+  .command(AskCommand)
   .command(ArenaCommand)
   .command(GenerateCommand)
   .command(DebugCommand)
