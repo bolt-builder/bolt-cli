@@ -22,6 +22,7 @@ import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
 import { Envelope } from "../envelope"
 import { ExitCode } from "../exit"
+import { Porcelain } from "../porcelain"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
 import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@opencode-ai/sdk/v2"
@@ -197,6 +198,11 @@ export const RunCommand = effectCmd({
         type: "boolean",
         default: false,
         describe: Envelope.DESCRIBE,
+      })
+      .option("porcelain", {
+        type: "boolean",
+        default: false,
+        describe: Porcelain.DESCRIBE,
       })
       .option("emit", {
         type: "string",
@@ -439,6 +445,22 @@ export const RunCommand = effectCmd({
 
       if (args.emit && args.attach) {
         die("--emit cannot be used with --attach")
+      }
+
+      if (args.porcelain && args.json) {
+        die("--porcelain cannot be used with --json")
+      }
+
+      if (args.porcelain && args.format === "json") {
+        die("--porcelain cannot be used with --format json")
+      }
+
+      if (args.porcelain && interactive) {
+        die("--porcelain cannot be used with --mini")
+      }
+
+      if (args.porcelain && args["best-of"]) {
+        die("--porcelain cannot be used with --best-of")
       }
 
       if (args["replay-limit"] !== undefined && !interactive) {
@@ -934,6 +956,8 @@ export const RunCommand = effectCmd({
         const sessionID = sess.id
         // Final text parts collected for the --json envelope or --emit context, printed on finish.
         const collected: string[] = []
+        // Porcelain records are frozen: kind first, then fields; see ../porcelain.ts.
+        if (args.porcelain) Porcelain.print("session", sessionID)
 
         function emit(type: string, data: Record<string, unknown>) {
           if (args.format === "json") {
@@ -986,6 +1010,10 @@ export const RunCommand = effectCmd({
                   if (entry) plan.push(entry)
                 }
                 if (emit("tool_use", { part })) continue
+                if (args.porcelain) {
+                  Porcelain.print("tool", part.tool, part.state.status)
+                  continue
+                }
                 if (part.state.status === "completed") {
                   await tool(part)
                   continue
@@ -998,7 +1026,8 @@ export const RunCommand = effectCmd({
                 part.type === "tool" &&
                 part.tool === "task" &&
                 part.state.status === "running" &&
-                args.format !== "json"
+                args.format !== "json" &&
+                !args.porcelain
               ) {
                 if (toggles.get(part.id) === true) continue
                 await tool(part)
@@ -1015,7 +1044,9 @@ export const RunCommand = effectCmd({
                 if (breach && !breached) {
                   breached = true
                   process.exitCode = ExitCode.BUDGET
-                  if (!emit("budget_exceeded", { budget, message: breach })) {
+                  if (args.porcelain) {
+                    Porcelain.print("budget", breach)
+                  } else if (!emit("budget_exceeded", { budget, message: breach })) {
                     UI.error(`${breach}; aborting the session`)
                   }
                   await client.session.abort({ sessionID }).catch(() => {
@@ -1033,6 +1064,10 @@ export const RunCommand = effectCmd({
                   collected.push(text)
                   continue
                 }
+                if (args.porcelain) {
+                  Porcelain.print("text", text)
+                  continue
+                }
                 if (!process.stdout.isTTY) {
                   process.stdout.write(text + EOL)
                   continue
@@ -1047,6 +1082,10 @@ export const RunCommand = effectCmd({
                 if (args.json) continue
                 const text = part.text.trim()
                 if (!text) continue
+                if (args.porcelain) {
+                  Porcelain.print("reasoning", text)
+                  continue
+                }
                 const line = `Thinking: ${text}`
                 if (process.stdout.isTTY) {
                   UI.empty()
@@ -1067,6 +1106,10 @@ export const RunCommand = effectCmd({
               }
               error = error ? error + EOL + err : err
               if (emit("error", { error: props.error })) continue
+              if (args.porcelain) {
+                Porcelain.print("error", err)
+                continue
+              }
               UI.error(err)
             }
 
@@ -1377,6 +1420,7 @@ export async function runMini(input: MiniCommandInput) {
     format: "default",
     json: false,
     emit: undefined,
+    porcelain: false,
     file: undefined,
     title: undefined,
     attach: input.attach,
