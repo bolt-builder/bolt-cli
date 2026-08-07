@@ -68,6 +68,7 @@ import { FlakyCommand } from "./cli/cmd/flaky"
 import { ProptestCommand } from "./cli/cmd/proptest"
 import { GuardCommand } from "./cli/cmd/guard"
 import { MutateCommand } from "./cli/cmd/mutate"
+import { MuxCommand } from "./cli/cmd/mux"
 import { BisectCommand } from "./cli/cmd/bisect"
 import { WhyCommand } from "./cli/cmd/why"
 import { BenchCommand } from "./cli/cmd/bench"
@@ -194,6 +195,7 @@ const cli = yargs(args)
   .command(ProptestCommand)
   .command(GuardCommand)
   .command(MutateCommand)
+  .command(MuxCommand)
   .command(BisectCommand)
   .command(WhyCommand)
   .command(BenchCommand)
