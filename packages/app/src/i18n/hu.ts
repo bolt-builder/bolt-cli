@@ -1094,11 +1094,11 @@ export const dict = {
   "settings.providers.tag.other": "Más",
   "settings.gateways.title": "Átjárók",
   "settings.gateways.description":
-    "Csatlakoztasson egy AI-átjárót, hogy egyetlen API-kulccsal sok modellhez férjen hozzá, beleértve az ingyenes modelleket is.",
+    "Csatlakoztasson egy AI-átjárót, hogy egyetlen API-kulccsal számos modellhez hozzáférjen, beleértve az ingyenes modelleket is.",
   "settings.gateways.tag.connected": "Csatlakoztatva",
   "settings.gateways.note.kilo": "OpenRouter-kompatibilis átjáró ingyenes, automatikusan irányított modellekkel",
   "settings.gateways.note.zoo": "Közösségi átjáró a Zoo Code projektből",
-  "settings.gateways.connect.title": "Csatlakoztassa a {{gateway}}-t",
+  "settings.gateways.connect.title": "{{gateway}} csatlakoztatása",
   "settings.gateways.connect.description": "Illessze be a {{gateway}} API-kulcsát a modelljei csatlakoztatásához.",
   "settings.models.title": "Modellek",
   "settings.models.description": "A modellbeállítások itt konfigurálhatók.",

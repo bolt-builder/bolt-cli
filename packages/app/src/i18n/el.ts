@@ -1099,8 +1099,8 @@ export const dict = {
   "settings.gateways.title": "Πύλες",
   "settings.gateways.description":
     "Συνδέστε μια πύλη AI για πρόσβαση σε πολλά μοντέλα μέσω ενός μόνο κλειδιού API, συμπεριλαμβανομένων δωρεάν μοντέλων.",
-  "settings.gateways.tag.connected": "Συνδεδεμένη",
-  "settings.gateways.note.kilo": "Πύλη συμβατή με το OpenRouter με δωρεάν αυτόματα δρομολογούμενα μοντέλα",
+  "settings.gateways.tag.connected": "Συνδεδεμένο",
+  "settings.gateways.note.kilo": "Πύλη συμβατή με το OpenRouter με δωρεάν μοντέλα αυτόματης δρομολόγησης",
   "settings.gateways.note.zoo": "Κοινοτική πύλη από το έργο Zoo Code",
   "settings.gateways.connect.title": "Σύνδεση {{gateway}}",
   "settings.gateways.connect.description": "Επικολλήστε το κλειδί API του {{gateway}} για να συνδέσετε τα μοντέλα του.",

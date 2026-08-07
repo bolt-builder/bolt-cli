@@ -1101,7 +1101,7 @@ export const dict = {
   "settings.gateways.tag.connected": "Prijungta",
   "settings.gateways.note.kilo": "Su OpenRouter suderinamas šliuzas su nemokamais automatiškai nukreipiamais modeliais",
   "settings.gateways.note.zoo": "Bendruomenės šliuzas iš Zoo Code projekto",
-  "settings.gateways.connect.title": "Prijunkite {{gateway}}",
+  "settings.gateways.connect.title": "Prijungti {{gateway}}",
   "settings.gateways.connect.description": "Įklijuokite savo {{gateway}} API raktą, kad prijungtumėte jo modelius.",
   "settings.models.title": "Modeliai",
   "settings.models.description": "Čia bus konfigūruojami modelio nustatymai.",

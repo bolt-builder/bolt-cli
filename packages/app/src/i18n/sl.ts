@@ -1091,9 +1091,9 @@ export const dict = {
   "settings.gateways.description":
     "Povežite prehod AI za dostop do številnih modelov z enim ključem API, vključno z brezplačnimi modeli.",
   "settings.gateways.tag.connected": "Povezano",
-  "settings.gateways.note.kilo": "Prehod, združljiv z OpenRouter, z brezplačnimi samodejno usmerjenimi modeli",
+  "settings.gateways.note.kilo": "Prehod, združljiv z OpenRouterjem, z brezplačnimi samodejno usmerjenimi modeli",
   "settings.gateways.note.zoo": "Prehod skupnosti iz projekta Zoo Code",
-  "settings.gateways.connect.title": "Povežite {{gateway}}",
+  "settings.gateways.connect.title": "Poveži {{gateway}}",
   "settings.gateways.connect.description": "Prilepite svoj ključ API {{gateway}}, da povežete njegove modele.",
   "settings.models.title": "Modeli",
   "settings.models.description": "Tukaj je mogoče konfigurirati nastavitve modela.",

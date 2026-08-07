@@ -1098,12 +1098,13 @@ export const dict = {
   "settings.providers.tag.other": "Altres",
   "settings.gateways.title": "Passarel·les",
   "settings.gateways.description":
-    "Connecteu una passarel·la d'IA per accedir a molts models amb una sola clau API, incloent-hi models gratuïts.",
+    "Connecteu una passarel·la d'IA per accedir a molts models mitjançant una única clau d'API, inclosos models gratuïts.",
   "settings.gateways.tag.connected": "Connectat",
   "settings.gateways.note.kilo": "Passarel·la compatible amb OpenRouter amb models gratuïts encaminats automàticament",
   "settings.gateways.note.zoo": "Passarel·la comunitària del projecte Zoo Code",
   "settings.gateways.connect.title": "Connecta {{gateway}}",
-  "settings.gateways.connect.description": "Enganxeu la vostra clau API de {{gateway}} per connectar els seus models.",
+  "settings.gateways.connect.description":
+    "Enganxeu la vostra clau d'API de {{gateway}} per connectar els seus models.",
   "settings.models.title": "Models",
   "settings.models.description": "La configuració del model es podrà configurar aquí.",
   "settings.agents.title": "Agents",

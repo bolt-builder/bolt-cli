@@ -1090,9 +1090,9 @@ export const dict = {
   "settings.gateways.description":
     "Conectați un gateway AI pentru a accesa multe modele printr-o singură cheie API, inclusiv modele gratuite.",
   "settings.gateways.tag.connected": "Conectat",
-  "settings.gateways.note.kilo": "Gateway compatibil cu OpenRouter, cu modele gratuite direcționate automat",
+  "settings.gateways.note.kilo": "Gateway compatibil cu OpenRouter, cu modele gratuite rutate automat",
   "settings.gateways.note.zoo": "Gateway comunitar din proiectul Zoo Code",
-  "settings.gateways.connect.title": "Conectează {{gateway}}",
+  "settings.gateways.connect.title": "Conectați {{gateway}}",
   "settings.gateways.connect.description": "Lipiți cheia API {{gateway}} pentru a-i conecta modelele.",
   "settings.models.title": "Modele",
   "settings.models.description": "Setările modelelor vor putea fi configurate aici.",
