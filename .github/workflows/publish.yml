@@ -100,6 +100,16 @@ jobs:
           GH_REPO: ${{ needs.version.outputs.repo }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
 
+      - name: Build man pages
+        run: ./packages/opencode/script/man.ts
+        env:
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: opencode-man
+          path: packages/opencode/dist/man/*.1
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: opencode-cli
