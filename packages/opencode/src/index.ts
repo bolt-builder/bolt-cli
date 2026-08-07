@@ -23,6 +23,7 @@ import { MapCommand } from "./cli/cmd/map"
 import { ArchCommand } from "./cli/cmd/arch"
 import { MigrateCommand } from "./cli/cmd/migrate"
 import { DepsCommand } from "./cli/cmd/deps"
+import { DiffGateCommand } from "./cli/cmd/diff-gate"
 import { OwnersCommand } from "./cli/cmd/owners"
 import { HotspotsCommand } from "./cli/cmd/hotspots"
 import { PackagesCommand } from "./cli/cmd/packages"
@@ -158,6 +159,7 @@ const cli = yargs(args)
   .command(ArchCommand)
   .command(MigrateCommand)
   .command(DepsCommand)
+  .command(DiffGateCommand)
   .command(OwnersCommand)
   .command(HotspotsCommand)
   .command(PackagesCommand)
