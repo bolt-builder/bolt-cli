@@ -1000,6 +1000,67 @@ it.instance("resolves scoped npm plugins in config", () =>
   }),
 )
 
+it.effect("selected profile overrides file config", () =>
+  withConfigTree(
+    {
+      global: {
+        profile: {
+          work: {
+            model: "work/model",
+            provider: { anthropic: { options: { baseURL: "https://gateway.example.com" } } },
+          },
+        },
+      },
+      project: { model: "project/model" },
+    },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      "work",
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("work/model")
+        expect(config.provider?.anthropic?.options?.baseURL).toBe("https://gateway.example.com")
+      }),
+    ),
+  ),
+)
+
+it.effect("profiles are inert when none is selected", () =>
+  withConfigTree(
+    {
+      global: { profile: { work: { model: "work/model" } } },
+      project: { model: "project/model" },
+    },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      undefined,
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("project/model")
+      }),
+    ),
+  ),
+)
+
+it.effect("unknown profile fails and lists available profiles", () =>
+  withConfigTree(
+    { project: { profile: { work: { model: "work/model" } } } },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      "missing",
+      Effect.gen(function* () {
+        const exit = yield* Effect.exit(Config.use.get())
+        expect(Exit.isFailure(exit)).toBe(true)
+        if (Exit.isFailure(exit)) {
+          const error = Cause.squash(exit.cause) as { data?: { issues?: Array<{ message: string }> } }
+          expect(error.data?.issues?.[0]?.message).toContain('Unknown profile "missing"')
+          expect(error.data?.issues?.[0]?.message).toContain("work")
+        }
+      }),
+    ),
+  ),
+)
+
 it.effect("merges plugin arrays from global and local configs", () =>
   withConfigTree(
     {

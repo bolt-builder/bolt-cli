@@ -78,6 +78,10 @@ export const Info = Schema.Struct({
   small_model: Schema.optional(Schema.String).annotate({
     description: "Small model to use for tasks like title generation in the format of provider/model",
   }),
+  profile: Schema.optional(Schema.Record(Schema.String, Schema.Json)).annotate({
+    description:
+      "Named configuration profiles selected with --profile or OPENCODE_PROFILE. Each profile is a partial config object (model, provider, mcp, etc.) merged over all file-based config when active",
+  }),
   default_agent: Schema.optional(Schema.String).annotate({
     description:
       "Default agent to use when none is specified. Must be a primary agent. Falls back to 'build' if not set or if the specified agent is invalid.",
