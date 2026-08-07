@@ -117,7 +117,14 @@ export const SessionListCommand = effectCmd({
   handler: Effect.fn("Cli.session.list")(function* (args) {
     const sessions = yield* Session.Service.use((svc) => svc.list({ roots: true, limit: args.maxCount }))
 
-    if (sessions.length === 0) return
+    if (sessions.length === 0) {
+      UI.println(
+        UI.Style.TEXT_DIM +
+          "No sessions in this project yet. Sessions are stored per project directory; run this from the directory where you used bolt." +
+          UI.Style.TEXT_NORMAL,
+      )
+      return
+    }
 
     const output = args.format === "json" ? formatSessionJSON(sessions) : formatSessionTable(sessions)
 
