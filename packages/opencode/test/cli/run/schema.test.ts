@@ -105,7 +105,7 @@ describe("prompts", () => {
   })
 
   test("feedback lists every error", () => {
-    const text = feedback(["$: missing required property \"a\"", "$.b: expected string, got integer"])
+    const text = feedback(['$: missing required property "a"', "$.b: expected string, got integer"])
     expect(text).toContain('- $: missing required property "a"')
     expect(text).toContain("- $.b: expected string, got integer")
   })

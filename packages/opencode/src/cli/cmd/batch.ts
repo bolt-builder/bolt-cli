@@ -40,12 +40,9 @@ export function table(rows: Row[]): string {
   const lines = rows.map((row) => {
     const prompt = row.prompt.length > width ? row.prompt.slice(0, width - 3) + "..." : row.prompt
     const suffix = row.detail ? `  (${row.detail})` : ""
-    return [
-      String(row.index).padEnd(4),
-      row.status.padEnd(7),
-      duration(row.duration).padEnd(8),
-      prompt + suffix,
-    ].join(" ")
+    return [String(row.index).padEnd(4), row.status.padEnd(7), duration(row.duration).padEnd(8), prompt + suffix].join(
+      " ",
+    )
   })
   const failed = rows.filter((row) => row.status === "error").length
   const summary = `${rows.length - failed}/${rows.length} succeeded`
