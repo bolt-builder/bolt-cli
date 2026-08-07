@@ -203,6 +203,10 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      diff_context: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Attach only the changed hunks (diff against HEAD) when a locally modified file is attached without an explicit range, instead of the whole file (default: false)",
+      }),
       symbol_graph: Schema.optional(Schema.Boolean).annotate({
         description:
           "Append a cross-file symbol graph (which files reference the edited file's symbols) to edit tool output (default: false)",
