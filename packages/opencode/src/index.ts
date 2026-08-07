@@ -13,6 +13,7 @@ import { UI } from "./cli/ui"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { FormatError } from "./cli/error"
 import { ServeCommand } from "./cli/cmd/serve"
+import { DaemonCommand } from "./cli/cmd/daemon"
 import { DebugCommand } from "./cli/cmd/debug"
 import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
@@ -141,6 +142,7 @@ const cli = yargs(args)
   .command(UpgradeCommand)
   .command(UninstallCommand)
   .command(ServeCommand)
+  .command(DaemonCommand)
   .command(WebCommand)
   .command(ModelsCommand)
   .command(StatsCommand)
