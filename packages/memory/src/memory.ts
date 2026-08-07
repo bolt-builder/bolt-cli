@@ -3,6 +3,7 @@ import { MemoryFiles } from "./storage/store"
 import { MemoryIndexer } from "./recall/indexer"
 import { MemoryNotice } from "./memory-notice"
 import { MemoryOperations } from "./capture/operations"
+import { MemoryOrigins } from "./storage/origins"
 import { MemoryPaths } from "./storage/paths"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
@@ -202,6 +203,7 @@ export namespace Memory {
     ops: MemoryOperations.Op[]
     trigger?: Trigger
     sessionID?: string
+    messageID?: string
     tokens?: number
   }): Promise<Apply> {
     const trigger = input.trigger ?? "explicit"
@@ -236,6 +238,13 @@ export namespace Memory {
     }
     const accepted = inputOps.filter((item) => item.action !== "add" || !MemoryOperations.secret(item))
     const result = await MemoryOperations.apply({ root: input.root, ops: inputOps })
+    // Every written fact links back to the session and message that taught it.
+    await MemoryOrigins.record(input.root, {
+      ids: result.ids,
+      sessionID: input.sessionID,
+      messageID: input.messageID,
+      at: Date.now(),
+    })
     // Auto-capture skips a secret-like op and applies the rest. An explicit save whose only effect
     // was rejecting secret content must fail loudly rather than silently drop it; a mixed explicit
     // batch that still applied something keeps the skip as a record.
@@ -292,7 +301,7 @@ export namespace Memory {
     }
   }
 
-  export async function forget(input: { root: string; query: string; sessionID?: string }) {
+  export async function forget(input: { root: string; query: string; sessionID?: string; messageID?: string }) {
     return apply({ ...input, ops: [{ action: "remove", query: input.query }] })
   }
 
@@ -304,6 +313,7 @@ export namespace Memory {
     section?: string
     scope?: string
     sessionID?: string
+    messageID?: string
   }) {
     // A monorepo scope wins over an explicit section: scoped facts must live in their scope section.
     const scoped = input.scope ? MemoryScopes.clean(input.scope) : ""
@@ -321,12 +331,23 @@ export namespace Memory {
     })
   }
 
-  export async function correct(input: { root: string; text: string; key?: string; sessionID?: string }) {
+  export async function correct(input: {
+    root: string
+    text: string
+    key?: string
+    sessionID?: string
+    messageID?: string
+  }) {
     return remember({
       ...input,
       file: "corrections.md",
       section: "Corrections",
     })
+  }
+
+  export async function origins(input: { root: string }) {
+    const ledger = await MemoryOrigins.read(input.root)
+    return { root: input.root, items: ledger.items }
   }
 
   export async function pending(input: { root: string }) {

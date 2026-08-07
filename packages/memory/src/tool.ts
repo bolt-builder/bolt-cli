@@ -89,6 +89,7 @@ export namespace MemoryTool {
     memory: MemoryService.Interface
     ctx: MemoryPaths.Ctx
     sessionID: string
+    messageID?: string
   }
   type Recall = Base & { params: RecallParams; ask: Ask }
   type Save = Base & { params: SaveParams; ask: Ask }
@@ -501,7 +502,7 @@ export namespace MemoryTool {
       yield* approval(input.params, input.ask, { query })
       return removed({
         params: input.params,
-        result: yield* input.memory.forget({ root, sessionID: input.sessionID, query }),
+        result: yield* input.memory.forget({ root, sessionID: input.sessionID, messageID: input.messageID, query }),
       })
     })
   }
@@ -515,10 +516,17 @@ export namespace MemoryTool {
       const scope = input.params.scope ? MemoryScopes.clean(input.params.scope) : ""
       const result =
         input.params.action === "correct"
-          ? yield* input.memory.correct({ root, sessionID: input.sessionID, key: input.params.key, text })
+          ? yield* input.memory.correct({
+              root,
+              sessionID: input.sessionID,
+              messageID: input.messageID,
+              key: input.params.key,
+              text,
+            })
           : yield* input.memory.remember({
               root,
               sessionID: input.sessionID,
+              messageID: input.messageID,
               key: input.params.key,
               text,
               ...(scope ? { section: MemoryScopes.section(scope) } : {}),

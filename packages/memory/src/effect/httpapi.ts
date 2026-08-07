@@ -191,7 +191,8 @@ export namespace MemoryContract {
     }
   }
 
-  export type ApiOperation = MemoryOperations.Result
+  // `ids` stays host-internal (provenance recording); the wire contract is unchanged.
+  export type ApiOperation = Omit<MemoryOperations.Result, "ids">
 
   export function state(input: MemorySchema.State): ApiState {
     return {
