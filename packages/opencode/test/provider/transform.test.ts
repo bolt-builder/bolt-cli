@@ -88,6 +88,78 @@ describe("ProviderTransform.options - setCacheKey", () => {
     expect(result.promptCacheKey).toBe(sessionID)
   })
 
+  test("should prefer projectID over sessionID for the cache key", () => {
+    const openaiModel = {
+      ...mockModel,
+      providerID: "openai",
+      api: {
+        id: "gpt-4",
+        url: "https://api.openai.com",
+        npm: "@ai-sdk/openai",
+      },
+    }
+    const result = ProviderTransform.options({
+      model: openaiModel,
+      sessionID,
+      projectID: "project-abc",
+      providerOptions: {},
+    })
+    expect(result.promptCacheKey).toBe("project-abc")
+  })
+
+  test("should reuse the cache key across sessions in the same project", () => {
+    const openaiModel = {
+      ...mockModel,
+      providerID: "openai",
+      api: {
+        id: "gpt-4",
+        url: "https://api.openai.com",
+        npm: "@ai-sdk/openai",
+      },
+    }
+    const first = ProviderTransform.options({
+      model: openaiModel,
+      sessionID: "one-shot-1",
+      projectID: "project-abc",
+      providerOptions: {},
+    })
+    const second = ProviderTransform.options({
+      model: openaiModel,
+      sessionID: "one-shot-2",
+      projectID: "project-abc",
+      providerOptions: {},
+    })
+    expect(first.promptCacheKey).toBe(second.promptCacheKey)
+  })
+
+  test("should keep the session key for the global sentinel project", () => {
+    const result = ProviderTransform.options({
+      model: {
+        ...mockModel,
+        providerID: "openai",
+        api: { id: "gpt-4", url: "https://api.openai.com", npm: "@ai-sdk/openai" },
+      },
+      sessionID,
+      projectID: "global",
+      providerOptions: {},
+    })
+    expect(result.promptCacheKey).toBe(sessionID)
+  })
+
+  test("should set prompt_cache_key from projectID for deepinfra", () => {
+    const result = ProviderTransform.options({
+      model: {
+        ...mockModel,
+        providerID: "deepinfra",
+        api: { id: "meta-llama", url: "https://api.deepinfra.com", npm: "@ai-sdk/deepinfra" },
+      },
+      sessionID,
+      projectID: "project-abc",
+      providerOptions: {},
+    })
+    expect(result.prompt_cache_key).toBe("project-abc")
+  })
+
   test("should set promptCacheKey for the OpenAI SDK regardless of provider ID", () => {
     const result = ProviderTransform.options({
       model: {
