@@ -1046,6 +1046,13 @@ export const dict = {
   "settings.providers.tag.config": "配置",
   "settings.providers.tag.custom": "自定义",
   "settings.providers.tag.other": "其他",
+  "settings.gateways.title": "网关",
+  "settings.gateways.description": "连接 AI 网关，即可通过单个 API 密钥访问众多模型，包括免费模型。",
+  "settings.gateways.tag.connected": "已连接",
+  "settings.gateways.note.kilo": "与 OpenRouter 兼容的网关，提供免费的自动路由模型",
+  "settings.gateways.note.zoo": "来自 Zoo Code 项目的社区网关",
+  "settings.gateways.connect.title": "连接 {{gateway}}",
+  "settings.gateways.connect.description": "粘贴 {{gateway}} API 密钥以连接其模型。",
 
   "settings.models.title": "模型",
   "settings.models.description": "可在此处配置模型设置。",
