@@ -16,6 +16,7 @@ Gather these facts with quick commands, tolerating failures:
 - OS and architecture: run `uname -sm` (or read process.platform/arch on Windows)
 - The model and agent in use for this session, if visible in context
 - The last error output relevant to the bug, if any appeared in this session
+- The most recent local crash report, if one exists: read the newest `.json` file in the bolt crash directory (`~/.local/state/opencode/crash` on Linux, `~/Library/Application Support`/XDG state equivalent elsewhere; the CLI prints `crash report written to <path>` when it crashes). Crash reports are already secret-redacted; quote the `message` and a trimmed `stack` only when they relate to this bug.
 
 Never include API keys, tokens, environment variable values, file contents unrelated to the bug, or private conversation content. Quote only the minimal error text needed to reproduce.
 
