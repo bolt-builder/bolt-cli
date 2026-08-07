@@ -3,6 +3,7 @@ import { MemoryIndexer } from "./recall/indexer"
 import { MemoryNotice } from "./memory-notice"
 import { MemoryOperations } from "./capture/operations"
 import { MemoryPaths } from "./storage/paths"
+import { MemoryPortable } from "./portable"
 import { MemoryRecall } from "./recall/recall"
 import { MemorySchema } from "./schema"
 import { MemoryShared } from "./recall/shared"
@@ -292,6 +293,36 @@ export namespace Memory {
       file: "corrections.md",
       section: "Corrections",
     })
+  }
+
+  export async function dump(input: { root: string }) {
+    const sources: Partial<Record<MemorySchema.Source, string>> = {}
+    for (const file of MemorySchema.Sources) {
+      sources[file] = await MemoryFiles.readSource(input.root, file)
+    }
+    const output = MemoryPortable.serialize({ sources })
+    return { root: input.root, text: output.text, count: output.count }
+  }
+
+  export async function load(input: { root: string; text: string; sessionID?: string }) {
+    const parsed = MemoryPortable.parse(input.text)
+    if (parsed.ops.length === 0) return { root: input.root, ops: 0, applied: 0, added: 0, skipped: parsed.skipped }
+    const state = await MemoryFiles.readState(input.root)
+    const size = Math.max(1, state.capture.maxOpsPerRun)
+    const chunks = Array.from({ length: Math.ceil(parsed.ops.length / size) }, (item, at) =>
+      parsed.ops.slice(at * size, at * size + size),
+    )
+    const results: Apply[] = []
+    for (const chunk of chunks) {
+      results.push(await apply({ root: input.root, ops: chunk, sessionID: input.sessionID }))
+    }
+    return {
+      root: input.root,
+      ops: parsed.ops.length,
+      applied: results.reduce((sum, item) => sum + item.result.operationCount, 0),
+      added: results.reduce((sum, item) => sum + item.result.added, 0),
+      skipped: parsed.skipped,
+    }
   }
 
   export async function purge(input: { root: string }) {
