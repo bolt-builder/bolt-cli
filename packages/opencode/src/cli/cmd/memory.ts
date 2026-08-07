@@ -53,8 +53,65 @@ const INSTRUCTIONS = [
 export const MemoryCommand = cmd({
   command: "memory",
   describe: "inspect project memory",
-  builder: (yargs: Argv) => yargs.command(MemoryWhyCommand).demandCommand(),
+  builder: (yargs: Argv) =>
+    yargs.command(MemoryWhyCommand).command(MemoryExportCommand).command(MemoryImportCommand).demandCommand(),
   async handler() {},
+})
+
+export const MemoryExportCommand = effectCmd({
+  command: "export",
+  describe: "export project memory as a single markdown document",
+  builder: (yargs) =>
+    yargs.option("out", {
+      alias: "o",
+      type: "string",
+      describe: "write the export to a file instead of stdout",
+    }),
+  handler: Effect.fn("Cli.memory.export")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const dumped = yield* Effect.promise(() => Memory.dump({ root: MemoryPaths.root({ ctx }) }))
+    if (dumped.count === 0) return yield* fail("No project memory stored for this project yet.")
+    if (!args.out) {
+      UI.println(dumped.text)
+      return
+    }
+    yield* Effect.promise(() => Bun.write(args.out!, dumped.text))
+    UI.println(`Exported ${dumped.count} memory entries to ${args.out}`)
+  }),
+})
+
+export const MemoryImportCommand = effectCmd({
+  command: "import <file>",
+  describe: "import memory entries from an exported markdown document",
+  builder: (yargs) =>
+    yargs.positional("file", {
+      describe: "path to a markdown export produced by bolt memory export",
+      type: "string",
+      demandOption: true,
+    }),
+  handler: Effect.fn("Cli.memory.import")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+    const ctx = yield* InstanceRef
+    if (!ctx) return yield* fail("Could not load instance context")
+
+    const exists = yield* Effect.promise(() => Bun.file(args.file).exists())
+    if (!exists) return yield* fail(`File not found: ${args.file}`)
+    const text = yield* Effect.promise(() => Bun.file(args.file).text())
+
+    const { Memory } = yield* Effect.promise(() => import("@opencode-ai/memory/memory"))
+    const { MemoryPaths } = yield* Effect.promise(() => import("@opencode-ai/memory/effect/paths"))
+    const loaded = yield* Effect.promise(() => Memory.load({ root: MemoryPaths.root({ ctx }), text }))
+    if (loaded.ops === 0) return yield* fail("No memory entries found in that file.")
+    UI.println(`Imported ${loaded.applied} of ${loaded.ops} memory entries (${loaded.added} added).`)
+    for (const name of loaded.skipped) {
+      UI.println(`Skipped unknown memory file: ${name}`)
+    }
+  }),
 })
 
 export const MemoryWhyCommand = effectCmd({
