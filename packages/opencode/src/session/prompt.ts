@@ -50,6 +50,7 @@ import { SessionHunk } from "./hunk"
 import { Git } from "@/git"
 import { SessionDistill } from "./distill"
 import { shouldPreempt } from "./overflow"
+import { SessionLint } from "./lint"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
@@ -1319,6 +1320,18 @@ const layer = Layer.effect(
               : [...env, ...instructions, ...optional]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
+            // Context lint: warn once per run when the assembled prompt
+            // contains contradictory instructions.
+            if (step === 1) {
+              yield* Effect.forEach(SessionLint.lint(system).slice(0, 5), (warning) =>
+                Effect.logWarning("context lint: contradictory instructions", {
+                  "session.id": sessionID,
+                  subject: warning.subject,
+                  first: warning.first,
+                  second: warning.second,
+                }),
+              )
+            }
             const result = yield* handle.process({
               user: lastUser,
               agent,
