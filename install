@@ -284,11 +284,10 @@ download_with_progress() {
         exec 4>/dev/null
     fi
 
-    local tmp_dir=${TMPDIR:-/tmp}
-    local basename="${tmp_dir}/bolt_install_$$"
-    local tracefile="${basename}.trace"
-
-    rm -f "$tracefile"
+    # Use an unpredictable name so a local attacker on a shared host can't
+    # pre-create or race the FIFO path.
+    local tracefile
+    tracefile=$(mktemp -u "${TMPDIR:-/tmp}/bolt_install_trace.XXXXXX")
     mkfifo "$tracefile"
 
     # Hide cursor
@@ -336,8 +335,10 @@ download_with_progress() {
 
 download_and_install() {
     print_message info "\n${MUTED}Installing ${NC}Bolt ${MUTED}version: ${NC}$specific_version"
-    local tmp_dir="${TMPDIR:-/tmp}/bolt_install_$$"
-    mkdir -p "$tmp_dir"
+    # mktemp creates a private (0700), unpredictable directory; a fixed
+    # PID-derived path under /tmp is guessable and racy on shared hosts.
+    local tmp_dir
+    tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/bolt_install.XXXXXX")
 
     if [[ "$os" == "windows" ]] || ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$filename"; then
         # Fallback to standard curl on Windows, non-TTY environments, or if custom progress fails

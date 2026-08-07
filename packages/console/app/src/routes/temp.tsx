@@ -161,7 +161,7 @@ export default function Home() {
             <a href="https://x.com/opencode">{i18n.t("footer.x")}</a>
           </div>
           <div data-slot="cell">
-            <a href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym">
+            <a href="https://github.com/Bolt-builder/bolt-cli">
               {i18n.t("footer.github")}
             </a>
           </div>

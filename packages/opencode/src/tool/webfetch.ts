@@ -5,6 +5,7 @@ import * as Tool from "./tool"
 import TurndownService from "turndown"
 import DESCRIPTION from "./webfetch.txt"
 import { isImageAttachment } from "@/util/media"
+import { NetGuard } from "@opencode-ai/core/net-guard"
 
 const MAX_RESPONSE_SIZE = 5 * 1024 * 1024 // 5MB
 const DEFAULT_TIMEOUT = 30 * 1000 // 30 seconds
@@ -46,6 +47,8 @@ export const WebFetchTool = Tool.define(
               timeout: params.timeout,
             },
           })
+
+          yield* NetGuard.assertFetchable(new URL(params.url))
 
           const timeout = Math.min((params.timeout ?? DEFAULT_TIMEOUT / 1000) * 1000, MAX_TIMEOUT)
 

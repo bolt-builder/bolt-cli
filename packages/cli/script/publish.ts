@@ -35,7 +35,7 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
       bin: { bolt: "./bin/bolt" },
       version,
       license: pkg.license,
-      repository: { type: "git", url: "git+https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym.git" },
+      repository: { type: "git", url: "git+https://github.com/Bolt-builder/bolt-cli.git" },
       os: ["darwin", "linux", "win32"],
       cpu: ["arm64", "x64"],
       optionalDependencies: binaries,

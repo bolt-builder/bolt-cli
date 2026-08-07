@@ -281,7 +281,7 @@ export default function () {
                             <div class="flex gap-3 items-center">
                               <IconButton
                                 as={"a"}
-                                href="https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym"
+                                href="https://github.com/Bolt-builder/bolt-cli"
                                 target="_blank"
                                 icon="github"
                                 variant="ghost"

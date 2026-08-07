@@ -29,11 +29,22 @@ export default Runtime.handler(
 
 function listen(hostname: string, port: Option.Option<number>, password: string) {
   if (Option.isSome(port)) return bind(hostname, port.value, password)
+  // Only walk to the next port when the current one is taken; other bind errors
+  // (bad hostname, permissions) should surface immediately instead of after ~61k retries.
   const next = (port: number): ReturnType<typeof bind> =>
     bind(hostname, port, password).pipe(
-      Effect.catch((error) => (port === 65_535 ? Effect.fail(error) : next(port + 1))),
+      Effect.catch((error) =>
+        port !== 65_535 && errorCode(error) === "EADDRINUSE" ? next(port + 1) : Effect.fail(error),
+      ),
     )
   return next(4096)
+}
+
+function errorCode(value: unknown): string | undefined {
+  if (typeof value !== "object" || value === null) return undefined
+  const record = value as Record<string, unknown>
+  if (typeof record.code === "string") return record.code
+  return errorCode(record.cause)
 }
 
 function bind(hostname: string, port: number, password: string) {

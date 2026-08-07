@@ -5,6 +5,7 @@ import { Effect } from "effect"
 import { Global } from "@opencode-ai/core/global"
 import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
+import { Tail } from "@/util/tail"
 
 const DIR = path.join(Global.Path.state, "jobs")
 
@@ -275,20 +276,9 @@ export const JobsCommand = effectCmd({
     const text = yield* Effect.promise(() => Bun.file(job.log).text())
     if (text) process.stdout.write(text.endsWith("\n") ? text : `${text}\n`)
     if (!args.follow) return
-    let offset = Buffer.byteLength(text)
     yield* Effect.callback<void>(() => {
-      const watcher = fs.watch(path.dirname(job.log), (_, name) => {
-        if (name !== path.basename(job.log)) return
-        const size = fs.statSync(job.log, { throwIfNoEntry: false })?.size ?? 0
-        if (size <= offset) {
-          offset = size
-          return
-        }
-        const stream = fs.createReadStream(job.log, { start: offset, end: size - 1, encoding: "utf8" })
-        stream.on("data", (chunk) => process.stdout.write(chunk))
-        offset = size
-      })
-      return Effect.sync(() => watcher.close())
+      const close = Tail.follow(job.log, Buffer.byteLength(text))
+      return Effect.sync(close)
     })
   }),
 })

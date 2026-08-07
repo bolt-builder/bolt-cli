@@ -38,7 +38,7 @@ export default Runtime.handler(
       }),
     )
     const output = yield* Effect.promise(() => response.text())
-    if (output) process.stdout.write(output + (output.endsWith(EOL) ? "" : EOL))
+    if (output) process.stdout.write(output + (output.endsWith("\n") ? "" : EOL))
   }),
 )
 

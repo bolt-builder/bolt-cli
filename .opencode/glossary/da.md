@@ -2,7 +2,7 @@
 
 ## Sources
 
-- PR #9821: https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym/pull/9821
+- PR #9821: https://github.com/Bolt-builder/bolt-cli/pull/9821
 
 ## Do Not Translate (Locale Additions)
 
