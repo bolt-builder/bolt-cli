@@ -15,6 +15,8 @@ import { SessionID, MessageID } from "../../src/session/schema"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { disposeAllInstances, TestInstance } from "../fixture/fixture"
 import { testEffect } from "../lib/effect"
+import { Session } from "@/session/session"
+import { NotFoundError } from "@/storage/storage"
 
 const ctx = {
   sessionID: SessionID.make("ses_test-write-session"),
@@ -32,16 +34,21 @@ afterEach(async () => {
 })
 
 const it = testEffect(
-  LayerNode.compile(
-    LayerNode.group([
-      LSP.node,
-      FSUtil.node,
-      EventV2Bridge.node,
-      Format.node,
-      CrossSpawnSpawner.node,
-      Truncate.node,
-      Agent.node,
-    ]),
+  Layer.mergeAll(
+    LayerNode.compile(
+      LayerNode.group([
+        LSP.node,
+        FSUtil.node,
+        EventV2Bridge.node,
+        Format.node,
+        CrossSpawnSpawner.node,
+        Truncate.node,
+        Agent.node,
+      ]),
+    ),
+    Layer.mock(Session.Service, {
+      get: () => Effect.fail(new NotFoundError({ message: "no session in write tool tests" })),
+    }),
   ),
 )
 
