@@ -33,6 +33,7 @@ import { OutputSchema } from "./run/schema"
 import { Plan } from "./run/plan"
 import { split } from "./run/attach"
 import { Attempt } from "./run/attempt"
+import { Report } from "./run/report"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
@@ -243,6 +244,12 @@ export const RunCommand = effectCmd({
       .option("output-schema", {
         type: "string",
         describe: "JSON Schema file the final answer must validate against (retries until it does, bounded)",
+      })
+      .option("cost-report", {
+        type: "boolean",
+        default: false,
+        describe:
+          "report per-run tokens, cache hits, dollars, and wall time to stderr (or as a cost_report JSON event)",
       })
       .option("attach", {
         type: "string",
@@ -662,6 +669,11 @@ export const RunCommand = effectCmd({
       if (interactive && (limits.cost !== undefined || limits.tokens !== undefined)) {
         die("--mini cannot be used with --max-cost or --max-tokens")
       }
+      if (args["cost-report"]) {
+        if (interactive) die("--cost-report cannot be used with --mini")
+        if (args["best-of"]) die("--cost-report cannot be used with --best-of")
+        if (args.attach) die("--cost-report cannot be used with --attach")
+      }
 
       const schema = await (async () => {
         if (!args["output-schema"]) return undefined
@@ -999,6 +1011,8 @@ export const RunCommand = effectCmd({
           if (exit) process.exitCode = exit
           return
         }
+        const started = Date.now()
+        let usage = Report.empty
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
@@ -1091,6 +1105,7 @@ export const RunCommand = effectCmd({
 
               if (part.type === "step-finish") {
                 budget = Budget.add(budget, part)
+                if (args["cost-report"]) usage = Report.add(usage, part)
                 const breach = Budget.exceeded(budget, limits)
                 if (breach && !breached) {
                   breached = true
@@ -1230,6 +1245,12 @@ export const RunCommand = effectCmd({
                 if (findings.length === 0) UI.println("Plan gate: nothing destructive detected.")
               }
               if (findings.length > 0) process.exitCode = ExitCode.GATE
+            }
+            if (args["cost-report"]) {
+              const wall = Date.now() - started
+              if (!emit("cost_report", Report.json(usage, wall))) {
+                process.stderr.write(Report.render(usage, wall) + EOL)
+              }
             }
             if (args.json) {
               if (error) {
@@ -1539,6 +1560,8 @@ export async function runMini(input: MiniCommandInput) {
     outputSchema: undefined,
     timeout: undefined,
     retries: 0,
+    "cost-report": false,
+    costReport: false,
     agent: input.agent,
     "auto-agent": false,
     autoAgent: false,
