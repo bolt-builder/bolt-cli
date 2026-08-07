@@ -19,7 +19,10 @@ describe("budget.add", () => {
   })
 
   test("sums token categories including cache when total is missing", () => {
-    const state = Budget.add(Budget.empty, step(0.1, { input: 100, output: 50, reasoning: 25, cache: { read: 10, write: 5 } }))
+    const state = Budget.add(
+      Budget.empty,
+      step(0.1, { input: 100, output: 50, reasoning: 25, cache: { read: 10, write: 5 } }),
+    )
     expect(state).toEqual({ cost: 0.1, tokens: 190 })
   })
 

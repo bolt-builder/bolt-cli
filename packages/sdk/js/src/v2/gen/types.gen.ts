@@ -2019,6 +2019,7 @@ export type Config = {
     mcp_timeout?: number
     diff_context?: boolean
     symbol_graph?: boolean
+    context_replay?: boolean
     policies?: Array<ConfigV2ExperimentalPolicy>
   }
 }

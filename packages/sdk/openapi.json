@@ -23905,6 +23905,9 @@
               "symbol_graph": {
                 "type": "boolean"
               },
+              "context_replay": {
+                "type": "boolean"
+              },
               "policies": {
                 "type": "array",
                 "items": {

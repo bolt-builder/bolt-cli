@@ -75,12 +75,7 @@ export function match(input: {
   if (!query) return []
   const slug = MemorySlug.safe(query, { max: MemorySlug.max.key, fallback: "", lower: true })
   return input.items.filter((item) => {
-    const aliases = new Set([
-      item.id,
-      item.key,
-      `${item.file}:${item.key}`,
-      `${item.file}:${item.section}:${item.key}`,
-    ])
+    const aliases = new Set([item.id, item.key, `${item.file}:${item.key}`, `${item.file}:${item.section}:${item.key}`])
     return aliases.has(query) || (slug !== "" && aliases.has(slug))
   })
 }

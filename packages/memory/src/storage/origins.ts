@@ -53,7 +53,10 @@ export async function write(root: string, ledger: Ledger) {
 
 /** Upsert origins for written facts. A rewrite by a new session re-attributes the fact: the ledger
  * always answers "who taught the store its current text". */
-export async function record(root: string, input: { ids: string[]; sessionID?: string; messageID?: string; at: number }) {
+export async function record(
+  root: string,
+  input: { ids: string[]; sessionID?: string; messageID?: string; at: number },
+) {
   if (input.ids.length === 0) return
   if (!input.sessionID && !input.messageID) return
   const ledger = await read(root)
