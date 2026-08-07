@@ -3,6 +3,7 @@ import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import * as prompts from "@clack/prompts"
 import { EOL } from "os"
 import { Effect } from "effect"
@@ -218,49 +219,6 @@ function sanitize(data: { info: Session.Info; messages: SessionV1.WithParts[] })
   }
 }
 
-export const ExportCommand = effectCmd({
-  command: "export [sessionID]",
-  describe: "export session data as JSON, markdown, JSONL, or an HTML replay",
-  builder: (yargs) =>
-    yargs
-      .positional("sessionID", {
-        describe: "session id to export",
-        type: "string",
-      })
-      .option("sanitize", {
-        describe: "redact sensitive transcript and file data",
-        type: "boolean",
-      })
-      .option("html", {
-        describe: "write a self-contained HTML replay instead of JSON",
-        type: "boolean",
-      })
-      .option("md", {
-        describe: "print the transcript as clean markdown",
-        type: "boolean",
-      })
-      .option("jsonl", {
-        describe: "print one JSON message per line for piping",
-        type: "boolean",
-      })
-      .option("out", {
-        describe: "output file for the HTML replay",
-        type: "string",
-        default: "replay.html",
-      })
-      .option("json", {
-        describe: Envelope.DESCRIBE,
-        type: "boolean",
-        default: false,
-      })
-      .conflicts("html", ["md", "jsonl"])
-      .conflicts("md", "jsonl")
-      .conflicts("json", ["html", "md", "jsonl"]),
-  handler: Effect.fn("Cli.export")(function* (args) {
-    return yield* run(args)
-  }),
-})
-
 const run = Effect.fn("Cli.export.body")(function* (args: {
   sessionID?: string
   sanitize?: boolean
@@ -269,6 +227,7 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
   jsonl?: boolean
   out: string
   json?: boolean
+  porcelain?: boolean
 }) {
   const { Session } = yield* Effect.promise(() => import("@/session/session"))
   const { SessionID } = yield* Effect.promise(() => import("../../session/schema"))
@@ -347,6 +306,69 @@ const run = Effect.fn("Cli.export.body")(function* (args: {
     Envelope.print(payload)
     return
   }
+
+  if (args.porcelain) {
+    // One record per line, kind first: `session id title` then `message id role text`.
+    // Field order is frozen; see the porcelain contract in ../porcelain.ts.
+    Porcelain.print("session", payload.info.id, payload.info.title)
+    for (const msg of payload.messages) {
+      const text = msg.parts
+        .filter((part): part is SessionV1.TextPart => part.type === "text")
+        .map((part) => part.text)
+        .join("\n")
+      Porcelain.print("message", msg.info.id, msg.info.role, text)
+    }
+    return
+  }
   process.stdout.write(JSON.stringify(payload, null, 2))
   process.stdout.write(EOL)
+})
+
+export const ExportCommand = effectCmd({
+  command: "export [sessionID]",
+  describe: "export session data as JSON, markdown, JSONL, or an HTML replay",
+  builder: (yargs) =>
+    yargs
+      .positional("sessionID", {
+        describe: "session id to export",
+        type: "string",
+      })
+      .option("sanitize", {
+        describe: "redact sensitive transcript and file data",
+        type: "boolean",
+      })
+      .option("html", {
+        describe: "write a self-contained HTML replay instead of JSON",
+        type: "boolean",
+      })
+      .option("md", {
+        describe: "print the transcript as clean markdown",
+        type: "boolean",
+      })
+      .option("jsonl", {
+        describe: "print one JSON message per line for piping",
+        type: "boolean",
+      })
+      .option("out", {
+        describe: "output file for the HTML replay",
+        type: "string",
+        default: "replay.html",
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("html", ["md", "jsonl"])
+      .conflicts("md", "jsonl")
+      .conflicts("json", ["html", "md", "jsonl"])
+      .conflicts("porcelain", ["html", "md", "jsonl", "json"]),
+  handler: Effect.fn("Cli.export")(function* (args) {
+    return yield* run(args)
+  }),
 })

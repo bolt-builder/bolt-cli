@@ -4,6 +4,7 @@ import { Effect } from "effect"
 import { Global } from "@opencode-ai/core/global"
 import { effectCmd, fail } from "../effect-cmd"
 import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import { Tail } from "@/util/tail"
 
 const FILE = path.join(Global.Path.log, "opencode.log")
@@ -30,7 +31,14 @@ export const LogsCommand = effectCmd({
         type: "boolean",
         default: false,
       })
-      .conflicts("json", "follow"),
+      .conflicts("json", "follow")
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("porcelain", "follow")
+      .conflicts("porcelain", "json"),
   handler: Effect.fn("Cli.logs")(function* (args) {
     if (!fs.existsSync(FILE)) return yield* fail(`no log file at ${FILE}`)
     const text = yield* Effect.promise(() => Bun.file(FILE).text())
@@ -44,7 +52,13 @@ export const LogsCommand = effectCmd({
       Envelope.print({ file: FILE, lines: shown })
       return
     }
-    for (const line of shown) console.log(line)
+    for (const line of shown) {
+      if (args.porcelain) {
+        Porcelain.print("log", line)
+        continue
+      }
+      console.log(line)
+    }
     if (!args.follow) return
     // Follow by re-reading appended bytes whenever the file changes; the log
     // is append-only so the previous size is always a valid resume offset.

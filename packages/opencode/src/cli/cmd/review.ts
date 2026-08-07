@@ -2,6 +2,7 @@ import { Effect } from "effect"
 import { UI } from "../ui"
 import { Envelope } from "../envelope"
 import { ExitCode } from "../exit"
+import { Porcelain } from "../porcelain"
 import { effectCmd, fail } from "../effect-cmd"
 
 const LIMIT = 120_000
@@ -60,6 +61,12 @@ export const ReviewCommand = effectCmd({
         describe: Envelope.DESCRIBE,
         default: false,
       })
+      .option("porcelain", {
+        type: "boolean",
+        describe: Porcelain.DESCRIBE,
+        default: false,
+      })
+      .conflicts("porcelain", "json")
       .conflicts("staged", "branch")
       .epilogue(
         `exit codes: ${ExitCode.OK} pass, ${ExitCode.VERDICT} fail verdict, ${ExitCode.UNKNOWN} no verdict determined`,
@@ -118,6 +125,10 @@ export const ReviewCommand = effectCmd({
         Envelope.print({ verdict: null, confidence: null, text: "" })
         return
       }
+      if (args.porcelain) {
+        Porcelain.print("verdict", "pass")
+        return
+      }
       UI.println("Nothing to review.")
       return
     }
@@ -125,7 +136,7 @@ export const ReviewCommand = effectCmd({
       return yield* fail("The diff is too large to review in one shot. Review a narrower range.")
     }
 
-    if (!args.json) UI.println("Reviewing changes...")
+    if (!args.json && !args.porcelain) UI.println("Reviewing changes...")
 
     const { Session } = yield* Effect.promise(() => import("@/session/session"))
     const { SessionPrompt } = yield* Effect.promise(() => import("@/session/prompt"))
@@ -171,6 +182,14 @@ export const ReviewCommand = effectCmd({
         confidence: args.confidence ? (confidence(text) ?? null) : null,
         text,
       })
+      if (outcome === "fail") process.exitCode = ExitCode.VERDICT
+      if (!outcome) process.exitCode = ExitCode.UNKNOWN
+      return
+    }
+    if (args.porcelain) {
+      Porcelain.print("verdict", outcome ?? "unknown")
+      if (args.confidence) Porcelain.print("confidence", confidence(text) ?? "unknown")
+      Porcelain.print("text", text)
       if (outcome === "fail") process.exitCode = ExitCode.VERDICT
       if (!outcome) process.exitCode = ExitCode.UNKNOWN
       return
