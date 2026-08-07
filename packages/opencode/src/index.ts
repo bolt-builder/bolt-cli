@@ -34,6 +34,7 @@ import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
+import { PortCommand } from "./cli/cmd/port"
 import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
 import { CheckpointCommand } from "./cli/cmd/checkpoint"
@@ -144,6 +145,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(StackCommand)
   .command(CommitCommand)
+  .command(PortCommand)
   .command(SplitCommand)
   .command(ReviewCommand)
   .command(CheckpointCommand)
