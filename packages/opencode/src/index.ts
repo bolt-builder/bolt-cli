@@ -18,6 +18,7 @@ import { StatsCommand } from "./cli/cmd/stats"
 import { EvalCommand } from "./cli/cmd/eval"
 import { LogsCommand } from "./cli/cmd/logs"
 import { MapCommand } from "./cli/cmd/map"
+import { MigrateCommand } from "./cli/cmd/migrate"
 import { DepsCommand } from "./cli/cmd/deps"
 import { OwnersCommand } from "./cli/cmd/owners"
 import { HotspotsCommand } from "./cli/cmd/hotspots"
@@ -143,6 +144,7 @@ const cli = yargs(args)
   .command(EvalCommand)
   .command(LogsCommand)
   .command(MapCommand)
+  .command(MigrateCommand)
   .command(DepsCommand)
   .command(OwnersCommand)
   .command(HotspotsCommand)
