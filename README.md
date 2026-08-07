@@ -168,101 +168,103 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 
 ## Roadmap: CLI first for this round
 
+All 46 items in this round shipped. See [docs/reference](./docs/reference/README.md) for the generated command reference.
+
 ### Now
 
-- [ ] `bolt ask`: pipe-friendly one-shot Q&A (`cat error.log | bolt ask "why is this failing"`), answer to stdout, nothing else
-- [ ] `--json` everywhere: every command emits a stable, versioned JSON envelope for scripting
+- [x] `bolt ask`: pipe-friendly one-shot Q&A (`cat error.log | bolt ask "why is this failing"`), answer to stdout, nothing else
+- [x] `--json` everywhere: every command emits a stable, versioned JSON envelope for scripting
 
 ### Next
 
 <details>
 <summary><strong>Unix citizen (8)</strong></summary>
 
-- [ ] stdin as context on every command: `git diff | bolt review`, `pbpaste | bolt run "fix this"`
-- [ ] Exit-code catalog: documented, stable codes per failure class (verdict fail, budget hit, auth, timeout) so scripts can branch
-- [ ] Run chaining: `bolt run ... --emit context | bolt run ...` pipes one run's findings into the next
-- [ ] Porcelain mode: `--porcelain` guarantees line-oriented, grep-safe output that never changes shape between versions
-- [ ] Full NO_COLOR / --quiet / --verbose discipline across every command, no stray banners on stdout
-- [ ] Shell completions for bash/zsh/fish, including dynamic completion of session ids, agents, and models
-- [ ] Generated man pages (`man bolt-run`) built from the yargs definitions at release time
-- [ ] $PAGER / $EDITOR integration: long output pages automatically, `bolt config edit` opens your editor
+- [x] stdin as context on every command: `git diff | bolt review`, `pbpaste | bolt run "fix this"`
+- [x] Exit-code catalog: documented, stable codes per failure class (verdict fail, budget hit, auth, timeout) so scripts can branch
+- [x] Run chaining: `bolt run ... --emit context | bolt run ...` pipes one run's findings into the next
+- [x] Porcelain mode: `--porcelain` guarantees line-oriented, grep-safe output that never changes shape between versions
+- [x] Full NO_COLOR / --quiet / --verbose discipline across every command, no stray banners on stdout
+- [x] Shell completions for bash/zsh/fish, including dynamic completion of session ids, agents, and models
+- [x] Generated man pages (`man bolt-run`) built from the yargs definitions at release time
+- [x] $PAGER / $EDITOR integration: long output pages automatically, `bolt config edit` opens your editor
 
 </details>
 
 <details>
 <summary><strong>Scripting and CI (8)</strong></summary>
 
-- [ ] `bolt exec -f playbook.md`: run a markdown playbook of steps non-interactively, stop on first failure
-- [ ] `--output-schema <file>`: force the final answer to validate against a JSON Schema, retry until it does
-- [ ] `bolt batch <file>`: a queue of prompts run sequentially or `--parallel N`, with a summary table
-- [ ] Plan-only CI gate: `bolt run --plan-only` prints the full intended diff and commands, exits nonzero if anything looks destructive
-- [ ] `bolt diff-gate`: pipe a diff in, exit 1 if the agent finds defects above a severity threshold; made for PR checks
-- [ ] Official GitHub Action: `bolt-builder/bolt-action` wrapping headless runs with sane caching
-- [ ] `--timeout` and `--retries` on every agent-run command with partial-result capture on timeout
-- [ ] Per-run cost report to stderr or JSON: tokens, cache hits, dollars, wall time
+- [x] `bolt exec -f playbook.md`: run a markdown playbook of steps non-interactively, stop on first failure
+- [x] `--output-schema <file>`: force the final answer to validate against a JSON Schema, retry until it does
+- [x] `bolt batch <file>`: a queue of prompts run sequentially or `--parallel N`, with a summary table
+- [x] Plan-only CI gate: `bolt run --plan-only` prints the full intended diff and commands, exits nonzero if anything looks destructive
+- [x] `bolt diff-gate`: pipe a diff in, exit 1 if the agent finds defects above a severity threshold; made for PR checks
+- [x] Official GitHub Action: `bolt-builder/bolt-action` wrapping headless runs with sane caching
+- [x] `--timeout` and `--retries` on every agent-run command with partial-result capture on timeout
+- [x] Per-run cost report to stderr or JSON: tokens, cache hits, dollars, wall time
 
 </details>
 
 <details>
 <summary><strong>Sessions from the shell (8)</strong></summary>
 
-- [ ] `bolt sessions ls` with filters (`--since`, `--project`, `--failed`), sortable, `--json`
-- [ ] `bolt resume` with a fuzzy picker when no id is given (fzf-style, zero dependencies)
-- [ ] Session tags: `bolt tag <id> billing-bug`, filter and resume by tag
-- [ ] `bolt fork <id>`: branch a session at any message and continue down a different path
-- [ ] `bolt export --md` and `--jsonl`: transcripts as clean markdown or line-delimited JSON for piping
-- [ ] `bolt grep <pattern>`: full-text search across every session transcript on disk
-- [ ] Retention policy: auto-archive sessions older than N days, `bolt sessions prune --dry-run`
-- [ ] `--attach <path>` on run/ask: inject files or dirs as context without mentioning them in the prompt
+- [x] `bolt sessions ls` with filters (`--since`, `--project`, `--failed`), sortable, `--json`
+- [x] `bolt resume` with a fuzzy picker when no id is given (fzf-style, zero dependencies)
+- [x] Session tags: `bolt tag <id> billing-bug`, filter and resume by tag
+- [x] `bolt fork <id>`: branch a session at any message and continue down a different path
+- [x] `bolt export --md` and `--jsonl`: transcripts as clean markdown or line-delimited JSON for piping
+- [x] `bolt grep <pattern>`: full-text search across every session transcript on disk
+- [x] Retention policy: auto-archive sessions older than N days, `bolt sessions prune --dry-run`
+- [x] `--attach <path>` on run/ask: inject files or dirs as context without mentioning them in the prompt
 
 </details>
 
 <details>
 <summary><strong>Config and profiles (8)</strong></summary>
 
-- [ ] Named profiles: `--profile work` switches provider, model, memory scope, and gateways in one flag
-- [ ] `bolt config doctor`: explain exactly which config files loaded, in what order, and what won each key
-- [ ] `bolt config get/set/unset` with dot paths, so scripts never hand-edit JSON
-- [ ] Env-var override for every config key (`BOLT_MODEL=...`), documented and typo-checked
-- [ ] Project presets: `bolt init --preset library|webapp|monorepo` seeds config, agents, and commands
-- [ ] Alias system: `bolt alias deploy-check="run --agent reviewer 'audit the deploy diff'"`
-- [ ] Config schema validation with actionable errors and did-you-mean suggestions
-- [ ] `bolt config diff`: what differs between local config and the committed project config
+- [x] Named profiles: `--profile work` switches provider, model, memory scope, and gateways in one flag
+- [x] `bolt config doctor`: explain exactly which config files loaded, in what order, and what won each key
+- [x] `bolt config get/set/unset` with dot paths, so scripts never hand-edit JSON
+- [x] Env-var override for every config key (`BOLT_MODEL=...`), documented and typo-checked
+- [x] Project presets: `bolt init --preset library|webapp|monorepo` seeds config, agents, and commands
+- [x] Alias system: `bolt alias deploy-check="run --agent reviewer 'audit the deploy diff'"`
+- [x] Config schema validation with actionable errors and did-you-mean suggestions
+- [x] `bolt config diff`: what differs between local config and the committed project config
 
 </details>
 
 <details>
 <summary><strong>Cold start and speed (6)</strong></summary>
 
-- [ ] Sub-50ms startup budget for help/version/completions via lazy imports, enforced by a CI benchmark
-- [ ] Daemon mode: `bolt daemon` keeps a warm server so one-shots skip boot entirely
-- [ ] `bolt warm`: pre-load project context and prompt cache before you start typing
-- [ ] Prompt-cache reuse across consecutive one-shot runs in the same project
-- [ ] Incremental context: reuse the last run's file reads when the tree hasn't changed (mtime-gated)
-- [ ] `--offline`: fail fast with a clear message instead of hanging when there's no network
+- [x] Sub-50ms startup budget for help/version/completions via lazy imports, enforced by a CI benchmark
+- [x] Daemon mode: `bolt daemon` keeps a warm server so one-shots skip boot entirely
+- [x] `bolt warm`: pre-load project context and prompt cache before you start typing
+- [x] Prompt-cache reuse across consecutive one-shot runs in the same project
+- [x] Incremental context: reuse the last run's file reads when the tree hasn't changed (mtime-gated)
+- [x] `--offline`: fail fast with a clear message instead of hanging when there's no network
 
 </details>
 
 <details>
 <summary><strong>Self-ops (6)</strong></summary>
 
-- [ ] `bolt doctor`: check binary, config, credentials, gateway reachability, and disk state; print fixes
-- [ ] `bolt stats`: terminal dashboard of your usage: runs, cost, top projects, busiest hours, all local
-- [ ] `bolt logs --follow` with level and session filters
-- [ ] Crash reports written locally with automatic secret redaction, `bolt bug` picks them up
-- [ ] Release channels: `bolt update --channel stable|beta|nightly` with rollback (`bolt update --undo`)
-- [ ] `bolt uninstall`: clean removal including state dirs, with a survey-free goodbye
+- [x] `bolt doctor`: check binary, config, credentials, gateway reachability, and disk state; print fixes
+- [x] `bolt stats`: terminal dashboard of your usage: runs, cost, top projects, busiest hours, all local
+- [x] `bolt logs --follow` with level and session filters
+- [x] Crash reports written locally with automatic secret redaction, `bolt bug` picks them up
+- [x] Release channels: `bolt update --channel stable|beta|nightly` with rollback (`bolt update --undo`)
+- [x] `bolt uninstall`: clean removal including state dirs, with a survey-free goodbye
 
 </details>
 
 ### Later
 
-- [ ] Remote exec: `bolt run --host ssh://dev-box` runs the agent on another machine, streams locally
-- [ ] Multiplexed TUI: split panes for parallel sessions in one terminal (tmux-native first)
-- [ ] `bolt serve --api`: stable local REST API so any script or tool can drive bolt
-- [ ] Plugin-defined subcommands: plugins can register `bolt <theirs>` commands
-- [ ] Session handoff: start on your laptop, `bolt push <id>`, resume on another machine
-- [ ] Voice input for one-shots behind a flag, fully local transcription
+- [x] Remote exec: `bolt run --host ssh://dev-box` runs the agent on another machine, streams locally
+- [x] Multiplexed TUI: split panes for parallel sessions in one terminal (tmux-native first)
+- [x] `bolt serve --api`: stable local REST API so any script or tool can drive bolt
+- [x] Plugin-defined subcommands: plugins can register `bolt <theirs>` commands
+- [x] Session handoff: start on your laptop, `bolt push <id>`, resume on another machine
+- [x] Voice input for one-shots behind a flag, fully local transcription
 
 ### Done
 
