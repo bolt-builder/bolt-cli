@@ -25,6 +25,9 @@ import { ChildProcess } from "effect/unstable/process"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { ShellPrompt, type Parameters } from "./shell/prompt"
 import { BashArity } from "@/permission/arity"
+import { Approval } from "@/approval"
+import { SessionV1 } from "@opencode-ai/core/v1/session"
+import type { Provider } from "@/provider/provider"
 
 export { Parameters } from "./shell/prompt"
 
@@ -348,6 +351,7 @@ export const ShellTool = Tool.define(
     const trunc = yield* Truncate.Service
     const plugin = yield* Plugin.Service
     const flags = yield* RuntimeFlags.Service
+    const approval = yield* Approval.Service
     const { db } = yield* Database.Service
     const defaultTimeoutMs = flags.bashDefaultTimeoutMs ?? 2 * 60 * 1000
 
@@ -642,6 +646,28 @@ export const ShellTool = Tool.define(
                   yield* ask(ctx, scan, params)
                 }),
               )
+
+              if (cfg.approval) {
+                const reason = Approval.destructive(params.command)
+                const user = ctx.messages
+                  .map((item) => item.info)
+                  .findLast((info): info is SessionV1.User => info.role === "user")
+                const model = ctx.extra?.model as Provider.Model | undefined
+                if (reason && user && model) {
+                  const signoff = yield* approval.review({
+                    command: params.command,
+                    reason,
+                    sessionID: ctx.sessionID,
+                    user,
+                    model,
+                  })
+                  if (!signoff.approved) {
+                    throw new Error(
+                      `Two-agent approval rejected this command (${reason}): ${signoff.feedback} Use a safer alternative or ask the user to run it manually.`,
+                    )
+                  }
+                }
+              }
 
               const row = yield* db
                 .select({ metadata: SessionTable.metadata })
