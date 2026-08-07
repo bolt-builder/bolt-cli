@@ -21,6 +21,7 @@ import { Effect } from "effect"
 import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
 import { Envelope } from "../envelope"
+import { ExitCode } from "../exit"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
 import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@opencode-ai/sdk/v2"
@@ -307,7 +308,10 @@ export const RunCommand = effectCmd({
         default: false,
         hidden: true,
         describe: "render user prompts sent by other clients on the same session",
-      }),
+      })
+      .epilogue(
+        `exit codes: ${ExitCode.OK} success, ${ExitCode.ERROR} failure, ${ExitCode.BUDGET} budget hit (--max-cost/--max-tokens)`,
+      ),
   handler: Effect.fn("Cli.run")(function* (args) {
     if (args.background) {
       if (args.interactive || args.attach) {
@@ -942,7 +946,7 @@ export const RunCommand = effectCmd({
                 const breach = Budget.exceeded(budget, limits)
                 if (breach && !breached) {
                   breached = true
-                  process.exitCode = 1
+                  process.exitCode = ExitCode.BUDGET
                   if (!emit("budget_exceeded", { budget, message: breach })) {
                     UI.error(`${breach}; aborting the session`)
                   }
@@ -1050,7 +1054,8 @@ export const RunCommand = effectCmd({
           async function finish() {
             if (args.attach) return
             const error = await completed
-            if (error) process.exitCode = 1
+            // Do not clobber a more specific class (e.g. a budget breach) already set by the loop.
+            if (error && !process.exitCode) process.exitCode = ExitCode.ERROR
             if (!args.json) return
             if (error) {
               Envelope.printError("SessionError", error)
