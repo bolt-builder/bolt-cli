@@ -219,12 +219,27 @@ export type ProviderHook = {
 /** @deprecated Use AuthOAuthResult instead. */
 export type AuthOuathResult = AuthOAuthResult
 
+export type CliCommand = {
+  /** Short description of what the command does. */
+  describe?: string
+  /** Execute the command with the argv following the command name. */
+  run: (input: { args: string[]; directory: string }) => Promise<void>
+}
+
 export interface Hooks {
   dispose?: () => Promise<void>
   event?: (input: { event: Event }) => Promise<void>
   config?: (input: Config) => Promise<void>
   tool?: {
     [key: string]: ToolDefinition
+  }
+  /**
+   * Register top-level CLI subcommands keyed by name: `bolt <name> [args...]`.
+   * A registration only dispatches when the name does not collide with a
+   * builtin command or an existing local path (which opens the TUI there).
+   */
+  cli?: {
+    [name: string]: CliCommand
   }
   auth?: AuthHook
   provider?: ProviderHook
