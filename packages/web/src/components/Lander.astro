@@ -32,6 +32,8 @@ const command = "curl -fsSL"
 const protocol = "https://"
 const url = "opencode.ai/install"
 const bash = "| bash"
+const copyLabel = t('share.copy')
+const copiedLabel = t('share.copied')
 
 let darkImage: ImageMetadata | undefined;
 let lightImage: ImageMetadata | undefined;
@@ -67,7 +69,7 @@ if (image) {
         <a href={docsHref}>{t('app.lander.cta.getStarted')}</a>
       </div>
       <div class="col2">
-      <button class="command" data-command={`${command} ${protocol}${url} ${bash}`}>
+      <button class="command" data-command={`${command} ${protocol}${url} ${bash}`} aria-label={`${copyLabel}: ${command} ${protocol}${url} ${bash}`}>
           <code>
             <span>{command}&nbsp;</span><span class="protocol">{protocol}</span><span class="highlight">{url}</span>&nbsp;{bash}
           </code>
@@ -94,7 +96,7 @@ if (image) {
     <section class="alternatives">
       <div class="col1">
         <h3>npm</h3>
-        <button class="command" data-command="npm install -g opencode-ai">
+        <button class="command" data-command="npm install -g opencode-ai" aria-label={`${copyLabel}: npm install -g opencode-ai`}>
           <code>
             <span>npm install -g</span> <span class="highlight">opencode-ai</span>
           </code>
@@ -106,7 +108,7 @@ if (image) {
       </div>
       <div class="col2">
         <h3>Bun</h3>
-        <button class="command" data-command="bun install -g opencode-ai">
+        <button class="command" data-command="bun install -g opencode-ai" aria-label={`${copyLabel}: bun install -g opencode-ai`}>
           <code>
             <span>bun install -g</span> <span class="highlight">opencode-ai</span>
           </code>
@@ -118,7 +120,7 @@ if (image) {
       </div>
       <div class="col3">
         <h3>Homebrew</h3>
-        <button class="command" data-command="brew install opencode">
+        <button class="command" data-command="brew install opencode" aria-label={`${copyLabel}: brew install opencode`}>
           <code>
             <span>brew install</span> <span class="highlight">opencode</span>
           </code>
@@ -130,7 +132,7 @@ if (image) {
       </div>
       <div class="col4">
         <h3>Paru</h3>
-        <button class="command" data-command="paru -S opencode-bin">
+        <button class="command" data-command="paru -S opencode-bin" aria-label={`${copyLabel}: paru -S opencode-bin`}>
           <code>
             <span>paru -S</span> <span class="highlight">opencode-bin</span>
           </code>
@@ -140,9 +142,9 @@ if (image) {
           </span>
         </button>
       </div>
-      <div class="col4">
+      <div class="col5">
         <h3>Mise</h3>
-        <button class="command" data-command="mise use -g github:bolt-builder/bolt-cli">
+        <button class="command" data-command="mise use -g github:bolt-builder/bolt-cli" aria-label={`${copyLabel}: mise use -g github:bolt-builder/bolt-cli`}>
           <code>
             <span>mise use -g</span> <span class="highlight">github:bolt-builder/bolt-cli</span>
           </code>
@@ -183,6 +185,8 @@ if (image) {
       </div>
     </section>
 
+    <span class="visually-hidden" aria-live="polite" data-copy-announcer data-copied-label={copiedLabel}></span>
+
     <section class="footer">
       <div class="col1">
         <a href={github.href} target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -204,6 +208,23 @@ if (image) {
 
   margin: 1rem;
   border: 2px solid var(--sl-color-border);
+}
+
+/* `all: unset` on .command strips the native focus ring; restore one for keyboard users */
+.command:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 4px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 @media (max-width: 30rem) {
   .hero {
@@ -502,11 +523,9 @@ section.alternatives {
   border-top: 2px solid var(--sl-color-border);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
 
   @media (max-width: 40rem) {
     grid-template-columns: 1fr;
-    grid-template-rows: auto;
   }
 
   & > div {
@@ -556,6 +575,11 @@ section.alternatives {
       border-left: none;
       border-top: 2px solid var(--sl-color-border);
     }
+  }
+
+  & > div.col5 {
+    grid-column: 1 / -1;
+    border-top: 2px solid var(--sl-color-border);
   }
 
   h3 {
@@ -708,14 +732,19 @@ section.footer {
 
 <script>
   const buttons = document.querySelectorAll("button.command") as NodeListOf<HTMLButtonElement>
+  const announcer = document.querySelector("[data-copy-announcer]")
+  const timers = new WeakMap<HTMLButtonElement, number>()
 
   buttons.forEach(button => {
     button.addEventListener("click", () => {
       navigator.clipboard.writeText(button.dataset.command!)
-      button.classList.toggle("success")
-      setTimeout(() => {
-        button.classList.toggle("success");
-      }, 1500)
+      button.classList.add("success")
+      if (announcer) announcer.textContent = announcer.getAttribute("data-copied-label")
+      clearTimeout(timers.get(button))
+      timers.set(button, window.setTimeout(() => {
+        button.classList.remove("success")
+        if (announcer) announcer.textContent = ""
+      }, 1500))
     })
   })
 </script>

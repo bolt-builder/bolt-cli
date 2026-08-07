@@ -71,12 +71,21 @@ const messages = {
 
 const id = Astro.params.id || ""
 const res = await fetch(`${apiUrl}/share_data?id=${id}`)
-const data = (await res.json()) as {
-  info?: Session.Info
-  messages: Record<string, { role?: string; modelID?: string }>
+const data = res.ok
+  ? ((await res.json().catch(() => null)) as {
+      info?: Session.Info
+      messages: Record<string, { role?: string; modelID?: string }>
+    } | null)
+  : null
+
+if (!res.ok && res.status !== 404) {
+  return new Response(null, {
+    status: 502,
+    statusText: tx("share.status_error"),
+  })
 }
 
-if (!data.info) {
+if (!data?.info) {
   return new Response(null, {
     status: 404,
     statusText: tx("share.not_found"),
