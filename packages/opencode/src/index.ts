@@ -50,6 +50,7 @@ import { WatchCommand } from "./cli/cmd/watch"
 import { JobsCommand } from "./cli/cmd/jobs"
 import { CronCommand } from "./cli/cmd/cron"
 import { FlakyCommand } from "./cli/cmd/flaky"
+import { GuardCommand } from "./cli/cmd/guard"
 import { MutateCommand } from "./cli/cmd/mutate"
 import { BisectCommand } from "./cli/cmd/bisect"
 import { BenchCommand } from "./cli/cmd/bench"
@@ -156,6 +157,7 @@ const cli = yargs(args)
   .command(JobsCommand)
   .command(CronCommand)
   .command(FlakyCommand)
+  .command(GuardCommand)
   .command(MutateCommand)
   .command(BisectCommand)
   .command(BenchCommand)
