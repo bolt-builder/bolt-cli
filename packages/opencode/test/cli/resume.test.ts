@@ -13,11 +13,10 @@ describe("resume.fuzzy", () => {
   })
 
   test("scores denser matches lower", () => {
-    const dense = fuzzy("bug", "bug hunt")
-    const sparse = fuzzy("bug", "billing untangled gremlin")
-    expect(dense).toBeDefined()
-    expect(sparse).toBeDefined()
-    expect(dense!).toBeLessThan(sparse!)
+    // Fall back to values that fail the comparison so a non-match still fails the test.
+    const dense = fuzzy("bug", "bug hunt") ?? Number.POSITIVE_INFINITY
+    const sparse = fuzzy("bug", "billing untangled gremlin") ?? Number.NEGATIVE_INFINITY
+    expect(dense).toBeLessThan(sparse)
   })
 
   test("empty query matches everything with a zero score", () => {
