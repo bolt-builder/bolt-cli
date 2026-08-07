@@ -44,6 +44,8 @@ import { AcpCommand } from "./cli/cmd/acp"
 import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
+import { PushCommand } from "./cli/cmd/push"
+import { PullCommand } from "./cli/cmd/pull"
 import { StackCommand } from "./cli/cmd/stack"
 import { CommitCommand } from "./cli/cmd/commit"
 import { CommitlintCommand } from "./cli/cmd/commitlint"
@@ -134,6 +136,8 @@ const commands = [
   ImportCommand,
   GithubCommand,
   PrCommand,
+  PushCommand,
+  PullCommand,
   StackCommand,
   CommitCommand,
   CommitlintCommand,
