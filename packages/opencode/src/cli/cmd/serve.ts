@@ -5,7 +5,12 @@ import { Flag } from "@opencode-ai/core/flag/flag"
 
 export const ServeCommand = effectCmd({
   command: "serve",
-  builder: (yargs) => withNetworkOptions(yargs),
+  builder: (yargs) =>
+    withNetworkOptions(yargs).option("api", {
+      type: "boolean",
+      default: false,
+      describe: "print the stable REST API surface as JSON, then keep serving",
+    }),
   describe: "starts a headless bolt server",
   // Server loads instances per-request via x-opencode-directory header — no
   // need for an ambient project InstanceContext at startup.
@@ -20,6 +25,10 @@ export const ServeCommand = effectCmd({
     if (!guard.ok) return yield* fail(guard.error)
     const server = yield* Effect.promise(() => Server.listen(guard.opts))
     console.log(`opencode server listening on http://${server.hostname}:${server.port}`)
+    if (args.api) {
+      const { Surface } = yield* Effect.promise(() => import("../../server/surface"))
+      console.log(JSON.stringify(Surface.surface(`http://${server.hostname}:${server.port}`), null, 2))
+    }
 
     yield* Effect.never
   }),
