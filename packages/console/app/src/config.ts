@@ -9,8 +9,8 @@ export const config = {
   github: {
     repoUrl: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym",
     starsFormatted: {
-      compact: "160K",
-      full: "160,000",
+      compact: "195K",
+      full: "195,000",
     },
   },
 
@@ -22,8 +22,8 @@ export const config = {
 
   // Static stats (used on landing page)
   stats: {
-    contributors: "900",
+    contributors: "950",
     commits: "13,000",
-    monthlyUsers: "7.5M",
+    monthlyUsers: "16M",
   },
 } as const

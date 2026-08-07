@@ -10,7 +10,7 @@ export type HeaderLink = { href: string; label: string }
 export const githubLink = {
   href: "https://github.com/Bolt-builder/bolt-cli/actions/workflows/publish.ym",
   apiHref: "https://api.github.com/repos/bolt-builder/bolt-cli",
-  fallbackStars: "150K",
+  fallbackStars: "195K",
 }
 export const themePreferences = ["dark", "light", "system"] as const
 export const themeStorageKey = "opencode:stats-theme"
@@ -18,7 +18,8 @@ export type ThemePreference = (typeof themePreferences)[number]
 
 const compactNumberFormatter = new Intl.NumberFormat("en", {
   notation: "compact",
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 0,
+  roundingIncrement: 5,
 })
 
 export const getGitHubStars = query(async () => {
