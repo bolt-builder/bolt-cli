@@ -897,6 +897,15 @@ export const dict = {
   "settings.providers.tag.config": "Konfiguration",
   "settings.providers.tag.custom": "Benutzerdefiniert",
   "settings.providers.tag.other": "Andere",
+  "settings.gateways.title": "Gateways",
+  "settings.gateways.description":
+    "Verbinden Sie ein KI-Gateway, um mit einem einzigen API-Schlüssel auf viele Modelle zuzugreifen, einschließlich kostenloser Modelle.",
+  "settings.gateways.tag.connected": "Verbunden",
+  "settings.gateways.note.kilo": "OpenRouter-kompatibles Gateway mit kostenlosen, automatisch gerouteten Modellen",
+  "settings.gateways.note.zoo": "Community-Gateway aus dem Zoo Code-Projekt",
+  "settings.gateways.connect.title": "{{gateway}} verbinden",
+  "settings.gateways.connect.description":
+    "Fügen Sie Ihren {{gateway}} API-Schlüssel ein, um dessen Modelle zu verbinden.",
   "settings.models.title": "Modelle",
   "settings.models.description": "Modelleinstellungen können hier konfiguriert werden.",
   "settings.agents.title": "Agenten",

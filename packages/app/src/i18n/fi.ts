@@ -983,6 +983,15 @@ export const dict = {
   "settings.providers.tag.config": "Määritys",
   "settings.providers.tag.custom": "Mukautettu",
   "settings.providers.tag.other": "Muut",
+  "settings.gateways.title": "Yhdyskäytävät",
+  "settings.gateways.description":
+    "Yhdistä tekoäly-yhdyskäytävä käyttääksesi useita malleja yhdellä API-avaimella, mukaan lukien ilmaiset mallit.",
+  "settings.gateways.tag.connected": "Yhdistetty",
+  "settings.gateways.note.kilo":
+    "OpenRouter-yhteensopiva yhdyskäytävä, jossa on ilmaisia automaattisesti reititettyjä malleja",
+  "settings.gateways.note.zoo": "Zoo Code -projektin yhteisöyhdyskäytävä",
+  "settings.gateways.connect.title": "Yhdistä {{gateway}}",
+  "settings.gateways.connect.description": "Liitä {{gateway}}-API-avaimesi yhdistääksesi sen mallit.",
   "settings.models.title": "Mallit",
   "settings.models.description": "Mallin asetukset voidaan määrittää täällä.",
   "settings.agents.title": "Agentit",
