@@ -163,6 +163,10 @@ export const Info = Schema.Struct({
       prune: Schema.optional(Schema.Boolean).annotate({
         description: "Enable pruning of old tool outputs (default: true)",
       }),
+      pinned: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+        description:
+          "Files and facts that must never be compacted away. Entries matching a file the conversation touched are pinned as files; other entries are preserved verbatim as facts.",
+      }),
       preemptive: Schema.optional(Schema.Boolean).annotate({
         description:
           "Compact in the background once context passes 80% of the usable window, after a response finishes instead of mid-prompt when it overflows (default: false)",
