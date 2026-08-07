@@ -227,55 +227,57 @@ export const TuiThreadCommand = cmd({
         worker.terminate()
       }
 
-      const prompt = await input(args.prompt)
-      const config = await TuiConfig.get()
+      // Everything past worker creation must go through stop() so early
+      // returns don't leak the worker or its SIGUSR2 listener.
+      try {
+        const prompt = await input(args.prompt)
+        const config = await TuiConfig.get()
 
-      const resolved = resolveNetworkOptionsNoConfig(args)
-      const external = hasArg("--port") || hasArg("--hostname") || resolved.mdns === true
-      // An external bind exposes the file/shell API; refuse it beyond loopback
-      // when no server password is set.
-      const guard = external ? enforceLoopbackWithoutAuth(resolved) : { ok: true as const, opts: resolved }
-      if (!guard.ok) {
-        UI.error(guard.error)
-        process.exitCode = 1
-        return
-      }
-      const network = guard.opts
+        const resolved = resolveNetworkOptionsNoConfig(args)
+        const external = hasArg("--port") || hasArg("--hostname") || resolved.mdns === true
+        // An external bind exposes the file/shell API; refuse it beyond loopback
+        // when no server password is set.
+        const guard = external ? enforceLoopbackWithoutAuth(resolved) : { ok: true as const, opts: resolved }
+        if (!guard.ok) {
+          UI.error(guard.error)
+          process.exitCode = 1
+          return
+        }
+        const network = guard.opts
 
-      const headers = external ? ServerAuth.headers() : undefined
+        const headers = external ? ServerAuth.headers() : undefined
 
-      const transport = external
-        ? {
-            url: (await client.call("server", network)).url,
-            fetch: undefined,
-            events: undefined,
+        const transport = external
+          ? {
+              url: (await client.call("server", network)).url,
+              fetch: undefined,
+              events: undefined,
+              headers,
+            }
+          : {
+              url: "http://opencode.internal",
+              fetch: createWorkerFetch(client),
+              events: createEventSource(client),
+            }
+
+        try {
+          await validateSession({
+            url: transport.url,
+            sessionID: args.session,
+            directory: cwd,
+            fetch: transport.fetch,
             headers,
-          }
-        : {
-            url: "http://opencode.internal",
-            fetch: createWorkerFetch(client),
-            events: createEventSource(client),
-          }
+          })
+        } catch (error) {
+          UI.error(errorMessage(error))
+          process.exitCode = 1
+          return
+        }
 
-      try {
-        await validateSession({
-          url: transport.url,
-          sessionID: args.session,
-          directory: cwd,
-          fetch: transport.fetch,
-          headers,
-        })
-      } catch (error) {
-        UI.error(errorMessage(error))
-        process.exitCode = 1
-        return
-      }
+        setTimeout(() => {
+          client.call("checkUpgrade", { directory: cwd }).catch(() => {})
+        }, 1000).unref?.()
 
-      setTimeout(() => {
-        client.call("checkUpgrade", { directory: cwd }).catch(() => {})
-      }, 1000).unref?.()
-
-      try {
         const { Effect } = await import("effect")
         const { run } = await import("../tui/layer")
         const { createLegacyTuiPluginHost } = await import("@/plugin/tui/runtime")
@@ -315,4 +317,3 @@ export const TuiThreadCommand = cmd({
     process.exit(0)
   },
 })
-// scratch

@@ -6,6 +6,9 @@ import { Config } from "@/config/config"
 import { GlobalBus } from "@/bus/global"
 import { ServerAuth } from "@/server/auth"
 import { writeHeapSnapshot } from "node:v8"
+import fs from "node:fs"
+import path from "node:path"
+import { Global } from "@opencode-ai/core/global"
 import { Heap } from "@/cli/heap"
 import { AppRuntime } from "@/effect/app-runtime"
 import { Effect } from "effect"
@@ -13,9 +16,19 @@ import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecy
 
 Heap.start()
 
-const onUnhandledRejection = (_error: unknown) => {}
+// The TUI owns the terminal, so these handlers must not write to stderr; record
+// failures to the log file instead of silently discarding them.
+const logUnhandled = (kind: string) => (error: unknown) => {
+  const detail = error instanceof Error ? (error.stack ?? error.message) : String(error)
+  const line = `timestamp=${new Date().toISOString()} level=ERROR run=worker message=${JSON.stringify(`${kind}: ${detail}`)}\n`
+  try {
+    fs.appendFileSync(path.join(Global.Path.log, "opencode.log"), line)
+  } catch {}
+}
 
-const onUncaughtException = (_error: Error) => {}
+const onUnhandledRejection = logUnhandled("unhandledRejection")
+
+const onUncaughtException = logUnhandled("uncaughtException")
 
 process.on("unhandledRejection", onUnhandledRejection)
 process.on("uncaughtException", onUncaughtException)

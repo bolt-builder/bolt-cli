@@ -3,6 +3,7 @@ import path from "node:path"
 import { Effect } from "effect"
 import { Global } from "@opencode-ai/core/global"
 import { effectCmd, fail } from "../effect-cmd"
+import { Tail } from "@/util/tail"
 
 const FILE = path.join(Global.Path.log, "opencode.log")
 
@@ -35,20 +36,9 @@ export const LogsCommand = effectCmd({
     if (!args.follow) return
     // Follow by re-reading appended bytes whenever the file changes; the log
     // is append-only so the previous size is always a valid resume offset.
-    let offset = Buffer.byteLength(text)
     yield* Effect.callback<void>(() => {
-      const watcher = fs.watch(path.dirname(FILE), (_, name) => {
-        if (name !== path.basename(FILE)) return
-        const size = fs.statSync(FILE, { throwIfNoEntry: false })?.size ?? 0
-        if (size <= offset) {
-          offset = size
-          return
-        }
-        const stream = fs.createReadStream(FILE, { start: offset, end: size - 1, encoding: "utf8" })
-        stream.on("data", (chunk) => process.stdout.write(chunk))
-        offset = size
-      })
-      return Effect.sync(() => watcher.close())
+      const close = Tail.follow(FILE, Buffer.byteLength(text))
+      return Effect.sync(close)
     })
   }),
 })

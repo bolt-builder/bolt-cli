@@ -636,18 +636,21 @@ export const RunCommand = effectCmd({
         }
       }
 
+      function resolveAutoModel(model: ModelInput | "auto" | undefined) {
+        if (model !== "auto") return model
+        UI.println(
+          UI.Style.TEXT_INFO_BOLD + "→",
+          UI.Style.TEXT_NORMAL,
+          `Using server-side default model selection (cheapest available)`,
+        )
+        return undefined
+      }
+
       async function createFreshSession(
         sdk: OpencodeClient,
         input: { agent: string | undefined; model: ModelInput | "auto" | undefined; variant: string | undefined },
       ): Promise<SessionInfo> {
-        const resolvedModel = input.model === "auto" ? undefined : input.model
-        if (input.model === "auto") {
-          UI.println(
-            UI.Style.TEXT_INFO_BOLD + "→",
-            UI.Style.TEXT_NORMAL,
-            `Using server-side default model selection (cheapest available)`,
-          )
-        }
+        const resolvedModel = resolveAutoModel(input.model)
         const result = await sdk.session.create({
           title: args.title !== undefined && args.title !== "" ? args.title : undefined,
           metadata: args["dry-run"] ? { dryrun: true } : undefined,
@@ -803,15 +806,7 @@ export const RunCommand = effectCmd({
           const { parseCandidates, runBestOf } = await import("./run/best-of")
           const candidates = parseCandidates(args["best-of"])
           if (typeof candidates === "string") return die(candidates)
-          const model = pick(args.model)
-          const resolvedModel = model === "auto" ? undefined : model
-          if (model === "auto") {
-            UI.println(
-              UI.Style.TEXT_INFO_BOLD + "→",
-              UI.Style.TEXT_NORMAL,
-              `Using server-side default model selection (cheapest available)`,
-            )
-          }
+          const resolvedModel = resolveAutoModel(pick(args.model))
           const exit = await runBestOf({
             sdk: args.attach ? attachSDK(directory ?? (await current(sdk))) : sdk,
             candidates,
@@ -996,15 +991,7 @@ export const RunCommand = effectCmd({
         const agent = await pickAgent(client)
 
         // Resolve auto model selection
-        const model = pick(args.model)
-        const resolvedModel = model === "auto" ? undefined : model
-        if (model === "auto") {
-          UI.println(
-            UI.Style.TEXT_INFO_BOLD + "→",
-            UI.Style.TEXT_NORMAL,
-            `Using server-side default model selection (cheapest available)`,
-          )
-        }
+        const resolvedModel = resolveAutoModel(pick(args.model))
 
         await share(client, sessionID)
 
@@ -1081,18 +1068,21 @@ export const RunCommand = effectCmd({
         return
       }
 
+      // Routes requests to the in-process server, attaching auth; the Server
+      // import stays lazy so attach-only runs never load it.
+      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const { Server } = await import("@/server/server")
+        const request = new Request(input, init)
+        const headers = new Headers(request.headers)
+        const auth = ServerAuth.header()
+        if (auth) headers.set("Authorization", auth)
+        return Server.Default().app.fetch(new Request(request, { headers }))
+      }) as typeof globalThis.fetch
+
       if (interactive && !args.attach && !args.session && !args.continue) {
         const model = pick(args.model)
         const resolvedModel = model === "auto" ? undefined : model
         const { runInteractiveLocalMode } = await import("./run/runtime")
-        const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-          const { Server } = await import("@/server/server")
-          const request = new Request(input, init)
-          const headers = new Headers(request.headers)
-          const auth = ServerAuth.header()
-          if (auth) headers.set("Authorization", auth)
-          return Server.Default().app.fetch(new Request(request, { headers }))
-        }) as typeof globalThis.fetch
 
         try {
           return await runInteractiveLocalMode({
@@ -1123,14 +1113,6 @@ export const RunCommand = effectCmd({
         return await execute(sdk)
       }
 
-      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { Server } = await import("@/server/server")
-        const request = new Request(input, init)
-        const headers = new Headers(request.headers)
-        const auth = ServerAuth.header()
-        if (auth) headers.set("Authorization", auth)
-        return Server.Default().app.fetch(new Request(request, { headers }))
-      }) as typeof globalThis.fetch
       const sdk = createOpencodeClient({
         baseUrl: "http://opencode.internal",
         fetch: fetchFn,

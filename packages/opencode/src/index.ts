@@ -200,15 +200,15 @@ const cli = yargs(args)
   .command(PluginCommand)
   .command(DbCommand)
   .fail((msg, err) => {
+    if (err) throw err
+    if (msg) process.stderr.write(msg + EOL)
     if (
       msg?.startsWith("Unknown argument") ||
       msg?.startsWith("Not enough non-option arguments") ||
       msg?.startsWith("Invalid values:")
     ) {
-      if (err) throw err
       cli.showHelp(show)
     }
-    if (err) throw err
     process.exit(1)
   })
   .strict()
