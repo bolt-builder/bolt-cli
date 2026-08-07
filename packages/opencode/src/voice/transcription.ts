@@ -44,8 +44,8 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
   mime: string
   language?: string
 }) {
-  const local = yield* resolveLocal(input.mime)
-  if (local) return yield* transcribeLocal(local, input)
+  const found = yield* local(input.mime)
+  if (found) return yield* transcribeLocal(found, input)
   const key = yield* resolveOpenaiKey()
   if (!key)
     return yield* new NoCredentialError({
@@ -95,8 +95,9 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
 
 // whisper-cli only decodes WAV without ffmpeg support compiled in, so the
 // local path is limited to the recorder's native format; anything else falls
-// through to the OpenAI API.
-const resolveLocal = Effect.fnUntraced(function* (mime: string) {
+// through to the OpenAI API. Exported so CLI callers that require fully
+// local transcription (e.g. `bolt run --voice`) can preflight availability.
+export const local = Effect.fnUntraced(function* (mime: string) {
   if (!mime.includes("wav")) return undefined
   const env = yield* Env.Service
   const binary =
@@ -108,7 +109,9 @@ const resolveLocal = Effect.fnUntraced(function* (mime: string) {
   return { binary, model }
 })
 
-const transcribeLocal = Effect.fn("VoiceTranscription.local")(function* (
+// Exported alongside `local` so fully-local callers (`bolt run --voice`)
+// can transcribe without pulling the OpenAI fallback's HTTP requirements.
+export const transcribeLocal = Effect.fn("VoiceTranscription.local")(function* (
   found: { binary: string; model: string },
   input: { audio: Uint8Array; mime: string; language?: string },
 ) {
