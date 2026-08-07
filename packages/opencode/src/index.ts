@@ -44,6 +44,7 @@ import { CommitlintCommand } from "./cli/cmd/commitlint"
 import { PortCommand } from "./cli/cmd/port"
 import { SplitCommand } from "./cli/cmd/split"
 import { ReviewCommand } from "./cli/cmd/review"
+import { UndoCommand } from "./cli/cmd/undo"
 import { AnalyzeCommand } from "./cli/cmd/analyze"
 import { CheckpointCommand } from "./cli/cmd/checkpoint"
 import { RebaseCommand } from "./cli/cmd/rebase"
@@ -165,6 +166,7 @@ const cli = yargs(args)
   .command(PortCommand)
   .command(SplitCommand)
   .command(ReviewCommand)
+  .command(UndoCommand)
   .command(AnalyzeCommand)
   .command(CheckpointCommand)
   .command(RebaseCommand)
