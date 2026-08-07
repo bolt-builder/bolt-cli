@@ -63,32 +63,52 @@ export const ReviewCommand = effectCmd({
   handler: Effect.fn("Cli.review")(function* (args) {
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const { Git } = yield* Effect.promise(() => import("@/git"))
+    const { Stdin } = yield* Effect.promise(() => import("../stdin"))
+    const piped = yield* Effect.promise(() => Stdin.piped())
+    if (piped && args.staged) return yield* fail("--staged cannot be used with a diff piped on stdin")
+    if (piped && args.branch !== undefined) return yield* fail("--branch cannot be used with a diff piped on stdin")
+
     const ctx = yield* InstanceRef
     if (!ctx) return yield* fail("Could not load instance context")
-    if (ctx.project.vcs !== "git") {
-      return yield* fail("Could not find git repository. Please run this command from a git repository.")
-    }
-
     const git = yield* Git.Service
     const cwd = ctx.worktree
 
-    const range = yield* Effect.gen(function* () {
-      if (args.staged) return ["diff", "--cached"]
-      if (args.branch === undefined) return ["diff", "HEAD"]
-      const base = yield* Effect.gen(function* () {
-        if (args.branch) return args.branch
-        const branch = yield* git.defaultBranch(cwd)
-        if (!branch) return yield* fail("Could not determine the default branch. Pass one with --branch <name>.")
-        return branch.ref
+    const patch = yield* Effect.gen(function* () {
+      if (piped) return piped.trim()
+      if (ctx.project.vcs !== "git") {
+        return yield* fail("Could not find git repository. Run from a git repository or pipe a diff on stdin.")
+      }
+
+      const range = yield* Effect.gen(function* () {
+        if (args.staged) return ["diff", "--cached"]
+        if (args.branch === undefined) return ["diff", "HEAD"]
+        const base = yield* Effect.gen(function* () {
+          if (args.branch) return args.branch
+          const branch = yield* git.defaultBranch(cwd)
+          if (!branch) return yield* fail("Could not determine the default branch. Pass one with --branch <name>.")
+          return branch.ref
+        })
+        const merge = yield* git.mergeBase(cwd, base)
+        if (!merge) return yield* fail(`Could not find a merge base with ${base}.`)
+        return ["diff", `${merge}..HEAD`]
       })
-      const merge = yield* git.mergeBase(cwd, base)
-      if (!merge) return yield* fail(`Could not find a merge base with ${base}.`)
-      return ["diff", `${merge}..HEAD`]
+
+      const diff = yield* git.run(range, { cwd })
+      if (diff.exitCode !== 0) return yield* fail(diff.stderr.toString().trim() || "git diff failed")
+      const text = diff.text().trim()
+
+      const span = range.length === 2 && range[1].includes("..") && text && !args.json ? range[1] : undefined
+      if (span) {
+        const { Signature } = yield* Effect.promise(() => import("./signature"))
+        const signed = yield* git.run(["log", "--format=%h%x00%G?%x00%GS", span], { cwd })
+        if (signed.exitCode === 0) {
+          for (const item of Signature.summary(Signature.parse(signed.text()))) UI.println(item)
+        }
+      }
+
+      return text
     })
 
-    const diff = yield* git.run(range, { cwd })
-    if (diff.exitCode !== 0) return yield* fail(diff.stderr.toString().trim() || "git diff failed")
-    const patch = diff.text().trim()
     if (!patch) {
       if (args.json) {
         Envelope.print({ verdict: null, confidence: null, text: "" })
@@ -99,15 +119,6 @@ export const ReviewCommand = effectCmd({
     }
     if (patch.length > LIMIT) {
       return yield* fail("The diff is too large to review in one shot. Review a narrower range.")
-    }
-
-    const span = range.length === 2 && range[1].includes("..") && !args.json ? range[1] : undefined
-    if (span) {
-      const { Signature } = yield* Effect.promise(() => import("./signature"))
-      const signed = yield* git.run(["log", "--format=%h%x00%G?%x00%GS", span], { cwd })
-      if (signed.exitCode === 0) {
-        for (const item of Signature.summary(Signature.parse(signed.text()))) UI.println(item)
-      }
     }
 
     if (!args.json) UI.println("Reviewing changes...")
