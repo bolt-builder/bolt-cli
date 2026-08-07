@@ -159,6 +159,10 @@ export const Info = Schema.Struct({
       prune: Schema.optional(Schema.Boolean).annotate({
         description: "Enable pruning of old tool outputs (default: true)",
       }),
+      preemptive: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Compact in the background once context passes 80% of the usable window, after a response finishes instead of mid-prompt when it overflows (default: false)",
+      }),
       tail_turns: Schema.optional(NonNegativeInt).annotate({
         description:
           "Number of recent user turns, including their following assistant/tool responses, to keep verbatim during compaction (default: 2)",
