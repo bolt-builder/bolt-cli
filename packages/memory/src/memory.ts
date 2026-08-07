@@ -1,5 +1,6 @@
 import { MemoryFiles } from "./storage/store"
 import { MemoryIndexer } from "./recall/indexer"
+import { MemoryNegative } from "./negative"
 import { MemoryNotice } from "./memory-notice"
 import { MemoryOperations } from "./capture/operations"
 import { MemoryPaths } from "./storage/paths"
@@ -291,6 +292,23 @@ export namespace Memory {
       ...input,
       file: "corrections.md",
       section: "Corrections",
+    })
+  }
+
+  export async function avoid(input: {
+    root: string
+    text: string
+    outcome?: string
+    key?: string
+    sessionID?: string
+  }) {
+    return remember({
+      root: input.root,
+      key: input.key,
+      sessionID: input.sessionID,
+      text: MemoryNegative.text({ approach: input.text, outcome: input.outcome }),
+      file: "project.md",
+      section: MemoryNegative.SECTION,
     })
   }
 
