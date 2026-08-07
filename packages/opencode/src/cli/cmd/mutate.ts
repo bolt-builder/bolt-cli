@@ -19,7 +19,8 @@ type Operator = {
 // assignments like `&&=` are excluded, and arithmetic only matches spaced
 // binary operators so `++`, `--`, and unary signs are left alone.
 const operators: Operator[] = [
-  { pattern: /===/g, replacement: "!==" },
+  // `[=]` avoids a regex literal starting with `/=`, which reads like `/=`.
+  { pattern: /[=]==/g, replacement: "!==" },
   { pattern: /!==/g, replacement: "===" },
   { pattern: /(?<![&=!])&&(?![&=])/g, replacement: "||" },
   { pattern: /(?<![|=])\|\|(?![|=])/g, replacement: "&&" },
