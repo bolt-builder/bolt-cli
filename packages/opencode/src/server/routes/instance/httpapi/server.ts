@@ -82,6 +82,7 @@ import {
 } from "./middleware/authorization"
 import { EventApi } from "./groups/event"
 import { PtyConnectApi } from "./groups/pty"
+import { handoffRoute } from "./handoff"
 import { eventHandlers } from "./handlers/event"
 import { configHandlers } from "./handlers/config"
 import { controlHandlers } from "./handlers/control"
@@ -285,6 +286,7 @@ export function createRoutes(
     instanceRoutes,
     serverRoutes,
     docRoute,
+    handoffRoute,
     uiRoute,
   ).pipe(
     Layer.provide([
