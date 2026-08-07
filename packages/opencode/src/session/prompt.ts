@@ -46,6 +46,8 @@ import { Cause, Effect, Exit, Latch, Layer, Option, Scope, Context, Schema, Type
 import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
+import { SessionHunk } from "./hunk"
+import { Git } from "@/git"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
@@ -140,6 +142,7 @@ const layer = Layer.effect(
     const llm = yield* LLM.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
+    const git = yield* Git.Service
     const database = yield* Database.Service
     const { db } = database
     const ops = Effect.fn("SessionPrompt.ops")(function* () {
@@ -829,6 +832,27 @@ const layer = Layer.effect(
               }
 
               if (mime === "text/plain") {
+                // Diff-aware context: when enabled and the file was attached
+                // without an explicit range, a locally modified file loads as
+                // its changed hunks instead of the whole file.
+                if (!url.searchParams.has("start") && (yield* config.get()).experimental?.diff_context === true) {
+                  const ctx = yield* InstanceState.context
+                  const patch = yield* git.patch(ctx.directory, "HEAD", filepath)
+                  const hunks = SessionHunk.parse(patch.text)
+                  if (hunks.length) {
+                    const kept = SessionHunk.select({ hunks, budget: SessionHunk.BUDGET })
+                    return [
+                      {
+                        messageID: info.id,
+                        sessionID: input.sessionID,
+                        type: "text",
+                        synthetic: true,
+                        text: SessionHunk.render({ file: filepath, hunks: kept, total: hunks.length }),
+                      },
+                      { ...part, mime, messageID: info.id, sessionID: input.sessionID },
+                    ]
+                  }
+                }
                 let offset: number | undefined
                 let limit: number | undefined
                 const range = { start: url.searchParams.get("start"), end: url.searchParams.get("end") }
@@ -1643,6 +1667,7 @@ export const node = LayerNode.make({
     LLM.node,
     EventV2Bridge.node,
     RuntimeFlags.node,
+    Git.node,
     Database.node,
   ],
 })
