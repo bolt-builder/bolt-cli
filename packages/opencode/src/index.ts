@@ -180,6 +180,28 @@ const commands = [
   DbCommand,
 ]
 
+// yargs only generates bash/zsh completion scripts; serve fish here before
+// yargs rejects the extra positional under strict mode.
+if (args[0] === "completion" && args[1] === "fish") {
+  const { fish } = await import("./cli/complete")
+  process.stdout.write(fish() + EOL)
+  process.exit(0)
+}
+
+// Dynamic completions: when the word being completed follows --session,
+// --agent, or --model, answer with live values and skip yargs entirely.
+// Everything else falls through to the stock yargs completion handling.
+if (args[0] === "--get-yargs-completions") {
+  const current = args.at(-1) ?? ""
+  const previous = args.at(-2) ?? ""
+  const { dynamic } = await import("./cli/complete")
+  const values = await dynamic(previous, current).catch(() => undefined)
+  if (values && values.length > 0) {
+    for (const value of values) process.stdout.write(value + EOL)
+    process.exit(0)
+  }
+}
+
 function show(out: string) {
   const text = out.trimStart()
   if (!text.startsWith("bolt ")) {
@@ -253,7 +275,7 @@ const cli = yargs(args)
     process.env.OPENCODE_PID = String(process.pid)
   })
   .usage("")
-  .completion("completion", "generate shell completion script")
+  .completion("completion", "generate shell completion script (pass 'fish' for fish)")
   .fail((msg, err) => {
     if (err) throw err
     if (msg) process.stderr.write(msg + EOL)
