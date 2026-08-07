@@ -255,6 +255,11 @@ export const RunCommand = effectCmd({
         describe: "auto-approve permissions that are not explicitly denied (dangerous!)",
         default: false,
       })
+      .option("dry-run", {
+        type: "boolean",
+        default: false,
+        describe: "show every file write and command the plan would execute without doing it",
+      })
       .option("background", {
         alias: ["bg"],
         type: "boolean",
@@ -469,6 +474,19 @@ export const RunCommand = effectCmd({
         if (args.session || args.continue || args.fork) die("--best-of always runs in fresh sessions")
       }
 
+      if (args["dry-run"]) {
+        if (interactive) die("--dry-run cannot be used with --mini")
+        if (args["best-of"]) die("--dry-run cannot be used with --best-of")
+        if (args.session || args.continue) die("--dry-run requires a fresh session")
+        if (args.format !== "json") {
+          UI.println(
+            UI.Style.TEXT_INFO_BOLD + "→",
+            UI.Style.TEXT_NORMAL,
+            "Dry run: file writes and shell commands will be reported, not executed",
+          )
+        }
+      }
+
       if (args["auto-agent"]) {
         if (args.agent) die("--auto-agent cannot be used with --agent")
         if (interactive) die("--auto-agent cannot be used with --mini")
@@ -568,6 +586,7 @@ export const RunCommand = effectCmd({
         const name = title()
         const result = await sdk.session.create({
           title: name,
+          metadata: args["dry-run"] ? { dryrun: true } : undefined,
           permission: [...rules],
         })
         const id = result.data?.id
@@ -611,6 +630,7 @@ export const RunCommand = effectCmd({
         }
         const result = await sdk.session.create({
           title: args.title !== undefined && args.title !== "" ? args.title : undefined,
+          metadata: args["dry-run"] ? { dryrun: true } : undefined,
           agent: input.agent,
           model: resolvedModel
             ? {
@@ -1138,6 +1158,8 @@ export async function runMini(input: MiniCommandInput) {
     replayLimit: input.replayLimit,
     auto: false,
     background: false,
+    "dry-run": false,
+    dryRun: false,
     yolo: false,
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,

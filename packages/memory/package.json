@@ -37,6 +37,7 @@
     "./paths": "./src/storage/paths.ts",
     "./recall": "./src/recall/recall.ts",
     "./redact": "./src/capture/redact.ts",
+    "./search": "./src/search.ts",
     "./token": "./src/recall/token.ts",
     "./schema": "./src/schema.ts",
     "./shared": "./src/recall/shared.ts",
