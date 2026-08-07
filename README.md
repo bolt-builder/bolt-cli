@@ -352,7 +352,7 @@ Configuration lives in `.bolt/bolt.jsonc` in your project root (created on first
 - [x] Patch tool: apply unified diffs directly instead of line edits for big mechanical changes
 - [x] Image reads: the agent opens screenshots and design mocks with the `read` tool
 - [x] MCP servers with OAuth: `bolt mcp add/auth/logout/debug`
-- [x] VS Code extension (`sdks/vscode`) and ACP for editors like Zed
+- [x] ACP for editors like Zed
 - [x] Web UI: `bolt web` starts the server and opens the browser dashboard
 - [x] Custom agents defined as markdown in your repo, or generated with `bolt agent create`
 - [x] `bolt refactor`: test-aware refactor loops that change, run, verify, and repeat until green
