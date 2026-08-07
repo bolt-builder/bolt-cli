@@ -1987,6 +1987,7 @@ export type Config = {
   compat?: boolean | CompatConfig
   layout?: LayoutConfig
   permission?: PermissionConfig
+  guardrail?: boolean
   approval?: boolean
   tools?: {
     [key: string]: boolean
@@ -2015,6 +2016,7 @@ export type Config = {
     primary_tools?: Array<string>
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
+    diff_context?: boolean
     symbol_graph?: boolean
     policies?: Array<ConfigV2ExperimentalPolicy>
   }

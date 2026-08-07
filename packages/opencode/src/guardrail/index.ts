@@ -9,11 +9,20 @@ import PROMPT from "./guardrail.txt"
 
 const RULES: { reason: string; pattern: RegExp }[] = [
   { reason: "remote code execution", pattern: /\b(curl|wget)\b[^|;&]*\|\s*(sudo\s+)?(ba|z|da)?sh\b/i },
-  { reason: "secret exfiltration", pattern: /(\.ssh\/|\.env\b|\bcredentials\b|\bprintenv\b|\benv\b\s*\|)(?=[\s\S]*\b(curl|wget|nc|scp)\b)/i },
+  {
+    reason: "secret exfiltration",
+    pattern: /(\.ssh\/|\.env\b|\bcredentials\b|\bprintenv\b|\benv\b\s*\|)(?=[\s\S]*\b(curl|wget|nc|scp)\b)/i,
+  },
   { reason: "recursive delete", pattern: /\brm\b(?=.*\s-{1,2}\w*r)/i },
-  { reason: "history rewrite", pattern: /\bgit\s+(push\b(?=.*\s(--force(?!-with-lease)|-f)\b)|reset\b(?=.*\s--hard\b)|clean\b(?=.*\s-\w*f))/i },
+  {
+    reason: "history rewrite",
+    pattern: /\bgit\s+(push\b(?=.*\s(--force(?!-with-lease)|-f)\b)|reset\b(?=.*\s--hard\b)|clean\b(?=.*\s-\w*f))/i,
+  },
   { reason: "privilege escalation", pattern: /(^|[;&|]\s*)sudo\b/ },
-  { reason: "system file modification", pattern: /(>>?\s*\/(etc|usr|boot|var\/lib)\/|\btee\s+(-a\s+)?\/(etc|usr|boot)\/)/ },
+  {
+    reason: "system file modification",
+    pattern: /(>>?\s*\/(etc|usr|boot|var\/lib)\/|\btee\s+(-a\s+)?\/(etc|usr|boot)\/)/,
+  },
   { reason: "recursive permission change", pattern: /\b(chmod|chown)\b(?=.*\s(-\w*R\w*|--recursive)\b)/ },
   { reason: "raw device access", pattern: /\b(dd|mkfs(\.\w+)?|fdisk|parted)\b(?=.*\/dev\/)/ },
   { reason: "package publish", pattern: /\b(npm|pnpm|yarn|bun)\s+publish\b|\bcargo\s+publish\b|\btwine\s+upload\b/ },
@@ -63,9 +72,8 @@ const layer = Layer.effect(
         prompt: PROMPT,
       }
       const model =
-        (yield* provider
-          .getSmallModel(input.model.providerID)
-          .pipe(Effect.catch(() => Effect.succeed(undefined)))) ?? input.model
+        (yield* provider.getSmallModel(input.model.providerID).pipe(Effect.catch(() => Effect.succeed(undefined)))) ??
+        input.model
       const text = yield* llm
         .stream({
           agent: guardrail,
