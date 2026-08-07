@@ -80,6 +80,9 @@ export const MutateCommand = effectCmd({
         describe: "per-run timeout in milliseconds",
       }),
   handler: Effect.fn("Cli.mutate")(function* (args) {
+    if (!Number.isInteger(args.limit) || args.limit < 1) return yield* fail("--limit must be a positive integer")
+    if (!Number.isFinite(args.timeout) || args.timeout <= 0)
+      return yield* fail("--timeout must be a positive number of milliseconds")
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const { FSUtil } = yield* Effect.promise(() => import("@opencode-ai/core/fs-util"))
     const { detect } = yield* Effect.promise(() => import("@/tool/testrun"))
@@ -100,14 +103,32 @@ export const MutateCommand = effectCmd({
       UI.println("No mutable sites found in this file.")
       return
     }
-    const mutants = found.slice(0, Math.max(1, Math.floor(args.limit)))
+    const mutants = found.slice(0, args.limit)
 
     const shell = process.platform === "win32" ? ["cmd", "/c", command] : ["sh", "-c", command]
     const execute = () =>
       Effect.promise(async () => {
-        const proc = Bun.spawn(shell, { cwd, stdout: "ignore", stderr: "ignore" })
-        // A mutant can loop forever; kill the run and count it as killed.
-        const timer = setTimeout(() => proc.kill(), args.timeout)
+        // Own process group on POSIX so a timed-out run cannot leak test
+        // children into later mutant runs.
+        const proc = Bun.spawn(shell, {
+          cwd,
+          stdout: "ignore",
+          stderr: "ignore",
+          detached: process.platform !== "win32",
+        })
+        // A mutant can loop forever; kill the whole process tree and count the
+        // run as killed.
+        const timer = setTimeout(() => {
+          if (process.platform === "win32") {
+            Bun.spawn(["taskkill", "/pid", String(proc.pid), "/T", "/F"], { stdout: "ignore", stderr: "ignore" })
+            return
+          }
+          try {
+            process.kill(-proc.pid, "SIGKILL")
+          } catch {
+            proc.kill()
+          }
+        }, args.timeout)
         const code = await proc.exited
         clearTimeout(timer)
         return code
