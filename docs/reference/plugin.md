@@ -1,6 +1,6 @@
 # bolt plugin <module>
 
-install plugin and update config               [aliases: plug]
+install plugin and update config [aliases: plug]
 
 ```
 bolt plugin <module>

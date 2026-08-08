@@ -21,7 +21,11 @@ export function escape(line: string) {
 export function page(name: string, version: string, date: string, help: string) {
   const lines = help.trimEnd().split("\n")
   const usage = lines[0]?.trim() || name
-  const summary = lines.slice(1).find((line) => line.trim())?.trim() ?? ""
+  const summary =
+    lines
+      .slice(1)
+      .find((line) => line.trim())
+      ?.trim() ?? ""
   return [
     `.TH "${name.toUpperCase()}" "1" "${date}" "bolt ${version}" "Bolt Manual"`,
     ".SH NAME",

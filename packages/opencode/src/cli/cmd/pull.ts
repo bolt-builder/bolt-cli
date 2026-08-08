@@ -64,9 +64,7 @@ export const PullCommand = effectCmd({
       catch: () => "Remote server returned invalid JSON",
     }).pipe(Effect.catch((message) => fail(message)))
     if (!SessionBundle.valid(data)) return yield* fail("Remote server did not return a session bundle")
-    yield* SessionBundle.load(data, ctx).pipe(
-      Effect.catchCause(() => fail("Session bundle could not be imported")),
-    )
+    yield* SessionBundle.load(data, ctx).pipe(Effect.catchCause(() => fail("Session bundle could not be imported")))
     UI.println(`Pulled session ${args.sessionID} from ${args.url}`)
     UI.println(`Resume it with: bolt --session ${args.sessionID}`)
   }),

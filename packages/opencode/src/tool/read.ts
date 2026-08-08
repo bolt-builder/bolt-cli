@@ -340,7 +340,9 @@ export const ReadTool = Tool.define<
         : undefined
       const file = snapshot ?? (yield* lines(filepath, opts))
       if (!snapshot && gate) {
-        yield* Effect.promise(() => ReadCache.set(instance.directory, filepath, opts.offset, opts.limit, { ...file, ...gate }))
+        yield* Effect.promise(() =>
+          ReadCache.set(instance.directory, filepath, opts.offset, opts.limit, { ...file, ...gate }),
+        )
       }
       if (file.count < file.offset && !(file.count === 0 && file.offset === 1)) {
         return yield* Effect.fail(

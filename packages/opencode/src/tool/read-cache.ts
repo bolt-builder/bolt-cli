@@ -51,7 +51,13 @@ async function load(directory: string): Promise<Store> {
   return parsed
 }
 
-export async function get(directory: string, filepath: string, offset: number, limit: number, stat: { mtime: number; size: number }) {
+export async function get(
+  directory: string,
+  filepath: string,
+  offset: number,
+  limit: number,
+  stat: { mtime: number; size: number },
+) {
   const store = await load(directory)
   const entry = store.entries[key(filepath, offset, limit)]
   if (!entry) return undefined

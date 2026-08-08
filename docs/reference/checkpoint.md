@@ -54,7 +54,7 @@ Options:
 
 ## bolt checkpoint list
 
-list saved checkpoints                                [aliases: ls]
+list saved checkpoints [aliases: ls]
 
 ```
 bolt checkpoint list
@@ -99,7 +99,7 @@ Options:
 
 ## bolt checkpoint remove <name>
 
-delete a checkpoint                                   [aliases: rm]
+delete a checkpoint [aliases: rm]
 
 ```
 bolt checkpoint remove <name>

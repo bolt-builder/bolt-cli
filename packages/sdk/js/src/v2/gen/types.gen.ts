@@ -1917,6 +1917,9 @@ export type Config = {
   profile?: {
     [key: string]: unknown
   }
+  alias?: {
+    [key: string]: string
+  }
   default_agent?: string
   subagent_depth?: number
   username?: string

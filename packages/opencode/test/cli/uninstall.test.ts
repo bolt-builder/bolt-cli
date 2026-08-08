@@ -25,9 +25,13 @@ describe("uninstall cleanShellConfig", () => {
     const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "bolt-uninstall-")), ".bashrc")
     fs.writeFileSync(
       file,
-      ["alias ll='ls -la'", "# bolt", 'export PATH="$HOME/.bolt/bin:$PATH"', 'export PATH="$HOME/.opencode/bin:$PATH"', ""].join(
-        "\n",
-      ),
+      [
+        "alias ll='ls -la'",
+        "# bolt",
+        'export PATH="$HOME/.bolt/bin:$PATH"',
+        'export PATH="$HOME/.opencode/bin:$PATH"',
+        "",
+      ].join("\n"),
     )
     await cleanShellConfig(file)
     const content = fs.readFileSync(file, "utf8")
@@ -39,7 +43,7 @@ describe("uninstall cleanShellConfig", () => {
 
   test("keeps unrelated lines untouched", async () => {
     const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "bolt-uninstall-")), ".zshrc")
-    fs.writeFileSync(file, ["export PATH=\"$HOME/other/bin:$PATH\"", "alias g=git"].join("\n"))
+    fs.writeFileSync(file, ['export PATH="$HOME/other/bin:$PATH"', "alias g=git"].join("\n"))
     await cleanShellConfig(file)
     const content = fs.readFileSync(file, "utf8")
     expect(content).toContain("other/bin")

@@ -23603,6 +23603,12 @@
           "profile": {
             "type": "object"
           },
+          "alias": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
           "default_agent": {
             "type": "string"
           },

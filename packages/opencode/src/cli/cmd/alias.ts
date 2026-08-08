@@ -16,7 +16,7 @@ export const AliasCommand = effectCmd({
         describe: 'alias name to show, or name="run --agent reviewer ..." to set',
       })
       .option("rm", { type: "boolean", default: false, describe: "remove the alias" })
-      .example('bolt alias deploy-check="run --agent reviewer \'audit the deploy diff\'"', "persist an alias")
+      .example("bolt alias deploy-check=\"run --agent reviewer 'audit the deploy diff'\"", "persist an alias")
       .example("bolt alias", "list aliases")
       .example("bolt alias --rm deploy-check", "remove an alias"),
   instance: false,

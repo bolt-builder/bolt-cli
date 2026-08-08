@@ -55,7 +55,7 @@ Options:
 
 ## bolt mcp list
 
-list MCP servers and their status                            [aliases: ls]
+list MCP servers and their status [aliases: ls]
 
 ```
 bolt mcp list

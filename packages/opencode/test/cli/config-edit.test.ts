@@ -36,7 +36,7 @@ describe("edit", () => {
   })
 
   test("preserves comments when updating a jsonc file", () => {
-    const text = ['{', '  // the model to use', '  "model": "old/model",', '  "snapshot": true', '}'].join("\n")
+    const text = ["{", "  // the model to use", '  "model": "old/model",', '  "snapshot": true', "}"].join("\n")
     const updated = edit(text, "model", "new/model")
     expect(updated).toContain("// the model to use")
     expect(updated).toContain('"model": "new/model"')
@@ -44,7 +44,7 @@ describe("edit", () => {
   })
 
   test("preserves comments when removing a key", () => {
-    const text = ['{', '  // keep me', '  "snapshot": true,', '  "model": "old/model"', '}'].join("\n")
+    const text = ["{", "  // keep me", '  "snapshot": true,', '  "model": "old/model"', "}"].join("\n")
     const updated = edit(text, "model", undefined)
     expect(updated).toContain("// keep me")
     expect(updated).not.toContain("model")

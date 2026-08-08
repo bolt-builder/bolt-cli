@@ -53,7 +53,10 @@ describe("load", () => {
   test("reads aliases from project config files, nearest winning", async () => {
     await using tmp = await tmpdir()
     const nested = path.join(tmp.path, "packages", "app")
-    await Bun.write(path.join(tmp.path, "bolt.json"), JSON.stringify({ alias: { greet: "run 'hello'", up: "upgrade" } }))
+    await Bun.write(
+      path.join(tmp.path, "bolt.json"),
+      JSON.stringify({ alias: { greet: "run 'hello'", up: "upgrade" } }),
+    )
     await Bun.write(path.join(nested, "bolt.jsonc"), JSON.stringify({ alias: { greet: "run 'hi from nested'" } }))
 
     const found = CliAlias.load(nested)

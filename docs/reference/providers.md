@@ -1,6 +1,6 @@
 # bolt providers
 
-manage AI providers and credentials            [aliases: auth]
+manage AI providers and credentials [aliases: auth]
 
 ```
 bolt providers
@@ -26,7 +26,7 @@ Options:
 
 ## bolt providers list
 
-list providers and credentials                     [aliases: ls]
+list providers and credentials [aliases: ls]
 
 ```
 bolt providers list

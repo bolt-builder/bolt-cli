@@ -1,6 +1,6 @@
 # bolt session
 
-manage sessions                            [aliases: sessions]
+manage sessions [aliases: sessions]
 
 ```
 bolt session
@@ -28,7 +28,7 @@ Options:
 
 ## bolt session list
 
-list sessions                           [aliases: ls]
+list sessions [aliases: ls]
 
 ```
 bolt session list
