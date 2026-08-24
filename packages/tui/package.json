@@ -1,10 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@opencode-ai/tui",
-  "version": "1.18.21",
+  "version": "1.21.0",
   "private": true,
   "type": "module",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "test": "bun test --timeout 30000 --only-failures",
     "typecheck": "tsgo --noEmit"
@@ -37,6 +37,7 @@
     "./plugin/command-shim": "./src/plugin/command-shim.ts",
     "./parsers-config": "./src/parsers-config.ts",
     "./util/error": "./src/util/error.ts",
+    "./voice": "./src/voice.ts",
     "./util/locale": "./src/util/locale.ts",
     "./util/persistence": "./src/util/persistence.ts",
     "./util/record": "./src/util/record.ts",
@@ -49,12 +50,14 @@
   },
   "dependencies": {
     "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/memory": "workspace:*",
     "@opencode-ai/plugin": "workspace:*",
     "@opencode-ai/sdk": "workspace:*",
     "@opencode-ai/ui": "workspace:*",
     "@opentui/core": "catalog:",
     "@opentui/keymap": "catalog:",
     "@opentui/solid": "catalog:",
+    "@seomis/doom-fire": "0.1.0",
     "clipboardy": "4.0.0",
     "diff": "catalog:",
     "effect": "catalog:",
@@ -62,8 +65,8 @@
     "open": "10.1.2",
     "opentui-spinner": "catalog:",
     "remeda": "catalog:",
-    "strip-ansi": "7.1.2",
-    "solid-js": "catalog:"
+    "solid-js": "catalog:",
+    "strip-ansi": "7.1.2"
   },
   "devDependencies": {
     "@tsconfig/bun": "catalog:",
