@@ -1,0 +1,35 @@
+version = 1
+
+test_patterns = [
+  "**/test/**",
+  "**/tests/**",
+  "**/*.test.ts",
+  "**/*.test.tsx",
+]
+
+exclude_patterns = [
+  "**/dist/**",
+  "**/node_modules/**",
+  "packages/sdk/js/src/gen/**",
+  "packages/sdk/js/src/v2/gen/**",
+]
+
+[[analyzers]]
+name = "javascript"
+
+  # Without this DeepSource parses files as scripts and flags every top-level
+  # function declaration in our ESM TypeScript modules as a "global scope"
+  # anti-pattern (JS-0067), failing the JavaScript check on every PR.
+  [analyzers.meta]
+  environment = ["nodejs"]
+  module_system = "es-modules"
+  dialect = "typescript"
+
+[[analyzers]]
+name = "docker"
+
+[[analyzers]]
+name = "shell"
+
+[[analyzers]]
+name = "secrets"

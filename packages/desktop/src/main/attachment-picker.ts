@@ -42,7 +42,7 @@ export async function readAttachment(filePath: string, maxBytes = MAX_ATTACHMENT
   try {
     const info = await file.stat()
     if (info.size > maxBytes)
-      throw new Error(nativeT("desktop.picker.error.sizeLimit", { limit: MAX_ATTACHMENT_BYTES / 1024 / 1024 }))
+      throw new Error(nativeT("desktop.picker.error.sizeLimit", { limit: maxBytes / 1024 / 1024 }))
     const bytes = Buffer.allocUnsafe(info.size)
     let offset = 0
     while (offset < info.size) {

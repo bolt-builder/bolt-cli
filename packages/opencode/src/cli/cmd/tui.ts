@@ -6,7 +6,7 @@ import { fileURLToPath } from "url"
 import { UI } from "@/cli/ui"
 import { errorMessage } from "@opencode-ai/tui/util/error"
 import { withTimeout } from "@/util/timeout"
-import { withNetworkOptions, resolveNetworkOptionsNoConfig, hasArg } from "@/cli/network"
+import { withNetworkOptions, resolveNetworkOptionsNoConfig, hasArg, enforceLoopbackWithoutAuth } from "@/cli/network"
 import { Filesystem } from "@/util/filesystem"
 import type { GlobalEvent } from "@opencode-ai/sdk/v2"
 import type { EventSource } from "@opencode-ai/tui/context/sdk"
@@ -57,7 +57,8 @@ async function target() {
 }
 
 async function input(value?: string) {
-  const piped = process.stdin.isTTY ? undefined : await Bun.stdin.text()
+  const { Stdin } = await import("../stdin")
+  const piped = await Stdin.piped()
   if (!value) return piped
   if (!piped) return value
   return piped + "\n" + value
@@ -71,12 +72,12 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
 
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
-  describe: "start opencode tui",
+  describe: "start bolt tui",
   builder: (yargs) =>
     withNetworkOptions(yargs)
       .positional("project", {
         type: "string",
-        describe: "path to start opencode in",
+        describe: "path to start bolt in",
       })
       .option("model", {
         type: "string",
@@ -227,46 +228,57 @@ export const TuiThreadCommand = cmd({
         worker.terminate()
       }
 
-      const prompt = await input(args.prompt)
-      const config = await TuiConfig.get()
+      // Everything past worker creation must go through stop() so early
+      // returns don't leak the worker or its SIGUSR2 listener.
+      try {
+        const prompt = await input(args.prompt)
+        const config = await TuiConfig.get()
 
-      const network = resolveNetworkOptionsNoConfig(args)
-      const external = hasArg("--port") || hasArg("--hostname") || network.mdns === true
+        const resolved = resolveNetworkOptionsNoConfig(args)
+        const external = hasArg("--port") || hasArg("--hostname") || resolved.mdns === true
+        // An external bind exposes the file/shell API; refuse it beyond loopback
+        // when no server password is set.
+        const guard = external ? enforceLoopbackWithoutAuth(resolved) : { ok: true as const, opts: resolved }
+        if (!guard.ok) {
+          UI.error(guard.error)
+          process.exitCode = 1
+          return
+        }
+        const network = guard.opts
 
-      const headers = external ? ServerAuth.headers() : undefined
+        const headers = external ? ServerAuth.headers() : undefined
 
-      const transport = external
-        ? {
-            url: (await client.call("server", network)).url,
-            fetch: undefined,
-            events: undefined,
+        const transport = external
+          ? {
+              url: (await client.call("server", network)).url,
+              fetch: undefined,
+              events: undefined,
+              headers,
+            }
+          : {
+              url: "http://opencode.internal",
+              fetch: createWorkerFetch(client),
+              events: createEventSource(client),
+            }
+
+        try {
+          await validateSession({
+            url: transport.url,
+            sessionID: args.session,
+            directory: cwd,
+            fetch: transport.fetch,
             headers,
-          }
-        : {
-            url: "http://opencode.internal",
-            fetch: createWorkerFetch(client),
-            events: createEventSource(client),
-          }
+          })
+        } catch (error) {
+          UI.error(errorMessage(error))
+          process.exitCode = 1
+          return
+        }
 
-      try {
-        await validateSession({
-          url: transport.url,
-          sessionID: args.session,
-          directory: cwd,
-          fetch: transport.fetch,
-          headers,
-        })
-      } catch (error) {
-        UI.error(errorMessage(error))
-        process.exitCode = 1
-        return
-      }
+        setTimeout(() => {
+          client.call("checkUpgrade", { directory: cwd }).catch(() => {})
+        }, 1000).unref?.()
 
-      setTimeout(() => {
-        client.call("checkUpgrade", { directory: cwd }).catch(() => {})
-      }, 1000).unref?.()
-
-      try {
         const { Effect } = await import("effect")
         const { run } = await import("../tui/layer")
         const { createLegacyTuiPluginHost } = await import("@/plugin/tui/runtime")
@@ -306,4 +318,3 @@ export const TuiThreadCommand = cmd({
     process.exit(0)
   },
 })
-// scratch

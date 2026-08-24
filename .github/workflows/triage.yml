@@ -22,7 +22,7 @@ jobs:
           LOGIN="${{ github.event.issue.user.login }}"
           ASSOCIATION="${{ github.event.issue.author_association }}"
 
-          if [ "$LOGIN" = "opencode-agent[bot]" ] ||
+          if [ "$LOGIN" =  "bolt-cli[bot]" ] ||
              [ "$ASSOCIATION" = "OWNER" ] ||
              [ "$ASSOCIATION" = "MEMBER" ] ||
              grep -qxiF "$LOGIN" .github/TEAM_MEMBERS; then
@@ -32,16 +32,29 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # triage requires an opencode API key; skip gracefully when the secret is not configured
+      - name: Check opencode API key
+        id: opencode
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          if [ -n "$OPENCODE_API_KEY" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping triage: OPENCODE_API_KEY secret is not configured"
+          fi
+
       - name: Setup Bun
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         uses: ./.github/actions/setup-bun
 
       - name: Install opencode
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         run: curl -fsSL https://opencode.ai/install | bash
 
       - name: Triage issue
-        if: steps.author.outputs.skip != 'true'
+        if: steps.author.outputs.skip != 'true' && steps.opencode.outputs.configured == 'true'
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

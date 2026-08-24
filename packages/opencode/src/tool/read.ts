@@ -9,6 +9,7 @@ import { InstanceState } from "@/effect/instance-state"
 import { assertExternalDirectoryEffect } from "./external-directory"
 import { Instruction } from "../session/instruction"
 import { isPdfAttachment, sniffAttachmentMime } from "@/util/media"
+import { ReadCache } from "./read-cache"
 
 const DEFAULT_READ_LIMIT = 2000
 const MAX_LINE_LENGTH = 2000
@@ -328,7 +329,21 @@ export const ReadTool = Tool.define<
         return yield* Effect.fail(new Error(`Cannot read binary file: ${filepath}`))
       }
 
-      const file = yield* lines(filepath, { limit: params.limit ?? DEFAULT_READ_LIMIT, offset: params.offset || 1 })
+      // Incremental context: when the file is unchanged since a previous run
+      // (mtime and size gate), reuse that run's line snapshot instead of
+      // re-streaming and re-formatting the content.
+      const opts = { limit: params.limit ?? DEFAULT_READ_LIMIT, offset: params.offset || 1 }
+      const mtime = Option.getOrUndefined(stat.mtime)?.getTime()
+      const gate = mtime === undefined ? undefined : { mtime, size: Number(stat.size) }
+      const snapshot = gate
+        ? yield* Effect.promise(() => ReadCache.get(instance.directory, filepath, opts.offset, opts.limit, gate))
+        : undefined
+      const file = snapshot ?? (yield* lines(filepath, opts))
+      if (!snapshot && gate) {
+        yield* Effect.promise(() =>
+          ReadCache.set(instance.directory, filepath, opts.offset, opts.limit, { ...file, ...gate }),
+        )
+      }
       if (file.count < file.offset && !(file.count === 0 && file.offset === 1)) {
         return yield* Effect.fail(
           new Error(`Offset ${file.offset} is out of range for this file (${file.count} lines)`),

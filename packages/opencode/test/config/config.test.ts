@@ -313,7 +313,8 @@ it.effect("creates global jsonc config with schema when no global configs exist"
     Effect.gen(function* () {
       yield* Config.use.get().pipe(provideInstanceEffect(dir))
 
-      const content = yield* FSUtil.use.readFileString(path.join(dir, "opencode.jsonc"))
+      // fresh installs get a bolt.jsonc; legacy opencode configs are still read when present
+      const content = yield* FSUtil.use.readFileString(path.join(dir, "bolt.jsonc"))
       expect(content).toContain('"$schema": "https://opencode.ai/config.json"')
     }).pipe(Effect.provide(testInstanceStoreLayer), Effect.provide(LayerNode.compile(CrossSpawnSpawner.node))),
   ),
@@ -999,6 +1000,67 @@ it.instance("resolves scoped npm plugins in config", () =>
   }),
 )
 
+it.effect("selected profile overrides file config", () =>
+  withConfigTree(
+    {
+      global: {
+        profile: {
+          work: {
+            model: "work/model",
+            provider: { anthropic: { options: { baseURL: "https://gateway.example.com" } } },
+          },
+        },
+      },
+      project: { model: "project/model" },
+    },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      "work",
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("work/model")
+        expect(config.provider?.anthropic?.options?.baseURL).toBe("https://gateway.example.com")
+      }),
+    ),
+  ),
+)
+
+it.effect("profiles are inert when none is selected", () =>
+  withConfigTree(
+    {
+      global: { profile: { work: { model: "work/model" } } },
+      project: { model: "project/model" },
+    },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      undefined,
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("project/model")
+      }),
+    ),
+  ),
+)
+
+it.effect("unknown profile fails and lists available profiles", () =>
+  withConfigTree(
+    { project: { profile: { work: { model: "work/model" } } } },
+    withProcessEnv(
+      "OPENCODE_PROFILE",
+      "missing",
+      Effect.gen(function* () {
+        const exit = yield* Effect.exit(Config.use.get())
+        expect(Exit.isFailure(exit)).toBe(true)
+        if (Exit.isFailure(exit)) {
+          const error = Cause.squash(exit.cause) as { data?: { issues?: Array<{ message: string }> } }
+          expect(error.data?.issues?.[0]?.message).toContain('Unknown profile "missing"')
+          expect(error.data?.issues?.[0]?.message).toContain("work")
+        }
+      }),
+    ),
+  ),
+)
+
 it.effect("merges plugin arrays from global and local configs", () =>
   withConfigTree(
     {
@@ -1015,6 +1077,23 @@ it.effect("merges plugin arrays from global and local configs", () =>
         plugins.filter((p) => p.includes("global-plugin") || p.includes("local-plugin")).length,
       ).toBeGreaterThanOrEqual(3)
     }),
+  ),
+)
+
+it.effect("BOLT_ env vars override global and project config", () =>
+  withConfigTree(
+    {
+      global: { model: "global/model" },
+      project: { model: "project/model", snapshot: true },
+    },
+    withProcessEnvs(
+      { BOLT_MODEL: "env/model", BOLT_SNAPSHOT: "false" },
+      Effect.gen(function* () {
+        const config = yield* Config.use.get()
+        expect(config.model).toBe("env/model")
+        expect(config.snapshot).toBe(false)
+      }),
+    ),
   ),
 )
 

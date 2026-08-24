@@ -1,9 +1,8 @@
 export * as Reference from "./reference"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { define, inventory } from "./event"
-import { AbsolutePath } from "./schema"
+import { AbsolutePath, optional } from "./schema"
 
 const Updated = define({ type: "reference.updated", schema: {} })
 export const Event = { Updated, Definitions: inventory(Updated) }

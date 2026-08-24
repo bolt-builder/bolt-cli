@@ -1,9 +1,8 @@
 export * as SessionInput from "./session-input"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { Prompt } from "./prompt"
-import { DateTimeUtcFromMillis, NonNegativeInt } from "./schema"
+import { DateTimeUtcFromMillis, NonNegativeInt, optional } from "./schema"
 import { SessionDelivery } from "./session-delivery"
 import { SessionID } from "./session-id"
 import { SessionMessage } from "./session-message"

@@ -16,7 +16,12 @@ export function ContentError(props: Props) {
         {props.children}
       </div>
       {((!props.expand && overflow.status) || expanded()) && (
-        <button type="button" data-element-button-text onClick={() => setExpanded((e) => !e)}>
+        <button
+          type="button"
+          data-component="text-button"
+          aria-expanded={expanded()}
+          onClick={() => setExpanded((e) => !e)}
+        >
           {expanded() ? messages.show_less : messages.show_more}
         </button>
       )}

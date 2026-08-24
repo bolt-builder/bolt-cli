@@ -1075,6 +1075,15 @@ export const dict = {
   "settings.providers.tag.config": "កំណត់រចនាសម្ព័ន្ធ",
   "settings.providers.tag.custom": "ផ្ទាល់ខ្លួន",
   "settings.providers.tag.other": "ផ្សេងទៀត។",
+  "settings.gateways.title": "ច្រកផ្លូវ",
+  "settings.gateways.description":
+    "ភ្ជាប់ច្រកផ្លូវ AI ដើម្បីចូលប្រើម៉ូដែលជាច្រើនតាមរយៈសោ API តែមួយ រួមទាំងម៉ូដែលឥតគិតថ្លៃផងដែរ។",
+  "settings.gateways.tag.connected": "បានភ្ជាប់",
+  "settings.gateways.note.kilo":
+    "ច្រកផ្លូវដែលឆបគ្នាជាមួយ OpenRouter ជាមួយម៉ូដែលឥតគិតថ្លៃដែលបញ្ជូនផ្លូវដោយស្វ័យប្រវត្តិ",
+  "settings.gateways.note.zoo": "ច្រកផ្លូវសហគមន៍ពីគម្រោង Zoo Code",
+  "settings.gateways.connect.title": "ភ្ជាប់ {{gateway}}",
+  "settings.gateways.connect.description": "បិទភ្ជាប់សោ API {{gateway}} របស់អ្នក ដើម្បីភ្ជាប់ម៉ូដែលរបស់វា។",
   "settings.models.title": "ម៉ូដែល",
   "settings.models.description": "ការកំណត់ម៉ូដែលនឹងអាចកំណត់បាននៅទីនេះ។",
   "settings.agents.title": "ភ្នាក់ងារ",

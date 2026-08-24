@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Bolt
+Exec=/opt/Bolt/com.boltbuilder.bolt %U
+Terminal=false
+Type=Application
+Icon=com.boltbuilder.bolt
+StartupWMClass=com.boltbuilder.bolt
+NoDisplay=true
+Comment=Open source AI coding agent
+Categories=Development;

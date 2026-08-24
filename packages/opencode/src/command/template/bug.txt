@@ -1,0 +1,40 @@
+File a bug report for bolt (this CLI) based on what happened in this session.
+
+User-provided description (may be empty):
+$ARGUMENTS
+
+## Step 1: Understand the bug
+
+If the description above is empty, ask the user one short question: what went wrong and what did they expect instead. Do not ask anything else.
+
+If the description is present, do not ask questions; work from it plus the session context.
+
+## Step 2: Collect environment context
+
+Gather these facts with quick commands, tolerating failures:
+- bolt version: run `bolt --version` (fall back to the version in the running process if the binary is not on PATH)
+- OS and architecture: run `uname -sm` (or read process.platform/arch on Windows)
+- The model and agent in use for this session, if visible in context
+- The last error output relevant to the bug, if any appeared in this session
+- The most recent local crash report, if one exists: read the newest `.json` file in the bolt crash directory (`~/.local/state/opencode/crash` on Linux, `~/Library/Application Support`/XDG state equivalent elsewhere; the CLI prints `crash report written to <path>` when it crashes). Crash reports are already secret-redacted; quote the `message` and a trimmed `stack` only when they relate to this bug.
+
+Never include API keys, tokens, environment variable values, file contents unrelated to the bug, or private conversation content. Quote only the minimal error text needed to reproduce.
+
+## Step 3: Draft the report
+
+Compose a markdown report with exactly these sections:
+- **Description**: one or two sentences, from the user's words
+- **Steps to reproduce**: numbered, minimal, from what actually happened
+- **Expected behavior**
+- **Actual behavior**: include the minimal error output in a fenced block if there is one
+- **Environment**: bolt version, OS/arch, model
+
+Show the drafted report to the user and ask for confirmation before submitting. If they ask for edits, apply them and confirm again.
+
+## Step 4: Submit
+
+After confirmation, file the report:
+1. Preferred: `gh issue create --repo bolt-builder/bolt-cli --title "<short title>" --body "<report>"` and print the returned issue URL.
+2. If `gh` is missing or unauthenticated: print a prefilled new-issue link `https://github.com/bolt-builder/bolt-cli/issues/new?title=<url-encoded title>&body=<url-encoded report>` plus the raw markdown so the user can paste it manually.
+
+End by telling the user exactly where the report went.

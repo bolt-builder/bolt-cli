@@ -44,12 +44,12 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   desktopItems = lib.optional stdenv.hostPlatform.isLinux (makeDesktopItem {
-    name = "ai.opencode.desktop";
-    desktopName = "OpenCode";
+    name = "ai.bolt.desktop";
+    desktopName = "Bolt";
     exec = "opencode-desktop %U";
-    icon = "ai.opencode.desktop";
+    icon = "ai.bolt.desktop";
     # Electron 41 derives X11 WM_CLASS from app.name.
-    startupWMClass = "OpenCode";
+    startupWMClass = "Bolt";
     categories = [ "Development" ];
   });
 

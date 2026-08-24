@@ -32,3 +32,12 @@ UPCOMING_CHANGELOG.md
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+.kombai/canvas/bolt-cli-home-refresh.canvas
+.kombai/
+.kilo/
+.kilo/plans
+bolt-cli/.env.example
+tauri_key
+tauri_key.pub
+design.md
+.vtcode/tool-policy.json

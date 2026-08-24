@@ -23,11 +23,16 @@ import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/
 import { EffectFlock } from "@opencode-ai/core/util/effect-flock"
 import { containsPath, type InstanceContext } from "../project/instance-context"
 import { ConfigV1 } from "@opencode-ai/core/v1/config/config"
-import { RemoteAuthError } from "@opencode-ai/core/v1/config/error"
+import { InvalidError, RemoteAuthError } from "@opencode-ai/core/v1/config/error"
 import { ConfigPermissionV1 } from "@opencode-ai/core/v1/config/permission"
 import { ConfigPluginV1 } from "@opencode-ai/core/v1/config/plugin"
+import { CompatAgent } from "@/compat/agent"
+import { CompatCommand } from "@/compat/command"
+import { CompatMCP } from "@/compat/mcp"
+import { CompatSettings } from "@/compat/settings"
 import { ConfigAgent } from "./agent"
 import { ConfigCommand } from "./command"
+import { ConfigEnv } from "./env"
 import { ConfigManaged } from "./managed"
 import { ConfigParse } from "./parse"
 import { ConfigPaths } from "./paths"
@@ -114,9 +119,13 @@ type Info = ConfigV1.Info & {
   plugin_origins?: ConfigPlugin.Origin[]
 }
 
+// One merged config source in load order, kept for diagnostics like `bolt config doctor`.
+export type Origin = { source: string; config: Info }
+
 type State = {
   config: Info
   directories: string[]
+  origins: Origin[]
   deps: Fiber.Fiber<void>[]
   consoleState: ConsoleState
 }
@@ -129,6 +138,7 @@ export interface Interface {
   readonly updateGlobal: (config: Info) => Effect.Effect<{ info: Info; changed: boolean }>
   readonly invalidate: () => Effect.Effect<void>
   readonly directories: () => Effect.Effect<string[]>
+  readonly origins: () => Effect.Effect<Origin[]>
   readonly waitForDependencies: () => Effect.Effect<void>
 }
 
@@ -136,8 +146,8 @@ export class Service extends Context.Service<Service, Interface>()("@opencode/Co
 
 export const use = serviceUse(Service)
 
-function globalConfigFile() {
-  const candidates = ["opencode.jsonc", "opencode.json", "config.json"].map((file) =>
+export function globalConfigFile() {
+  const candidates = ["bolt.jsonc", "bolt.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
     path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
@@ -258,6 +268,9 @@ const layer = Layer.effect(
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json"), env))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json"), env))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc"), env))
+      // bolt configs load last so they win over legacy opencode configs
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.json"), env))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.jsonc"), env))
 
       const legacy = path.join(Global.Path.config, "config")
       if (existsSync(legacy)) {
@@ -318,6 +331,7 @@ const layer = Layer.effect(
         let result: Info = {}
         const authEnv: Record<string, string> = {}
         const consoleManagedProviders = new Set<string>()
+        const origins: Origin[] = []
         let activeOrgName: string | undefined
 
         const pluginScopeForSource = Effect.fnUntraced(function* (source: string) {
@@ -349,6 +363,7 @@ const layer = Layer.effect(
         })
 
         const merge = (source: string, next: Info, kind?: ConfigPlugin.Scope) => {
+          origins.push({ source, config: next })
           result = mergeConfigConcatArrays(result, next)
           return mergePluginOrigins(source, next.plugin, kind)
         }
@@ -404,8 +419,10 @@ const layer = Layer.effect(
         }
 
         if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
-          for (const file of yield* ConfigPaths.files("opencode", ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
-            yield* merge(file, yield* loadFile(file, authEnv), "local")
+          for (const name of ["opencode", "bolt"]) {
+            for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
+              yield* merge(file, yield* loadFile(file, authEnv), "local")
+            }
           }
         }
 
@@ -422,8 +439,8 @@ const layer = Layer.effect(
         const deps: Fiber.Fiber<void>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR) {
-            for (const file of ["opencode.json", "opencode.jsonc"]) {
+          if (dir.endsWith(".bolt") || dir.endsWith(".opencode") || dir === Flag.OPENCODE_CONFIG_DIR) {
+            for (const file of ["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"]) {
               const source = path.join(dir, file)
               yield* Effect.logDebug(`loading config from ${source}`)
               yield* merge(source, yield* loadFile(source, authEnv))
@@ -456,9 +473,24 @@ const layer = Layer.effect(
             )
           deps.push(dep)
 
-          result.command = mergeDeep(result.command ?? {}, yield* Effect.promise(() => ConfigCommand.load(dir)))
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.load(dir)))
-          result.agent = mergeDeep(result.agent ?? {}, yield* Effect.promise(() => ConfigAgent.loadMode(dir)))
+          const commands = yield* Effect.promise(() => ConfigCommand.load(dir))
+          const agents = mergeDeep(
+            yield* Effect.promise(() => ConfigAgent.load(dir)),
+            yield* Effect.promise(() => ConfigAgent.loadMode(dir)),
+          )
+          // Markdown-defined commands and agents bypass merge(); record them so diagnostics can
+          // attribute their keys to the directory that declared them.
+          if (Object.keys(commands).length || Object.keys(agents).length) {
+            origins.push({
+              source: dir,
+              config: {
+                ...(Object.keys(commands).length ? { command: commands } : {}),
+                ...(Object.keys(agents).length ? { agent: agents } : {}),
+              },
+            })
+          }
+          result.command = mergeDeep(result.command ?? {}, commands)
+          result.agent = mergeDeep(result.agent ?? {}, agents)
           // Auto-discovered plugins under `.opencode/plugin(s)` are already local files, so ConfigPlugin.load
           // returns normalized Specs and we only need to attach origin metadata here.
           const list = yield* Effect.promise(() => ConfigPlugin.load(dir))
@@ -513,6 +545,46 @@ const layer = Layer.effect(
           )
         }
 
+        // A profile is a named partial config merged over everything file-based once selected via
+        // --profile or OPENCODE_PROFILE; env overrides and managed settings below still win.
+        // Profiles must be defined in regular (non-managed) config sources to be visible here.
+        if (Flag.OPENCODE_PROFILE) {
+          const name = Flag.OPENCODE_PROFILE
+          const profiles = result.profile ?? {}
+          const selected = profiles[name]
+          if (selected === undefined) {
+            const available = Object.keys(profiles)
+            throw new InvalidError({
+              path: "profile",
+              issues: [
+                {
+                  message: available.length
+                    ? `Unknown profile "${name}". Available profiles: ${available.join(", ")}`
+                    : `Unknown profile "${name}". No profiles are defined in config.`,
+                  path: ["profile", name],
+                },
+              ],
+            })
+          }
+          const next = ConfigParse.schema(ConfigV1.Info, selected, `profile.${name}`)
+          if (next.profile) {
+            throw new InvalidError({
+              path: `profile.${name}`,
+              issues: [{ message: "Profiles cannot define nested profiles", path: ["profile", name, "profile"] }],
+            })
+          }
+          yield* merge(`profile.${name}`, next, "local")
+        }
+
+        // BOLT_* env vars override any file-based config (including profiles); managed settings below still win.
+        const envOverrides = ConfigEnv.overrides(process.env)
+        for (const warning of envOverrides.warnings) {
+          yield* Effect.logWarning(warning)
+        }
+        if (Object.keys(envOverrides.config).length) {
+          yield* merge("BOLT environment", envOverrides.config, "local")
+        }
+
         const managedDir = ConfigManaged.managedConfigDir()
         if (existsSync(managedDir)) {
           for (const file of ["opencode.json", "opencode.jsonc"]) {
@@ -524,13 +596,12 @@ const layer = Layer.effect(
         // macOS managed preferences (.mobileconfig deployed via MDM) override everything
         const managed = yield* Effect.promise(() => ConfigManaged.readManagedPreferences())
         if (managed) {
-          result = mergeConfigConcatArrays(
-            result,
-            yield* loadConfig(managed.text, {
-              dir: path.dirname(managed.source),
-              source: managed.source,
-            }),
-          )
+          const next = yield* loadConfig(managed.text, {
+            dir: path.dirname(managed.source),
+            source: managed.source,
+          })
+          origins.push({ source: managed.source, config: next })
+          result = mergeConfigConcatArrays(result, next)
         }
 
         for (const [name, mode] of Object.entries(result.mode ?? {})) {
@@ -583,9 +654,49 @@ const layer = Layer.effect(
           result.compaction = { ...result.compaction, prune: false }
         }
 
+        // Import config written for other coding agents. Runs after every config merge
+        // so explicit bolt/opencode entries always win; the gates themselves live in the
+        // merged config. MCP is opt-in only: imported servers execute commands defined
+        // in repository files.
+        if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+          const compat = CompatSettings.settings(result.compat)
+          if (compat.mcp) {
+            const found = yield* CompatMCP.discover(fs, {
+              directory: ctx.directory,
+              worktree: ctx.worktree,
+              home: Global.Path.home,
+            })
+            for (const [name, entry] of Object.entries(found)) {
+              const existing = result.mcp?.[name]
+              if (existing && "type" in existing) continue
+              // A bare { enabled } entry toggles a server defined elsewhere; keep the toggle.
+              result.mcp = { ...result.mcp, [name]: existing ? { ...entry, enabled: existing.enabled } : entry }
+            }
+          }
+          if (compat.commands) {
+            const found = yield* CompatCommand.discover(fs, {
+              directory: ctx.directory,
+              worktree: ctx.worktree,
+              home: Global.Path.home,
+            })
+            for (const [name, entry] of Object.entries(found)) {
+              if (result.command?.[name]) continue
+              result.command = { ...result.command, [name]: entry }
+            }
+          }
+          if (compat.agents) {
+            const found = yield* CompatAgent.discover(fs, { directory: ctx.directory, worktree: ctx.worktree })
+            for (const [name, entry] of Object.entries(found)) {
+              if (result.agent?.[name]) continue
+              result.agent = { ...result.agent, [name]: entry }
+            }
+          }
+        }
+
         return {
           config: result,
           directories,
+          origins,
           deps,
           consoleState: {
             consoleManagedProviders: Array.from(consoleManagedProviders),
@@ -613,6 +724,10 @@ const layer = Layer.effect(
 
     const getConsoleState = Effect.fn("Config.getConsoleState")(function* () {
       return yield* InstanceState.use(state, (s) => s.consoleState)
+    })
+
+    const origins = Effect.fn("Config.origins")(function* () {
+      return yield* InstanceState.use(state, (s) => s.origins)
     })
 
     const waitForDependencies = Effect.fn("Config.waitForDependencies")(function* () {
@@ -667,6 +782,7 @@ const layer = Layer.effect(
       updateGlobal,
       invalidate,
       directories,
+      origins,
       waitForDependencies,
     })
   }),

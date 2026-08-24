@@ -7,6 +7,7 @@ import { ConfigReference } from "../../config/reference"
 import { ConfigAgentV1 } from "./agent"
 import { ConfigAttachmentV1 } from "./attachment"
 import { ConfigCommandV1 } from "./command"
+import { ConfigCompatV1 } from "./compat"
 import { ConfigFormatterV1 } from "./formatter"
 import { ConfigLayoutV1 } from "./layout"
 import { ConfigLSPV1 } from "./lsp"
@@ -77,6 +78,14 @@ export const Info = Schema.Struct({
   small_model: Schema.optional(Schema.String).annotate({
     description: "Small model to use for tasks like title generation in the format of provider/model",
   }),
+  profile: Schema.optional(Schema.Record(Schema.String, Schema.Json)).annotate({
+    description:
+      "Named configuration profiles selected with --profile or OPENCODE_PROFILE. Each profile is a partial config object (model, provider, mcp, etc.) merged over all file-based config when active",
+  }),
+  alias: Schema.optional(Schema.Record(Schema.String, Schema.String)).annotate({
+    description:
+      'Command aliases expanded before argument parsing, e.g. { "deploy-check": "run --agent reviewer \'audit the deploy diff\'" }',
+  }),
   default_agent: Schema.optional(Schema.String).annotate({
     description:
       "Default agent to use when none is specified. Must be a primary agent. Falls back to 'build' if not set or if the specified agent is invalid.",
@@ -124,8 +133,32 @@ export const Info = Schema.Struct({
   instructions: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
     description: "Additional instruction files or patterns to include",
   }),
+  compat: Schema.optional(Schema.Union([Schema.Boolean, ConfigCompatV1.Info])).annotate({
+    description:
+      "Import configuration written for other coding agents. A boolean enables or disables all imports; an object toggles rules, mcp, commands, and agents individually. Rules, commands, and agents default to true; mcp defaults to false.",
+  }),
   layout: Schema.optional(ConfigLayoutV1.Layout).annotate({ description: "@deprecated Always uses stretch layout." }),
   permission: Schema.optional(ConfigPermissionV1.Info),
+  protected_paths: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+    description:
+      'Worktree-relative path patterns the agent may never modify, e.g. [".env", "secrets/*"]. Supports * and ? wildcards; a pattern also protects everything beneath a matching directory. Matching writes and edits fail before any permission prompt.',
+  }),
+  redact: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Redact well-known secret formats (API keys, tokens, private keys) from prompts before they are sent to models. Log output is always redacted. Defaults to true.",
+  }),
+  guardrail: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Screen risky shell commands with a guardrail agent before they run. Flagged commands are reviewed on the small model and blocked when the guardrail vetoes them. Defaults to false.",
+  }),
+  approval: Schema.optional(Schema.Boolean).annotate({
+    description:
+      "Require a second agent's sign-off before destructive shell commands run. The reviewer runs on the small model and rejects when it cannot produce a verdict. Defaults to false.",
+  }),
+  tool_budget: Schema.optional(Schema.Record(Schema.String, PositiveInt)).annotate({
+    description:
+      'Maximum number of times each tool may run per session, e.g. { "webfetch": 10 }. Calls beyond the budget fail without executing.',
+  }),
   tools: Schema.optional(Schema.Record(Schema.String, Schema.Boolean)),
   attachment: Schema.optional(ConfigAttachmentV1.Info).annotate({
     description: "Attachment processing configuration, including image size limits and resizing behavior",
@@ -152,7 +185,15 @@ export const Info = Schema.Struct({
         description: "Enable automatic compaction when context is full (default: true)",
       }),
       prune: Schema.optional(Schema.Boolean).annotate({
-        description: "Enable pruning of old tool outputs (default: false)",
+        description: "Enable pruning of old tool outputs (default: true)",
+      }),
+      pinned: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+        description:
+          "Files and facts that must never be compacted away. Entries matching a file the conversation touched are pinned as files; other entries are preserved verbatim as facts.",
+      }),
+      preemptive: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Compact in the background once context passes 80% of the usable window, after a response finishes instead of mid-prompt when it overflows (default: false)",
       }),
       tail_turns: Schema.optional(NonNegativeInt).annotate({
         description:
@@ -181,6 +222,18 @@ export const Info = Schema.Struct({
       }),
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
+      }),
+      diff_context: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Attach only the changed hunks (diff against HEAD) when a locally modified file is attached without an explicit range, instead of the whole file (default: false)",
+      }),
+      symbol_graph: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Append a cross-file symbol graph (which files reference the edited file's symbols) to edit tool output (default: false)",
+      }),
+      context_replay: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Record the exact system prompt, messages, and tools sent to the model for each turn so they can be inspected with bolt debug context (default: false)",
       }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",

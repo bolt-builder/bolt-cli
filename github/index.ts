@@ -4,7 +4,6 @@ import { Octokit } from "@octokit/rest"
 import { graphql } from "@octokit/graphql"
 import * as core from "@actions/core"
 import * as github from "@actions/github"
-import type { Context as GitHubContext } from "@actions/github/lib/context"
 import type { IssueCommentEvent, PullRequestReviewCommentEvent } from "@octokit/webhooks-types"
 import { createOpencodeClient } from "@opencode-ai/sdk"
 import { spawn } from "node:child_process"
@@ -244,7 +243,7 @@ function createOpencode() {
 function assertPayloadKeyword() {
   const payload = useContext().payload as IssueCommentEvent | PullRequestReviewCommentEvent
   const body = payload.comment.body.trim()
-  if (!body.match(/(?:^|\s)(?:\/opencode|\/oc)(?=$|\s)/)) {
+  if (!/(?:^|\s)(?:\/opencode|\/oc)(?=$|\s)/.test(body)) {
     throw new Error("Comments must mention `/opencode` or `/oc`")
   }
 }
@@ -354,7 +353,7 @@ function isPullRequest() {
 }
 
 function useContext() {
-  return isMock() ? (JSON.parse(useEnvMock().mockEvent!) as GitHubContext) : github.context
+  return isMock() ? (JSON.parse(useEnvMock().mockEvent!) as typeof github.context) : github.context
 }
 
 function useIssueId() {

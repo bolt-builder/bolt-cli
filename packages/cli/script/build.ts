@@ -9,7 +9,7 @@ import pkg from "../package.json"
 import { modelsData } from "./generate"
 
 const dir = path.resolve(import.meta.dirname, "..")
-const binary = "lildax"
+const binary = "bolt"
 process.chdir(dir)
 
 await rm("dist", { recursive: true, force: true })
@@ -104,8 +104,11 @@ for (const item of targets) {
       {
         name: `@opencode-ai/${name}`,
         version: Script.version,
-        license: "MIT",
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        license: "AGPL-3.0-only",
+        repository: {
+          type: "git",
+          url: "git+https://github.com/Bolt-builder/bolt-cli.git",
+        },
         os: [item.os],
         cpu: [item.arch],
       },
@@ -113,4 +116,9 @@ for (const item of targets) {
       2,
     ),
   )
+
+  // codesign only exists on macOS; release builds cross-compile darwin targets on Linux
+  if (item.os === "darwin" && process.platform === "darwin") {
+    await $`codesign --sign - ./dist/${name}/bin/${binary}`
+  }
 }

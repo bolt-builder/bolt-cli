@@ -499,6 +499,7 @@ export function Autocomplete(props: {
       return prev
     }
 
+    const query = store.visible + removeLineRange(searchValue)
     const fuzziedNonFiles = fuzzysort
       .go(removeLineRange(searchValue), nonFileOptions, {
         keys: [
@@ -520,6 +521,12 @@ export function Autocomplete(props: {
         },
       })
       .map((arr) => arr.obj)
+      // Rank an exact name match first so `/compact` selects it over `/compact-view`.
+      // Stable sort preserves fuzzy order for everything else; aliases don't count.
+      .sort(
+        (a, b) =>
+          Number((b.value ?? b.display).trimEnd() === query) - Number((a.value ?? a.display).trimEnd() === query),
+      )
 
     return [...fuzziedNonFiles, ...fileOptions].slice(0, 10)
   })
@@ -679,9 +686,9 @@ export function Autocomplete(props: {
             // Typed text before the trigger
             props.input().cursorOffset <= store.index ||
             // There is a space between the trigger and the cursor
-            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/) ||
+            /\s/.test(props.input().getTextRange(store.index, props.input().cursorOffset)) ||
             // "/<command>" is not the sole content
-            (store.visible === "/" && value.match(/^\S+\s+\S+\s*$/))
+            (store.visible === "/" && /^\S+\s+\S+\s*$/.test(value))
           ) {
             hide()
           }
@@ -693,7 +700,7 @@ export function Autocomplete(props: {
         if (offset === 0) return
 
         // Check for "/" at position 0 - reopen slash commands
-        if (value.startsWith("/") && !value.slice(0, offset).match(/\s/)) {
+        if (value.startsWith("/") && !/\s/.test(value.slice(0, offset))) {
           show("/")
           setStore("index", 0)
           return

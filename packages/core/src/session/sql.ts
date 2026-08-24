@@ -12,7 +12,6 @@ import type { MessageID, PartID, SessionV1 } from "../v1/session"
 import { WorkspaceV2 } from "../workspace"
 import { Timestamps } from "../database/schema.sql"
 import type { SystemContext } from "../system-context/index"
-import { AgentV2 } from "../agent"
 import type { Revert } from "@opencode-ai/schema/revert"
 
 type SessionMessageData = Omit<(typeof SessionMessage.Message)["Encoded"], "type" | "id">
@@ -62,6 +61,9 @@ export const SessionTable = sqliteTable(
     index("session_project_idx").on(table.project_id),
     index("session_workspace_idx").on(table.workspace_id),
     index("session_parent_idx").on(table.parent_id),
+    // listGlobal filters by directory and always sorts by (time_updated desc, id desc);
+    // without this the session sidebar/pagination full-scans + sorts every request.
+    index("session_directory_time_updated_idx").on(table.directory, table.time_updated, table.id),
   ],
 )
 

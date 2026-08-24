@@ -109,6 +109,22 @@ describe("tool.registry", () => {
     }),
   )
 
+  it.instance("exposes the memory tools", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const ids = yield* registry.ids()
+
+      expect(ids).toContain("memory_save")
+      expect(ids).toContain("memory_recall")
+      expect(ids).toContain("multiedit")
+      expect(ids).toContain("bash_background")
+      expect(ids).toContain("process_output")
+      expect(ids).toContain("kill_process")
+      expect(ids).toContain("list_processes")
+      expect(ids).toContain("test_run")
+    }),
+  )
+
   it.instance("does not expose execute unless code mode is enabled", () =>
     Effect.gen(function* () {
       const registry = yield* ToolRegistry.Service

@@ -1099,6 +1099,15 @@ export const dict = {
   "settings.providers.tag.config": "ކޮންފިގް",
   "settings.providers.tag.custom": "ސަޤާފަތް",
   "settings.providers.tag.other": "އެހެން",
+  "settings.gateways.title": "ގޭޓްވޭތައް",
+  "settings.gateways.description":
+    "ހިލޭ މޮޑެލްތައް ހިމެނޭ ގޮތަށް، އެއް API ކީއަކުން ގިނަ މޮޑެލްތަކަށް އެކްސެސްވުމަށް AI ގޭޓްވޭއެއް ގުޅުއްވާށެވެ.",
+  "settings.gateways.tag.connected": "ގުޅިފައި",
+  "settings.gateways.note.kilo": "ހިލޭ އޮޓޯ-ރޫޓްކުރެވޭ މޮޑެލްތަކާއެކު OpenRouter އާ އެއްގޮތްވާ ގޭޓްވޭ",
+  "settings.gateways.note.zoo": "Zoo Code ޕްރޮޖެކްޓްގެ ކޮމިއުނިޓީ ގޭޓްވޭ",
+  "settings.gateways.connect.title": "{{gateway}} ގުޅުއްވާ",
+  "settings.gateways.connect.description":
+    "އޭގެ މޮޑެލްތައް ގުޅުމަށް ތިޔަފަރާތުގެ {{gateway}} API ކީ ޕޭސްޓްކުރައްވާށެވެ.",
   "settings.models.title": "މޮޑެލްތަކެވެ",
   "settings.models.description": "މޮޑެލް ސެޓިންގސް މިތަނުގައި ކޮންފިގްރޭޓް ކުރެވޭނެއެވެ.",
   "settings.agents.title": "އޭޖެންޓުންނެވެ",

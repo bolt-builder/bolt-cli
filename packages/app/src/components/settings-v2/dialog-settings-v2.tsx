@@ -7,6 +7,7 @@ import { usePlatform } from "@/context/platform"
 import { SettingsGeneralV2 } from "./general"
 import { SettingsKeybinds } from "../settings-keybinds"
 import { SettingsProvidersV2 } from "./providers"
+import { SettingsGatewaysV2 } from "./gateways"
 import { SettingsModelsV2 } from "./models"
 import "./settings-v2.css"
 import { SettingsServersV2 } from "./servers"
@@ -39,6 +40,10 @@ export const DialogSettings: Component<{
 
   const showProviders = () => {
     void dialog.show(() => <DialogSettings sessionID={props.sessionID} defaultValue="providers" />)
+  }
+
+  const showGateways = () => {
+    void dialog.show(() => <DialogSettings sessionID={props.sessionID} defaultValue="gateways" />)
   }
 
   return (
@@ -79,6 +84,10 @@ export const DialogSettings: Component<{
                       <Icon name="providers" />
                       {language.t("settings.providers.title")}
                     </TabsV2.Trigger>
+                    <TabsV2.Trigger value="gateways">
+                      <Icon name="link" />
+                      {language.t("settings.gateways.title")}
+                    </TabsV2.Trigger>
                     <TabsV2.Trigger value="models">
                       <Icon name="models" />
                       {language.t("settings.models.title")}
@@ -104,6 +113,9 @@ export const DialogSettings: Component<{
         </TabsV2.Content>
         <TabsV2.Content value="providers" class="settings-v2-panel">
           <SettingsProvidersV2 directory={directory} onBack={showProviders} />
+        </TabsV2.Content>
+        <TabsV2.Content value="gateways" class="settings-v2-panel">
+          <SettingsGatewaysV2 directory={directory} onBack={showGateways} />
         </TabsV2.Content>
         <TabsV2.Content value="models" class="settings-v2-panel">
           <SettingsModelsV2 />

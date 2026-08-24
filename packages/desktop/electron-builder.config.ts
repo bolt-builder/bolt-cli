@@ -9,11 +9,11 @@ const execFileAsync = promisify(execFile)
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(packageDir, "../..")
 const signScript = path.join(rootDir, "script", "sign-windows.ps1")
-// The Electron 42 packaging update briefly installed Linux launchers/icons under
-// "opencode-desktop". Keep that hidden desktop entry around so existing GNOME/KDE
-// pins still resolve after the canonical app id changes back to ai.opencode.desktop.
-const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "opencode-desktop.desktop")
-const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/opencode-desktop.desktop`
+// Upstream's Electron 42 packaging update briefly installed Linux launchers/icons under
+// a "<name>-desktop" entry. Keep that hidden desktop entry around so GNOME/KDE
+// pins against it still resolve alongside the canonical app id com.boltbuilder.bolt.
+const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "bolt-desktop.desktop")
+const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/bolt-desktop.desktop`
 
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
@@ -29,6 +29,15 @@ async function signWindows(configuration: { path: string }) {
   )
 }
 
+// Without a Developer ID identity electron-builder skips signing entirely and
+// Gatekeeper reports the quarantined download as "damaged". Falling back to
+// electron-builder's native ad-hoc signing (identity "-") keeps the bundle seal
+// valid, applies the entitlements per component, and gives users the bypassable
+// "unidentified developer" dialog instead. Only applies when CI has explicitly
+// disabled identity discovery because the certificate secret is absent; non-mac
+// hosts are guarded inside electron-builder, which skips mac signing entirely.
+const identity = !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
+
 const channel = (() => {
   const raw = process.env.OPENCODE_CHANNEL
   if (raw === "dev" || raw === "beta" || raw === "prod") return raw
@@ -36,33 +45,33 @@ const channel = (() => {
 })()
 
 const APP_IDS = {
-  dev: "ai.opencode.desktop.dev",
-  beta: "ai.opencode.desktop.beta",
-  prod: "ai.opencode.desktop",
+  dev: "com.boltbuilder.bolt.dev",
+  beta: "com.boltbuilder.bolt.beta",
+  prod: "com.boltbuilder.bolt",
 } as const
 
 const getBase = (appId: string): Configuration => ({
-  artifactName: "opencode-desktop-${os}-${arch}.${ext}",
+  artifactName: "bolt-desktop-${os}-${arch}.${ext}",
   directories: {
     output: "dist",
     buildResources: "resources",
   },
   // Linux launchers are .desktop files, so this is the desktop file name,
-  // not just the app id. For prod, app id "ai.opencode.desktop" becomes
-  // "ai.opencode.desktop.desktop".
+  // not just the app id. For prod, app id "com.boltbuilder.bolt" becomes
+  // "com.boltbuilder.bolt.desktop".
   // https://developer.gnome.org/documentation/guidelines/maintainer/integrating.html
   // https://www.electron.build/docs/linux/
   extraMetadata: {
     desktopName: `${appId}.desktop`,
   },
-  files: ["out/**/*", "resources/**/*", "!resources/opencode-cli*"],
+  files: ["out/**/*", "resources/**/*", "!resources/bolt-cli*"],
   extraResources: [
     ...(channel === "dev"
       ? [
           {
             from: "resources/",
             to: "",
-            filter: ["opencode-cli*"],
+            filter: ["bolt-cli*"],
           },
         ]
       : []),
@@ -75,19 +84,22 @@ const getBase = (appId: string): Configuration => ({
   mac: {
     category: "public.app-category.developer-tools",
     icon: `resources/icons/icon.icns`,
+    identity,
     hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "resources/entitlements.plist",
     entitlementsInherit: "resources/entitlements.plist",
-    notarize: true,
+    // Apple only notarizes Developer ID signed apps; ad-hoc builds must skip
+    // notarization or electron-builder fails looking for notary credentials.
+    notarize: identity !== "-",
     target: ["dmg", "zip"],
   },
   dmg: {
     sign: true,
   },
   protocols: {
-    name: "OpenCode",
-    schemes: ["opencode"],
+    name: "Bolt",
+    schemes: ["bolt"],
   },
   win: {
     icon: `resources/icons/icon.ico`,
@@ -127,31 +139,31 @@ function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Dev",
+        productName: "Bolt Dev",
         deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "opencode-dev", fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "bolt-dev", fpm: [metainfoFpm(appId)] },
       }
     }
     case "beta": {
       return {
         ...base,
         appId,
-        productName: "OpenCode Beta",
-        protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode-beta", channel: "latest" },
+        productName: "Bolt Beta",
+        protocols: { name: "Bolt Beta", schemes: ["bolt"] },
+        publish: { provider: "github", owner: "bolt-builder", repo: "bolt-cli", channel: "latest" },
         deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "opencode-beta", fpm: [metainfoFpm(appId)] },
+        rpm: { packageName: "bolt-beta", fpm: [metainfoFpm(appId)] },
       }
     }
     case "prod": {
       return {
         ...base,
         appId,
-        productName: "OpenCode",
-        protocols: { name: "OpenCode", schemes: ["opencode"] },
-        publish: { provider: "github", owner: "anomalyco", repo: "opencode", channel: "latest" },
+        productName: "Bolt",
+        protocols: { name: "Bolt", schemes: ["bolt"] },
+        publish: { provider: "github", owner: "bolt-builder", repo: "bolt-cli", channel: "latest" },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
-        rpm: { packageName: "opencode", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
+        rpm: { packageName: "bolt", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
       }
     }
   }

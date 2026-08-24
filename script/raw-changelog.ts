@@ -20,17 +20,31 @@ type Diff = {
   sha: string
   login: string | null
   message: string
+  parents: number
 }
 
-const repo = process.env.GH_REPO ?? "anomalyco/opencode"
-const bot = ["actions-user", "github-actions[bot]", "opencode", "opencode-agent[bot]"]
+const repo = process.env.GH_REPO ?? "bolt-builder/bolt-cli"
+const bot = [
+  "actions-user",
+  "github-actions[bot]",
+  "Bolt",
+  "bolt-cli[bot]",
+  "deepsource-autofix[bot]",
+  "dependabot[bot]",
+]
 const team = [
   ...(await Bun.file(new URL("../.github/TEAM_MEMBERS", import.meta.url))
     .text()
     .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
     .then((x) => x.filter((x) => x && !x.startsWith("#")))),
   ...bot,
-]
+].map((x) => x.toLowerCase())
+
+function internal(login: string | null) {
+  return !!login && team.includes(login.toLowerCase())
+}
+
+const skip = /^(ignore|test|chore|ci|release)(\([^)]*\))?:|^sync release versions/i
 const order = ["Core", "TUI", "Desktop", "SDK", "Extensions"] as const
 const sections = {
   core: "Core",
@@ -46,7 +60,7 @@ const sections = {
 function ref(input: string) {
   if (input === "HEAD") return input
   if (input.startsWith("v")) return input
-  if (input.match(/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/)) return `v${input}`
+  if (/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(input)) return `v${input}`
   return input
 }
 
@@ -61,7 +75,7 @@ async function diff(base: string, head: string) {
   const list: Diff[] = []
   for (let page = 1; ; page++) {
     const text =
-      await $`gh api "/repos/${repo}/compare/${base}...${head}?per_page=100&page=${page}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message}'`.text()
+      await $`gh api "/repos/${repo}/compare/${base}...${head}?per_page=100&page=${page}" --jq '.commits[] | {sha: .sha, login: .author.login, message: .commit.message, parents: (.parents | length)}'`.text()
     const batch = text
       .split("\n")
       .filter(Boolean)
@@ -82,7 +96,7 @@ function section(areas: Set<string>) {
 }
 
 function type(message: string) {
-  if (message.match(/fix/i)) return "Bugfixes"
+  if (/fix/i.test(message)) return "Bugfixes"
   return "Improvements"
 }
 
@@ -120,13 +134,13 @@ async function commits(from: string, to: string) {
   }
 
   const log =
-    await $`git log ${base}..${head} --format=%H -- packages/opencode packages/sdk packages/plugin packages/desktop packages/app sdks/vscode packages/extensions github`.text()
+    await $`git log ${base}..${head} --format=%H -- packages/opencode packages/sdk packages/plugin packages/desktop packages/app packages/extensions github`.text()
 
   const list: Commit[] = []
   for (const hash of log.split("\n").filter(Boolean)) {
     const item = data.get(hash)
     if (!item) continue
-    if (item.message.match(/^(ignore:|test:|chore:|ci:|release:)/i)) continue
+    if (skip.test(item.message)) continue
 
     const diff = await $`git diff-tree --no-commit-id --name-only -r ${hash}`.text()
     const areas = new Set<string>()
@@ -137,7 +151,7 @@ async function commits(from: string, to: string) {
       else if (file.startsWith("packages/desktop/src-tauri/")) areas.add("tauri")
       else if (file.startsWith("packages/desktop/") || file.startsWith("packages/app/")) areas.add("app")
       else if (file.startsWith("packages/sdk/") || file.startsWith("packages/plugin/")) areas.add("sdk")
-      else if (file.startsWith("sdks/vscode/") || file.startsWith("github/")) areas.add("extensions/vscode")
+      else if (file.startsWith("github/")) areas.add("extensions/vscode")
     }
 
     if (areas.size === 0) continue
@@ -153,6 +167,20 @@ async function commits(from: string, to: string) {
   return reverted(list)
 }
 
+// A commit only counts as a community contribution when a PR in this repo was
+// authored by the commit author. Upstream commits arrive through sync merges
+// whose PR is authored by a bot or team member, so they fail this check.
+async function authored(sha: string, login: string) {
+  const data = await $`gh api --paginate --slurp "/repos/${repo}/commits/${sha}/pulls?per_page=100"`.json()
+  return (data as { user: { login: string }; base: { repo: { full_name: string } } }[][])
+    .flat()
+    .some(
+      (pr) =>
+        pr.base.repo.full_name.toLowerCase() === repo.toLowerCase() &&
+        pr.user.login.toLowerCase() === login.toLowerCase(),
+    )
+}
+
 async function contributors(from: string, to: string) {
   const base = ref(from)
   const head = ref(to)
@@ -160,8 +188,11 @@ async function contributors(from: string, to: string) {
   const users: User = new Map()
   for (const item of await diff(base, head)) {
     const title = item.message.split("\n")[0] ?? ""
-    if (!item.login || team.includes(item.login)) continue
-    if (title.match(/^(ignore:|test:|chore:|ci:|release:)/i)) continue
+    if (internal(item.login)) continue
+    if (!item.login) continue
+    if (skip.test(title)) continue
+    if (item.parents > 1) continue
+    if (!(await authored(item.sha, item.login))) continue
     if (!users.has(item.login)) users.set(item.login, new Set())
     users.get(item.login)!.add(title)
   }
@@ -208,7 +239,7 @@ function format(from: string, to: string, list: Commit[], thanks: string[]) {
   }
 
   for (const commit of list) {
-    const attr = commit.author && !team.includes(commit.author) ? ` (@${commit.author})` : ""
+    const attr = commit.author && !internal(commit.author) ? ` (@${commit.author})` : ""
     grouped.get(section(commit.areas))!.get(type(commit.message))!.push(`- \`${commit.hash}\` ${commit.message}${attr}`)
   }
 

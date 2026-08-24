@@ -4,10 +4,16 @@ import { Ripgrep } from "@opencode-ai/core/ripgrep"
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
+import { BrowserTool } from "./browser"
 import { ShellTool } from "./shell"
+import { Approval } from "@/approval"
+import { Guardrail } from "@/guardrail"
 import { EditTool } from "./edit"
+import { FramesTool } from "./frames"
+import { GitTool } from "./git"
 import { GlobTool } from "./glob"
 import { GrepTool } from "./grep"
+import { HttpTool } from "./http"
 import { ReadTool } from "./read"
 import { TaskTool } from "./task"
 import { Database } from "@opencode-ai/core/database/database"
@@ -15,24 +21,45 @@ import { TodoWriteTool } from "./todo"
 import { WebFetchTool } from "./webfetch"
 import { WriteTool } from "./write"
 import { InvalidTool } from "./invalid"
+import {
+  BackgroundKillTool,
+  BackgroundListTool,
+  BackgroundOutputTool,
+  BackgroundStartTool,
+  BackgroundStdinTool,
+} from "./background"
+import { CoverageTool } from "./coverage"
+import { McpResourceReadTool, McpResourcesTool } from "./mcp-resource"
+import { MemoryRecallTool, MemorySaveTool } from "./memory"
+import { MultiEditTool } from "./multiedit"
+import { NotebookTool } from "./notebook"
+import { ProfileTool } from "./profile"
+import { TestRunTool } from "./testrun"
 import { SkillTool } from "./skill"
-import * as Tool from "./tool"
+import { SlashcommandTool } from "./slashcommand"
+import { SqlTool } from "./sql"
+import { TaskCreateTool, TaskListTool, TaskUpdateTool } from "./tasks"
+import { Tool } from "./tool"
+import { Command } from "@/command"
 import { Config } from "@/config/config"
 import { type ToolContext as PluginToolContext, type ToolDefinition } from "@opencode-ai/plugin"
 import type { JSONSchema7, JSONSchema7Definition } from "@ai-sdk/provider"
-import { Schema } from "effect"
 import z from "zod"
 import { Plugin } from "../plugin"
 import { Provider } from "@/provider/provider"
 
 import { WebSearchTool } from "./websearch"
 import { LspTool } from "./lsp"
+import { SemanticSearchTool } from "./semantic-search"
+import { DiagnosticsTool } from "./diagnostics"
+import { LspReferencesTool } from "./lsp-references"
+import { LspRenameTool } from "./lsp-rename"
 import * as Truncate from "./truncate"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "@opencode-ai/core/util/glob"
 import path from "path"
 import { pathToFileURL } from "url"
-import { Effect, Layer, Context } from "effect"
+import { Context, Effect, Layer, Schema } from "effect"
 import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
 import { CrossSpawnSpawner } from "@opencode-ai/core/cross-spawn-spawner"
 import { Format } from "../format"
@@ -54,6 +81,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 import { McpCatalog } from "@/mcp/catalog"
+import { Storage } from "@/storage/storage"
 
 export function webSearchEnabled(providerID: ProviderV2.ID, flags = { exa: false, parallel: false }) {
   return (
@@ -104,6 +132,8 @@ const layer = Layer.effect(
     const question = yield* QuestionTool
     const todo = yield* TodoWriteTool
     const lsptool = yield* LspTool
+    const lsprefs = yield* LspReferencesTool
+    const lsprename = yield* LspRenameTool
     const plan = yield* PlanExitTool
     const webfetch = yield* WebFetchTool
     const websearch = yield* WebSearchTool
@@ -114,6 +144,31 @@ const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const slashcommand = yield* SlashcommandTool
+    const mcpresources = yield* McpResourcesTool
+    const mcpresourceread = yield* McpResourceReadTool
+    const memsave = yield* MemorySaveTool
+    const memrecall = yield* MemoryRecallTool
+    const multiedit = yield* MultiEditTool
+    const notebook = yield* NotebookTool
+    const bgstart = yield* BackgroundStartTool
+    const bgoutput = yield* BackgroundOutputTool
+    const bgkill = yield* BackgroundKillTool
+    const bglist = yield* BackgroundListTool
+    const bgstdin = yield* BackgroundStdinTool
+    const testrun = yield* TestRunTool
+    const coverage = yield* CoverageTool
+    const semantic = yield* SemanticSearchTool
+    const browser = yield* BrowserTool
+    const taskcreate = yield* TaskCreateTool
+    const taskupdate = yield* TaskUpdateTool
+    const tasklist = yield* TaskListTool
+    const sql = yield* SqlTool
+    const diagtool = yield* DiagnosticsTool
+    const profile = yield* ProfileTool
+    const httptool = yield* HttpTool
+    const frames = yield* FramesTool
+    const gittool = yield* GitTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -213,15 +268,42 @@ const layer = Layer.effect(
           glob: Tool.init(globtool),
           grep: Tool.init(greptool),
           edit: Tool.init(edit),
+          multiedit: Tool.init(multiedit),
+          notebook: Tool.init(notebook),
           write: Tool.init(writetool),
           task: Tool.init(task),
           fetch: Tool.init(webfetch),
           todo: Tool.init(todo),
           search: Tool.init(websearch),
           skill: Tool.init(skilltool),
+          slashcommand: Tool.init(slashcommand),
           patch: Tool.init(patchtool),
+          mcpresources: Tool.init(mcpresources),
+          mcpresourceread: Tool.init(mcpresourceread),
+          memsave: Tool.init(memsave),
+          memrecall: Tool.init(memrecall),
+          bgstart: Tool.init(bgstart),
+          bgoutput: Tool.init(bgoutput),
+          bgkill: Tool.init(bgkill),
+          bglist: Tool.init(bglist),
+          bgstdin: Tool.init(bgstdin),
+          testrun: Tool.init(testrun),
+          coverage: Tool.init(coverage),
+          semantic: Tool.init(semantic),
+          browser: Tool.init(browser),
+          taskcreate: Tool.init(taskcreate),
+          taskupdate: Tool.init(taskupdate),
+          tasklist: Tool.init(tasklist),
+          sql: Tool.init(sql),
+          diagnostics: Tool.init(diagtool),
+          profile: Tool.init(profile),
+          http: Tool.init(httptool),
+          frames: Tool.init(frames),
+          git: Tool.init(gittool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
+          lsprefs: Tool.init(lsprefs),
+          lsprename: Tool.init(lsprename),
           plan: Tool.init(plan),
           ...(codeModeTool ? { execute: Tool.init(codeModeTool) } : {}),
         })
@@ -236,13 +318,40 @@ const layer = Layer.effect(
             tool.glob,
             tool.grep,
             tool.edit,
+            tool.multiedit,
+            tool.notebook,
             tool.write,
             tool.task,
             tool.fetch,
             tool.todo,
             tool.search,
             tool.skill,
+            tool.slashcommand,
             tool.patch,
+            tool.mcpresources,
+            tool.mcpresourceread,
+            tool.memsave,
+            tool.memrecall,
+            tool.bgstart,
+            tool.bgoutput,
+            tool.bgkill,
+            tool.bglist,
+            tool.bgstdin,
+            tool.testrun,
+            tool.coverage,
+            tool.semantic,
+            tool.browser,
+            tool.taskcreate,
+            tool.taskupdate,
+            tool.tasklist,
+            tool.sql,
+            tool.diagnostics,
+            tool.profile,
+            tool.http,
+            tool.frames,
+            tool.git,
+            tool.lsprefs,
+            tool.lsprename,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),
@@ -297,7 +406,7 @@ const layer = Layer.effect(
         const usePatch =
           input.modelID.includes("gpt-") && !input.modelID.includes("oss") && !input.modelID.includes("gpt-4")
         if (tool.id === ApplyPatchTool.id) return usePatch
-        if (tool.id === EditTool.id || tool.id === WriteTool.id) return !usePatch
+        if (tool.id === EditTool.id || tool.id === WriteTool.id || tool.id === MultiEditTool.id) return !usePatch
 
         return true
       })
@@ -428,6 +537,7 @@ export const node = LayerNode.make({
   service: Service,
   layer,
   deps: [
+    Command.node,
     Config.node,
     Plugin.node,
     Question.node,
@@ -446,9 +556,12 @@ export const node = LayerNode.make({
     Format.node,
     Truncate.node,
     RuntimeFlags.node,
+    Storage.node,
     MCP.node,
     Database.node,
     Ripgrep.node,
+    Approval.node,
+    Guardrail.node,
   ],
 })
 

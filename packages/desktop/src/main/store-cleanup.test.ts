@@ -7,7 +7,7 @@ import { cleanupStoreFiles, deleteStoreFileIfEmpty } from "./store-cleanup"
 const roots: string[] = []
 
 async function tempRoot() {
-  const root = await mkdtemp(join(tmpdir(), "opencode-store-cleanup-"))
+  const root = await mkdtemp(join(tmpdir(), "bolt-store-cleanup-"))
   roots.push(root)
   return root
 }

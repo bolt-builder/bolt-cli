@@ -21,6 +21,7 @@ import { EventV2Bridge } from "@/event-v2-bridge"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { buildPrompt } from "@opencode-ai/core/session/compaction"
+import { SessionPin } from "./pin"
 import { SessionCompactionEvent } from "@opencode-ai/schema/session-compaction-event"
 
 export const Event = SessionCompactionEvent
@@ -29,8 +30,9 @@ export const PRUNE_MINIMUM = 20_000
 export const PRUNE_PROTECT = 40_000
 const TOOL_OUTPUT_MAX_CHARS = 2_000
 const PRUNE_PROTECTED_TOOLS = ["skill"]
+const DEFAULT_TAIL_TURNS = 2
 const MIN_PRESERVE_RECENT_TOKENS = 2_000
-const MAX_PRESERVE_RECENT_TOKENS = 15_000
+const MAX_PRESERVE_RECENT_TOKENS = 8_000
 type Turn = {
   start: number
   end: number
@@ -225,22 +227,27 @@ const layer = Layer.effect(
       cfg: ConfigV1.Info
       model: Provider.Model
     }) {
-      const limit = input.cfg.compaction?.tail_turns
-      if (limit !== undefined && limit <= 0) return { head: input.messages, tail_start_id: undefined }
+      const limit = input.cfg.compaction?.tail_turns ?? DEFAULT_TAIL_TURNS
+      if (limit <= 0) return { head: input.messages, tail_start_id: undefined }
       const budget = preserveRecentBudget({ cfg: input.cfg, model: input.model })
       const all = turns(input.messages)
       if (!all.length) return { head: input.messages, tail_start_id: undefined }
-      const recent = limit === undefined ? all : all.slice(-limit)
+      const recent = all.slice(-limit)
+      const sizes = yield* Effect.forEach(
+        recent,
+        (turn) =>
+          estimate({
+            messages: input.messages.slice(turn.start, turn.end),
+            model: input.model,
+          }),
+        { concurrency: 1 },
+      )
 
       let total = 0
       let keep: Tail | undefined
       for (let i = recent.length - 1; i >= 0; i--) {
         const turn = recent[i]!
-        // estimate lazily so cost stays proportional to the retained tail, not the whole session
-        const size = yield* estimate({
-          messages: input.messages.slice(turn.start, turn.end),
-          model: input.model,
-        })
+        const size = sizes[i]
         if (total + size <= budget) {
           total += size
           keep = { start: turn.start, id: turn.id }
@@ -272,7 +279,7 @@ const layer = Layer.effect(
     // calls, then erases output of older tool calls to free context space
     const prune = Effect.fn("SessionCompaction.prune")(function* (input: { sessionID: SessionID }) {
       const cfg = yield* config.get()
-      if (!cfg.compaction?.prune) return
+      if (cfg.compaction?.prune === false) return
       yield* Effect.logInfo("pruning")
 
       const msgs = yield* session
@@ -356,9 +363,17 @@ const layer = Layer.effect(
       }
 
       const agent = yield* agents.get("compaction")
+      // Summarize with the provider's small/fast model when possible so the
+      // hidden compaction request does not cost a full slow-model turn. Only
+      // use it when its context window fits at least as much as the session
+      // model's; an explicit compaction agent model always wins.
+      const base = yield* provider.getModel(userMessage.model.providerID, userMessage.model.modelID).pipe(Effect.orDie)
+      const small = agent.model ? undefined : yield* provider.getSmallModel(userMessage.model.providerID)
       const model = agent.model
         ? yield* provider.getModel(agent.model.providerID, agent.model.modelID).pipe(Effect.orDie)
-        : yield* provider.getModel(userMessage.model.providerID, userMessage.model.modelID).pipe(Effect.orDie)
+        : small && small.limit.context >= base.limit.context
+          ? small
+          : base
       const cfg = yield* config.get()
       const history = compactionPart && messages.at(-1)?.info.id === input.parentID ? messages.slice(0, -1) : messages
       const prior = completedCompactions(history)
@@ -375,20 +390,15 @@ const layer = Layer.effect(
         { sessionID: input.sessionID },
         { context: [], prompt: undefined },
       )
+      // Configured pins ride along as prompt context so the summary carries
+      // them forward. A plugin-replaced prompt takes full ownership of the
+      // compaction prompt, pins included.
+      const pinned = SessionPin.resolve({ pins: cfg.compaction?.pinned ?? [], messages: history })
+      const nextPrompt =
+        compacting.prompt ?? buildPrompt({ previousSummary, context: [...compacting.context, ...pinned] })
       const msgs = structuredClone(selected.head)
       yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
       const conversation = msgs.map(serialize).filter(Boolean).join("\n\n")
-      const nextPrompt =
-        compacting.prompt ??
-        [
-          buildPrompt({
-            previousSummary,
-            context: [conversation],
-          }),
-          ...compacting.context,
-        ]
-          .filter(Boolean)
-          .join("\n\n")
       const ctx = yield* InstanceState.context
       const msg: SessionV1.Assistant = {
         id: MessageID.ascending(),
@@ -434,10 +444,7 @@ const layer = Layer.effect(
             content: [
               {
                 type: "text",
-                text: [
-                  nextPrompt,
-                  ...(compacting.prompt ? ["The following is the conversation history:", conversation] : []),
-                ]
+                text: [nextPrompt, "The following is the conversation history:", conversation]
                   .filter(Boolean)
                   .join("\n\n"),
               },
@@ -456,6 +463,32 @@ const layer = Layer.effect(
         processor.message.finish = "error"
         yield* session.updateMessage(processor.message)
         return "stop"
+      }
+
+      // Remove old messages that have been summarized (head and hidden) to prevent
+      // context buildup. This must run only after the summary has been generated
+      // and persisted above: deleting first would permanently lose the history if
+      // summarization failed or the session was too large to compact. A "stop"
+      // result with an errored message means no valid summary exists either, so
+      // the history must survive in that case too.
+      if (!input.overflow && !processor.message.error) {
+        const messageIDsToRemove = new Set<MessageID>()
+        const messageIDsToPreserve = new Set<MessageID>()
+        // Add head messages (summarized in this compaction)
+        for (const msg of selected.head) {
+          messageIDsToRemove.add(msg.info.id)
+        }
+        // Add previously summarized messages (hidden)
+        for (const index of hidden) {
+          messageIDsToRemove.add(history[index].info.id)
+        }
+        // Preserve the parent message (needed as parent of the new compaction message)
+        messageIDsToPreserve.add(input.parentID)
+        for (const msgID of messageIDsToRemove) {
+          if (!messageIDsToPreserve.has(msgID)) {
+            yield* session.removeMessage({ sessionID: input.sessionID, messageID: msgID })
+          }
+        }
       }
 
       if (compactionPart && selected.tail_start_id && compactionPart.tail_start_id !== selected.tail_start_id) {

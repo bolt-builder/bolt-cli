@@ -27,6 +27,7 @@ export function ContentText(props: Props) {
           type="button"
           data-component="text-button"
           data-slot="expand-button"
+          aria-expanded={expanded()}
           onClick={() => setExpanded((e) => !e)}
         >
           {expanded() ? messages.show_less : messages.show_more}

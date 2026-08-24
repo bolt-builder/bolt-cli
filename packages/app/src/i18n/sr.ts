@@ -1085,6 +1085,15 @@ export const dict = {
   "settings.providers.tag.config": "Конфигурација",
   "settings.providers.tag.custom": "Прилагођено",
   "settings.providers.tag.other": "Друго",
+  "settings.gateways.title": "Мрежни пролази",
+  "settings.gateways.description":
+    "Повежите AI мрежни пролаз да бисте приступили многим моделима преко једног API кључа, укључујући бесплатне моделе.",
+  "settings.gateways.tag.connected": "Повезано",
+  "settings.gateways.note.kilo":
+    "Мрежни пролаз компатибилан са OpenRouter-ом са бесплатним аутоматски рутираним моделима",
+  "settings.gateways.note.zoo": "Мрежни пролаз заједнице из пројекта Zoo Code",
+  "settings.gateways.connect.title": "Повежи {{gateway}}",
+  "settings.gateways.connect.description": "Налепите свој {{gateway}} API кључ да бисте повезали његове моделе.",
   "settings.models.title": "Модели",
   "settings.models.description": "Овде ће се моћи конфигурисати подешавања модела.",
   "settings.agents.title": "Агенти",

@@ -289,7 +289,7 @@ function createThemeInstaller(
       const text = await Filesystem.readText(src).catch(() => undefined)
       if (text === undefined) return
 
-      const fail = Symbol()
+      const fail = Symbol("tui-theme-json-parse-fail")
       const data = await Promise.resolve(text)
         .then((x) => JSON.parse(x))
         .catch(() => fail)
@@ -392,7 +392,7 @@ function createPluginScope(load: PluginLoad, id: string, disposeTimeoutMs: numbe
 
   const onDispose = (fn: TuiDispose) => {
     if (done) return () => {}
-    const key = Symbol()
+    const key = Symbol("onDispose callback key")
     list.push({ key, fn })
     let drop = false
     return () => {

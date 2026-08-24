@@ -14,6 +14,14 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_COMMIT from "./prompt/commit.txt"
+import PROMPT_CODE_REVIEW from "./prompt/code-review.txt"
+import PROMPT_DEBUG from "./prompt/debug.txt"
+import PROMPT_REFACTOR from "./prompt/refactor.txt"
+import PROMPT_DOCS from "./prompt/docs.txt"
+import PROMPT_SECURITY from "./prompt/security.txt"
+import PROMPT_MIGRATE from "./prompt/migrate.txt"
+import PROMPT_PERF from "./prompt/perf.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -139,7 +147,7 @@ const layer = Layer.effect(
 
         const agents: Record<string, Info> = {
           build: {
-            name: "build",
+            name: "code",
             description: "The default agent. Executes tools based on configured permissions.",
             options: {},
             permission: Permission.merge(
@@ -173,6 +181,40 @@ const layer = Layer.effect(
                   [path.join(".opencode", "plans", "*.md")]: "allow",
                   [path.relative(ctx.worktree, path.join(Global.Path.data, path.join("plans", "*.md")))]: "allow",
                 },
+              }),
+              user,
+            ),
+            mode: "primary",
+            native: true,
+          },
+          ask: {
+            name: "ask",
+            description: "Ask mode. Focused on asking questions and gathering information without making changes.",
+            options: {},
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                // Allow all reading tools for information gathering
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                // Allow web search/fetch for external information
+                webfetch: "allow",
+                websearch: "allow",
+                // Block most file modifications to maintain ask-only behavior
+                write: { "*": "deny" },
+                edit: { "*": "deny" },
+                // Block task execution and system changes
+                task: { "*": "deny" },
+                bash: { "*": "deny" },
+                // Allow limited file creation for notes/reflections if needed
+                // write: {
+                //   "*": "deny",
+                //   "*.ask.*": "allow",
+                //   "notes/**": "allow",
+                // },
               }),
               user,
             ),
@@ -247,6 +289,22 @@ const layer = Layer.effect(
             ),
             prompt: PROMPT_TITLE,
           },
+          commit: {
+            name: "commit",
+            mode: "primary",
+            options: {},
+            native: true,
+            hidden: true,
+            temperature: 0.3,
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+              }),
+              user,
+            ),
+            prompt: PROMPT_COMMIT,
+          },
           summary: {
             name: "summary",
             mode: "primary",
@@ -261,6 +319,167 @@ const layer = Layer.effect(
               user,
             ),
             prompt: PROMPT_SUMMARY,
+          },
+          "code-review": {
+            name: "code-review",
+            description: "Reviews code changes for correctness, style, and security issues",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                webfetch: "allow",
+                websearch: "allow",
+                edit: { "*": "deny" },
+                write: { "*": "deny" },
+                bash: { "*": "deny" },
+                task: { "*": "deny" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_CODE_REVIEW,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          debug: {
+            name: "debug",
+            description: "Debugs failing tests, crashes, and logic errors",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { general: "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_DEBUG,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          refactor: {
+            name: "refactor",
+            description: "Safe refactoring with test verification at each step",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                todowrite: "allow",
+                task: { general: "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_REFACTOR,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          docs: {
+            name: "docs",
+            description: "Writes and updates documentation, READMEs, and code comments",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                write: "allow",
+                edit: "allow",
+              }),
+              user,
+            ),
+            prompt: PROMPT_DOCS,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          security: {
+            name: "security",
+            description: "Security audit - finds vulnerabilities, secrets, and insecure patterns",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                webfetch: "allow",
+                websearch: "allow",
+                edit: { "*": "deny" },
+                write: { "*": "deny" },
+                bash: { "*": "deny" },
+                task: { "*": "deny" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_SECURITY,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          migrate: {
+            name: "migrate",
+            description: "Handles framework upgrades, dependency migrations, and breaking changes",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { general: "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_MIGRATE,
+            mode: "primary",
+            native: true,
+            options: {},
+          },
+          perf: {
+            name: "perf",
+            description: "Performance analysis and optimization",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                question: "allow",
+                read: { "*": "allow" },
+                glob: "allow",
+                grep: "allow",
+                list: "allow",
+                bash: "allow",
+                edit: "allow",
+                write: "allow",
+                task: { general: "allow" },
+              }),
+              user,
+            ),
+            prompt: PROMPT_PERF,
+            mode: "primary",
+            native: true,
+            options: {},
           },
         }
 
@@ -309,26 +528,24 @@ const layer = Layer.effect(
           )
         }
 
+        // Config keys and display names can diverge (the built-in "build" key is named "code"),
+        // and callers resolve agents by the name stored on messages, so fall back to name lookup.
         const get = Effect.fnUntraced(function* (agent: string) {
-          return agents[agent]
+          return agents[agent] ?? Object.values(agents).find((a) => a.name === agent)
         })
 
         const list = Effect.fnUntraced(function* () {
           const cfg = yield* config.get()
-          return pipe(
-            agents,
-            values(),
-            sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "build"), "desc"],
-              [(x) => x.name, "asc"],
-            ),
-          )
+          const configuredDefault = cfg.default_agent
+            ? yield* get(cfg.default_agent)
+            : Object.values(agents).find((x) => x.mode !== "subagent" && x.hidden !== true)
+          return pipe(agents, values(), sortBy([(x) => x === configuredDefault, "desc"], [(x) => x.name, "asc"]))
         })
 
         const defaultInfo = Effect.fnUntraced(function* () {
           const c = yield* config.get()
           if (c.default_agent) {
-            const agent = agents[c.default_agent]
+            const agent = yield* get(c.default_agent)
             if (!agent) throw new Error(`default agent "${c.default_agent}" not found`)
             if (agent.mode === "subagent") throw new Error(`default agent "${c.default_agent}" is a subagent`)
             if (agent.hidden === true) throw new Error(`default agent "${c.default_agent}" is hidden`)

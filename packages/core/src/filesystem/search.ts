@@ -232,7 +232,16 @@ export const fffLayer = Layer.effect(
   }),
 )
 
-const layer = Layer.unwrap(Effect.sync(() => (Flag.OPENCODE_DISABLE_FFF || !Fff.available() ? ripgrepLayer : fffLayer)))
+// fff has no ignore-file support, so repos governed by a .boltignore must use
+// the ripgrep backend to keep hidden files out of glob/find/grep results.
+const layer = Layer.unwrap(
+  Effect.gen(function* () {
+    if (Flag.OPENCODE_DISABLE_FFF || !Fff.available()) return ripgrepLayer
+    const location = yield* Location.Service
+    if (Ripgrep.ignored(location.directory)) return ripgrepLayer
+    return fffLayer
+  }),
+)
 
 export const locationLayer = layer
 

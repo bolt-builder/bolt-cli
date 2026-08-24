@@ -1,7 +1,7 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode acp --help 1`] = `
-"opencode acp
+"bolt acp
 
 start ACP (Agent Client Protocol) server
 
@@ -11,6 +11,7 @@ Options:
       --print-logs   print logs to stderr                                                  [boolean]
       --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure         run without external plugins                                          [boolean]
+      --profile      use a named config profile                                             [string]
       --port         port to listen on                                         [number] [default: 0]
       --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
       --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
@@ -22,29 +23,30 @@ Options:
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode mcp --help 1`] = `
-"opencode mcp
+"bolt mcp
 
 manage MCP (Model Context Protocol) servers
 
 Commands:
-  opencode mcp add [name]     add an MCP server
-  opencode mcp list           list MCP servers and their status                        [aliases: ls]
-  opencode mcp auth [name]    authenticate with an OAuth-enabled MCP server
-  opencode mcp logout [name]  remove OAuth credentials for an MCP server
-  opencode mcp debug <name>   debug OAuth connection for an MCP server
+  bolt mcp add [name]     add an MCP server
+  bolt mcp list           list MCP servers and their status                            [aliases: ls]
+  bolt mcp auth [name]    authenticate with an OAuth-enabled MCP server
+  bolt mcp logout [name]  remove OAuth credentials for an MCP server
+  bolt mcp debug <name>   debug OAuth connection for an MCP server
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode attach --help 1`] = `
-"opencode attach <url>
+"bolt attach <url>
 
-attach to a running opencode server
+attach to a running bolt server
 
 Positionals:
   url  http://localhost:4096                                                     [string] [required]
@@ -55,6 +57,7 @@ Options:
       --print-logs    print logs to stderr                                                 [boolean]
       --log-level     log level                 [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure          run without external plugins                                         [boolean]
+      --profile       use a named config profile                                            [string]
       --dir           directory to run in                                                   [string]
   -c, --continue      continue the last session                                            [boolean]
   -s, --session       session id to continue                                                [string]
@@ -68,112 +71,163 @@ Options:
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode run --help 1`] = `
-"opencode run [message..]
+"bolt run [message..]
 
-run opencode with a message
+run bolt with a message
 
 Positionals:
   message  message to send                                                     [array] [default: []]
 
 Options:
-  -h, --help         show help                                                             [boolean]
-  -v, --version      show version number                                                   [boolean]
-      --print-logs   print logs to stderr                                                  [boolean]
-      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure         run without external plugins                                          [boolean]
-      --command      the command to run, use message for args                               [string]
-  -c, --continue     continue the last session                                             [boolean]
-  -s, --session      session id to continue                                                 [string]
-      --fork         fork the session before continuing (requires --continue or --session) [boolean]
-      --share        share the session                                                     [boolean]
-  -m, --model        model to use in the format of provider/model                           [string]
-      --agent        agent to use                                                           [string]
-      --format       format: default (formatted) or json (raw JSON events)
+  -h, --help              show help                                                        [boolean]
+  -v, --version           show version number                                              [boolean]
+      --print-logs        print logs to stderr                                             [boolean]
+      --log-level         log level             [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure              run without external plugins                                     [boolean]
+      --profile           use a named config profile                                        [string]
+      --command           the command to run, use message for args                          [string]
+  -c, --continue          continue the last session                                        [boolean]
+  -s, --session           session id to continue                                            [string]
+      --fork              fork the session before continuing (requires --continue or --session)
+                                                                                           [boolean]
+      --share             share the session                                                [boolean]
+  -m, --model             model to use in the format of provider/model (or 'auto' for cheapest
+                          available)                                                        [string]
+      --best-of           comma-separated provider/model list: run the same task on every model in
+                          parallel, rank the results with a judge (--model, or the first entry),
+                          keep the winner                                                   [string]
+      --agent             agent to use (or 'auto' for automatic selection)                  [string]
+      --auto-agent        route the prompt to the best matching agent based on agent descriptions
+                                                                          [boolean] [default: false]
+      --format            format: default (formatted) or json (raw JSON events)
                                           [string] [choices: "default", "json"] [default: "default"]
-  -f, --file         file(s) to attach to message                                            [array]
-      --title        title for the session (uses truncated prompt if no value provided)     [string]
-      --attach       attach to a running opencode server (e.g., http://localhost:4096)      [string]
-  -p, --password     basic auth password (defaults to OPENCODE_SERVER_PASSWORD)             [string]
-  -u, --username     basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
+      --json              emit a versioned JSON envelope on stdout:
+                          {"version":1,"ok":true,"result":...} on success,
+                          {"version":1,"ok":false,"error":{"name":...,"message":...}} on failure
+                                                                          [boolean] [default: false]
+  -f, --file              file(s) to attach to message                                       [array]
+      --title             title for the session (uses truncated prompt if no value provided)[string]
+      --max-cost          abort the run once its cost in USD reaches this budget            [number]
+      --max-tokens        abort the run once its total token usage reaches this budget      [number]
+      --output-schema     JSON Schema file the final answer must validate against (retries until it
+                          does, bounded)                                                    [string]
+      --attach            attach to a running bolt server (e.g., http://localhost:4096)     [string]
+  -p, --password          basic auth password (defaults to OPENCODE_SERVER_PASSWORD)        [string]
+  -u, --username          basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
                                                                                             [string]
-      --dir          directory to run in, path on remote server if attaching                [string]
-      --port         port for the local server (defaults to random port if no value provided)
+      --dir               directory to run in, path on remote server if attaching           [string]
+      --port              port for the local server (defaults to random port if no value provided)
                                                                                             [number]
-      --variant      model variant (provider-specific reasoning effort, e.g., high, max, minimal)
+      --variant           model variant (provider-specific reasoning effort, e.g., high, max,
+                          minimal)                                                          [string]
+      --thinking          show thinking blocks                                             [boolean]
+  -i, --interactive       run in direct interactive split-footer mode     [boolean] [default: false]
+      --auto              auto-approve permissions that are not explicitly denied (dangerous!)
+                                                                          [boolean] [default: false]
+      --dry-run           show every file write and command the plan would execute without doing it
+                                                                          [boolean] [default: false]
+      --background, --bg  run detached as a background job (manage with bolt jobs list/tail/kill)
+                                                                          [boolean] [default: false]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode arena --help 1`] = `
+"bolt arena [message..]
+
+race agents on the same task in isolated worktrees and keep the best result
+
+Positionals:
+  message  task to send to every contender                                     [array] [default: []]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
+      --models      comma-separated provider/model list (duplicates allowed, one worktree each)
+                                                                                 [string] [required]
+      --judge       judge model as provider/model (defaults to the first entry in --models) [string]
+      --agent       agent to use for every contender                                        [string]
+      --variant     model variant (provider-specific reasoning effort, e.g., high, max, minimal)
                                                                                             [string]
-      --thinking     show thinking blocks                                                  [boolean]
-  -i, --interactive  run in direct interactive split-footer mode          [boolean] [default: false]
-      --auto         auto-approve permissions that are not explicitly denied (dangerous!)
+      --format      format: default (formatted) or json (single JSON result)
+                                          [string] [choices: "default", "json"] [default: "default"]
+      --cleanup     remove losing worktrees and their branches after judging
                                                                           [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode debug --help 1`] = `
-"opencode debug
+"bolt debug
 
 debugging and troubleshooting tools
 
 Commands:
-  opencode debug config        show resolved configuration
-  opencode debug lsp           LSP debugging utilities
-  opencode debug rg            ripgrep debugging utilities
-  opencode debug file          file system debugging utilities
-  opencode debug scrap         list all known projects
-  opencode debug skill         list all available skills
-  opencode debug snapshot      snapshot debugging utilities
-  opencode debug startup       print startup timing
-  opencode debug agent <name>  show agent configuration details
-  opencode debug v2            debug v2 catalog and built-in plugins
-  opencode debug info          show debug information
-  opencode debug paths         show global paths (data, config, cache, state)
-  opencode debug wait          wait indefinitely (for debugging)
+  bolt debug config                      show resolved configuration
+  bolt debug context <sessionID> [turn]  inspect exactly what the model saw for a past turn
+  bolt debug lsp                         LSP debugging utilities
+  bolt debug rg                          ripgrep debugging utilities
+  bolt debug file                        file system debugging utilities
+  bolt debug scrap                       list all known projects
+  bolt debug skill                       list all available skills
+  bolt debug snapshot                    snapshot debugging utilities
+  bolt debug startup                     print startup timing
+  bolt debug agent <name>                show agent configuration details
+  bolt debug v2                          debug v2 catalog and built-in plugins
+  bolt debug info                        show debug information
+  bolt debug paths                       show global paths (data, config, cache, state)
+  bolt debug wait                        wait indefinitely (for debugging)
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode providers --help 1`] = `
-"opencode providers
+"bolt providers
 
 manage AI providers and credentials
 
 Commands:
-  opencode providers list               list providers and credentials                 [aliases: ls]
-  opencode providers login [url]        log in to a provider
-  opencode providers logout [provider]  log out from a configured provider
+  bolt providers list               list providers and credentials                     [aliases: ls]
+  bolt providers login [url]        log in to a provider
+  bolt providers logout [provider]  log out from a configured provider
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode agent --help 1`] = `
-"opencode agent
+"bolt agent
 
 manage agents
 
 Commands:
-  opencode agent create  create a new agent
-  opencode agent list    list all available agents
+  bolt agent create  create a new agent
+  bolt agent list    list all available agents
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode upgrade --help 1`] = `
-"opencode upgrade [target]
+"bolt upgrade [target]
 
-upgrade opencode to the latest or a specific version
+upgrade bolt to the latest or a specific version
 
 Positionals:
   target  version to upgrade to, for ex '0.1.48' or 'v0.1.48'                               [string]
@@ -184,14 +238,15 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
   -m, --method      installation method to use
                           [string] [choices: "curl", "npm", "pnpm", "bun", "brew", "choco", "scoop"]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode uninstall --help 1`] = `
-"opencode uninstall
+"bolt uninstall
 
-uninstall opencode and remove all related files
+uninstall bolt and remove all related files
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -199,6 +254,7 @@ Options:
       --print-logs   print logs to stderr                                                  [boolean]
       --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure         run without external plugins                                          [boolean]
+      --profile      use a named config profile                                             [string]
   -c, --keep-config  keep configuration files                             [boolean] [default: false]
   -d, --keep-data    keep session data and snapshots                      [boolean] [default: false]
       --dry-run      show what would be removed without removing          [boolean] [default: false]
@@ -206,9 +262,9 @@ Options:
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode serve --help 1`] = `
-"opencode serve
+"bolt serve
 
-starts a headless opencode server
+starts a headless bolt server
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -216,19 +272,22 @@ Options:
       --print-logs   print logs to stderr                                                  [boolean]
       --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure         run without external plugins                                          [boolean]
+      --profile      use a named config profile                                             [string]
       --port         port to listen on                                         [number] [default: 0]
       --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
       --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
                                                                           [boolean] [default: false]
       --mdns-domain  custom domain name for mDNS service (default: opencode.local)
                                                                 [string] [default: "opencode.local"]
-      --cors         additional domains to allow for CORS                      [array] [default: []]"
+      --cors         additional domains to allow for CORS                      [array] [default: []]
+      --api          print the stable REST API surface as JSON, then keep serving
+                                                                          [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode web --help 1`] = `
-"opencode web
+"bolt web
 
-start opencode server and open web interface
+start bolt server and open web interface
 
 Options:
   -h, --help         show help                                                             [boolean]
@@ -236,6 +295,7 @@ Options:
       --print-logs   print logs to stderr                                                  [boolean]
       --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure         run without external plugins                                          [boolean]
+      --profile      use a named config profile                                             [string]
       --port         port to listen on                                         [number] [default: 0]
       --hostname     hostname to listen on                           [string] [default: "127.0.0.1"]
       --mdns         enable mDNS service discovery (defaults hostname to 0.0.0.0)
@@ -246,7 +306,7 @@ Options:
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode models --help 1`] = `
-"opencode models [provider]
+"bolt models [provider]
 
 list all available models
 
@@ -259,12 +319,16 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
       --verbose     use more verbose model output (includes metadata like costs)           [boolean]
-      --refresh     refresh the models cache from models.dev                               [boolean]"
+      --refresh     refresh the models cache from models.dev                               [boolean]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode stats --help 1`] = `
-"opencode stats
+"bolt stats
 
 show token usage and cost statistics
 
@@ -274,15 +338,19 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
       --days        show stats for the last N days (default: all time)                      [number]
       --tools       number of tools to show (default: all)                                  [number]
       --models      show model statistics (default: hidden). Pass a number to show top N, otherwise
                     shows all
-      --project     filter by project (default: all projects, empty string: current project)[string]"
+      --project     filter by project (default: all projects, empty string: current project)[string]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode export --help 1`] = `
-"opencode export [sessionID]
+"bolt export [sessionID]
 
 export session data as JSON
 
@@ -295,11 +363,17 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
-      --sanitize    redact sensitive transcript and file data                              [boolean]"
+      --profile     use a named config profile                                              [string]
+      --sanitize    redact sensitive transcript and file data                              [boolean]
+      --html        write a self-contained HTML replay instead of JSON                     [boolean]
+      --out         output file for the HTML replay                [string] [default: "replay.html"]
+      --json        emit a versioned JSON envelope on stdout: {"version":1,"ok":true,"result":...}
+                    on success, {"version":1,"ok":false,"error":{"name":...,"message":...}} on
+                    failure                                               [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode import --help 1`] = `
-"opencode import <file>
+"bolt import <file>
 
 import session data from JSON file or URL
 
@@ -311,30 +385,32 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode github --help 1`] = `
-"opencode github
+"bolt github
 
 manage GitHub agent
 
 Commands:
-  opencode github install  install the GitHub agent
-  opencode github run      run the GitHub agent
+  bolt github install  install the GitHub agent
+  bolt github run      run the GitHub agent
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode pr --help 1`] = `
-"opencode pr <number>
+"bolt pr <number>
 
-fetch and checkout a GitHub PR branch, then run opencode
+fetch and checkout a GitHub PR branch, then run bolt
 
 Positionals:
   number  PR number to checkout                                                  [number] [required]
@@ -344,28 +420,31 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode session --help 1`] = `
-"opencode session
+"bolt session
 
 manage sessions
 
 Commands:
-  opencode session list                list sessions
-  opencode session delete <sessionID>  delete a session
+  bolt session list                            list sessions                           [aliases: ls]
+  bolt session delete <sessionID>              delete a session
+  bolt session branch <sessionID> [messageID]  branch a session into a new one sharing its prefix
 
 Options:
   -h, --help        show help                                                              [boolean]
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode plugin --help 1`] = `
-"opencode plugin <module>
+"bolt plugin <module>
 
 install plugin and update config
 
@@ -378,18 +457,19 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
   -g, --global      install in global config                              [boolean] [default: false]
   -f, --force       replace existing plugin version                       [boolean] [default: false]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode db --help 1`] = `
-"opencode db
+"bolt db
 
 database tools
 
 Commands:
-  opencode db [query]     open an interactive sqlite3 shell or run a query                 [default]
-  opencode db path        print the database path
+  bolt db [query]     open an interactive sqlite3 shell or run a query                     [default]
+  bolt db path        print the database path
 
 Positionals:
   query  SQL query to execute                                                               [string]
@@ -400,11 +480,12 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
       --format      Output format                 [string] [choices: "json", "tsv"] [default: "tsv"]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode mcp list --help 1`] = `
-"opencode mcp list
+"bolt mcp list
 
 list MCP servers and their status
 
@@ -413,11 +494,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode mcp add --help 1`] = `
-"opencode mcp add [name]
+"bolt mcp add [name]
 
 add an MCP server
 
@@ -430,18 +512,19 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
       --url         URL for a remote MCP server                                             [string]
       --env         environment variable for a local MCP server (KEY=VALUE)                  [array]
       --header      HTTP header for a remote MCP server (KEY=VALUE)                          [array]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode mcp auth --help 1`] = `
-"opencode mcp auth [name]
+"bolt mcp auth [name]
 
 authenticate with an OAuth-enabled MCP server
 
 Commands:
-  opencode mcp auth list  list OAuth-capable MCP servers and their auth status         [aliases: ls]
+  bolt mcp auth list  list OAuth-capable MCP servers and their auth status             [aliases: ls]
 
 Positionals:
   name  name of the MCP server                                                              [string]
@@ -451,11 +534,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode mcp logout --help 1`] = `
-"opencode mcp logout [name]
+"bolt mcp logout [name]
 
 remove OAuth credentials for an MCP server
 
@@ -467,11 +551,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode providers list --help 1`] = `
-"opencode providers list
+"bolt providers list
 
 list providers and credentials
 
@@ -480,16 +565,17 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode providers login --help 1`] = `
-"opencode providers login [url]
+"bolt providers login [url]
 
 log in to a provider
 
 Positionals:
-  url  opencode auth provider                                                               [string]
+  url  bolt auth provider                                                                   [string]
 
 Options:
   -h, --help        show help                                                              [boolean]
@@ -497,12 +583,13 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
   -p, --provider    provider id or name to log in to (skips provider selection)             [string]
   -m, --method      login method label (skips method selection)                             [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode providers logout --help 1`] = `
-"opencode providers logout [provider]
+"bolt providers logout [provider]
 
 log out from a configured provider
 
@@ -514,11 +601,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode agent create --help 1`] = `
-"opencode agent create
+"bolt agent create
 
 create a new agent
 
@@ -528,6 +616,7 @@ Options:
       --print-logs            print logs to stderr                                         [boolean]
       --log-level             log level         [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure                  run without external plugins                                 [boolean]
+      --profile               use a named config profile                                    [string]
       --path                  directory path to generate the agent file                     [string]
       --description           what the agent should do                                      [string]
       --mode                  agent mode            [string] [choices: "all", "primary", "subagent"]
@@ -538,7 +627,7 @@ Options:
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode agent list --help 1`] = `
-"opencode agent list
+"bolt agent list
 
 list all available agents
 
@@ -547,11 +636,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode session list --help 1`] = `
-"opencode session list
+"bolt session list
 
 list sessions
 
@@ -561,12 +651,22 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
   -n, --max-count   limit to N most recent sessions                                         [number]
+      --since       only sessions updated after this date or relative duration (e.g. 24h, 7d)
+                                                                                            [string]
+      --project     search all projects, filtered by project name, worktree path, or id substring
+                                                                                            [string]
+      --failed      only sessions whose latest assistant message ended in an error
+                                                                          [boolean] [default: false]
+      --sort        sort order
+                      [string] [choices: "updated", "created", "title", "cost"] [default: "updated"]
+      --json        output as JSON (same as --format json)                [boolean] [default: false]
       --format      output format             [string] [choices: "table", "json"] [default: "table"]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode session delete --help 1`] = `
-"opencode session delete <sessionID>
+"bolt session delete <sessionID>
 
 delete a session
 
@@ -578,11 +678,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode github install --help 1`] = `
-"opencode github install
+"bolt github install
 
 install the GitHub agent
 
@@ -591,11 +692,12 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode github run --help 1`] = `
-"opencode github run
+"bolt github run
 
 run the GitHub agent
 
@@ -605,12 +707,13 @@ Options:
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]
       --event       GitHub mock event to run the agent for                                  [string]
       --token       GitHub personal access token (github_pat_********)                      [string]"
 `;
 
 exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode db path --help 1`] = `
-"opencode db path
+"bolt db path
 
 print the database path
 
@@ -619,5 +722,6 @@ Options:
   -v, --version     show version number                                                    [boolean]
       --print-logs  print logs to stderr                                                   [boolean]
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
-      --pure        run without external plugins                                           [boolean]"
+      --pure        run without external plugins                                           [boolean]
+      --profile     use a named config profile                                              [string]"
 `;

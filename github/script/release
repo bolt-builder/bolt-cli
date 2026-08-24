@@ -13,8 +13,9 @@ done
 git fetch --force --tags
 latest_tag=$(git tag --sort=committerdate | grep -E '^github-v[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)
 if [ -z "$latest_tag" ]; then
-    echo "No tags found"
-    exit 1
+    # No github-v tags exist yet; seed a base so the first release becomes github-v0.0.1
+    echo "No tags found, seeding github-v0.0.0"
+    latest_tag="github-v0.0.0"
 fi
 
 echo "Latest tag: $latest_tag"

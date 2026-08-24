@@ -29,6 +29,7 @@ import * as OtelTracer from "@effect/opentelemetry/Tracer"
 import { LLMAISDK } from "./llm/ai-sdk"
 import { LLMNativeRuntime } from "./llm/native-runtime"
 import { LLMRequestPrep } from "./llm/request"
+import { SessionReplay } from "./replay"
 
 export const OUTPUT_TOKEN_MAX = ProviderTransform.OUTPUT_TOKEN_MAX
 
@@ -110,7 +111,25 @@ const live: Layer.Layer<
         plugin,
         flags,
         isWorkflow,
+        redact: cfg.redact !== false,
       })
+
+      // Context replay: persist the prepared request so bolt debug context can
+      // show exactly what the model saw for this turn. Best effort only.
+      if (cfg.experimental?.context_replay === true) {
+        yield* Effect.tryPromise(() =>
+          SessionReplay.record({
+            sessionID: input.sessionID,
+            messageID: input.user.id,
+            time: Date.now(),
+            providerID: input.model.providerID,
+            modelID: input.model.id,
+            system: prepared.system,
+            messages: prepared.messages,
+            tools: Object.keys(prepared.tools),
+          }),
+        ).pipe(Effect.ignore)
+      }
 
       // Wire up toolExecutor for DWS workflow models so that tool calls
       // from the workflow service are executed via opencode's tool system

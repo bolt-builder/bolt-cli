@@ -1,10 +1,9 @@
 export * as Event from "./event"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { ascending } from "./identifier"
 import { Location } from "./location"
-import { statics } from "./schema"
+import { optional, statics } from "./schema"
 
 export const ID = Schema.String.check(Schema.isStartsWith("evt_")).pipe(
   Schema.brand("Event.ID"),

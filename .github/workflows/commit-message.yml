@@ -1,0 +1,58 @@
+name: check-commit-message
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  rewrite:
+    if: github.event.head_commit.author.name != 'bolt-cli-bot[bot]'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check and rewrite commit message
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          MSG=$(git log -1 --pretty=%s)
+          WORDS=$(echo "$MSG" | wc -w)
+          BAD=false
+          for w in fix update wip asdf stuff changes tmp temp test misc; do
+            FIRST=$(echo "$MSG" | awk '{print tolower($1)}')
+            if [ "$FIRST" = "$w" ] && [ "$WORDS" -lt 5 ]; then BAD=true; fi
+          done
+          if [ "$WORDS" -lt 3 ]; then BAD=true; fi
+
+          if [ "$BAD" = false ]; then
+            echo "Commit message is fine, skipping"
+            exit 0
+          fi
+
+          DIFF=$(git diff HEAD~1 HEAD --stat && echo "---" && git diff HEAD~1 HEAD | head -c 6000)
+          PROMPT="Write a single concise git commit message (under 72 chars, imperative mood, no quotes, no markdown) summarizing this diff :\n\n${DIFF} and always add a long explantation if it is a big diff."
+
+          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg p "$PROMPT" '{contents:[{parts:[{text:$p}]}]}')")
+
+          echo "Gemini raw response: $RESPONSE"
+
+          NEW_MSG=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // empty' | head -n1 | tr -d '"')
+
+          if [ -z "$NEW_MSG" ]; then
+            echo "No message generated, skipping"
+            exit 0
+          fi
+
+          git config user.name "bolt-cli[bot]"
+          git config user.email "bolt-cli[bot]@bolt-cli.ai"
+          git commit --amend --author="bolt-cli-bot[bot] <bolt-cli-bot[bot]@bolt-cli.ai>" -m "$NEW_MSG"
+          git push --force origin HEAD:dev

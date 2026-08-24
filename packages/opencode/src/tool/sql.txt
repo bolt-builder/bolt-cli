@@ -1,0 +1,17 @@
+- Runs a read-only SQL query against the project's configured database
+- Supports SQLite database files plus Postgres and MySQL connection strings
+- Only a single SELECT, WITH, EXPLAIN, or PRAGMA statement is accepted; anything that writes is rejected before it reaches the database
+- Set schema=true (no query needed) to list tables and columns so you can orient before writing queries
+- Row output is capped; use the limit parameter and SQL LIMIT clauses to keep results small
+
+Connection target resolution order:
+  1. The explicit target parameter (a SQLite file path or a postgres://, postgresql://, mysql://, or mariadb:// URL)
+  2. The "url" field of .bolt/sql.json in the project root
+  3. The BOLT_SQL_URL environment variable
+  4. The DATABASE_URL environment variable
+
+Usage notes:
+  - Always inspect the schema first when you are unfamiliar with the database
+  - Relative SQLite paths resolve against the project root
+  - Each row is returned as a JSON object on its own line
+  - Rows beyond the cap are dropped; add LIMIT/OFFSET to page through large results

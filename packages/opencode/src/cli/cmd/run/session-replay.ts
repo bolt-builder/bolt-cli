@@ -11,6 +11,10 @@ type ReplayInput = {
   thinking: boolean
   limits: Record<string, number>
   providers?: RunProvider[]
+  // Pair mode: carried into the rebuilt session data so live partner prompts
+  // keep rendering after a bootstrap or resize replay swaps the data out.
+  pair?: boolean
+  local?: Set<string>
 }
 
 type ReplayConfig = {
@@ -231,7 +235,7 @@ function replayMessage(
 }
 
 export function replaySession(input: ReplayInput): SessionReplay {
-  const data = createSessionData()
+  const data = createSessionData({ includeUserText: input.pair, local: input.local })
   const commits: StreamCommit[] = []
   let patch: FooterPatch | undefined
   const summaries = summaryMessageIDs(input.messages)

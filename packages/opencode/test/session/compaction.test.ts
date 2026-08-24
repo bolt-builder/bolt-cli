@@ -195,7 +195,7 @@ function createCompactionMarker(sessionID: SessionID) {
 
 function fake(
   input: Parameters<SessionProcessorModule.SessionProcessor.Interface["create"]>[0],
-  result: "continue" | "compact",
+  result: "continue" | "compact" | "stop",
 ) {
   const msg = input.assistantMessage
   return {
@@ -204,11 +204,21 @@ function fake(
     },
     updateToolCall: Effect.fn("TestSessionProcessor.updateToolCall")(() => Effect.succeed(undefined)),
     completeToolCall: Effect.fn("TestSessionProcessor.completeToolCall")(() => Effect.void),
-    process: Effect.fn("TestSessionProcessor.process")(() => Effect.succeed(result)),
+    process: Effect.fn("TestSessionProcessor.process")(() =>
+      Effect.sync(() => {
+        // The real processor returns "stop" after recording an error on the
+        // assistant message (aborted, provider failure, ...), so mirror that.
+        if (result === "stop") {
+          msg.error = new SessionV1.AbortedError({ message: "processor failed" }).toObject()
+          msg.finish = "error"
+        }
+        return result
+      }),
+    ),
   } satisfies SessionProcessorModule.SessionProcessor.Handle
 }
 
-function processorLayer(result: "continue" | "compact") {
+function processorLayer(result: "continue" | "compact" | "stop") {
   return Layer.succeed(
     SessionProcessorModule.SessionProcessor.Service,
     SessionProcessorModule.SessionProcessor.Service.of({
@@ -245,7 +255,7 @@ const compactionEnv = AppNodeBuilder.build(
 const itCompaction = testEffect(compactionEnv)
 
 type CompactionProcessOptions = {
-  result?: "continue" | "compact"
+  result?: "continue" | "compact" | "stop"
   llm?: Layer.Layer<LLM.Service>
   plugin?: Layer.Layer<Plugin.Service>
   provider?: ReturnType<typeof wide>
@@ -809,6 +819,129 @@ describe("session.compaction.prune", () => {
       }),
     ),
   )
+
+  const seedPrunable = (dir: string) =>
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const info = yield* ssn.create({})
+      const userMsg = yield* ssn.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: info.id,
+        agent: "build",
+        model: ref,
+        time: { created: Date.now() },
+      })
+      yield* ssn.updatePart({
+        id: PartID.ascending(),
+        messageID: userMsg.id,
+        sessionID: info.id,
+        type: "text",
+        text: "first",
+      })
+      const assistantMsg: SessionV1.Assistant = {
+        id: MessageID.ascending(),
+        role: "assistant",
+        sessionID: info.id,
+        mode: "build",
+        agent: "build",
+        path: { cwd: dir, root: dir },
+        cost: 0,
+        tokens: {
+          output: 0,
+          input: 0,
+          reasoning: 0,
+          cache: { read: 0, write: 0 },
+        },
+        modelID: ref.modelID,
+        providerID: ref.providerID,
+        parentID: userMsg.id,
+        time: { created: Date.now() },
+        finish: "end_turn",
+      }
+      yield* ssn.updateMessage(assistantMsg)
+      yield* ssn.updatePart({
+        id: PartID.ascending(),
+        messageID: assistantMsg.id,
+        sessionID: info.id,
+        type: "tool",
+        callID: crypto.randomUUID(),
+        tool: "bash",
+        state: {
+          status: "completed",
+          input: {},
+          output: "x".repeat(200_000),
+          title: "done",
+          metadata: {},
+          time: { start: Date.now(), end: Date.now() },
+        },
+      })
+      for (const text of ["second", "third"]) {
+        const msg = yield* ssn.updateMessage({
+          id: MessageID.ascending(),
+          role: "user",
+          sessionID: info.id,
+          agent: "build",
+          model: ref,
+          time: { created: Date.now() },
+        })
+        yield* ssn.updatePart({
+          id: PartID.ascending(),
+          messageID: msg.id,
+          sessionID: info.id,
+          type: "text",
+          text,
+        })
+      }
+      return info.id
+    })
+
+  it.live(
+    "prunes by default without config",
+    provideTmpdirInstance((dir) =>
+      Effect.gen(function* () {
+        const compact = yield* SessionCompaction.Service
+        const ssn = yield* SessionNs.Service
+        const sessionID = yield* seedPrunable(dir)
+
+        yield* compact.prune({ sessionID })
+
+        const msgs = yield* ssn.messages({ sessionID })
+        const part = msgs.flatMap((msg) => msg.parts).find((part) => part.type === "tool")
+        expect(part?.type).toBe("tool")
+        expect(part?.state.status).toBe("completed")
+        if (part?.type === "tool" && part.state.status === "completed") {
+          expect(part.state.time.compacted).toBeNumber()
+        }
+      }),
+    ),
+  )
+
+  it.live(
+    "skips pruning when disabled via config",
+    provideTmpdirInstance(
+      (dir) =>
+        Effect.gen(function* () {
+          const compact = yield* SessionCompaction.Service
+          const ssn = yield* SessionNs.Service
+          const sessionID = yield* seedPrunable(dir)
+
+          yield* compact.prune({ sessionID })
+
+          const msgs = yield* ssn.messages({ sessionID })
+          const part = msgs.flatMap((msg) => msg.parts).find((part) => part.type === "tool")
+          expect(part?.type).toBe("tool")
+          if (part?.type === "tool" && part.state.status === "completed") {
+            expect(part.state.time.compacted).toBeUndefined()
+          }
+        }),
+      {
+        config: {
+          compaction: { prune: false },
+        },
+      },
+    ),
+  )
 })
 
 describe("session.compaction.process", () => {
@@ -902,6 +1035,74 @@ describe("session.compaction.process", () => {
         expect(JSON.stringify(summary.info.error)).toContain("Session too large to compact")
       }
     }).pipe(withCompaction({ result: "compact" })),
+  )
+
+  itCompaction.instance(
+    "keeps summarized history when compaction fails",
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const session = yield* ssn.create({})
+      yield* createUserMessage(session.id, "first")
+      yield* createUserMessage(session.id, "second")
+      yield* createUserMessage(session.id, "third")
+      yield* createSummaryCompaction(session.id)
+
+      const msgs = yield* ssn.messages({ sessionID: session.id })
+      const parent = msgs.at(-1)?.info.id
+      expect(parent).toBeTruthy()
+      if (!parent) return
+
+      // Non-overflow auto compaction whose summarization fails ("compact"): the
+      // old head messages must survive, since deletion must happen only after a
+      // summary has been produced. Regression for history-loss on failed compaction.
+      const result = yield* SessionCompaction.use.process({
+        parentID: parent,
+        messages: msgs,
+        sessionID: session.id,
+        auto: true,
+      })
+
+      expect(result).toBe("stop")
+      const texts = (yield* ssn.messages({ sessionID: session.id }))
+        .flatMap((msg) => msg.parts)
+        .flatMap((part) => (part.type === "text" ? [part.text] : []))
+      expect(texts).toContain("first")
+      expect(texts).toContain("second")
+    }).pipe(withCompaction({ result: "compact", config: cfg({ tail_turns: 1, preserve_recent_tokens: 100 }) })),
+  )
+
+  itCompaction.instance(
+    "keeps summarized history when processing stops with an error",
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const session = yield* ssn.create({})
+      yield* createUserMessage(session.id, "first")
+      yield* createUserMessage(session.id, "second")
+      yield* createUserMessage(session.id, "third")
+      yield* createSummaryCompaction(session.id)
+
+      const msgs = yield* ssn.messages({ sessionID: session.id })
+      const parent = msgs.at(-1)?.info.id
+      expect(parent).toBeTruthy()
+      if (!parent) return
+
+      // Processing that stops with an errored assistant message ("stop" +
+      // message.error) produced no valid summary either, so the summarized
+      // head messages must survive. Regression for history-loss on errored stop.
+      const result = yield* SessionCompaction.use.process({
+        parentID: parent,
+        messages: msgs,
+        sessionID: session.id,
+        auto: true,
+      })
+
+      expect(result).toBe("stop")
+      const texts = (yield* ssn.messages({ sessionID: session.id }))
+        .flatMap((msg) => msg.parts)
+        .flatMap((part) => (part.type === "text" ? [part.text] : []))
+      expect(texts).toContain("first")
+      expect(texts).toContain("second")
+    }).pipe(withCompaction({ result: "stop", config: cfg({ tail_turns: 1, preserve_recent_tokens: 100 }) })),
   )
 
   it.instance(

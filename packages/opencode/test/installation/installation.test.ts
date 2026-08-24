@@ -96,7 +96,7 @@ describe("installation", () => {
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("npm")
         expect(result).toBe("1.5.0")
-        expect(npmCalls).toContain(`https://registry.npmjs.org/opencode-ai/${InstallationChannel}`)
+        expect(npmCalls).toContain(`https://registry.npmjs.org/@bolt-builder/bolt-cli/${InstallationChannel}`)
       }),
     )
 
@@ -110,7 +110,7 @@ describe("installation", () => {
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("bun")
         expect(result).toBe("1.6.0")
-        expect(bunCalls).toContain(`https://registry.npmjs.org/opencode-ai/${InstallationChannel}`)
+        expect(bunCalls).toContain(`https://registry.npmjs.org/@bolt-builder/bolt-cli/${InstallationChannel}`)
       }),
     )
 
@@ -124,7 +124,7 @@ describe("installation", () => {
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("pnpm")
         expect(result).toBe("1.7.0")
-        expect(pnpmCalls).toContain(`https://registry.npmjs.org/opencode-ai/${InstallationChannel}`)
+        expect(pnpmCalls).toContain(`https://registry.npmjs.org/@bolt-builder/bolt-cli/${InstallationChannel}`)
       }),
     )
 
@@ -149,8 +149,8 @@ describe("installation", () => {
         () => jsonResponse({ versions: { stable: "2.0.0" } }),
         (cmd, args) => {
           // getBrewFormula: return core formula (no tap)
-          if (cmd === "brew" && args.includes("--formula") && args.includes("anomalyco/tap/opencode")) return ""
-          if (cmd === "brew" && args.includes("--formula") && args.includes("opencode")) return "opencode"
+          if (cmd === "brew" && args.includes("--formula") && args.includes("bolt-builder/tap/bolt-cli")) return ""
+          if (cmd === "brew" && args.includes("--formula") && args.includes("bolt-cli")) return "bolt-cli"
           return ""
         },
       ),
@@ -161,19 +161,21 @@ describe("installation", () => {
       }),
     )
 
-    const brewInfoJson = JSON.stringify({
-      formulae: [{ versions: { stable: "2.1.0" } }],
+    // stale local tap metadata reports 1.0.0; the target must come from release metadata
+    const staleBrewInfoJson = JSON.stringify({
+      formulae: [{ versions: { stable: "1.0.0" } }],
     })
     testEffect(
       testLayer(
-        () => jsonResponse({}), // HTTP not used for tap formula
+        () => jsonResponse({ tag_name: "v2.1.0" }),
         (cmd, args) => {
-          if (cmd === "brew" && args.includes("anomalyco/tap/opencode") && args.includes("--formula")) return "opencode"
-          if (cmd === "brew" && args.includes("--json=v2")) return brewInfoJson
+          if (cmd === "brew" && args.includes("bolt-builder/tap/bolt-cli") && args.includes("--formula"))
+            return "bolt-cli"
+          if (cmd === "brew" && args.includes("--json=v2")) return staleBrewInfoJson
           return ""
         },
       ),
-    ).effect("reads brew tap info JSON via CLI", () =>
+    ).effect("resolves tap installs from GitHub releases instead of stale tap metadata", () =>
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("brew")
         expect(result).toBe("2.1.0")

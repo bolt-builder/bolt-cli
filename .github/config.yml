@@ -1,0 +1,52 @@
+# Configuration for probot/welcome - https://github.com/probot/welcome
+
+# Message shown when someone opens their very first issue on the repo
+newIssueWelcomeMessage: >
+  Hey, thanks for opening your first issue on Bolt! 👋
+
+
+  I mean it — I know how easy it is to just quietly deal with a bug and move
+  on, so the fact that you took the time to write this up and share it means
+  a lot. Bolt is young (this whole project started from a fork just a little
+  while ago), so every report like this genuinely shapes where it goes next.
+
+
+  A couple of things that'll help me help you faster:
+
+  - If this is a bug, the version you're on (`bolt --version`) and your OS
+    go a long way.
+  - If this is a feature request, don't worry about it being "too small" or
+    "too weird" — I'd rather hear it than not.
+
+
+  I'll get to this as soon as I can. Thanks again for being here this early —
+  seriously, it matters.
+
+# Message shown when someone opens their very first pull request on the repo
+newPRWelcomeMessage: >
+  Whoa, a pull request! Thank you for this. 🎉
+
+
+  However big or small this change is, you didn't have to take the time to
+  do it, and you did anyway — that's the whole spirit of open source and I
+  don't take it for granted, especially this early on.
+
+
+  A few notes so things go smoothly:
+
+  - CI will run automatically on this PR — if something fails, it's usually
+    something small like a typecheck or lint issue, don't sweat it.
+  - I try to review PRs as quickly as I can, but Bolt is currently basically
+    a one-person effort, so please bear with me if it takes a bit.
+  - If you're not sure about something in the change (style, approach,
+    whatever), just leave a comment on the PR and ask — I'd much rather talk
+    it through than have you guess.
+
+
+  Welcome to Bolt. Glad you're here.
+
+# Message shown when someone's first PR gets merged
+firstPRMergeComment: >
+  🎉 Your first merged PR on Bolt! This is now officially part of the project
+  because of you. Thank you for taking the time — I hope this is the first
+  of many, but no pressure either way. Come back anytime.

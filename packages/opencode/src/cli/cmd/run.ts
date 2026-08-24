@@ -19,17 +19,27 @@ import { pathToFileURL } from "url"
 import { open } from "node:fs/promises"
 import { Effect } from "effect"
 import { UI } from "../ui"
-import { effectCmd } from "../effect-cmd"
+import { effectCmd, fail } from "../effect-cmd"
+import { Envelope } from "../envelope"
+import { ExitCode } from "../exit"
+import { Porcelain } from "../porcelain"
 import { EOL } from "os"
 import { Filesystem } from "@/util/filesystem"
 import { createOpencodeClient, type OpencodeClient, type ToolPart } from "@opencode-ai/sdk/v2"
 import { FormatError, FormatUnknownError } from "../error"
 import { INTERACTIVE_INPUT_ERROR, resolveInteractiveStdin } from "./run/runtime.stdin"
+import { Budget } from "./run/budget"
+import { OutputSchema } from "./run/schema"
+import { Plan } from "./run/plan"
+import { split } from "./run/attach"
+import { Attempt } from "./run/attempt"
+import { Report } from "./run/report"
 
 type ModelInput = Parameters<OpencodeClient["session"]["prompt"]>[0]["model"]
 
-function pick(value: string | undefined): ModelInput | undefined {
+function pick(value: string | undefined): ModelInput | "auto" | undefined {
   if (!value) return undefined
+  if (value === "auto") return "auto"
   const [providerID, ...rest] = value.split("/")
   return {
     providerID,
@@ -125,13 +135,14 @@ async function toolError(part: ToolPart) {
 
 export const RunCommand = effectCmd({
   command: "run [message..]",
-  describe: "run opencode with a message",
-  // --attach connects to a remote server (no local instance needed); the
-  // default path runs an in-process server and needs the project instance.
-  instance: (args) => !args.attach,
-  // For --dir without --attach, load instance for the resolved target dir.
-  // The handler also chdirs (preserving the legacy order: chdir → file resolution).
-  directory: (args) => (args.dir && !args.attach ? path.resolve(process.cwd(), args.dir) : process.cwd()),
+  describe: "run bolt with a message",
+  // --attach with a URL and --host connect to a remote server (no local
+  // instance needed); the default path runs an in-process server and needs
+  // the project instance.
+  instance: (args) => !split(args.attach).server && !args.host,
+  // For --dir without a server attach, load instance for the resolved target
+  // dir. The handler also chdirs (preserving the legacy order: chdir → file resolution).
+  directory: (args) => (args.dir && !split(args.attach).server ? path.resolve(process.cwd(), args.dir) : process.cwd()),
   builder: (yargs: Argv) =>
     yargs
       .positional("message", {
@@ -165,17 +176,43 @@ export const RunCommand = effectCmd({
       .option("model", {
         type: "string",
         alias: ["m"],
-        describe: "model to use in the format of provider/model",
+        describe: "model to use in the format of provider/model (or 'auto' for cheapest available)",
+      })
+      .option("best-of", {
+        type: "string",
+        describe:
+          "comma-separated provider/model list: run the same task on every model in parallel, rank the results with a judge (--model, or the first entry), keep the winner",
       })
       .option("agent", {
         type: "string",
-        describe: "agent to use",
+        describe: "agent to use (or 'auto' for automatic selection)",
+      })
+      .option("auto-agent", {
+        type: "boolean",
+        default: false,
+        describe: "route the prompt to the best matching agent based on agent descriptions",
       })
       .option("format", {
         type: "string",
         choices: ["default", "json"],
         default: "default",
         describe: "format: default (formatted) or json (raw JSON events)",
+      })
+      .option("json", {
+        type: "boolean",
+        default: false,
+        describe: Envelope.DESCRIBE,
+      })
+      .option("porcelain", {
+        type: "boolean",
+        default: false,
+        describe: Porcelain.DESCRIBE,
+      })
+      .option("emit", {
+        type: "string",
+        choices: ["context"],
+        describe:
+          "emit machine-consumable output on stdout after the run: 'context' prints the run's findings so they can be piped into another run (`bolt run ... --emit context | bolt run ...`)",
       })
       .option("file", {
         alias: ["f"],
@@ -187,9 +224,48 @@ export const RunCommand = effectCmd({
         type: "string",
         describe: "title for the session (uses truncated prompt if no value provided)",
       })
+      .option("max-cost", {
+        type: "number",
+        describe: "abort the run once its cost in USD reaches this budget",
+      })
+      .option("timeout", {
+        type: "number",
+        describe: "abort the run after this many seconds, capturing any partial result",
+      })
+      .option("retries", {
+        type: "number",
+        default: 0,
+        describe: "retry a failed or timed-out run this many times",
+      })
+      .option("max-tokens", {
+        type: "number",
+        describe: "abort the run once its total token usage reaches this budget",
+      })
+      .option("output-schema", {
+        type: "string",
+        describe: "JSON Schema file the final answer must validate against (retries until it does, bounded)",
+      })
+      .option("cost-report", {
+        type: "boolean",
+        default: false,
+        describe:
+          "report per-run tokens, cache hits, dollars, and wall time to stderr (or as a cost_report JSON event)",
+      })
       .option("attach", {
         type: "string",
-        describe: "attach to a running opencode server (e.g., http://localhost:4096)",
+        array: true,
+        describe:
+          "attach to a running bolt server (e.g., http://localhost:4096), or inject file/dir paths as context without mentioning them in the prompt (repeatable)",
+      })
+      .option("host", {
+        type: "string",
+        describe:
+          "run the agent on a remote machine over ssh (e.g., ssh://dev-box); requires bolt preinstalled on the remote",
+      })
+      .option("voice", {
+        type: "boolean",
+        default: false,
+        describe: "record a voice prompt and transcribe it locally with whisper.cpp (press Enter to stop)",
       })
       .option("password", {
         alias: ["p"],
@@ -244,6 +320,23 @@ export const RunCommand = effectCmd({
         describe: "auto-approve permissions that are not explicitly denied (dangerous!)",
         default: false,
       })
+      .option("dry-run", {
+        type: "boolean",
+        default: false,
+        describe: "show every file write and command the plan would execute without doing it",
+      })
+      .option("plan-only", {
+        type: "boolean",
+        default: false,
+        describe:
+          "CI gate: dry-run the prompt, print the full intended diff and commands, and exit nonzero if anything looks destructive",
+      })
+      .option("background", {
+        alias: ["bg"],
+        type: "boolean",
+        default: false,
+        describe: "run detached as a background job (manage with bolt jobs list/tail/kill)",
+      })
       .option("yolo", {
         type: "boolean",
         hidden: true,
@@ -259,8 +352,68 @@ export const RunCommand = effectCmd({
         default: false,
         hidden: true,
         describe: "enable direct interactive demo slash commands; pass one as the message to run it immediately",
-      }),
+      })
+      .option("pair", {
+        type: "boolean",
+        default: false,
+        hidden: true,
+        describe: "render user prompts sent by other clients on the same session",
+      })
+      .epilogue(
+        `exit codes: ${ExitCode.OK} success, ${ExitCode.ERROR} failure, ${ExitCode.BUDGET} budget hit (--max-cost/--max-tokens)`,
+      ),
   handler: Effect.fn("Cli.run")(function* (args) {
+    const attach = split(args.attach)
+    if (attach.error) {
+      UI.error(attach.error)
+      process.exit(1)
+    }
+    if (args.background) {
+      if (args.interactive || attach.server) {
+        UI.error("--background cannot be used with --interactive or a server --attach")
+        process.exit(1)
+      }
+      const { spawnJob } = yield* Effect.promise(() => import("./jobs"))
+      const skip = new Set(["--background", "--bg"])
+      const argv = process.argv.slice(2).filter((arg) => !skip.has(arg))
+      const job = spawnJob(argv, process.cwd())
+      UI.println(`Started background job ${job.id} (pid ${job.pid}).`)
+      UI.println(`Tail it with: bolt jobs tail ${job.id} --follow`)
+      return
+    }
+    if (args.host) {
+      if (args.attach) {
+        UI.error("--host cannot be used with --attach")
+        process.exit(1)
+      }
+      const host = args.host
+      const { Ssh } = yield* Effect.promise(() => import("../ssh"))
+      const { errorMessage } = yield* Effect.promise(() => import("@/util/error"))
+      const remote = yield* Effect.tryPromise({
+        try: () => Ssh.connect({ host }),
+        catch: (error) => errorMessage(error),
+      }).pipe(Effect.catch((message) => fail(message)))
+      // Reuse the whole --attach path: SDK, session, and streaming all work
+      // through the forwarded local port.
+      attach.server = remote.url
+      UI.println(UI.Style.TEXT_DIM + `Running on ${host} via ${remote.url}` + UI.Style.TEXT_NORMAL)
+    }
+    const server = attach.server
+
+    if (args.voice) {
+      if (args.mini) {
+        UI.error("--voice cannot be used with --mini")
+        process.exit(1)
+      }
+      if (!process.stdin.isTTY) {
+        UI.error("--voice requires a TTY stdin")
+        process.exit(1)
+      }
+      const { CliVoice } = yield* Effect.promise(() => import("../voice"))
+      const text = yield* CliVoice.capture()
+      // Append the transcript to any message given on the command line.
+      args.message = [...args.message, text]
+    }
     const { Agent } = yield* Effect.promise(() => import("@/agent/agent"))
     const { RuntimeFlags } = yield* Effect.promise(() => import("@/effect/runtime-flags"))
     const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
@@ -305,6 +458,58 @@ export const RunCommand = effectCmd({
         die("--mini cannot be used with --format json")
       }
 
+      if (args.json && args.format === "json") {
+        die("--json cannot be used with --format json")
+      }
+
+      if (args.json && interactive) {
+        die("--json cannot be used with --mini")
+      }
+
+      if (args.json && args["best-of"]) {
+        die("--json cannot be used with --best-of")
+      }
+
+      if (args.json && server) {
+        die("--json cannot be used with a server --attach")
+      }
+
+      if (args.emit && args.json) {
+        die("--emit cannot be used with --json")
+      }
+
+      if (args.emit && args.format === "json") {
+        die("--emit cannot be used with --format json")
+      }
+
+      if (args.emit && interactive) {
+        die("--emit cannot be used with --mini")
+      }
+
+      if (args.emit && args["best-of"]) {
+        die("--emit cannot be used with --best-of")
+      }
+
+      if (args.emit && server) {
+        die("--emit cannot be used with a server --attach")
+      }
+
+      if (args.porcelain && args.json) {
+        die("--porcelain cannot be used with --json")
+      }
+
+      if (args.porcelain && args.format === "json") {
+        die("--porcelain cannot be used with --format json")
+      }
+
+      if (args.porcelain && interactive) {
+        die("--porcelain cannot be used with --mini")
+      }
+
+      if (args.porcelain && args["best-of"]) {
+        die("--porcelain cannot be used with --best-of")
+      }
+
       if (args["replay-limit"] !== undefined && !interactive) {
         die("--replay-limit requires --mini")
       }
@@ -332,8 +537,8 @@ export const RunCommand = effectCmd({
 
       const root = Filesystem.resolve(process.env.PWD ?? process.cwd())
       const directory = (() => {
-        if (!args.dir) return args.attach ? undefined : root
-        if (args.attach) return args.dir
+        if (!args.dir) return server ? undefined : root
+        if (server) return args.dir
 
         try {
           process.chdir(path.isAbsolute(args.dir) ? args.dir : path.join(root, args.dir))
@@ -343,23 +548,24 @@ export const RunCommand = effectCmd({
           process.exit(1)
         }
       })()
-      const attachHeaders = args.attach
+      const attachHeaders = server
         ? ServerAuth.headers({ password: args.password, username: args.username })
         : undefined
-      const attachSDK = (dir?: string) => {
+      const attachSDK = (baseUrl: string, dir?: string) => {
         return createOpencodeClient({
-          baseUrl: args.attach!,
+          baseUrl,
           directory: dir,
           headers: attachHeaders,
         })
       }
 
       const files: FilePart[] = []
-      if (args.file) {
-        const list = Array.isArray(args.file) ? args.file : [args.file]
-
+      // Context paths passed via --attach ride the same file-part pipeline as
+      // --file: they reach the model as attachments, never as prompt text.
+      const list = [...(args.file ? (Array.isArray(args.file) ? args.file : [args.file]) : []), ...attach.paths]
+      if (list.length > 0) {
         for (const filePath of list) {
-          const resolvedPath = path.resolve(args.attach ? root : (directory ?? root), filePath)
+          const resolvedPath = path.resolve(server ? root : (directory ?? root), filePath)
           if (!(await Filesystem.exists(resolvedPath))) {
             UI.error(`File not found: ${filePath}`)
             process.exit(1)
@@ -367,13 +573,13 @@ export const RunCommand = effectCmd({
 
           const stat = Filesystem.stat(resolvedPath)
           const isDirectory = stat?.isDirectory() ?? false
-          if (args.attach && isDirectory) {
+          if (server && isDirectory) {
             UI.error(`Cannot attach local directory without a shared filesystem: ${filePath}`)
             process.exit(1)
           }
 
           const content = await (async () => {
-            if (!args.attach) return
+            if (!server) return
             const handle = await open(resolvedPath, "r")
             try {
               const opened = await handle.stat()
@@ -396,7 +602,7 @@ export const RunCommand = effectCmd({
           })()
           const detected = FSUtil.mimeType(resolvedPath)
           const text = content?.toString("utf8")
-          const mime = !args.attach
+          const mime = !server
             ? isDirectory
               ? "application/x-directory"
               : "text/plain"
@@ -413,7 +619,8 @@ export const RunCommand = effectCmd({
         }
       }
 
-      const piped = process.stdin.isTTY ? undefined : await Bun.stdin.text()
+      const { Stdin } = await import("../stdin")
+      const piped = await Stdin.piped()
       message = resolveRunInput(message, piped) ?? ""
       const initialInput = resolveRunInput(rawMessage, piped)
 
@@ -425,6 +632,77 @@ export const RunCommand = effectCmd({
       if (args.fork && !args.continue && !args.session) {
         UI.error("--fork requires --continue or --session")
         process.exit(1)
+      }
+
+      if (args["best-of"]) {
+        if (interactive) die("--best-of cannot be used with --mini")
+        if (args.command) die("--best-of cannot be used with --command")
+        if (args.session || args.continue || args.fork) die("--best-of always runs in fresh sessions")
+      }
+
+      const dry = args["dry-run"] || args["plan-only"]
+      if (dry) {
+        const flag = args["dry-run"] ? "--dry-run" : "--plan-only"
+        if (interactive) die(`${flag} cannot be used with --mini`)
+        if (args["best-of"]) die(`${flag} cannot be used with --best-of`)
+        if (args.session || args.continue) die(`${flag} requires a fresh session`)
+        if (args["plan-only"] && server) die("--plan-only cannot be used with a server --attach")
+        if (args["plan-only"] && args.command) die("--plan-only cannot be used with --command")
+        if (args.format !== "json") {
+          UI.println(
+            UI.Style.TEXT_INFO_BOLD + "→",
+            UI.Style.TEXT_NORMAL,
+            args["plan-only"]
+              ? "Plan only: file writes and shell commands will be reported and gated, not executed"
+              : "Dry run: file writes and shell commands will be reported, not executed",
+          )
+        }
+      }
+
+      const limits = { cost: args["max-cost"], tokens: args["max-tokens"] }
+      if (limits.cost !== undefined && !(limits.cost > 0)) {
+        die("--max-cost must be a positive number")
+      }
+      if (limits.tokens !== undefined && (!Number.isInteger(limits.tokens) || limits.tokens <= 0)) {
+        die("--max-tokens must be a positive integer")
+      }
+      if (interactive && (limits.cost !== undefined || limits.tokens !== undefined)) {
+        die("--mini cannot be used with --max-cost or --max-tokens")
+      }
+      if (args["cost-report"]) {
+        if (interactive) die("--cost-report cannot be used with --mini")
+        if (args["best-of"]) die("--cost-report cannot be used with --best-of")
+        if (args.attach) die("--cost-report cannot be used with --attach")
+      }
+
+      const schema = await (async () => {
+        if (!args["output-schema"]) return undefined
+        if (interactive) die("--output-schema cannot be used with --mini")
+        if (args.command) die("--output-schema cannot be used with --command")
+        if (args["best-of"]) die("--output-schema cannot be used with --best-of")
+        const file = Bun.file(path.resolve(root, args["output-schema"]))
+        if (!(await file.exists())) die(`Schema file not found: ${args["output-schema"]}`)
+        const parsed = OutputSchema.payload(await file.text())
+        if (!parsed) return die(`Schema file is not valid JSON: ${args["output-schema"]}`)
+        return parsed.value
+      })()
+
+      const bounds = { timeout: args.timeout, retries: args.retries }
+      const invalid = Attempt.invalid(bounds)
+      if (invalid) die(invalid)
+      if (interactive && (args.timeout !== undefined || args.retries > 0)) {
+        die("--mini cannot be used with --timeout or --retries")
+      }
+      if (args["best-of"] && (args.timeout !== undefined || args.retries > 0)) {
+        die("--best-of cannot be used with --timeout or --retries")
+      }
+
+      if (args["auto-agent"]) {
+        if (args.agent) die("--auto-agent cannot be used with --agent")
+        if (interactive) die("--auto-agent cannot be used with --mini")
+        if (server) die("--auto-agent cannot be used with --attach")
+        if (args.command) die("--auto-agent cannot be used with --command")
+        if (args["best-of"]) die("--auto-agent cannot be used with --best-of")
       }
 
       const rules: PermissionV1.Ruleset = interactive
@@ -518,6 +796,7 @@ export const RunCommand = effectCmd({
         const name = title()
         const result = await sdk.session.create({
           title: name,
+          metadata: dry ? { dryrun: true } : undefined,
           permission: [...rules],
         })
         const id = result.data?.id
@@ -547,17 +826,29 @@ export const RunCommand = effectCmd({
         }
       }
 
+      function resolveAutoModel(model: ModelInput | "auto" | undefined) {
+        if (model !== "auto") return model
+        UI.println(
+          UI.Style.TEXT_INFO_BOLD + "→",
+          UI.Style.TEXT_NORMAL,
+          `Using server-side default model selection (cheapest available)`,
+        )
+        return undefined
+      }
+
       async function createFreshSession(
         sdk: OpencodeClient,
-        input: { agent: string | undefined; model: ModelInput | undefined; variant: string | undefined },
+        input: { agent: string | undefined; model: ModelInput | "auto" | undefined; variant: string | undefined },
       ): Promise<SessionInfo> {
+        const resolvedModel = resolveAutoModel(input.model)
         const result = await sdk.session.create({
           title: args.title !== undefined && args.title !== "" ? args.title : undefined,
+          metadata: dry ? { dryrun: true } : undefined,
           agent: input.agent,
-          model: input.model
+          model: resolvedModel
             ? {
-                providerID: input.model.providerID,
-                id: input.model.modelID,
+                providerID: resolvedModel.providerID,
+                id: resolvedModel.modelID,
                 variant: input.variant,
               }
             : undefined,
@@ -576,7 +867,7 @@ export const RunCommand = effectCmd({
       }
 
       async function current(sdk: OpencodeClient): Promise<string> {
-        if (!args.attach) {
+        if (!server) {
           return directory ?? root
         }
 
@@ -592,9 +883,18 @@ export const RunCommand = effectCmd({
         process.exit(1)
       }
 
+      function handleAutoAgent(name: string): string | undefined {
+        if (name === "auto") {
+          UI.println(UI.Style.TEXT_INFO_BOLD + "→", UI.Style.TEXT_NORMAL, `Using default agent`)
+          return undefined
+        }
+        return name
+      }
+
       async function localAgent() {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = handleAutoAgent(args.agent)
+        if (!name) return undefined
 
         const entry = await Effect.runPromise(
           agentSvc.get(name).pipe(Effect.provideService(InstanceRef, localInstance)),
@@ -620,7 +920,8 @@ export const RunCommand = effectCmd({
 
       async function attachAgent(sdk: OpencodeClient) {
         if (!args.agent) return undefined
-        const name = args.agent
+        const name = handleAutoAgent(args.agent)
+        if (!name) return undefined
 
         const modes = await sdk.app
           .agents(undefined, { throwOnError: true })
@@ -631,7 +932,7 @@ export const RunCommand = effectCmd({
           UI.println(
             UI.Style.TEXT_WARNING_BOLD + "!",
             UI.Style.TEXT_NORMAL,
-            `failed to list agents from ${args.attach}. Falling back to default agent`,
+            `failed to list agents from ${server}. Falling back to default agent`,
           )
           return undefined
         }
@@ -658,9 +959,32 @@ export const RunCommand = effectCmd({
         return name
       }
 
+      // Deterministic prompt routing (--auto-agent): score the prompt against
+      // primary agent descriptions and fall back to the default agent when no
+      // candidate is a confident match. The one-line explanation is suppressed
+      // in --format json so machine output stays clean.
+      async function routedAgent() {
+        const { route, explain } = await import("./run/route")
+        const infos = await Effect.runPromise(agentSvc.list().pipe(Effect.provideService(InstanceRef, localInstance)))
+        const fallback = await Effect.runPromise(
+          agentSvc.defaultAgent().pipe(Effect.provideService(InstanceRef, localInstance)),
+        )
+        const choice = route(
+          message,
+          infos
+            .filter((info) => info.mode !== "subagent" && info.hidden !== true && info.name !== fallback)
+            .map((info) => ({ name: info.name, description: info.description })),
+        )
+        if (args.format !== "json") {
+          UI.println(UI.Style.TEXT_DIM + explain(choice, fallback) + UI.Style.TEXT_NORMAL)
+        }
+        return choice?.agent
+      }
+
       async function pickAgent(sdk: OpencodeClient) {
+        if (args["auto-agent"]) return routedAgent()
         if (!args.agent) return undefined
-        if (args.attach) {
+        if (server) {
           return attachAgent(sdk)
         }
 
@@ -668,12 +992,37 @@ export const RunCommand = effectCmd({
       }
 
       async function execute(sdk: OpencodeClient) {
+        if (args["best-of"]) {
+          const { parseCandidates, runBestOf } = await import("./run/best-of")
+          const candidates = parseCandidates(args["best-of"])
+          if (typeof candidates === "string") return die(candidates)
+          const resolvedModel = resolveAutoModel(pick(args.model))
+          const exit = await runBestOf({
+            sdk: server ? attachSDK(server, directory ?? (await current(sdk))) : sdk,
+            candidates,
+            judge: resolvedModel ?? candidates[0],
+            message,
+            parts: [...files, { type: "text", text: message }],
+            agent: args.agent,
+            variant: args.variant,
+            permission: [...rules],
+            json: args.format === "json",
+          })
+          if (exit) process.exitCode = exit
+          return
+        }
+        const started = Date.now()
+        let usage = Report.empty
         const sess = await session(sdk)
         if (!sess?.id) {
           UI.error("Session not found")
           process.exit(1)
         }
         const sessionID = sess.id
+        // Final text parts collected for the --json envelope or --emit context, printed on finish.
+        const collected: string[] = []
+        // Porcelain records are frozen: kind first, then fields; see ../porcelain.ts.
+        if (args.porcelain) Porcelain.print("session", sessionID)
 
         function emit(type: string, data: Record<string, unknown>) {
           if (args.format === "json") {
@@ -690,6 +1039,8 @@ export const RunCommand = effectCmd({
           return false
         }
 
+        const plan: Plan.Entry[] = []
+
         // Consume one subscribed event stream for the active session and mirror it
         // to stdout/UI. `client` is passed explicitly because attach mode may
         // rebind the SDK to the session's directory after the subscription is
@@ -698,6 +1049,8 @@ export const RunCommand = effectCmd({
           const toggles = new Map<string, boolean>()
           const sessions = new Set([sessionID])
           let error: string | undefined
+          let budget = Budget.empty
+          let breached = false
 
           for await (const event of events.stream) {
             if (event.type === "session.created" && event.properties.info.parentID) {
@@ -722,7 +1075,15 @@ export const RunCommand = effectCmd({
               if (part.sessionID !== sessionID) continue
 
               if (part.type === "tool" && (part.state.status === "completed" || part.state.status === "error")) {
+                if (args["plan-only"]) {
+                  const entry = Plan.collect(part)
+                  if (entry) plan.push(entry)
+                }
                 if (emit("tool_use", { part })) continue
+                if (args.porcelain) {
+                  Porcelain.print("tool", part.tool, part.state.status)
+                  continue
+                }
                 if (part.state.status === "completed") {
                   await tool(part)
                   continue
@@ -735,7 +1096,8 @@ export const RunCommand = effectCmd({
                 part.type === "tool" &&
                 part.tool === "task" &&
                 part.state.status === "running" &&
-                args.format !== "json"
+                args.format !== "json" &&
+                !args.porcelain
               ) {
                 if (toggles.get(part.id) === true) continue
                 await tool(part)
@@ -747,6 +1109,21 @@ export const RunCommand = effectCmd({
               }
 
               if (part.type === "step-finish") {
+                budget = Budget.add(budget, part)
+                if (args["cost-report"]) usage = Report.add(usage, part)
+                const breach = Budget.exceeded(budget, limits)
+                if (breach && !breached) {
+                  breached = true
+                  process.exitCode = ExitCode.BUDGET
+                  if (args.porcelain) {
+                    Porcelain.print("budget", breach)
+                  } else if (!emit("budget_exceeded", { budget, message: breach })) {
+                    UI.error(`${breach}; aborting the session`)
+                  }
+                  await client.session.abort({ sessionID }).catch(() => {
+                    // best-effort abort: the breach is already reported and the exit code is set
+                  })
+                }
                 if (emit("step_finish", { part })) continue
               }
 
@@ -754,6 +1131,14 @@ export const RunCommand = effectCmd({
                 if (emit("text", { part })) continue
                 const text = part.text.trim()
                 if (!text) continue
+                if (args.json || args.emit === "context") {
+                  collected.push(text)
+                  continue
+                }
+                if (args.porcelain) {
+                  Porcelain.print("text", text)
+                  continue
+                }
                 if (!process.stdout.isTTY) {
                   process.stdout.write(text + EOL)
                   continue
@@ -765,8 +1150,13 @@ export const RunCommand = effectCmd({
 
               if (part.type === "reasoning" && part.time?.end && thinking) {
                 if (emit("reasoning", { part })) continue
+                if (args.json) continue
                 const text = part.text.trim()
                 if (!text) continue
+                if (args.porcelain) {
+                  Porcelain.print("reasoning", text)
+                  continue
+                }
                 const line = `Thinking: ${text}`
                 if (process.stdout.isTTY) {
                   UI.empty()
@@ -787,6 +1177,10 @@ export const RunCommand = effectCmd({
               }
               error = error ? error + EOL + err : err
               if (emit("error", { error: props.error })) continue
+              if (args.porcelain) {
+                Porcelain.print("error", err)
+                continue
+              }
               UI.error(err)
             }
 
@@ -822,11 +1216,14 @@ export const RunCommand = effectCmd({
           }
           return error
         }
-        const cwd = args.attach ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
-        const client = args.attach ? attachSDK(cwd) : sdk
+        const cwd = server ? (directory ?? sess.directory ?? (await current(sdk))) : (directory ?? root)
+        const client = server ? attachSDK(server, cwd) : sdk
 
         // Validate agent if specified
         const agent = await pickAgent(client)
+
+        // Resolve auto model selection
+        const resolvedModel = resolveAutoModel(pick(args.model))
 
         await share(client, sessionID)
 
@@ -837,47 +1234,209 @@ export const RunCommand = effectCmd({
             process.exitCode = 1
           })
           async function finish() {
-            if (args.attach) return
+            if (server) return
             const error = await completed
-            if (error) process.exitCode = 1
+            // Do not clobber a more specific class (e.g. a budget breach) already set by the loop.
+            if (error && !process.exitCode) process.exitCode = ExitCode.ERROR
+            if (args["plan-only"]) {
+              const findings = Plan.verdict(plan)
+              if (!emit("plan", { entries: plan, findings })) {
+                UI.empty()
+                UI.println(Plan.render(plan))
+                UI.empty()
+                for (const finding of findings) {
+                  UI.error(`destructive ${finding.entry.kind}: ${finding.entry.detail} (${finding.reason})`)
+                }
+                if (findings.length === 0) UI.println("Plan gate: nothing destructive detected.")
+              }
+              if (findings.length > 0) process.exitCode = ExitCode.GATE
+            }
+            if (args["cost-report"]) {
+              const wall = Date.now() - started
+              if (!emit("cost_report", Report.json(usage, wall))) {
+                process.stderr.write(Report.render(usage, wall) + EOL)
+              }
+            }
+            if (args.json) {
+              if (error) {
+                Envelope.printError("SessionError", error)
+                return
+              }
+              Envelope.print({ sessionID, text: collected.join("\n\n") })
+              return
+            }
+            if (args.emit !== "context") return
+            const { context } = await import("./run/emit")
+            process.stdout.write(context(sessionID, collected) + EOL)
+          }
+
+          // Race one attempt against the --timeout clock. The work promise is
+          // silenced when the clock wins so a late rejection stays handled.
+          async function bounded<T>(work: Promise<T>): Promise<T | "timeout"> {
+            if (!args.timeout) return work
+            let handle: ReturnType<typeof setTimeout> | undefined
+            const clock = new Promise<"timeout">((resolve) => {
+              handle = setTimeout(() => resolve("timeout"), args.timeout! * 1000)
+            })
+            const raced = await Promise.race([work, clock])
+            if (handle !== undefined) clearTimeout(handle)
+            if (raced === "timeout") void Promise.resolve(work).catch(() => {})
+            return raced
+          }
+
+          // Abort the timed-out attempt and surface whatever partial result
+          // the assistant already produced.
+          async function timedOut(index: number) {
+            await client.session.abort({ sessionID }).catch(() => {
+              // best-effort abort: the timeout is already reported
+            })
+            const messages = await client.session.messages({ sessionID }).catch(() => undefined)
+            const text = Attempt.partial(messages?.data ?? [])
+            if (emit("timeout", { attempt: index, attempts: Attempt.attempts(bounds), partial: text })) return
+            UI.error(Attempt.report(index, bounds))
+            if (!text) return
+            UI.println("Partial result before the timeout:")
+            UI.empty()
+            UI.println(text)
+            UI.empty()
+          }
+
+          // Send the prompt or command, retrying failed and timed-out
+          // attempts while the --retries budget lasts.
+          async function deliver<T extends { error?: unknown }>(
+            label: string,
+            send: () => Promise<T>,
+          ): Promise<{ result: T; index: number } | undefined> {
+            for (let index = 1; ; index++) {
+              const result = await bounded(send())
+              if (result === "timeout") {
+                await timedOut(index)
+                if (Attempt.again(index, bounds)) continue
+                process.exitCode = ExitCode.TIMEOUT
+                return undefined
+              }
+              if (result.error) {
+                if (args.json && !Attempt.again(index, bounds)) {
+                  Envelope.printError(label, formatRunError(result.error))
+                  process.exitCode = ExitCode.ERROR
+                  return undefined
+                }
+                if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
+                if (Attempt.again(index, bounds)) {
+                  if (args.format !== "json") {
+                    UI.println(
+                      UI.Style.TEXT_WARNING_BOLD + "!",
+                      UI.Style.TEXT_NORMAL + `attempt ${index}/${Attempt.attempts(bounds)} failed; retrying`,
+                    )
+                  }
+                  continue
+                }
+                process.exitCode = ExitCode.ERROR
+                return undefined
+              }
+              return { result, index }
+            }
           }
 
           if (args.command) {
-            const result = await client.session.command({
+            const done = await deliver("CommandError", () =>
+              client.session.command({
+                sessionID,
+                agent,
+                model: resolvedModel ? `${resolvedModel.providerID}/${resolvedModel.modelID}` : undefined,
+                command: args.command!,
+                arguments: message,
+                variant: args.variant,
+              }),
+            )
+            if (!done) return
+            await finish()
+            // the run succeeded on a retry; earlier attempts must not fail the exit code
+            if (done.index > 1) process.exitCode = 0
+            return
+          }
+
+          const done = await deliver("PromptError", () =>
+            client.session.prompt({
               sessionID,
               agent,
-              model: args.model,
-              command: args.command,
-              arguments: message,
+              model: resolvedModel,
               variant: args.variant,
+              parts: [
+                ...files,
+                { type: "text", text: schema ? `${message}\n\n${OutputSchema.instructions(schema)}` : message },
+              ],
+            }),
+          )
+          if (!done) return
+          const result = done.result
+          if (done.index > 1 && args.format !== "json") {
+            // the event loop ended when the first attempt went idle, so print the retried answer here
+            const parts = result.data?.parts ?? []
+            const retried = parts.findLast((part) => part.type === "text")?.text?.trim()
+            if (retried && process.stdout.isTTY) {
+              UI.empty()
+              UI.println(retried)
+              UI.empty()
+            }
+            if (retried && !process.stdout.isTTY) process.stdout.write(retried + EOL)
+          }
+          await finish()
+          // the run succeeded on a retry; earlier attempts must not fail the exit code
+          if (done.index > 1) process.exitCode = 0
+          if (schema === undefined) return
+
+          // Validate the final answer against the schema, re-prompting with the
+          // validation errors until it passes or the attempt budget runs out.
+          const answer = (parts: { type: string; text?: string }[]) =>
+            parts.findLast((part) => part.type === "text")?.text ?? ""
+          let text = answer(result.data?.parts ?? [])
+          for (let attempt = 1; ; attempt++) {
+            const value = OutputSchema.payload(text)
+            const errors = value ? OutputSchema.validate(schema, value.value) : ["$: the answer is not valid JSON"]
+            if (value && errors.length === 0) {
+              emit("schema_valid", { attempt, value: value.value })
+              return
+            }
+            if (attempt >= OutputSchema.ATTEMPTS) {
+              process.exitCode = 1
+              if (emit("schema_invalid", { attempt, errors })) return
+              UI.error(`The answer failed schema validation after ${attempt} attempts`)
+              for (const error of errors) UI.error(error)
+              return
+            }
+            if (!emit("schema_retry", { attempt, errors })) {
+              UI.println(
+                UI.Style.TEXT_WARNING_BOLD + "!",
+                UI.Style.TEXT_NORMAL +
+                  `answer failed schema validation (attempt ${attempt}/${OutputSchema.ATTEMPTS}); retrying`,
+              )
+            }
+            const retry = await client.session.prompt({
+              sessionID,
+              agent,
+              model: resolvedModel,
+              variant: args.variant,
+              parts: [{ type: "text", text: OutputSchema.feedback(errors) }],
             })
-            if (result.error) {
-              if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
+            if (retry.error) {
+              if (!emit("error", { error: retry.error })) UI.error(formatRunError(retry.error))
               process.exitCode = 1
               return
             }
-            await finish()
-            return
+            text = answer(retry.data?.parts ?? [])
+            // The event loop ended at the first idle, so print retry answers here.
+            if (text.trim() && args.format !== "json") {
+              if (process.stdout.isTTY) {
+                UI.empty()
+                UI.println(text.trim())
+                UI.empty()
+              }
+              if (!process.stdout.isTTY) process.stdout.write(text.trim() + EOL)
+            }
           }
-
-          const model = pick(args.model)
-          const result = await client.session.prompt({
-            sessionID,
-            agent,
-            model,
-            variant: args.variant,
-            parts: [...files, { type: "text", text: message }],
-          })
-          if (result.error) {
-            if (!emit("error", { error: result.error })) UI.error(formatRunError(result.error))
-            process.exitCode = 1
-            return
-          }
-          await finish()
-          return
         }
 
-        const model = pick(args.model)
         const { runInteractiveMode } = await import("./run/runtime")
         try {
           await runInteractiveMode({
@@ -886,10 +1445,11 @@ export const RunCommand = effectCmd({
             sessionID,
             sessionTitle: sess.title,
             resume: Boolean(args.session || args.continue) && !args.fork,
+            pair: args.pair,
             replay,
             replayLimit: args["replay-limit"],
             agent,
-            model,
+            model: resolvedModel,
             variant: args.variant,
             files,
             initialInput,
@@ -904,17 +1464,13 @@ export const RunCommand = effectCmd({
         return
       }
 
-      if (interactive && !args.attach && !args.session && !args.continue) {
+      const { ServerLocalFetch } = await import("@/server/local-fetch")
+      const fetchFn = ServerLocalFetch.fetchFn
+
+      if (interactive && !server && !args.session && !args.continue) {
         const model = pick(args.model)
+        const resolvedModel = model === "auto" ? undefined : model
         const { runInteractiveLocalMode } = await import("./run/runtime")
-        const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-          const { Server } = await import("@/server/server")
-          const request = new Request(input, init)
-          const headers = new Headers(request.headers)
-          const auth = ServerAuth.header()
-          if (auth) headers.set("Authorization", auth)
-          return Server.Default().app.fetch(new Request(request, { headers }))
-        }) as typeof globalThis.fetch
 
         try {
           return await runInteractiveLocalMode({
@@ -925,7 +1481,7 @@ export const RunCommand = effectCmd({
             share,
             createSession: createFreshSession,
             agent: args.agent,
-            model,
+            model: resolvedModel,
             variant: args.variant,
             replay,
             replayLimit: args["replay-limit"],
@@ -940,19 +1496,26 @@ export const RunCommand = effectCmd({
         }
       }
 
-      if (args.attach) {
-        const sdk = attachSDK(directory)
+      if (server) {
+        const sdk = attachSDK(server, directory)
         return await execute(sdk)
       }
 
-      const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
-        const { Server } = await import("@/server/server")
-        const request = new Request(input, init)
-        const headers = new Headers(request.headers)
-        const auth = ServerAuth.header()
-        if (auth) headers.set("Authorization", auth)
-        return Server.Default().app.fetch(new Request(request, { headers }))
-      }) as typeof globalThis.fetch
+      // Route one-shot prompts through a running `bolt daemon` so they reuse
+      // its warm server instead of booting one in-process. A stale or
+      // unreachable record falls back to the in-process server below.
+      const { Daemon } = await import("../daemon")
+      const daemon = await Daemon.detect()
+      if (daemon) {
+        const { ServerAuth } = await import("@/server/auth")
+        const sdk = createOpencodeClient({
+          baseUrl: daemon.url,
+          headers: ServerAuth.headers(),
+          directory,
+        })
+        return await execute(sdk)
+      }
+
       const sdk = createOpencodeClient({
         baseUrl: "http://opencode.internal",
         fetch: fetchFn,
@@ -977,6 +1540,7 @@ type MiniCommandInput = {
   replay?: boolean
   replayLimit?: number
   demo?: boolean
+  pair?: boolean
 }
 
 export async function runMini(input: MiniCommandInput) {
@@ -991,11 +1555,30 @@ export async function runMini(input: MiniCommandInput) {
     fork: input.fork,
     share: undefined,
     model: input.model,
+    "best-of": undefined,
+    bestOf: undefined,
+    "max-cost": undefined,
+    maxCost: undefined,
+    "max-tokens": undefined,
+    maxTokens: undefined,
+    "output-schema": undefined,
+    outputSchema: undefined,
+    timeout: undefined,
+    retries: 0,
+    "cost-report": false,
+    costReport: false,
     agent: input.agent,
+    "auto-agent": false,
+    autoAgent: false,
     format: "default",
+    json: false,
+    emit: undefined,
+    porcelain: false,
     file: undefined,
     title: undefined,
-    attach: input.attach,
+    attach: input.attach ? [input.attach] : undefined,
+    host: undefined,
+    voice: false,
     password: input.password,
     username: input.username,
     dir: input.directory,
@@ -1008,9 +1591,15 @@ export async function runMini(input: MiniCommandInput) {
     "replay-limit": input.replayLimit,
     replayLimit: input.replayLimit,
     auto: false,
+    background: false,
+    "dry-run": false,
+    dryRun: false,
+    "plan-only": false,
+    planOnly: false,
     yolo: false,
     "dangerously-skip-permissions": false,
     dangerouslySkipPermissions: false,
     demo: input.demo ?? false,
+    pair: input.pair ?? false,
   })
 }

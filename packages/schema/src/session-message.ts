@@ -1,11 +1,10 @@
 export * as SessionMessage from "./session-message"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { ProviderMetadata, ToolContent } from "./llm"
 import { Model } from "./model"
 import { FileAttachment, Prompt } from "./prompt"
-import { DateTimeUtcFromMillis, RelativePath, statics } from "./schema"
+import { DateTimeUtcFromMillis, RelativePath, optional, statics } from "./schema"
 import { SessionID } from "./session-id"
 import { ascending } from "./identifier"
 

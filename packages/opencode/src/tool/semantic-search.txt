@@ -1,0 +1,10 @@
+Find code by meaning instead of exact text. Describe what you are looking for ("where sessions get refreshed", "retry backoff logic") and get ranked code snippets.
+
+- Query terms and code identifiers are both split on camelCase/snake_case boundaries and stemmed, so "refreshSession" matches `refresh_session`, "refreshing sessions", and `SessionRefresher`
+- Chunks that define a matching symbol rank above chunks that merely use it
+- Results are ranked by BM25 relevance and returned as file:startLine-endLine headers with a short numbered snippet
+
+Usage notes:
+- Prefer grep for exact strings or regexes; use this tool when you know the concept but not the spelling
+- Optional path scopes the search to a directory; optional limit controls the number of results (default 8)
+- The index is built per call from the files ripgrep would search (gitignore respected); very large files are skipped, so results favor source code over generated artifacts

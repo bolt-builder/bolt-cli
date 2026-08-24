@@ -265,6 +265,7 @@ function createV1Api(input: CompatibleInput): CompatibleApi {
         }
       },
       async shell(value: SessionShellInput & LegacyPrompt) {
+        if (!value.agent) throw new Error("An agent is required to shell a V1 session")
         await legacy().session.shell({
           sessionID: value.sessionID,
           command: value.command,

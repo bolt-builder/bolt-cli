@@ -24,7 +24,7 @@ import { useEvent } from "../../context/event"
 import { SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
-import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
+import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, tint, useTheme } from "../../context/theme"
 import { BoxRenderable, ScrollBoxRenderable, addDefaultParsers, TextAttributes, RGBA } from "@opentui/core"
 import { Prompt, type PromptRef } from "../../component/prompt"
 import type {
@@ -53,8 +53,12 @@ import { DialogConfirm } from "../../ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
+
+import { DialogTodos } from "../../component/dialog-todos"
+
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
+import { SessionHeader } from "./header.tsx"
 import { filetype } from "../../util/filetype"
 import parsers from "../../parsers-config"
 import { errorMessage } from "../../util/error"
@@ -257,6 +261,52 @@ export function Session() {
   const [sidebar, setSidebar] = kv.signal<"auto" | "hide">("sidebar", "auto")
   const [sidebarOpen, setSidebarOpen] = createSignal(false)
   const [conceal, setConceal] = createSignal(true)
+  // Side questions asked via /btw, rendered inline at the end of the transcript.
+  const [asides, setAsides] = createSignal<{ id: number; question: string; answer?: string; error?: string }[]>([])
+  let serial = 0
+  const aside = async (question: string) => {
+    const label = question.length > 40 ? `${question.slice(0, 40)}...` : question
+    const id = serial++
+    const patch = (delta: { answer?: string; error?: string }) =>
+      setAsides((list) => list.map((item) => (item.id === id ? { ...item, ...delta } : item)))
+    setAsides((list) => [...list, { id, question }])
+    // Fork the session so the side question sees the conversation so far;
+    // the fork runs on its own per-session runner, so the original run
+    // keeps streaming untouched.
+    const fork = await sdk.client.session.fork({ sessionID: route.sessionID }).catch((error) => {
+      patch({ error: error instanceof Error ? error.message : "failed to fork the session" })
+    })
+    const forkID = fork?.data?.id
+    if (!forkID) {
+      if (fork) patch({ error: "failed to fork the session" })
+      return
+    }
+    // Best-effort rename; a failed title update should not block the side question.
+    void sdk.client.session.update({ sessionID: forkID, title: `btw: ${label}` }).catch(() => undefined)
+    const result = await sdk.client.session
+      .prompt({
+        sessionID: forkID,
+        parts: [
+          {
+            type: "text",
+            text: `The user has a side question about the work above. Answer it directly and concisely. Do not modify any files or continue the task; the original session is handling it.\n\n${question}`,
+          },
+        ],
+      })
+      .catch((error) => {
+        patch({ error: error instanceof Error ? error.message : "no answer came back" })
+      })
+    if (!result) return
+    const answer = (result.data?.parts ?? [])
+      .flatMap((part) => (part.type === "text" ? [part.text] : []))
+      .join("\n\n")
+      .trim()
+    if (!answer) {
+      patch({ error: "no answer came back" })
+      return
+    }
+    patch({ answer })
+  }
   const thinking = useThinkingMode()
   const thinkingMode = thinking.mode
   const showThinking = createMemo(() => true)
@@ -276,6 +326,7 @@ export function Session() {
     return false
   })
   const showTimestamps = createMemo(() => timestamps() === "show")
+  const compactMode = createMemo(() => timestamps() === "hide" && !showDetails())
   const contentWidth = createMemo(() => dimensions().width - (sidebarVisible() ? 42 : 0) - 4)
   const providers = createMemo(() => Model.index(sync.data.provider))
 
@@ -516,6 +567,18 @@ export function Session() {
       },
     },
     {
+      title: "View todos",
+      value: "session.todos",
+      category: "Session",
+      slash: {
+        name: "todos",
+        aliases: ["todo"],
+      },
+      run: () => {
+        dialog.replace(() => <DialogTodos sessionID={route.sessionID} />)
+      },
+    },
+    {
       title: "Jump to message",
       value: "session.timeline",
       category: "Session",
@@ -557,6 +620,19 @@ export function Session() {
             sessionID={route.sessionID}
           />
         ))
+      },
+    },
+    {
+      title: "Ask a side question",
+      value: "session.btw",
+      category: "Session",
+      slash: {
+        name: "btw",
+        aliases: ["aside"],
+      },
+      run: () => {
+        dialog.clear()
+        prompt?.aside?.()
       },
     },
     {
@@ -674,11 +750,31 @@ export function Session() {
       title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
       value: "session.sidebar.toggle",
       category: "Session",
+      slash: {
+        name: "sidebar",
+      },
       run: () => {
         batch(() => {
           const isVisible = sidebarVisible()
           setSidebar(() => (isVisible ? "hide" : "auto"))
           setSidebarOpen(!isVisible)
+        })
+        dialog.clear()
+      },
+    },
+    {
+      title: compactMode() ? "Disable compact mode" : "Enable compact mode",
+      value: "session.toggle.compact",
+      category: "Session",
+      slash: {
+        name: "compact-view",
+        aliases: ["density"],
+      },
+      run: () => {
+        batch(() => {
+          const compact = compactMode()
+          setTimestamps(() => (compact ? "show" : "hide"))
+          setShowDetails(() => compact)
         })
         dialog.clear()
       },
@@ -878,6 +974,9 @@ export function Session() {
       title: "Copy last assistant message",
       value: "messages.copy",
       category: "Session",
+      slash: {
+        name: "copy",
+      },
       run: () => {
         const lastAssistantMessage = messagesBeforeRevert().findLast((message) => message.role === "assistant")
         if (!lastAssistantMessage) {
@@ -919,7 +1018,7 @@ export function Session() {
       value: "session.copy",
       category: "Session",
       slash: {
-        name: "copy",
+        name: "copy-session",
       },
       run: async () => {
         try {
@@ -1178,6 +1277,7 @@ export function Session() {
         <box flexDirection="row" flexGrow={1} minHeight={0}>
           <box flexGrow={1} minHeight={0} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
             <Show when={session()}>
+              <SessionHeader sessionID={route.sessionID} width={contentWidth()} />
               <scrollbox
                 ref={(r) => (scroll = r)}
                 viewportOptions={{
@@ -1293,6 +1393,36 @@ export function Session() {
                     </Switch>
                   )}
                 </For>
+                <For each={asides()}>
+                  {(item) => (
+                    <box
+                      marginTop={1}
+                      flexShrink={0}
+                      border={["left"]}
+                      customBorderChars={SplitBorder.customBorderChars}
+                      borderColor={theme.backgroundPanel}
+                    >
+                      <box paddingTop={1} paddingBottom={1} paddingLeft={2} backgroundColor={theme.backgroundPanel}>
+                        <text fg={theme.textMuted}>
+                          btw: <span style={{ fg: theme.text }}>{item.question}</span>
+                        </text>
+                        <box marginTop={1}>
+                          <Switch>
+                            <Match when={item.error}>
+                              <text fg={theme.error}>{item.error}</text>
+                            </Match>
+                            <Match when={item.answer}>
+                              <text fg={theme.text}>{item.answer}</text>
+                            </Match>
+                            <Match when={true}>
+                              <text fg={theme.textMuted}>thinking...</text>
+                            </Match>
+                          </Switch>
+                        </box>
+                      </box>
+                    </box>
+                  )}
+                </For>
               </scrollbox>
               <box flexShrink={0}>
                 <Show when={permissions().length > 0}>
@@ -1327,6 +1457,10 @@ export function Session() {
                       onSubmit={() => {
                         toBottom()
                       }}
+                      onAside={(question) => {
+                        toBottom()
+                        void aside(question)
+                      }}
                       sessionID={route.sessionID}
                       right={<pluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />}
                     />
@@ -1351,6 +1485,17 @@ export function Session() {
                   alignItems="flex-end"
                   backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
                 >
+                  <box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    onMouseDown={() => {
+                      // Dismiss only the transient overlay; keep the persisted preference.
+                      setSidebarOpen(false)
+                    }}
+                  />
                   <Sidebar sessionID={route.sessionID} />
                 </box>
               </Match>
@@ -1658,26 +1803,42 @@ function ReasoningHeader(props: {
   encrypted?: boolean
 }) {
   const { theme } = useTheme()
-  const fg = () =>
-    props.open
-      ? RGBA.fromValues(theme.warning.r, theme.warning.g, theme.warning.b, theme.thinkingOpacity)
-      : theme.warning
-  const completed = () => {
-    if (props.encrypted) return `Thought${props.duration ? ` · ${props.duration}` : ""}`
-    const detail = [props.title, props.duration].filter(Boolean).join(" · ")
-    return `${props.toggleable ? (props.open ? "- " : "+ ") : ""}Thought${detail ? `: ${detail}` : ""}`
+
+  // Create a gradient from accent to primary, matching the theme.
+  // When the reasoning block is expanded, dim the header via thinkingOpacity
+  // so the open state reads differently from the collapsed one.
+  const gradient = (column: number, length: number) => {
+    const color = tint(theme.accent, theme.primary, length <= 1 ? 1 : column / (length - 1))
+    if (props.open) return RGBA.fromValues(color.r, color.g, color.b, theme.thinkingOpacity)
+    return color
   }
+
+  const thinkingText = props.title ? "Thinking: " + props.title : "Thinking"
+
+  // Build the complete text for the done state. Encrypted reasoning has no title to show.
+  const togglePrefix = props.toggleable && !props.encrypted ? (props.open ? "- " : "+ ") : ""
+  const thoughtBase = "Thought"
+  const separator = !props.encrypted && (props.title || props.duration) ? ": " : ""
+  const titlePart = props.encrypted ? "" : (props.title ?? "")
+  const durationPart = props.duration ? (props.title && !props.encrypted ? " · " + props.duration : props.duration) : ""
+  const doneText = togglePrefix + thoughtBase + separator + titlePart + durationPart
 
   return (
     <Switch>
       <Match when={!props.done}>
         <box flexDirection="row">
-          <Spinner color={fg()}>{props.title ? "Thinking: " + props.title : "Thinking"}</Spinner>
+          <Spinner color={theme.accent}>
+            {Array.from(thinkingText).map((char, column) => (
+              <span style={{ fg: gradient(column, thinkingText.length) }}>{char}</span>
+            ))}
+          </Spinner>
         </box>
       </Match>
       <Match when={true}>
-        <text fg={fg()} wrapMode="none">
-          {completed()}
+        <text wrapMode="none">
+          {Array.from(doneText).map((char, column) => (
+            <span style={{ fg: gradient(column, doneText.length) }}>{char}</span>
+          ))}
         </text>
       </Match>
     </Switch>

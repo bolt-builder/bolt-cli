@@ -27,15 +27,15 @@ console.log("binaries", binaries)
 const version = Object.values(binaries)[0]
 
 await $`mkdir -p ./dist/${pkg.name}/bin`
-await $`cp ./bin/lildax.cjs ./dist/${pkg.name}/bin/lildax`
+await $`cp ./bin/bolt.cjs ./dist/${pkg.name}/bin/bolt`
 await Bun.file(`./dist/${pkg.name}/package.json`).write(
   JSON.stringify(
     {
       name: pkg.name,
-      bin: { lildax: "./bin/lildax" },
+      bin: { bolt: "./bin/bolt" },
       version,
       license: pkg.license,
-      repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+      repository: { type: "git", url: "git+https://github.com/Bolt-builder/bolt-cli.git" },
       os: ["darwin", "linux", "win32"],
       cpu: ["arm64", "x64"],
       optionalDependencies: binaries,

@@ -15,7 +15,10 @@ if (!Script.preview) {
   const dir = process.env.RUNNER_TEMP ?? "/tmp"
   const notesFile = `${dir}/opencode-release-notes.txt`
   await Bun.write(notesFile, body)
-  await $`gh release create v${Script.version} -d --target ${sha} --title "v${Script.version}" --notes-file ${notesFile}`
+  // reuse an existing draft so a failed publish can be re-dispatched with the same version
+  const existing = await $`gh release view v${Script.version}`.nothrow().quiet()
+  if (existing.exitCode !== 0)
+    await $`gh release create v${Script.version} -d --target ${sha} --title "v${Script.version}" --notes-file ${notesFile}`
   const release = await $`gh release view v${Script.version} --json tagName,databaseId`.json()
   output.push(`release=${release.databaseId}`)
   output.push(`tag=${release.tagName}`)

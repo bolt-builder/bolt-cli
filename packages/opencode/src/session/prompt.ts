@@ -6,6 +6,7 @@ import os from "os"
 import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
 import { SessionRevert } from "./revert"
+import { SessionToolBudget } from "./tool-budget"
 import { Session } from "./session"
 import { Agent } from "../agent/agent"
 import { Provider } from "@/provider/provider"
@@ -46,6 +47,11 @@ import { Cause, Effect, Exit, Latch, Layer, Option, Scope, Context, Schema, Type
 import { InstanceState } from "@/effect/instance-state"
 import { TaskTool, type TaskPromptOps } from "@/tool/task"
 import { SessionRunState } from "./run-state"
+import { SessionHunk } from "./hunk"
+import { Git } from "@/git"
+import { SessionDistill } from "./distill"
+import { shouldPreempt } from "./overflow"
+import { SessionLint } from "./lint"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { Database } from "@opencode-ai/core/database/database"
@@ -53,6 +59,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { eq } from "drizzle-orm"
 import { SessionTable } from "@opencode-ai/core/session/sql"
+import { MemoryHost } from "@/memory/host"
 import { SessionReminders } from "./reminders"
 import { SessionTools } from "./tools"
 import { LLMEvent } from "@opencode-ai/llm"
@@ -123,6 +130,7 @@ const layer = Layer.effect(
     const commands = yield* Command.Service
     const config = yield* Config.Service
     const permission = yield* Permission.Service
+    const toolBudget = yield* SessionToolBudget.Service
     const fsys = yield* FSUtil.Service
     const mcp = yield* MCP.Service
     const lsp = yield* LSP.Service
@@ -139,6 +147,7 @@ const layer = Layer.effect(
     const llm = yield* LLM.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
+    const git = yield* Git.Service
     const database = yield* Database.Service
     const { db } = database
     const ops = Effect.fn("SessionPrompt.ops")(function* () {
@@ -828,6 +837,27 @@ const layer = Layer.effect(
               }
 
               if (mime === "text/plain") {
+                // Diff-aware context: when enabled and the file was attached
+                // without an explicit range, a locally modified file loads as
+                // its changed hunks instead of the whole file.
+                if (!url.searchParams.has("start") && (yield* config.get()).experimental?.diff_context === true) {
+                  const ctx = yield* InstanceState.context
+                  const patch = yield* git.patch(ctx.directory, "HEAD", filepath)
+                  const hunks = SessionHunk.parse(patch.text)
+                  if (hunks.length) {
+                    const kept = SessionHunk.select({ hunks, budget: SessionHunk.BUDGET })
+                    return [
+                      {
+                        messageID: info.id,
+                        sessionID: input.sessionID,
+                        type: "text",
+                        synthetic: true,
+                        text: SessionHunk.render({ file: filepath, hunks: kept, total: hunks.length }),
+                      },
+                      { ...part, mime, messageID: info.id, sessionID: input.sessionID },
+                    ]
+                  }
+                }
                 let offset: number | undefined
                 let limit: number | undefined
                 const range = { start: url.searchParams.get("start"), end: url.searchParams.get("end") }
@@ -1125,6 +1155,24 @@ const layer = Layer.effect(
                 callID: orphan.callID,
               })
             }
+            // Pre-emptive compaction: the turn is complete, so summarizing now
+            // happens between prompts instead of overflowing mid-prompt later.
+            // auto: false keeps processCompaction from queueing a follow-up
+            // "continue" message, so the loop exits cleanly after the summary.
+            if (
+              !tasks.length &&
+              lastAssistant.summary !== true &&
+              shouldPreempt({
+                cfg: yield* config.get(),
+                tokens: lastAssistant.tokens,
+                model: yield* getModel(lastUser.model.providerID, lastUser.model.modelID, sessionID),
+                outputTokenMax: flags.outputTokenMax,
+              })
+            ) {
+              yield* Effect.logInfo("preemptive compaction", { "session.id": sessionID })
+              yield* compaction.create({ sessionID, agent: lastUser.agent, model: lastUser.model, auto: false })
+              continue
+            }
             yield* Effect.logInfo("exiting loop", { "session.id": sessionID })
             break
           }
@@ -1238,6 +1286,7 @@ const layer = Layer.effect(
               Effect.provideService(MCP.Service, mcp),
               Effect.provideService(Truncate.Service, truncate),
               Effect.provideService(RuntimeFlags.Service, flags),
+              Effect.provideService(SessionToolBudget.Service, toolBudget),
             )
 
             if (lastUser.format?.type === "json_schema") {
@@ -1254,21 +1303,38 @@ const layer = Layer.effect(
 
             yield* plugin.trigger("experimental.chat.messages.transform", {}, { messages: msgs })
 
-            const [skills, env, instructions, mcpInstructions, modelMsgs] = yield* Effect.all([
+            const [skills, env, instructions, mcpInstructions, modelMsgs, memory] = yield* Effect.all([
               sys.skills(agent),
               sys.environment(model),
               instruction.system().pipe(Effect.orDie),
               sys.mcp(agent, session.permission),
-              MessageV2.toModelMessagesEffect(msgs, model),
+              MessageV2.toModelMessagesEffect(msgs, model, SessionDistill.options(model)),
+              MemoryHost.context({ sessionID, sessions }),
             ])
-            const system = [
-              ...env,
-              ...instructions,
-              ...(mcpInstructions ? [mcpInstructions] : []),
-              ...(skills ? [skills] : []),
-            ]
+            const optional = [...(mcpInstructions ? [mcpInstructions] : []), ...(skills ? [skills] : []), ...memory]
+            // Small-context models get distilled context: optional sections are
+            // dropped once the system prompt blows its share of the window.
+            const system = SessionDistill.small(model)
+              ? SessionDistill.select({
+                  context: model.limit.context,
+                  required: [...env, ...instructions],
+                  optional,
+                })
+              : [...env, ...instructions, ...optional]
             const format = lastUser.format ?? { type: "text" as const }
             if (format.type === "json_schema") system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
+            // Context lint: warn once per run when the assembled prompt
+            // contains contradictory instructions.
+            if (step === 1) {
+              yield* Effect.forEach(SessionLint.lint(system).slice(0, 5), (warning) =>
+                Effect.logWarning("context lint: contradictory instructions", {
+                  "session.id": sessionID,
+                  subject: warning.subject,
+                  first: warning.first,
+                  second: warning.second,
+                }),
+              )
+            }
             const result = yield* handle.process({
               user: lastUser,
               agent,
@@ -1343,7 +1409,23 @@ const layer = Layer.effect(
     const loop: (input: LoopInput) => Effect.Effect<SessionV1.WithParts> = Effect.fn("SessionPrompt.loop")(function* (
       input: LoopInput,
     ) {
-      return yield* state.ensureRunning(input.sessionID, lastAssistant(input.sessionID), runLoop(input.sessionID))
+      yield* Effect.sync(() => MemoryHost.open({ sessionID: input.sessionID }))
+      return yield* state.ensureRunning(input.sessionID, lastAssistant(input.sessionID), runLoop(input.sessionID)).pipe(
+        Effect.onExit((exit) =>
+          MemoryHost.close({
+            sessionID: input.sessionID,
+            reason: Exit.isSuccess(exit) ? "completed" : Cause.hasInterruptsOnly(exit.cause) ? "interrupted" : "error",
+            sessions,
+            summary,
+            provider,
+          }).pipe(
+            Effect.catchCause((cause) =>
+              Effect.logWarning("memory turn close failed", { "session.id": input.sessionID, cause }),
+            ),
+            Effect.forkIn(scope),
+          ),
+        ),
+      )
     })
 
     const shell: (input: ShellInput) => Effect.Effect<SessionV1.WithParts, Session.BusyError> = Effect.fn(
@@ -1619,11 +1701,13 @@ export const node = LayerNode.make({
     Instruction.node,
     SessionRunState.node,
     SessionRevert.node,
+    SessionToolBudget.node,
     SessionSummary.node,
     SystemPrompt.node,
     LLM.node,
     EventV2Bridge.node,
     RuntimeFlags.node,
+    Git.node,
     Database.node,
   ],
 })

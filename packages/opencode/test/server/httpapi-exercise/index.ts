@@ -35,7 +35,9 @@ import { coverageResult, parseOptions, routeKey, routeKeys, selectedScenarios } 
 import { runScenario } from "./runner"
 import { disposeApps } from "./backend"
 import { runtime } from "./runtime"
-import { type Scenario } from "./types"
+import { type Scenario, type ScenarioContext } from "./types"
+import { Memory } from "@opencode-ai/memory"
+import { MemoryPaths } from "@opencode-ai/memory/effect/paths"
 
 function cursor(input: Record<string, unknown>) {
   return Buffer.from(JSON.stringify(input)).toString("base64url")
@@ -55,6 +57,18 @@ function locationData(validate: (value: any) => void) {
     object(body.location.project)
     validate(body.data)
   }
+}
+
+// Seed helper for the memory routes: enable project memory for the scenario's
+// instance directory (mirroring the handler's root resolution) and return the root.
+function memoryEnabled(ctx: ScenarioContext) {
+  return Effect.promise(async () => {
+    const directory = ctx.directory
+    if (!directory) throw new Error("memory scenarios require a project directory")
+    const root = MemoryPaths.root({ ctx: { directory, worktree: directory } })
+    await Memory.enable({ root })
+    return root
+  })
 }
 
 const scenarios: Scenario[] = [
@@ -278,6 +292,10 @@ const scenarios: Scenario[] = [
       headers: ctx.headers(),
       body: { method: "bad" },
     }))
+    .status(400),
+  http.protected
+    .post("/voice/transcribe", "voice.transcribe")
+    .at((ctx) => ({ path: "/voice/transcribe", headers: ctx.headers(), body: { audio: "" } }))
     .status(400),
   http.protected.get("/permission", "permission.list").json(200, array),
   http.protected
@@ -594,6 +612,11 @@ const scenarios: Scenario[] = [
       check(body === false, "background route should be a no-op without running subagents")
     }),
   http.protected.get("/experimental/resource", "experimental.resource.list").json(),
+  http.protected.get("/experimental/job", "experimental.job.list").json(200, array),
+  http.protected
+    .post("/experimental/job/{jobID}/cancel", "experimental.job.cancel")
+    .at((ctx) => ({ path: route("/experimental/job/{jobID}/cancel", { jobID: "missing" }), headers: ctx.headers() }))
+    .status(404),
   http.protected
     .post("/sync/history", "sync.history.list")
     .at((ctx) => ({ path: "/sync/history", headers: ctx.headers(), body: {} }))
@@ -618,6 +641,104 @@ const scenarios: Scenario[] = [
     .mutating()
     .json(200, (body) => {
       check(body === true, "instance dispose should return true")
+    }),
+  http.protected
+    .post("/instance/reload", "instance.reload")
+    .mutating()
+    .json(200, (body) => {
+      check(body === true, "instance reload should return true")
+    }),
+  http.protected.get("/memory/status", "memory.status").json(200, (body: any) => {
+    object(body)
+    check(typeof body.root === "string", "memory status should include the memory root")
+    object(body.state)
+    object(body.index)
+  }),
+  http.protected
+    .post("/memory/enable", "memory.enable")
+    .mutating()
+    .json(200, (body: any) => {
+      object(body)
+      check(isRecord(body.state) && body.state.enabled === true, "memory enable should report enabled state")
+    }),
+  http.protected
+    .post("/memory/disable", "memory.disable")
+    .mutating()
+    .seeded(memoryEnabled)
+    .json(200, (body: any) => {
+      object(body)
+      check(isRecord(body.state) && body.state.enabled === false, "memory disable should report disabled state")
+    }),
+  http.protected
+    .get("/memory/show", "memory.show")
+    .seeded(memoryEnabled)
+    .json(200, (body: any) => {
+      object(body)
+      object(body.sources)
+      check(typeof body.index === "string", "memory show should include the rendered index")
+    }),
+  http.protected
+    .post("/memory/configure", "memory.configure")
+    .mutating()
+    .seeded(memoryEnabled)
+    .at((ctx) => ({ path: "/memory/configure", headers: ctx.headers(), body: { autoConsolidate: true } }))
+    .json(200, (body: any) => {
+      object(body)
+      check(
+        isRecord(body.state) && body.state.autoConsolidate === true,
+        "memory configure should persist the auto-save flag",
+      )
+    }),
+  http.protected
+    .post("/memory/rebuild", "memory.rebuild")
+    .mutating()
+    .seeded(memoryEnabled)
+    .json(200, (body: any) => {
+      object(body)
+      object(body.index)
+      check(typeof body.index.tokens === "number", "memory rebuild should report index tokens")
+    }),
+  http.protected
+    .post("/memory/remember", "memory.remember")
+    .mutating()
+    .seeded(memoryEnabled)
+    .at((ctx) => ({ path: "/memory/remember", headers: ctx.headers(), body: { text: "exercise remembered fact" } }))
+    .json(200, (body: any) => {
+      object(body)
+      check(typeof body.added === "number" && body.added >= 1, "memory remember should add an entry")
+    }),
+  http.protected
+    .post("/memory/correct", "memory.correct")
+    .mutating()
+    .seeded(memoryEnabled)
+    .at((ctx) => ({ path: "/memory/correct", headers: ctx.headers(), body: { text: "exercise corrected fact" } }))
+    .json(200, (body: any) => {
+      object(body)
+      check(typeof body.added === "number" && body.added >= 1, "memory correct should add a correction entry")
+    }),
+  http.protected
+    .post("/memory/forget", "memory.forget")
+    .mutating()
+    .seeded((ctx) =>
+      Effect.gen(function* () {
+        const root = yield* memoryEnabled(ctx)
+        yield* Effect.promise(() => Memory.remember({ root, text: "exercise forget target" }))
+        return root
+      }),
+    )
+    .at((ctx) => ({ path: "/memory/forget", headers: ctx.headers(), body: { query: "exercise forget target" } }))
+    .json(200, (body: any) => {
+      object(body)
+      check(typeof body.removed === "number" && body.removed >= 1, "memory forget should remove the seeded entry")
+    }),
+  http.protected
+    .post("/memory/purge", "memory.purge")
+    .mutating()
+    .seeded(memoryEnabled)
+    .at((ctx) => ({ path: "/memory/purge", headers: ctx.headers(), body: { confirm: true } }))
+    .json(200, (body: any) => {
+      object(body)
+      check(body.purged === true, "memory purge should delete the seeded memory files")
     }),
   http.protected
     .post("/log", "app.log")

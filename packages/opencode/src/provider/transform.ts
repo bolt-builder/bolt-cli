@@ -1157,9 +1157,17 @@ export function variants(model: Provider.Model): Record<string, Record<string, a
 export function options(input: {
   model: Provider.Model
   sessionID: string
+  projectID?: string
   providerOptions?: Record<string, any>
 }): Record<string, any> {
   const result: Record<string, any> = {}
+
+  // Prompt-cache routing hint: keying by project instead of session lets
+  // consecutive one-shot runs in the same project (each a fresh session with
+  // the same prompt prefix) land on the provider's cached prefix. The
+  // "global" sentinel groups unrelated non-VCS directories, so it keeps the
+  // session-scoped key.
+  const cache = input.projectID && input.projectID !== "global" ? input.projectID : input.sessionID
 
   if (
     input.model.api.npm === "@ai-sdk/google-vertex/anthropic" ||
@@ -1259,7 +1267,7 @@ export function options(input: {
 
   if (input.providerOptions?.setCacheKey !== false) {
     if (input.model.api.npm === "@ai-sdk/deepinfra" || input.model.api.npm === "@ai-sdk/cerebras") {
-      result["prompt_cache_key"] = input.sessionID
+      result["prompt_cache_key"] = cache
     } else if (
       input.model.api.npm === "@ai-sdk/openai" ||
       input.model.api.npm === "@ai-sdk/azure" ||
@@ -1268,7 +1276,7 @@ export function options(input: {
       input.model.api.npm === "venice-ai-sdk-provider" ||
       input.providerOptions?.setCacheKey === true
     ) {
-      result["promptCacheKey"] = input.sessionID
+      result["promptCacheKey"] = cache
     }
   }
 
@@ -1315,7 +1323,7 @@ export function options(input: {
     }
 
     if (input.model.providerID.startsWith("opencode") && input.providerOptions?.setCacheKey !== false) {
-      result["promptCacheKey"] = input.sessionID
+      result["promptCacheKey"] = cache
       result["include"] = INCLUDE_ENCRYPTED_REASONING
       result["reasoningSummary"] = "auto"
     }

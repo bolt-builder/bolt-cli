@@ -14,7 +14,7 @@ export function createPluginRoutes() {
 
   return {
     register(list: TuiRouteDefinition[]) {
-      const key = Symbol()
+      const key = Symbol("tui-route-registration-key")
       list.forEach((item) => routes.set(item.name, [...(routes.get(item.name) ?? []), { key, render: item.render }]))
       setRevision((value) => value + 1)
 

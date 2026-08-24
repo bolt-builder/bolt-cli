@@ -1,0 +1,7 @@
+Reads the accumulated output (combined stdout and stderr) and status of a background process started with bash_background.
+
+Usage:
+- Pass the process id returned by bash_background.
+- Returns the output collected so far for running processes, or the final output for finished ones.
+- Pass `wait` (milliseconds) to block until the process finishes or the wait elapses, whichever comes first. Use this to wait for a server to boot instead of polling in a loop.
+- Old output is dropped once the buffer limit is exceeded; only the most recent output is kept.

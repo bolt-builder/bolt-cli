@@ -7,6 +7,14 @@ inputs:
   opencode-app-secret:
     description: "OpenCode GitHub App private key"
     required: true
+  git-user-name:
+    description: "Custom git user name (optional)"
+    required: false
+    default: ""
+  git-user-email:
+    description: "Custom git user email (optional)"
+    required: false
+    default: ""
 outputs:
   token:
     description: "GitHub App token"
@@ -28,8 +36,16 @@ runs:
     - name: Configure git user
       run: |
         slug="${{ steps.apptoken.outputs.app-slug }}"
-        git config --global user.name "${slug}[bot]"
-        git config --global user.email "${slug}[bot]@users.noreply.github.com"
+        name="${{ inputs.git-user-name }}"
+        email="${{ inputs.git-user-email }}"
+        if [ -z "$name" ]; then
+          name="${slug}[bot]"
+        fi
+        if [ -z "$email" ]; then
+          email="${slug}[bot]@users.noreply.github.com"
+        fi
+        git config --global user.name "$name"
+        git config --global user.email "$email"
       shell: bash
 
     - name: Clear checkout auth

@@ -3,6 +3,7 @@ import type { Auth } from "@/auth"
 import { SessionV1 } from "@opencode-ai/core/v1/session"
 import type { RuntimeFlags } from "@/effect/runtime-flags"
 import { InstanceState } from "@/effect/instance-state"
+import { InstanceRef } from "@/effect/instance-ref"
 import { Permission } from "@/permission"
 import type { Agent } from "@/agent/agent"
 import type { MessageV2 } from "../message-v2"
@@ -11,6 +12,7 @@ import { ProviderTransform } from "@/provider/transform"
 import { SystemPrompt } from "../system"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { Effect, Record } from "effect"
+import { Redact } from "@opencode-ai/core/redact"
 import { jsonSchema, tool as aiTool, type ModelMessage, type Tool } from "ai"
 import type { Plugin } from "@/plugin"
 import { mergeDeep } from "remeda"
@@ -33,6 +35,7 @@ type PrepareInput = {
   readonly plugin: Plugin.Interface
   readonly flags: RuntimeFlags.Info
   readonly isWorkflow: boolean
+  readonly redact: boolean
 }
 
 export type Prepared = {
@@ -77,15 +80,28 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
     system.push(header, rest.join("\n"))
   }
 
+  // Secrets firewall: scrub known credential formats from everything sent to
+  // the provider, before the system prompt is baked into options/instructions.
+  if (input.redact) {
+    const scrubbed = system.map((item) => Redact.text(item))
+    system.length = 0
+    system.push(...scrubbed)
+  }
+  const source = input.redact ? Redact.deep(input.messages) : input.messages
+
   const variant =
     !input.small && input.model.variants && input.user.model.variant
       ? input.model.variants[input.user.model.variant]
       : {}
+  // The instance ref is absent in bare contexts (some tests, workflows); the
+  // cache key falls back to the session ID there.
+  const instance = yield* InstanceRef
   const base = input.small
     ? ProviderTransform.smallOptions(input.model)
     : ProviderTransform.options({
         model: input.model,
         sessionID: input.sessionID,
+        projectID: instance?.project.id,
         providerOptions: input.provider.options,
       })
   const options = mergeOptions(mergeOptions(mergeOptions(base, input.model.options), input.agent.options), variant)
@@ -100,7 +116,7 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
 
   const messages =
     isOpenaiOauth || input.isWorkflow
-      ? input.messages
+      ? source
       : [
           ...system.map(
             (x): ModelMessage => ({
@@ -108,7 +124,7 @@ export const prepare = Effect.fn("LLMRequestPrep.prepare")(function* (input: Pre
               content: x,
             }),
           ),
-          ...input.messages,
+          ...source,
         ]
 
   const params = yield* input.plugin.trigger(

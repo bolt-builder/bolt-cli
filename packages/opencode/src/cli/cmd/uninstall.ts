@@ -24,7 +24,7 @@ interface RemovalTargets {
 
 export const UninstallCommand = {
   command: "uninstall",
-  describe: "uninstall opencode and remove all related files",
+  describe: "uninstall bolt and remove all related files",
   builder: (yargs: Argv) =>
     yargs
       .option("keep-config", {
@@ -55,7 +55,7 @@ export const UninstallCommand = {
     UI.empty()
     UI.println(UI.logo("  "))
     UI.empty()
-    prompts.intro("Uninstall OpenCode")
+    prompts.intro("Uninstall Bolt")
 
     const method = await Installation.method()
     prompts.log.info(`Installation method: ${method}`)
@@ -93,6 +93,7 @@ async function collectRemovalTargets(args: UninstallArgs, method: Installation.M
     { path: Global.Path.cache, label: "Cache", keep: false },
     { path: Global.Path.config, label: "Config", keep: args.keepConfig },
     { path: Global.Path.state, label: "State", keep: false },
+    { path: Global.Path.tmp, label: "Temp", keep: false },
   ]
 
   const shellConfig = method === "curl" ? await getShellConfigFile() : null
@@ -129,13 +130,13 @@ async function showRemovalSummary(targets: RemovalTargets, method: Installation.
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string> = {
-      npm: "npm uninstall -g opencode-ai",
-      pnpm: "pnpm uninstall -g opencode-ai",
-      bun: "bun remove -g opencode-ai",
-      yarn: "yarn global remove opencode-ai",
-      brew: "brew uninstall opencode",
-      choco: "choco uninstall opencode",
-      scoop: "scoop uninstall opencode",
+      npm: "npm uninstall -g @bolt-builder/bolt-cli",
+      pnpm: "pnpm uninstall -g @bolt-builder/bolt-cli",
+      bun: "bun remove -g @bolt-builder/bolt-cli",
+      yarn: "yarn global remove @bolt-builder/bolt-cli",
+      brew: "brew uninstall bolt-cli",
+      choco: "choco uninstall bolt",
+      scoop: "scoop uninstall bolt",
     }
     prompts.log.info(`  ✓ Package: ${cmds[method] || method}`)
   }
@@ -180,19 +181,19 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
 
   if (method !== "curl" && method !== "unknown") {
     const cmds: Record<string, string[]> = {
-      npm: ["npm", "uninstall", "-g", "opencode-ai"],
-      pnpm: ["pnpm", "uninstall", "-g", "opencode-ai"],
-      bun: ["bun", "remove", "-g", "opencode-ai"],
-      yarn: ["yarn", "global", "remove", "opencode-ai"],
-      brew: ["brew", "uninstall", "opencode"],
-      choco: ["choco", "uninstall", "opencode"],
-      scoop: ["scoop", "uninstall", "opencode"],
+      npm: ["npm", "uninstall", "-g", "@bolt-builder/bolt-cli"],
+      pnpm: ["pnpm", "uninstall", "-g", "@bolt-builder/bolt-cli"],
+      bun: ["bun", "remove", "-g", "@bolt-builder/bolt-cli"],
+      yarn: ["yarn", "global", "remove", "@bolt-builder/bolt-cli"],
+      brew: ["brew", "uninstall", "bolt-cli"],
+      choco: ["choco", "uninstall", "bolt"],
+      scoop: ["scoop", "uninstall", "bolt"],
     }
 
     const cmd = cmds[method]
     if (cmd) {
       spinner.start(`Running ${cmd.join(" ")}...`)
-      const result = await Process.run(method === "choco" ? ["choco", "uninstall", "opencode", "-y", "-r"] : cmd, {
+      const result = await Process.run(method === "choco" ? ["choco", "uninstall", "bolt", "-y", "-r"] : cmd, {
         nothrow: true,
       })
       if (result.code !== 0) {
@@ -210,13 +211,27 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   if (method === "curl" && targets.binary) {
-    UI.empty()
-    prompts.log.message("To finish removing the binary, run:")
-    prompts.log.info(`  rm "${targets.binary}"`)
+    // POSIX allows unlinking the running executable (the inode stays alive
+    // until the process exits); Windows locks it, so fall back to manual
+    // instructions there or when removal fails.
+    const removable = process.platform !== "win32"
+    const err = removable ? await fs.rm(targets.binary, { force: true }).catch((e) => e) : new Error("locked")
+    if (!err) {
+      const binDir = path.dirname(targets.binary)
+      if (binDir.includes(".bolt") || binDir.includes(".opencode")) {
+        await fs.rmdir(binDir).catch(() => {})
+      }
+      prompts.log.step("Removed binary")
+    }
+    if (err) {
+      UI.empty()
+      prompts.log.message("To finish removing the binary, run:")
+      prompts.log.info(`  rm "${targets.binary}"`)
 
-    const binDir = path.dirname(targets.binary)
-    if (binDir.includes(".opencode")) {
-      prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
+      const binDir = path.dirname(targets.binary)
+      if (binDir.includes(".bolt") || binDir.includes(".opencode")) {
+        prompts.log.info(`  rmdir "${binDir}" 2>/dev/null`)
+      }
     }
   }
 
@@ -229,7 +244,8 @@ async function executeUninstall(method: Installation.Method, targets: RemovalTar
   }
 
   UI.empty()
-  prompts.log.success("Thank you for using OpenCode!")
+  // Survey-free goodbye: no exit questionnaire, no feedback prompt.
+  prompts.log.success("bolt is fully removed. Thanks for using it, and goodbye!")
 }
 
 async function getShellConfigFile(): Promise<string | null> {
@@ -266,7 +282,12 @@ async function getShellConfigFile(): Promise<string | null> {
     if (!exists) continue
 
     const content = await Filesystem.readText(file).catch(() => "")
-    if (content.includes("# opencode") || content.includes(".opencode/bin")) {
+    if (
+      content.includes("# bolt") ||
+      content.includes(".bolt/bin") ||
+      content.includes("# opencode") ||
+      content.includes(".opencode/bin")
+    ) {
       return file
     }
   }
@@ -274,7 +295,7 @@ async function getShellConfigFile(): Promise<string | null> {
   return null
 }
 
-async function cleanShellConfig(file: string) {
+export async function cleanShellConfig(file: string) {
   const content = await Filesystem.readText(file)
   const lines = content.split("\n")
 
@@ -284,21 +305,21 @@ async function cleanShellConfig(file: string) {
   for (const line of lines) {
     const trimmed = line.trim()
 
-    if (trimmed === "# opencode") {
+    if (trimmed === "# bolt" || trimmed === "# opencode") {
       skip = true
       continue
     }
 
     if (skip) {
       skip = false
-      if (trimmed.includes(".opencode/bin") || trimmed.includes("fish_add_path")) {
+      if (trimmed.includes(".bolt/bin") || trimmed.includes(".opencode/bin") || trimmed.includes("fish_add_path")) {
         continue
       }
     }
 
     if (
-      (trimmed.startsWith("export PATH=") && trimmed.includes(".opencode/bin")) ||
-      (trimmed.startsWith("fish_add_path") && trimmed.includes(".opencode"))
+      (trimmed.startsWith("export PATH=") && (trimmed.includes(".bolt/bin") || trimmed.includes(".opencode/bin"))) ||
+      (trimmed.startsWith("fish_add_path") && (trimmed.includes(".bolt") || trimmed.includes(".opencode")))
     ) {
       continue
     }
@@ -337,14 +358,14 @@ async function getDirectorySize(dir: string): Promise<number> {
   return total
 }
 
-function formatSize(bytes: number): string {
+export function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
 }
 
-function shortenPath(p: string): string {
+export function shortenPath(p: string): string {
   const home = os.homedir()
   if (p.startsWith(home)) {
     return p.replace(home, "~")

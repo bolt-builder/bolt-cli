@@ -5,12 +5,14 @@ import { Format } from "@/format"
 import { Global } from "@opencode-ai/core/global"
 import { LSP } from "@/lsp/lsp"
 import { Vcs } from "@/project/vcs"
+import { SessionStatus } from "@/session/status"
 import { Skill } from "@/skill"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { InstanceHttpApi } from "../api"
+import { ConflictError } from "../errors"
 import { ApiVcsApplyError } from "../groups/instance"
-import { markInstanceForDisposal } from "../lifecycle"
+import { markInstanceForDisposal, markInstanceForReload } from "../lifecycle"
 
 export const instanceHandlers = HttpApiBuilder.group(InstanceHttpApi, "instance", (handlers) =>
   Effect.gen(function* () {
@@ -19,10 +21,28 @@ export const instanceHandlers = HttpApiBuilder.group(InstanceHttpApi, "instance"
     const format = yield* Format.Service
     const lsp = yield* LSP.Service
     const skill = yield* Skill.Service
+    const status = yield* SessionStatus.Service
     const vcs = yield* Vcs.Service
 
     const dispose = Effect.fn("InstanceHttpApi.dispose")(function* () {
       yield* markInstanceForDisposal(yield* InstanceState.context)
+      return true
+    })
+
+    const reload = Effect.fn("InstanceHttpApi.reload")(function* () {
+      const ctx = yield* InstanceState.context
+      const statuses = yield* status.list()
+      const busy = statuses.values().some((info) => info.type !== "idle")
+      if (busy) {
+        return yield* new ConflictError({
+          message: "Cannot reload while a session is running. Wait for it to finish or abort it first.",
+        })
+      }
+      yield* markInstanceForReload(ctx, {
+        directory: ctx.directory,
+        worktree: ctx.worktree,
+        project: ctx.project,
+      })
       return true
     })
 
@@ -95,6 +115,7 @@ export const instanceHandlers = HttpApiBuilder.group(InstanceHttpApi, "instance"
 
     return handlers
       .handle("dispose", dispose)
+      .handle("reload", reload)
       .handle("path", getPath)
       .handle("vcs", getVcs)
       .handle("vcsStatus", getVcsStatus)

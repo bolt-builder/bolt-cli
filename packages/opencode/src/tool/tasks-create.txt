@@ -1,0 +1,11 @@
+Create a structured task for the current session.
+
+Creates one task object with a stable id and returns that id. Tasks are structured records (id, subject, optional description, status, blockers), so later changes go through task_update by id instead of rewriting a whole list.
+
+Usage notes:
+- `subject` is a brief imperative summary of the task.
+- `description` optionally carries detail that does not fit the subject.
+- `blockers` optionally lists ids of existing tasks that must be completed (or cancelled) before this task can be completed.
+- New tasks start as pending. Use task_update to move them to in_progress, completed, or cancelled.
+- Use task_list to see current ids, statuses, and blockers.
+- Prefer these task tools over todowrite when tasks have dependencies or need to be updated individually.

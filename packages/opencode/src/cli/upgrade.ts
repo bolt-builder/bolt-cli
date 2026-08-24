@@ -12,33 +12,17 @@ export async function upgrade() {
   const latest = await Installation.latest(method).catch(() => {})
   if (!latest) return
 
-  if (Flag.OPENCODE_ALWAYS_NOTIFY_UPDATE) {
-    GlobalBus.emit("event", {
-      directory: "global",
-      payload: {
-        type: Installation.Event.UpdateAvailable.type,
-        properties: { version: latest },
-      },
-    })
-    return
-  }
-
+  if (Flag.OPENCODE_ALWAYS_NOTIFY_UPDATE) return notify(latest)
   if (InstallationVersion === latest) return
 
   const kind = Installation.getReleaseType(InstallationVersion, latest)
 
-  if (config.autoupdate === "notify" || kind !== "patch") {
-    GlobalBus.emit("event", {
-      directory: "global",
-      payload: {
-        type: Installation.Event.UpdateAvailable.type,
-        properties: { version: latest },
-      },
-    })
-    return
-  }
+  if (config.autoupdate === "notify" || kind !== "patch") return notify(latest)
 
-  if (method === "unknown") return
+  // A silent patch upgrade needs a known install method; fall back to telling
+  // the user instead of doing nothing.
+  if (method === "unknown") return notify(latest)
+
   await Installation.upgrade(method, latest)
     .then(() =>
       GlobalBus.emit("event", {
@@ -49,5 +33,17 @@ export async function upgrade() {
         },
       }),
     )
-    .catch(() => {})
+    // The background upgrade failed (permissions, quarantine, network); surface
+    // the update instead of swallowing the failure so the user can act.
+    .catch(() => notify(latest))
+}
+
+function notify(version: string) {
+  GlobalBus.emit("event", {
+    directory: "global",
+    payload: {
+      type: Installation.Event.UpdateAvailable.type,
+      properties: { version },
+    },
+  })
 }

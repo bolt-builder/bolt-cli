@@ -7,7 +7,6 @@ import { Octokit } from "@octokit/rest"
 import { graphql } from "@octokit/graphql"
 import * as core from "@actions/core"
 import * as github from "@actions/github"
-import type { Context } from "@actions/github/lib/context"
 import type {
   IssueCommentEvent,
   IssuesEvent,
@@ -18,22 +17,15 @@ import type {
 } from "@octokit/webhooks-types"
 import { UI } from "../ui"
 import { ModelsDev } from "@opencode-ai/core/models-dev"
-import { InstanceRef } from "@/effect/instance-ref"
 import { SessionShare } from "@/share/session"
-import { Session } from "@/session/session"
 import type { SessionID } from "../../session/schema"
-import { MessageID, PartID } from "../../session/schema"
-import { Provider } from "@/provider/provider"
 import { MessageV2 } from "../../session/message-v2"
 import { EventV2Bridge } from "@/event-v2-bridge"
 import { EventV2 } from "@opencode-ai/core/event"
-import { SessionPrompt } from "@/session/prompt"
-import { Git } from "@/git"
 import { setTimeout as sleep } from "node:timers/promises"
 import { Process } from "@/util/process"
 import { parseGitHubRemote } from "@/util/repository"
 import { Effect } from "effect"
-import { extractResponseText, formatPromptTooLargeError } from "./github.shared"
 
 type GitHubAuthor = {
   login: string
@@ -140,9 +132,9 @@ type IssueQueryResponse = {
   }
 }
 
-const AGENT_USERNAME = "opencode-agent[bot]"
+const AGENT_USERNAME = "bolt-cli[bot]"
 const AGENT_REACTION = "eyes"
-const WORKFLOW_FILE = ".github/workflows/opencode.yml"
+const WORKFLOW_FILE = ".github/workflows/bolt.yml"
 
 // Event categories for routing
 // USER_EVENTS: triggered by user actions, have actor/issueId, support reactions/comments
@@ -155,6 +147,8 @@ type UserEvent = (typeof USER_EVENTS)[number]
 type RepoEvent = (typeof REPO_EVENTS)[number]
 
 export const githubInstall = Effect.fn("Cli.github.install")(function* () {
+  const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+  const { Git } = yield* Effect.promise(() => import("@/git"))
   const maybeCtx = yield* InstanceRef
   if (!maybeCtx) return yield* Effect.die("InstanceRef not provided")
   const ctx = maybeCtx
@@ -175,7 +169,6 @@ export const githubInstall = Effect.fn("Cli.github.install")(function* () {
 
       const provider = await promptProvider()
       const model = await promptModel()
-      //const key = await promptKey()
 
       await addWorkflowFiles()
       printNextSteps()
@@ -364,7 +357,7 @@ jobs:
           persist-credentials: false
 
       - name: Run opencode
-        uses: anomalyco/opencode/github@latest${envStr}
+        uses: bolt-builder/bolt-cli/github@latest${envStr}
         with:
           model: ${provider}/${model}`,
         )
@@ -376,6 +369,13 @@ jobs:
 })
 
 export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: string; token?: string }) {
+  const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
+  const { Git } = yield* Effect.promise(() => import("@/git"))
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { SessionPrompt } = yield* Effect.promise(() => import("@/session/prompt"))
+  const { MessageID, PartID } = yield* Effect.promise(() => import("../../session/schema"))
+  const { Provider } = yield* Effect.promise(() => import("@/provider/provider"))
+  const { extractResponseText, formatPromptTooLargeError } = yield* Effect.promise(() => import("./github.shared"))
   const ctx = yield* InstanceRef
   if (!ctx) return yield* Effect.die("InstanceRef not provided")
   const gitSvc = yield* Git.Service
@@ -388,7 +388,7 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
   yield* Effect.promise(async () => {
     const isMock = args.token || args.event
 
-    const context = isMock ? (JSON.parse(args.event!) as Context) : github.context
+    const context = isMock ? (JSON.parse(args.event!) as typeof github.context) : github.context
     if (!SUPPORTED_EVENTS.includes(context.eventName as (typeof SUPPORTED_EVENTS)[number])) {
       core.setFailed(`Unsupported event type: ${context.eventName}`)
       process.exit(1)
@@ -780,7 +780,6 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
       const mdMatches = prompt.matchAll(/!?\[.*?\]\((https:\/\/github\.com\/user-attachments\/[^)]+)\)/gi)
       const tagMatches = prompt.matchAll(/<img .*?src="(https:\/\/github\.com\/user-attachments\/[^"]+)" \/>/gi)
       const matches = [...mdMatches, ...tagMatches].sort((a, b) => a.index - b.index)
-      console.log("Images", JSON.stringify(matches, null, 2))
 
       let offset = 0
       for (const m of matches) {
@@ -848,15 +847,13 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
           if (evt.type !== MessageV2.Event.PartUpdated.type) return Effect.void
           const data = evt.data as EventV2.Data<typeof MessageV2.Event.PartUpdated>
           if (data.part.sessionID !== session.id) return Effect.void
-          //if (evt.properties.part.messageID === messageID) return
           const part = data.part
 
           if (part.type === "tool" && part.state.status === "completed") {
             const [tool, color] = TOOL[part.tool] ?? [part.tool, UI.Style.TEXT_INFO_BOLD]
             const title =
-              part.state.title || Object.keys(part.state.input).length > 0
-                ? JSON.stringify(part.state.input)
-                : "Unknown"
+              part.state.title ||
+              (Object.keys(part.state.input).length > 0 ? JSON.stringify(part.state.input) : "Unknown")
             console.log()
             printEvent(color, tool, title)
           }

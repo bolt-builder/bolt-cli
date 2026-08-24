@@ -1,11 +1,11 @@
 import { Effect } from "effect"
 import { effectCmd } from "../effect-cmd"
+import { Envelope } from "../envelope"
+import { Porcelain } from "../porcelain"
 import { Session } from "@/session/session"
 import { NotFoundError } from "@/storage/storage"
 import { Database } from "@opencode-ai/core/database/database"
-import { SessionTable } from "@opencode-ai/core/session/sql"
-import { Project } from "@/project/project"
-import { InstanceRef } from "@/effect/instance-ref"
+import type { Project } from "@/project/project"
 
 interface SessionStats {
   totalSessions: number
@@ -44,6 +44,35 @@ interface SessionStats {
   costPerDay: number
   tokensPerSession: number
   medianTokensPerSession: number
+  projects: ProjectUsage[]
+  hours: number[]
+}
+
+export interface ProjectUsage {
+  label: string
+  sessions: number
+  cost: number
+}
+
+/** Aggregates session counts and cost per project, most active first. */
+export function topProjects(sessions: { projectID: string; directory: string; cost?: number }[]): ProjectUsage[] {
+  const usage = new Map<string, ProjectUsage>()
+  for (const session of sessions) {
+    const entry = usage.get(session.projectID) ?? { label: session.directory, sessions: 0, cost: 0 }
+    entry.sessions += 1
+    entry.cost += session.cost ?? 0
+    usage.set(session.projectID, entry)
+  }
+  return [...usage.values()].sort((a, b) => b.sessions - a.sessions)
+}
+
+/** Buckets session start times into 24 local-time hour slots. */
+export function busiestHours(times: number[]): number[] {
+  const buckets = Array.from({ length: 24 }, () => 0)
+  for (const time of times) {
+    buckets[new Date(time).getHours()] += 1
+  }
+  return buckets
 }
 
 export const StatsCommand = effectCmd({
@@ -65,11 +94,31 @@ export const StatsCommand = effectCmd({
       .option("project", {
         describe: "filter by project (default: all projects, empty string: current project)",
         type: "string",
-      }),
+      })
+      .option("json", {
+        describe: Envelope.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .option("porcelain", {
+        describe: Porcelain.DESCRIBE,
+        type: "boolean",
+        default: false,
+      })
+      .conflicts("porcelain", "json"),
   handler: Effect.fn("Cli.stats")(function* (args) {
+    const { InstanceRef } = yield* Effect.promise(() => import("@/effect/instance-ref"))
     const ctx = yield* InstanceRef
     if (!ctx) return
     const stats = yield* aggregateSessionStats(args.days, args.project, ctx.project)
+    if (args.json) {
+      Envelope.print(stats)
+      return
+    }
+    if (args.porcelain) {
+      porcelainStats(stats)
+      return
+    }
     let modelLimit: number | undefined
     if (args.models === true) {
       modelLimit = Infinity
@@ -80,18 +129,22 @@ export const StatsCommand = effectCmd({
   }),
 })
 
-const getAllSessions = Effect.fnUntraced(function* () {
-  const { db } = yield* Database.Service
-  return (yield* db.select().from(SessionTable).all().pipe(Effect.orDie)).map((row) => Session.fromRow(row))
-})
-
 const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
   days?: number,
   projectFilter?: string,
   currentProject?: Project.Info,
 ) {
+  // Loaded lazily so the CLI entrypoint does not pull the session/database
+  // graph at startup for unrelated commands.
+  const { Session } = yield* Effect.promise(() => import("@/session/session"))
+  const { NotFoundError } = yield* Effect.promise(() => import("@/storage/storage"))
+  const { Database } = yield* Effect.promise(() => import("@opencode-ai/core/database/database"))
+  const { SessionTable } = yield* Effect.promise(() => import("@opencode-ai/core/session/sql"))
+  const database = yield* Database.Service
   const svc = yield* Session.Service
-  const sessions = yield* getAllSessions()
+  const sessions = (yield* database.db.select().from(SessionTable).all().pipe(Effect.orDie)).map((row) =>
+    Session.fromRow(row),
+  )
   const MS_IN_DAY = 24 * 60 * 60 * 1000
 
   const cutoffTime = (() => {
@@ -144,10 +197,13 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
     costPerDay: 0,
     tokensPerSession: 0,
     medianTokensPerSession: 0,
+    projects: topProjects(filteredSessions),
+    hours: busiestHours(filteredSessions.map((session) => session.time.created)),
   }
 
+  // Progress chatter goes to stderr so it never corrupts stdout consumers (e.g. --json or --porcelain).
   if (filteredSessions.length > 1000) {
-    console.log(`Large dataset detected (${filteredSessions.length} sessions). This may take a while...`)
+    process.stderr.write(`Large dataset detected (${filteredSessions.length} sessions). This may take a while...\n`)
   }
 
   if (filteredSessions.length === 0) {
@@ -289,6 +345,30 @@ const aggregateSessionStats = Effect.fn("Cli.stats.aggregate")(function* (
   return stats
 })
 
+// One record per line, kind first. Existing kinds and field orders are frozen;
+// see the porcelain contract in ../porcelain.ts.
+function porcelainStats(stats: SessionStats) {
+  Porcelain.print("sessions", String(stats.totalSessions))
+  Porcelain.print("messages", String(stats.totalMessages))
+  Porcelain.print("days", String(stats.days))
+  Porcelain.print("cost", stats.totalCost.toFixed(4))
+  Porcelain.print("cost-per-day", stats.costPerDay.toFixed(4))
+  Porcelain.print(
+    "tokens",
+    String(stats.totalTokens.input),
+    String(stats.totalTokens.output),
+    String(stats.totalTokens.reasoning),
+    String(stats.totalTokens.cache.read),
+    String(stats.totalTokens.cache.write),
+  )
+  for (const [model, usage] of Object.entries(stats.modelUsage).sort(([, a], [, b]) => b.messages - a.messages)) {
+    Porcelain.print("model", model, String(usage.messages), usage.cost.toFixed(4))
+  }
+  for (const [tool, count] of Object.entries(stats.toolUsage).sort(([, a], [, b]) => b - a)) {
+    Porcelain.print("tool", tool, String(count))
+  }
+}
+
 export function displayStats(stats: SessionStats, toolLimit?: number, modelLimit?: number) {
   const width = 56
 
@@ -327,6 +407,45 @@ export function displayStats(stats: SessionStats, toolLimit?: number, modelLimit
   console.log(renderRow("Cache Write", formatNumber(stats.totalTokens.cache.write)))
   console.log("└────────────────────────────────────────────────────────┘")
   console.log()
+
+  // Top Projects section
+  if (stats.projects.length > 0) {
+    console.log("┌────────────────────────────────────────────────────────┐")
+    console.log("│                     TOP PROJECTS                       │")
+    console.log("├────────────────────────────────────────────────────────┤")
+    for (const project of stats.projects.slice(0, 5)) {
+      const label = project.label.length > 34 ? "…" + project.label.slice(-33) : project.label
+      const value = `${project.sessions.toLocaleString()} runs  $${project.cost.toFixed(2)}`
+      console.log(renderRow(` ${label}`, value))
+    }
+    console.log("└────────────────────────────────────────────────────────┘")
+    console.log()
+  }
+
+  // Busiest Hours section
+  const totalHourRuns = stats.hours.reduce((a, b) => a + b, 0)
+  if (totalHourRuns > 0) {
+    const ranked = stats.hours
+      .map((count, hour) => ({ hour, count }))
+      .filter((entry) => entry.count > 0)
+      .sort((a, b) => b.count - a.count || a.hour - b.hour)
+      .slice(0, 8)
+    const maxHourCount = ranked[0].count
+
+    console.log("┌────────────────────────────────────────────────────────┐")
+    console.log("│                     BUSIEST HOURS                      │")
+    console.log("├────────────────────────────────────────────────────────┤")
+    for (const entry of ranked) {
+      const bar = "█".repeat(Math.max(1, Math.floor((entry.count / maxHourCount) * 20)))
+      const percentage = ((entry.count / totalHourRuns) * 100).toFixed(1)
+      const label = `${String(entry.hour).padStart(2, "0")}:00`
+      const content = ` ${label.padEnd(18)} ${bar.padEnd(20)} ${entry.count.toString().padStart(3)} (${percentage.padStart(4)}%)`
+      const padding = Math.max(0, width - content.length - 1)
+      console.log(`│${content}${" ".repeat(padding)} │`)
+    }
+    console.log("└────────────────────────────────────────────────────────┘")
+    console.log()
+  }
 
   // Model Usage section
   if (modelLimit !== undefined && Object.keys(stats.modelUsage).length > 0) {

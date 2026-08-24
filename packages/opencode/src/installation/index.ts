@@ -19,6 +19,14 @@ export type Method = "curl" | "npm" | "yarn" | "pnpm" | "bun" | "brew" | "scoop"
 
 export type ReleaseType = "patch" | "minor" | "major"
 
+export type Channel = "stable" | "beta" | "nightly"
+
+/** Maps a user-facing release channel to its npm dist-tag. */
+export function tag(channel: Channel) {
+  if (channel === "stable") return "latest"
+  return channel
+}
+
 export const Event = InstallationEvent
 
 export function getReleaseType(current: string, latest: string): ReleaseType {
@@ -39,7 +47,7 @@ export const Info = Schema.Struct({
 export type Info = Schema.Schema.Type<typeof Info>
 
 export function userAgent(client = "cli") {
-  return `opencode/${InstallationChannel}/${InstallationVersion}/${client}`
+  return `bolt/${InstallationChannel}/${InstallationVersion}/${client}`
 }
 
 export const USER_AGENT = userAgent()
@@ -64,9 +72,6 @@ export class UpgradeFailedError extends Schema.TaggedErrorClass<UpgradeFailedErr
 const GitHubRelease = Schema.Struct({ tag_name: Schema.String })
 const NpmPackage = Schema.Struct({ version: Schema.String })
 const BrewFormula = Schema.Struct({ versions: Schema.Struct({ stable: Schema.String }) })
-const BrewInfoV2 = Schema.Struct({
-  formulae: Schema.Array(Schema.Struct({ versions: Schema.Struct({ stable: Schema.String }) })),
-})
 const ChocoPackage = Schema.Struct({
   d: Schema.Struct({ results: Schema.Array(Schema.Struct({ Version: Schema.String })) }),
 })
@@ -75,7 +80,7 @@ const ScoopManifest = NpmPackage
 export interface Interface {
   readonly info: () => Effect.Effect<Info>
   readonly method: () => Effect.Effect<Method>
-  readonly latest: (method?: Method) => Effect.Effect<string>
+  readonly latest: (method?: Method, channel?: Channel) => Effect.Effect<string>
   readonly upgrade: (method: Method, target: string) => Effect.Effect<void, UpgradeFailedError>
 }
 
@@ -123,11 +128,11 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
     )
 
     const getBrewFormula = Effect.fnUntraced(function* () {
-      const tapFormula = yield* text(["brew", "list", "--formula", "anomalyco/tap/opencode"])
-      if (tapFormula.includes("opencode")) return "anomalyco/tap/opencode"
-      const coreFormula = yield* text(["brew", "list", "--formula", "opencode"])
-      if (coreFormula.includes("opencode")) return "opencode"
-      return "opencode"
+      const tapFormula = yield* text(["brew", "list", "--formula", "bolt-builder/tap/bolt-cli"])
+      if (tapFormula.includes("bolt-cli")) return "bolt-builder/tap/bolt-cli"
+      const coreFormula = yield* text(["brew", "list", "--formula", "bolt-cli"])
+      if (coreFormula.includes("bolt-cli")) return "bolt-cli"
+      return "bolt-cli"
     })
 
     const upgradeFailure = (method: Method, result?: { code: number; stdout: string; stderr: string }) => {
@@ -144,7 +149,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
+        const response = yield* httpOk.execute(
+          HttpClientRequest.get("https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install"),
+        )
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -172,7 +179,11 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         }
       }),
       method: Effect.fn("Installation.method")(function* () {
-        if (process.execPath.includes(path.join(".opencode", "bin"))) return "curl" as Method
+        if (
+          process.execPath.includes(path.join(".bolt", "bin")) ||
+          process.execPath.includes(path.join(".opencode", "bin"))
+        )
+          return "curl" as Method
         if (process.execPath.includes(path.join(".local", "bin"))) return "curl" as Method
         const exec = process.execPath.toLowerCase()
 
@@ -181,9 +192,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
           { name: "yarn", command: () => text(["yarn", "global", "list"]) },
           { name: "pnpm", command: () => text(["pnpm", "list", "-g", "--depth=0"]) },
           { name: "bun", command: () => text(["bun", "pm", "ls", "-g"]) },
-          { name: "brew", command: () => text(["brew", "list", "--formula", "opencode"]) },
-          { name: "scoop", command: () => text(["scoop", "list", "opencode"]) },
-          { name: "choco", command: () => text(["choco", "list", "--limit-output", "opencode"]) },
+          { name: "brew", command: () => text(["brew", "list", "--formula", "bolt-cli"]) },
+          { name: "scoop", command: () => text(["scoop", "list", "bolt"]) },
+          { name: "choco", command: () => text(["choco", "list", "--limit-output", "bolt"]) },
         ]
 
         checks.sort((a, b) => {
@@ -197,7 +208,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         for (const check of checks) {
           const output = yield* check.command()
           const installedName =
-            check.name === "brew" || check.name === "choco" || check.name === "scoop" ? "opencode" : "opencode-ai"
+            check.name === "brew" || check.name === "choco" || check.name === "scoop"
+              ? "bolt"
+              : "@bolt-builder/bolt-cli"
           if (output.includes(installedName)) {
             return check.name
           }
@@ -205,29 +218,43 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
         return "unknown" as Method
       }),
-      latest: Effect.fn("Installation.latest")(function* (installMethod?: Method) {
+      latest: Effect.fn("Installation.latest")(function* (installMethod?: Method, channel?: Channel) {
         const detectedMethod = installMethod || (yield* result.method())
+
+        // Every release channel publishes an npm dist-tag, so the registry is
+        // the source of truth for channel resolution regardless of install
+        // method; the resulting version installs through the usual path.
+        if (channel) {
+          const response = yield* httpOk.execute(
+            HttpClientRequest.get(
+              `${yield* NpmConfig.registry(process.cwd())}/@bolt-builder/bolt-cli/${tag(channel)}`,
+            ).pipe(HttpClientRequest.acceptJson),
+          )
+          const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
+          return data.version
+        }
 
         if (detectedMethod === "brew") {
           const formula = yield* getBrewFormula()
-          if (formula.includes("/")) {
-            const infoJson = yield* text(["brew", "info", "--json=v2", formula])
-            const info = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(BrewInfoV2))(infoJson)
-            return info.formulae[0].versions.stable
+          // Tap formulae are generated from GitHub releases, and the local tap checkout can be
+          // stale until `brew update` runs; resolve the target from release metadata instead so
+          // the caller's version equality guard never skips a fresh release. `upgrade()` refreshes
+          // the tap before running `brew upgrade`.
+          if (!formula.includes("/")) {
+            const response = yield* httpOk.execute(
+              HttpClientRequest.get("https://formulae.brew.sh/api/formula/bolt-cli.json").pipe(
+                HttpClientRequest.acceptJson,
+              ),
+            )
+            const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
+            return data.versions.stable
           }
-          const response = yield* httpOk.execute(
-            HttpClientRequest.get("https://formulae.brew.sh/api/formula/opencode.json").pipe(
-              HttpClientRequest.acceptJson,
-            ),
-          )
-          const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
-          return data.versions.stable
         }
 
         if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {
           const response = yield* httpOk.execute(
             HttpClientRequest.get(
-              `${yield* NpmConfig.registry(process.cwd())}/opencode-ai/${InstallationChannel}`,
+              `${yield* NpmConfig.registry(process.cwd())}/@bolt-builder/bolt-cli/${InstallationChannel}`,
             ).pipe(HttpClientRequest.acceptJson),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(NpmPackage)(response)
@@ -255,7 +282,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         }
 
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://api.github.com/repos/anomalyco/opencode/releases/latest").pipe(
+          HttpClientRequest.get("https://api.github.com/repos/bolt-builder/bolt-cli/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )
@@ -269,24 +296,24 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
             upgradeResult = yield* upgradeCurl(target)
             break
           case "npm":
-            upgradeResult = yield* run(["npm", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["npm", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "pnpm":
-            upgradeResult = yield* run(["pnpm", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["pnpm", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "bun":
-            upgradeResult = yield* run(["bun", "install", "-g", `opencode-ai@${target}`])
+            upgradeResult = yield* run(["bun", "install", "-g", `@bolt-builder/bolt-cli@${target}`])
             break
           case "brew": {
             const formula = yield* getBrewFormula()
             const env = { HOMEBREW_NO_AUTO_UPDATE: "1" }
             if (formula.includes("/")) {
-              const tap = yield* run(["brew", "tap", "anomalyco/tap"], { env })
+              const tap = yield* run(["brew", "tap", "bolt-builder/tap"], { env })
               if (tap.code !== 0) {
                 upgradeResult = tap
                 break
               }
-              const repo = yield* text(["brew", "--repo", "anomalyco/tap"])
+              const repo = yield* text(["brew", "--repo", "bolt-builder/tap"])
               const dir = repo.trim()
               if (dir) {
                 const pull = yield* run(["git", "pull", "--ff-only"], { cwd: dir, env })

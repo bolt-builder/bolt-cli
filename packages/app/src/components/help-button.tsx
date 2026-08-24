@@ -127,7 +127,7 @@ export function TabsInfoPopup() {
             {language.t("help.tabs.title")}
           </p>
           <div class="flex w-full flex-1 flex-col gap-4 text-[13px] font-[440] leading-5 tracking-[-0.04px] text-v2-text-text-base">
-            <p>{language.t("help.tabs.introduction")}</p>
+            <p>Bolt Desktop is now built around tabs.</p>
             <img src={tabsImage} alt="" class="aspect-video w-full rounded-[6px] object-cover" />
             <p>{language.t("help.tabs.sessions")}</p>
             <p>{language.t("help.tabs.organize")}</p>

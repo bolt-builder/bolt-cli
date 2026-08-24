@@ -37,6 +37,7 @@ import { StartupLoading } from "./component/startup-loading"
 import { SyncProvider, useSync } from "./context/sync"
 import { DataProvider } from "./context/data"
 import { LocationProvider } from "./context/location"
+import { NudgeProvider } from "./context/nudge"
 import { LocalProvider, useLocal } from "./context/local"
 import { PermissionProvider } from "./context/permission"
 import { DialogModel } from "./component/dialog-model"
@@ -82,6 +83,7 @@ import {
 import type { EventSource } from "./context/sdk"
 import { DialogVariant } from "./component/dialog-variant"
 import { createTuiAttention } from "./attention"
+import { voice } from "./voice"
 import * as TuiAudio from "./audio"
 import { win32DisableProcessedInput, win32FlushInputBuffer } from "./terminal-win32"
 import { destroyRenderer } from "./util/renderer"
@@ -137,6 +139,7 @@ const appBindingCommands = [
   "app.toggle.diffwrap",
   "app.toggle.paste_summary",
   "app.toggle.session_directory_filter",
+  "voice.toggle",
 ] as const
 
 export type TuiInput = {
@@ -310,20 +313,22 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                     <LocalProvider>
                                                       <PromptStashProvider>
                                                         <DialogProvider>
-                                                          <FrecencyProvider>
-                                                            <PromptHistoryProvider>
-                                                              <PromptRefProvider>
-                                                                <EditorContextProvider>
-                                                                  <LocationProvider>
-                                                                    <App
-                                                                      onSnapshot={input.onSnapshot}
-                                                                      pluginHost={input.pluginHost}
-                                                                    />
-                                                                  </LocationProvider>
-                                                                </EditorContextProvider>
-                                                              </PromptRefProvider>
-                                                            </PromptHistoryProvider>
-                                                          </FrecencyProvider>
+                                                          <NudgeProvider>
+                                                            <FrecencyProvider>
+                                                              <PromptHistoryProvider>
+                                                                <PromptRefProvider>
+                                                                  <EditorContextProvider>
+                                                                    <LocationProvider>
+                                                                      <App
+                                                                        onSnapshot={input.onSnapshot}
+                                                                        pluginHost={input.pluginHost}
+                                                                      />
+                                                                    </LocationProvider>
+                                                                  </EditorContextProvider>
+                                                                </PromptRefProvider>
+                                                              </PromptHistoryProvider>
+                                                            </FrecencyProvider>
+                                                          </NudgeProvider>
                                                         </DialogProvider>
                                                       </PromptStashProvider>
                                                     </LocalProvider>
@@ -377,6 +382,8 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
   const toast = useToast()
   const themeState = useTheme()
   const { theme, mode, setMode, locked, lock, unlock } = themeState
+  // Agent to restore when /plan toggles plan mode back off.
+  let prior: string | undefined
   const sync = useSync()
   const project = useProject()
   const exit = useExit()
@@ -593,6 +600,40 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         },
       },
       {
+        name: "voice.toggle",
+        title: voice.status() === "recording" ? "Stop voice recording" : "Start voice recording",
+        category: "Session",
+        slashName: "voice",
+        run: async () => {
+          dialog.clear()
+          if (voice.status() === "transcribing") return
+          if (voice.status() === "idle") {
+            const error = voice.start()
+            if (error) toast.show({ message: error, variant: "warning" })
+            return
+          }
+          const stopped = await voice.stop()
+          if (!stopped.audio) {
+            toast.show({ message: stopped.error ?? "No audio captured", variant: "warning" })
+            return
+          }
+          const result = await sdk.client.voice
+            .transcribe({ voiceTranscribeInput: { audio: stopped.audio, mime: "audio/wav" } })
+            .catch(() => undefined)
+          voice.reset()
+          if (!result || result.error) {
+            toast.show({ message: result?.error?.message ?? "Transcription failed", variant: "error" })
+            return
+          }
+          const text = result.data?.text.trim()
+          if (!text) {
+            toast.show({ message: "Transcription was empty", variant: "warning" })
+            return
+          }
+          promptRef.current?.insert?.(text)
+        },
+      },
+      {
         name: "workspace.copy_path",
         title: "Copy worktree path",
         category: "Workspace",
@@ -681,6 +722,27 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         slashName: "agents",
         run: () => {
           dialog.replace(() => <DialogAgent />)
+        },
+      },
+      {
+        name: "agent.plan",
+        title: "Toggle plan mode",
+        category: "Agent",
+        slashName: "plan",
+        run: () => {
+          const current = local.agent.current()?.name
+          if (current === "plan") {
+            local.agent.set(prior ?? "build")
+            toast.show({ variant: "info", message: `Plan mode off, back to ${prior ?? "build"}`, duration: 3000 })
+            return
+          }
+          prior = current
+          local.agent.set("plan")
+          toast.show({
+            variant: "info",
+            message: "Plan mode on, the agent will propose before changing files",
+            duration: 3000,
+          })
         },
       },
       {
@@ -948,6 +1010,8 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         title:
           local.permission.mode === "auto" ? "Disable auto-approve permissions" : "Enable auto-approve permissions",
         category: "System",
+        slashName: "auto-approve",
+        slashAliases: ["autoapprove", "approve-all", "approveall", "yolo"],
         run: () => {
           local.permission.toggle()
           dialog.clear()

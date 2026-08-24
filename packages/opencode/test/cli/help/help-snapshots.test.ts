@@ -47,6 +47,7 @@ const TOP_LEVEL = [
   "mcp",
   "attach",
   "run",
+  "arena",
   "debug",
   "providers", // aliased to `auth`
   "agent",

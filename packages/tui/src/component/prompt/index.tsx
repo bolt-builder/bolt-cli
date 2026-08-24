@@ -5,6 +5,7 @@ import {
   MouseEvent,
   PasteEvent,
   decodePasteBytes,
+  rgbToHex,
   type KeyEvent,
   type Renderable,
 } from "@opentui/core"
@@ -20,6 +21,8 @@ import { EmptyBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
+import { voice } from "../../voice"
+import { createFire, FireStrip } from "../fire-frame"
 import { useSDK } from "../../context/sdk"
 import { useRoute } from "../../context/route"
 import { useProject } from "../../context/project"
@@ -39,6 +42,7 @@ import { type AutocompleteRef, Autocomplete } from "./autocomplete"
 import { useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import type { AssistantMessage, FilePart, UserMessage } from "@opencode-ai/sdk/v2"
 import { Locale } from "../../util/locale"
+import { meter } from "../../util/meter"
 import { errorMessage } from "../../util/error"
 import { formatDuration } from "../../util/format"
 import { createColors, createFrames } from "../../ui/spinner"
@@ -57,6 +61,12 @@ import { usePromptWorkspace } from "./workspace"
 import { usePromptMove } from "./move"
 import { readLocalAttachment } from "./local-attachment"
 import { useLocation } from "../../context/location"
+import { useVim, VimModeIndicator, vimToggleCommand } from "./vim-mode"
+import { createCostAlertController } from "../../util/cost-alert"
+import { useNudge } from "../../context/nudge"
+import { parseMemoryCommand } from "@opencode-ai/memory/commands"
+import { runMemoryCommand } from "../../util/memory-command"
+import { showMemoryDialog, showMemoryHelpDialog, showMemoryStatusDialog } from "../dialog-memory"
 
 registerOpencodeSpinner()
 
@@ -65,6 +75,7 @@ export type PromptProps = {
   visible?: boolean
   disabled?: boolean
   onSubmit?: () => void
+  onAside?: (question: string) => void
   ref?: (ref: PromptRef | undefined) => void
   hint?: JSX.Element
   right?: JSX.Element
@@ -94,6 +105,11 @@ export type PromptRef = {
   blur(): void
   focus(): void
   submit(): void
+  // Optional so plugin-provided prompt replacements without side-question
+  // support still satisfy the ref.
+  aside?(): void
+  // Optional for the same reason; inserts text at the cursor without submitting.
+  insert?(text: string): void
 }
 
 const money = new Intl.NumberFormat("en-US", {
@@ -210,6 +226,15 @@ export function Prompt(props: PromptProps) {
   const workspace = usePromptWorkspace(props.sessionID)
   const move = usePromptMove({ projectID: project.project, sessionID: () => props.sessionID })
   const [cursorVersion, setCursorVersion] = createSignal(0)
+  const nudge = useNudge()
+  const vim = useVim({
+    input: () => input,
+    disabled: () => props.disabled ?? false,
+    autocompleteVisible: () => Boolean(auto()?.visible),
+    getVimEnabled: () => Boolean(kv.get("vim_enabled", false)),
+    bumpCursor: () => setCursorVersion((value) => value + 1),
+    cursorVersion: () => cursorVersion(),
+  })
   const currentProviderLabel = createMemo(() => local.model.parsed().provider)
   const hasRightContent = createMemo(() => Boolean(props.right))
 
@@ -273,17 +298,17 @@ export function Prompt(props: PromptProps) {
     if (tokens <= 0) return
 
     const model = sync.data.provider.find((item) => item.id === last.providerID)?.models[last.modelID]
-    const pct = model?.limit.context ? `${Math.round((tokens / model.limit.context) * 100)}%` : undefined
+    const pct = model?.limit.context ? Math.round((tokens / model.limit.context) * 100) : undefined
     const cost = session?.cost ?? 0
     return {
-      context: pct ? `${Locale.number(tokens)} (${pct})` : Locale.number(tokens),
+      context: pct !== undefined ? `${meter(pct)} ${Locale.number(tokens)} (${pct}%)` : Locale.number(tokens),
       cost: cost > 0 ? money.format(cost) : undefined,
     }
   })
 
   const [store, setStore] = createStore<{
     prompt: PromptInfo
-    mode: "normal" | "shell"
+    mode: "normal" | "shell" | "btw"
     extmarkToPartIndex: Map<number, number>
     interrupt: number
     placeholder: number
@@ -399,7 +424,7 @@ export function Prompt(props: PromptProps) {
           if (auto()?.visible) return
           if (!input.focused) return
           // TODO: this should be its own command
-          if (store.mode === "shell") {
+          if (store.mode !== "normal") {
             setStore("mode", "normal")
             return
           }
@@ -417,6 +442,18 @@ export function Prompt(props: PromptProps) {
             })
             setStore("interrupt", 0)
           }
+          dialog.clear()
+        },
+      },
+      {
+        title: "Cost alert",
+        desc: "Set a session cost alert",
+        name: "cost_alert",
+        category: "Session",
+        slashName: "cost-alert",
+        slashAliases: ["cost"],
+        run: () => {
+          costAlert.start()
           dialog.clear()
         },
       },
@@ -512,6 +549,13 @@ export function Prompt(props: PromptProps) {
           input.cursorOffset = Bun.stringWidth(normalized)
         },
       },
+      vimToggleCommand({
+        vimEnabled: vim.vimEnabled,
+        setVimEnabled: (value) => kv.set("vim_enabled", value),
+        resetVim: vim.resetVim,
+        clearDialog: () => dialog.clear(),
+        showToast: (message) => toast.show({ message, variant: "info" }),
+      }),
       {
         title: "Skills",
         name: "prompt.skills",
@@ -573,6 +617,7 @@ export function Prompt(props: PromptProps) {
       "prompt.stash.pop",
       "prompt.stash.list",
       "prompt.skills",
+      "prompt.vim.toggle",
       "session.interrupt",
       "workspace.set",
       "session.move",
@@ -606,9 +651,19 @@ export function Prompt(props: PromptProps) {
         parts: [],
       })
       setStore("extmarkToPartIndex", new Map())
+      // return to insert mode after the prompt is cleared
+      vim.resetVim()
     },
     submit() {
       void submit()
+    },
+    aside() {
+      setStore("mode", "btw")
+      input.focus()
+    },
+    insert(text) {
+      input.insertText(text)
+      input.focus()
     },
   }
 
@@ -750,6 +805,7 @@ export function Prompt(props: PromptProps) {
           input.clear()
           setStore("prompt", { input: "", parts: [] })
           setStore("extmarkToPartIndex", new Map())
+          vim.resetVim()
           dialog.clear()
         },
       },
@@ -765,6 +821,7 @@ export function Prompt(props: PromptProps) {
             setStore("prompt", { input: entry.input, parts: entry.parts })
             restoreExtmarksFromParts(entry.parts)
             input.gotoBufferEnd()
+            vim.resetVim()
           }
           dialog.clear()
         },
@@ -782,6 +839,7 @@ export function Prompt(props: PromptProps) {
                 setStore("prompt", { input: entry.input, parts: entry.parts })
                 restoreExtmarksFromParts(entry.parts)
                 input.gotoBufferEnd()
+                vim.resetVim()
               }}
             />
           ))
@@ -843,8 +901,8 @@ export function Prompt(props: PromptProps) {
   useBindings(() => {
     return {
       target: inputTarget,
-      enabled: inputTarget() !== undefined && store.mode === "shell",
-      bindings: [{ key: "escape", desc: "Exit shell mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      enabled: inputTarget() !== undefined && store.mode !== "normal",
+      bindings: [{ key: "escape", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
     }
   })
 
@@ -853,9 +911,9 @@ export function Prompt(props: PromptProps) {
       target: inputTarget,
       enabled: (() => {
         cursorVersion()
-        return inputTarget() !== undefined && store.mode === "shell" && input?.visualCursor.offset === 0
+        return inputTarget() !== undefined && store.mode !== "normal" && input?.visualCursor.offset === 0
       })(),
-      bindings: [{ key: "backspace", desc: "Exit shell mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      bindings: [{ key: "backspace", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
     }
   })
 
@@ -883,6 +941,8 @@ export function Prompt(props: PromptProps) {
             setStore("prompt", item)
             setStore("mode", item.mode ?? "normal")
             restoreExtmarksFromParts(item.parts)
+            // recalled history starts in insert mode
+            vim.resetVim()
             input.cursorOffset = 0
           },
         },
@@ -919,6 +979,8 @@ export function Prompt(props: PromptProps) {
             setStore("prompt", item)
             setStore("mode", item.mode ?? "normal")
             restoreExtmarksFromParts(item.parts)
+            // recalled history starts in insert mode
+            vim.resetVim()
             input.cursorOffset = input.plainText.length
           },
         },
@@ -958,6 +1020,27 @@ export function Prompt(props: PromptProps) {
     if (workspace.creating() || move.creating()) return false
     if (auto()?.visible) return false
     if (!store.prompt.input) return false
+    // in-memory cost alert command
+    if (costAlert.handle(store.prompt.input.trim())) return true
+    // client-side /memory command; never sent to the model
+    if (parseMemoryCommand(store.prompt.input.trim())) {
+      const text = store.prompt.input.trim()
+      clearPrompt()
+      void runMemoryCommand({
+        text,
+        client: sdk.client,
+        sessionID: props.sessionID,
+        toast,
+        inspect: async (root) => {
+          const { default: open } = await import("open")
+          await open(root)
+        },
+        show: () => showMemoryDialog(dialog),
+        status: () => showMemoryStatusDialog(dialog),
+        usage: (reason) => showMemoryHelpDialog(dialog, { reason, sessionID: props.sessionID }),
+      })
+      return true
+    }
     const agent = local.agent.current()
     if (!agent) return false
     const trimmed = store.prompt.input.trim()
@@ -1056,7 +1139,12 @@ export function Prompt(props: PromptProps) {
           ]
         : []
 
-    if (store.mode === "shell") {
+    if (store.mode === "btw") {
+      // Sticky side-question mode: each submission becomes its own fork; the
+      // mode stays active until esc so follow-ups don't need /btw again.
+      if (!inputText.trim()) return true
+      props.onAside?.(inputText)
+    } else if (store.mode === "shell") {
       move.startSubmit()
       void sdk.client.session.shell({
         sessionID,
@@ -1099,6 +1187,12 @@ export function Prompt(props: PromptProps) {
             agent: agent.name,
             model: selectedModel,
             variant,
+            // Yolo mode: permissions are auto-approved client-side, so tell
+            // the model up front not to stop and ask for any.
+            system:
+              local.permission.mode === "auto"
+                ? "Yolo mode is active: every permission request is granted automatically. Do not ask the user for permission or confirmation before acting; proceed directly."
+                : undefined,
             parts: [
               ...editorParts,
               {
@@ -1283,14 +1377,27 @@ export function Prompt(props: PromptProps) {
       parts: [],
     })
     setStore("extmarkToPartIndex", new Map())
+    // don't leak stale vim mode/selection into an emptied prompt
+    vim.resetVim()
   }
+
+  // cost-alert logic lives in util/cost-alert; only prompt mutation stays here
+  const costAlert = createCostAlertController({
+    prefill: () => {
+      const value = "/cost-alert "
+      input.setText(value)
+      setStore("prompt", { input: value, parts: [] })
+      input.gotoBufferEnd()
+    },
+    clearPrompt,
+    toast,
+    nudge,
+    sessionID: () => props.sessionID,
+  })
 
   const highlight = createMemo(() => {
     if (leader()) return theme.border
-    if (store.mode === "shell") return theme.primary
-    const agent = local.agent.current()
-    if (!agent) return theme.border
-    return local.agent.color(agent.name)
+    return theme.primary
   })
 
   const showVariant = createMemo(() => {
@@ -1307,7 +1414,12 @@ export function Prompt(props: PromptProps) {
     animationsEnabled,
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
-
+  const fire = createMemo(() => animationsEnabled() && status().type !== "idle")
+  const flames = createFire(
+    () => dimensions().width,
+    fire,
+    () => rgbToHex(theme.primary),
+  )
   const placeholderText = createMemo(() => {
     if (props.showPlaceholder === false) return undefined
     if (store.mode === "shell") {
@@ -1315,6 +1427,7 @@ export function Prompt(props: PromptProps) {
       const example = shell()[store.placeholder % shell().length]
       return `Run a command... "${example}"`
     }
+    if (store.mode === "btw") return "Ask a side question... esc to exit"
     if (!list().length) return undefined
     return `Ask anything... "${list()[store.placeholder % list().length]}"`
   })
@@ -1347,6 +1460,13 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
+      {/* Outside the anchor box on purpose: the autocomplete palette renders
+          above the anchor, so keeping the fire out of it lets the palette sit
+          flush against the input and cover the flames instead of floating
+          above the whole strip. */}
+      <Show when={props.visible !== false && fire()}>
+        <FireStrip rows={flames()} />
+      </Show>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <box
           width="100%"
@@ -1382,9 +1502,15 @@ export function Prompt(props: PromptProps) {
                 setCursorVersion((value) => value + 1)
               }}
               onCursorChange={() => setCursorVersion((value) => value + 1)}
-              onKeyDown={(e: { preventDefault(): void }) => {
+              onKeyDown={(e: KeyEvent) => {
                 if (props.disabled) {
                   e.preventDefault()
+                  return
+                }
+                // route keys through the vim layer when enabled
+                if (vim.vimOnKey(e)) {
+                  e.preventDefault()
+                  e.stopPropagation()
                   return
                 }
               }}
@@ -1447,11 +1573,25 @@ export function Prompt(props: PromptProps) {
                   {(agent) => (
                     <>
                       <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+                        {store.mode === "shell"
+                          ? "Shell"
+                          : store.mode === "btw"
+                            ? "Btw"
+                            : Locale.titlecase(agent().name)}
                       </text>
                       <Show when={store.mode === "normal" && local.permission.mode === "auto"}>
                         <text fg={fadeColor(theme.textMuted, agentMetaAlpha())}>auto</text>
                       </Show>
+                      <VimModeIndicator
+                        when={() => vim.vimEnabled() && store.mode !== "shell"}
+                        mode={vim.vimMode}
+                        fade={fadeColor}
+                        textMuted={() => theme.textMuted}
+                        info={() => theme.info}
+                        warning={() => theme.warning}
+                        success={() => theme.success}
+                        alpha={agentMetaAlpha}
+                      />
                       <Show when={store.mode === "normal"}>
                         <box flexDirection="row" gap={1}>
                           <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
@@ -1512,6 +1652,17 @@ export function Prompt(props: PromptProps) {
         </box>
         <box width="100%" flexDirection="row" justifyContent="space-between">
           <Switch>
+            <Match when={voice.status() !== "idle"}>
+              <box marginLeft={1} flexDirection="row" gap={1}>
+                <Show
+                  when={voice.status() === "recording"}
+                  fallback={<Spinner color={theme.accent}>transcribing</Spinner>}
+                >
+                  <text fg={theme.error}>● recording</text>
+                  <text fg={theme.textMuted}>/voice to stop</text>
+                </Show>
+              </box>
+            </Match>
             <Match when={status().type !== "idle"}>
               <box
                 flexDirection="row"
@@ -1671,17 +1822,28 @@ export function Prompt(props: PromptProps) {
                     </Match>
                     <Match when={true}>
                       <text fg={theme.text}>
-                        {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
+                        <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
+                          {"["}
+                          {agentShortcut()}
+                          {"]"}
+                        </span>{" "}
+                        <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
                     </Match>
                   </Switch>
                   <text fg={theme.text}>
-                    {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
+                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
+                      {"["}
+                      {paletteShortcut()}
+                      {"]"}
+                    </span>{" "}
+                    <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
                 </Match>
                 <Match when={store.mode === "shell"}>
                   <text fg={theme.text}>
-                    esc <span style={{ fg: theme.textMuted }}>exit shell mode</span>
+                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>[esc]</span>{" "}
+                    <span style={{ fg: theme.textMuted }}>exit shell mode</span>
                   </text>
                 </Match>
               </Switch>

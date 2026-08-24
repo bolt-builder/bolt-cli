@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-duplicates:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     permissions:
       contents: read
       pull-requests: write
@@ -20,7 +20,7 @@ jobs:
         id: team-check
         run: |
           LOGIN="${{ github.event.pull_request.user.login }}"
-          if [ "$LOGIN" = "opencode-agent[bot]" ] || grep -qxF "$LOGIN" .github/TEAM_MEMBERS; then
+          if [ "$LOGIN" =   "bolt-cli[bot]" ] || grep -qxF "$LOGIN" .github/TEAM_MEMBERS; then
             echo "is_team=true" >> "$GITHUB_OUTPUT"
             echo "Skipping: $LOGIN is a team member or bot"
           else
@@ -72,7 +72,7 @@ jobs:
           fi
 
   add-contributor-label:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       pull-requests: write
       issues: write

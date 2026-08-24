@@ -1,9 +1,8 @@
 export * as Provider from "./provider"
 
 import { Schema } from "effect"
-import { optional } from "./schema"
 import { Integration } from "./integration"
-import { statics } from "./schema"
+import { optional, statics } from "./schema"
 
 export const ID = Schema.String.pipe(
   Schema.brand("ProviderV2.ID"),
