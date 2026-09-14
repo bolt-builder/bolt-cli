@@ -1414,7 +1414,7 @@ export function Prompt(props: PromptProps) {
     animationsEnabled,
   )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
-  const fire = createMemo(() => animationsEnabled() && status().type !== "idle")
+  const fire = createMemo(() => animationsEnabled() && kv.get("fire_animation_enabled", true) && status().type !== "idle")
   const flames = createFire(
     () => dimensions().width,
     fire,

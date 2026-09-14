@@ -134,6 +134,7 @@ const appBindingCommands = [
   "app.heap_snapshot",
   "terminal.suspend",
   "terminal.title.toggle",
+  "app.toggle.fire",
   "app.toggle.animations",
   "app.toggle.file_context",
   "app.toggle.diffwrap",
@@ -949,6 +950,15 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             if (!next) renderer.setTerminalTitle("")
             return next
           })
+          dialog.clear()
+        },
+      },
+      {
+        name: "app.toggle.fire",
+        title: kv.get("fire_animation_enabled", true) ? "Disable fire animation" : "Enable fire animation",
+        category: "System",
+        run: () => {
+          kv.set("fire_animation_enabled", !kv.get("fire_animation_enabled", true))
           dialog.clear()
         },
       },
