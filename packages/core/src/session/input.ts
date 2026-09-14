@@ -49,7 +49,10 @@ export const admit = Effect.fn("SessionInput.admit")(function* (
   },
 ) {
   const existing = yield* find(db, input.id)
-  if (existing !== undefined) return existing
+  if (existing !== undefined) {
+    if (!equivalent(existing, input)) return yield* Effect.die(new LifecycleConflict({ id: input.id }))
+    return existing
+  }
   const timestamp = yield* DateTime.now
   return yield* events
     .publish(SessionEvent.PromptAdmitted, {
@@ -75,7 +78,11 @@ export const admit = Effect.fn("SessionInput.admit")(function* (
             ),
       ),
       Effect.catchDefect((defect) =>
-        find(db, input.id).pipe(Effect.flatMap((stored) => (stored ? Effect.succeed(stored) : Effect.die(defect)))),
+        find(db, input.id).pipe(
+          Effect.flatMap((stored) =>
+            stored && equivalent(stored, input) ? Effect.succeed(stored) : Effect.die(defect),
+          ),
+        ),
       ),
     )
 })
