@@ -58,8 +58,8 @@
       "light": "lightRed"
     },
     "warning": {
-      "dark": "darkOrange",
-      "light": "lightOrange"
+      "dark": "darkStep9",
+      "light": "lightStep9"
     },
     "success": {
       "dark": "darkGreen",
@@ -178,8 +178,8 @@
       "light": "lightYellow"
     },
     "markdownStrong": {
-      "dark": "darkOrange",
-      "light": "lightOrange"
+      "dark": "darkStep12",
+      "light": "lightStep12"
     },
     "markdownHorizontalRule": {
       "dark": "darkStep11",
