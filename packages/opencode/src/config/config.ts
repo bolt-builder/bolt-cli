@@ -148,7 +148,7 @@ export class Service extends Context.Service<Service, Interface>()("@bolt/Config
 export const use = serviceUse(Service)
 
 export function globalConfigFile() {
-  const candidates = ["bolt.jsonc", "bolt.json", "bolt.jsonc", "bolt.json", "config.json"].map((file) =>
+  const candidates = ["bolt.jsonc", "bolt.json", "opencode.jsonc", "opencode.json", "config.json"].map((file) =>
     path.join(Global.Path.config, file),
   )
   for (const file of candidates) {
@@ -280,8 +280,8 @@ const layer = Layer.effect(
         }
       }
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "config.json"), env))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.json"), env))
-      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.jsonc"), env))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.json"), env))
+      result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "opencode.jsonc"), env))
       // bolt configs load last so they win over legacy opencode configs
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.json"), env))
       result = mergeConfig(result, yield* loadFile(path.join(Global.Path.config, "bolt.jsonc"), env))
@@ -295,10 +295,19 @@ const layer = Layer.effect(
               if (provider && model) result.model = `${provider}/${model}`
               result["$schema"] = "https://bolt.ai/config.json"
               result = mergeConfig(result, rest)
-              await fsNode.writeFile(path.join(Global.Path.config, "config.json"), JSON.stringify(result, null, 2))
+              // Atomic write so a crash never leaves a truncated config.json.
+              const dest = path.join(Global.Path.config, "config.json")
+              const tmp = `${dest}.${process.pid}.tmp`
+              await fsNode.writeFile(tmp, JSON.stringify(result, null, 2))
+              await fsNode.rename(tmp, dest)
               await fsNode.unlink(legacy)
             })
-            .catch(() => {}),
+            .catch((error) => {
+              // Best-effort legacy migration: leave the file for retry, but
+              // make failures visible (e.g. Node without TOML import support).
+              // eslint-disable-next-line no-console
+              console.warn(`Skipping legacy TOML config migration for ${legacy}: ${String(error)}`)
+            }),
         )
       }
 
@@ -433,7 +442,7 @@ const layer = Layer.effect(
         }
 
         if (!Flag.BOLT_DISABLE_PROJECT_CONFIG) {
-          for (const name of ["bolt", "bolt"]) {
+          for (const name of ["opencode", "bolt"]) {
             for (const file of yield* ConfigPaths.files(name, ctx.directory, ctx.worktree).pipe(Effect.orDie)) {
               yield* merge(file, yield* loadFile(file, authEnv), "local")
             }
@@ -453,8 +462,8 @@ const layer = Layer.effect(
         const deps: Fiber.Fiber<void>[] = []
 
         for (const dir of directories) {
-          if (dir.endsWith(".bolt") || dir.endsWith(".bolt") || dir === Flag.BOLT_CONFIG_DIR) {
-            for (const file of ["bolt.json", "bolt.jsonc", "bolt.json", "bolt.jsonc"]) {
+          if (dir.endsWith(".bolt") || dir.endsWith(".opencode") || dir === Flag.BOLT_CONFIG_DIR) {
+            for (const file of ["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"]) {
               const source = path.join(dir, file)
               yield* Effect.logDebug(`loading config from ${source}`)
               yield* merge(source, yield* loadFile(source, authEnv))
@@ -599,11 +608,12 @@ const layer = Layer.effect(
           yield* merge("BOLT environment", envOverrides.config, "local")
         }
 
-        const managedDir = ConfigManaged.managedConfigDir()
-        if (existsSync(managedDir)) {
-          for (const file of ["bolt.json", "bolt.jsonc"]) {
-            const source = path.join(managedDir, file)
-            yield* merge(source, yield* loadFile(source), "global")
+        for (const managedDir of ConfigManaged.managedConfigDirs()) {
+          if (existsSync(managedDir)) {
+            for (const file of ["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"]) {
+              const source = path.join(managedDir, file)
+              yield* merge(source, yield* loadFile(source), "global")
+            }
           }
         }
 
