@@ -161,7 +161,8 @@ const live: Layer.Layer<
               title: typeof result === "object" ? result?.title : undefined,
             }
           } catch (e: any) {
-            return { result: "", error: e.message ?? String(e) }
+            const message = e instanceof Error ? (e.stack ?? e.message) : String(e)
+            return { result: "", error: message }
           }
         }
 
