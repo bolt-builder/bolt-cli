@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<p align="center">Your terminal, now with a full AI engineering team inside it.</p>
+<p align="center">Your terminal, now with a full AI engineering team inside it, ready to do whatever you need.</p>
 
 <p align="center">
   <a href="https://github.com/Bolt-builder/bolt-clil"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/Bolt-builder/bolt-cli/publish.yml?style=flat-square&branch=dev" /></a>
