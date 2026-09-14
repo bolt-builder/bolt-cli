@@ -39,11 +39,12 @@
             };
           in
           rec {
-            opencode = final.callPackage ./nix/bolt.nix {
+            bolt = final.callPackage ./nix/bolt.nix {
               inherit node_modules;
             };
+            opencode = bolt;
             bolt-desktop = final.callPackage ./nix/desktop.nix {
-              inherit opencode;
+              inherit bolt;
             };
           };
       };
@@ -56,12 +57,13 @@
           };
         in
         rec {
-          default = opencode;
-          opencode = pkgs.callPackage ./nix/bolt.nix {
+          default = bolt;
+          bolt = pkgs.callPackage ./nix/bolt.nix {
             inherit node_modules;
           };
+          opencode = bolt;
           bolt-desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit opencode;
+            inherit bolt;
           };
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {
