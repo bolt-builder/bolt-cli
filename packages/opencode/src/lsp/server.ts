@@ -188,15 +188,16 @@ export const ESLint: Info = {
 
       const ok = await Archive.extractZip(zipPath, Global.Path.bin)
         .then(() => true)
-        .catch((error) => {
-          return false
-        })
+        .catch(() => false)
       if (!ok) return
       await fs.rm(zipPath, { force: true })
 
       const extractedPath = path.join(Global.Path.bin, "vscode-eslint-main")
       const finalPath = path.join(Global.Path.bin, "vscode-eslint")
 
+      // Verify the expected top-level dir before destroying the current install.
+      const extracted = await fs.stat(extractedPath).catch(() => undefined)
+      if (!extracted) return
       const stats = await fs.stat(finalPath).catch(() => undefined)
       if (stats) {
         await fs.rm(finalPath, { force: true, recursive: true })
