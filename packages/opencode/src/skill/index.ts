@@ -31,7 +31,7 @@ const SKILL_PATTERN = "**/SKILL.md"
 // actual schemas instead of guesses.
 const BOLT_CONFIG_SKILL_NAME = "bolt-config"
 const BOLT_CONFIG_SKILL_DESCRIPTION =
-  "Use ONLY when the user is editing or creating bolt's own configuration: bolt.json, bolt.jsonc, legacy bolt.json(c), files under .bolt/ or .bolt/, or files under ~/.config/opencode/. Also use when creating or fixing bolt agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring bolt itself."
+  "Use ONLY when the user is editing or creating bolt's own configuration: bolt.json, bolt.jsonc, legacy opencode.json(c), files under .opencode/ or .bolt/, or files under ~/.config/bolt/. Also use when creating or fixing bolt agents, subagents, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring bolt itself."
 const BOLT_CONFIG_SKILL_BODY = SkillPlugin.BoltConfigContent
 
 export const Info = Schema.Struct({
