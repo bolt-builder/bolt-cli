@@ -96,24 +96,34 @@ function prepareOptions(model: ModelV2.Info, pkg: string) {
     if (abortSignals.length === 1) opts.signal = abortSignals[0]
     if (abortSignals.length > 1) opts.signal = AbortSignal.any(abortSignals)
 
+    const runFetch = () =>
+      (typeof customFetch === "function" ? customFetch : fetch)(input, {
+        ...opts,
+        timeout: false,
+      })
+
     if (
       (pkg === "@ai-sdk/openai" || pkg === "@ai-sdk/azure" || pkg === "@ai-sdk/amazon-bedrock/mantle") &&
       opts.body &&
       opts.method === "POST"
     ) {
-      const body = JSON.parse(opts.body as string)
-      if (body.store !== true && Array.isArray(body.input)) {
-        for (const item of body.input) {
-          if ("id" in item) delete item.id
+      // Non-string bodies (FormData, streams) pass through untouched.
+      if (typeof opts.body === "string" && opts.body.length > 0) {
+        try {
+          const body = JSON.parse(opts.body)
+          if (body.store !== true && Array.isArray(body.input)) {
+            for (const item of body.input) {
+              if ("id" in item) delete item.id
+            }
+            opts.body = JSON.stringify(body)
+          }
+        } catch {
+          // Malformed JSON passes through to the underlying fetch for its own error handling.
         }
-        opts.body = JSON.stringify(body)
       }
     }
 
-    const res = await (typeof customFetch === "function" ? customFetch : fetch)(input, {
-      ...opts,
-      timeout: false,
-    })
+    const res = await runFetch()
     if (!chunkAbortCtl || typeof chunkTimeout !== "number") return res
     return wrapSSE(res, chunkTimeout, chunkAbortCtl)
   }
