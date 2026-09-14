@@ -723,8 +723,17 @@ export function fromError(
             },
           ).toObject()
         }
-      } catch {}
-      return new NamedError.Unknown({ message: JSON.stringify(e) }, { cause: e }).toObject()
+      } catch {
+        // parseStreamError must stay total; fall through to Unknown below.
+      }
+      const message = (() => {
+        try {
+          return JSON.stringify(e)
+        } catch {
+          return e instanceof Error ? e.message : String(e)
+        }
+      })()
+      return new NamedError.Unknown({ message }, { cause: e }).toObject()
   }
 }
 
