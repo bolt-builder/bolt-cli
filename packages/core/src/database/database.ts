@@ -5,6 +5,7 @@ import { layer as sqliteLayer } from "#sqlite"
 import { Context, Effect, Layer } from "effect"
 import { Global } from "../global"
 import { Flag } from "../flag/flag"
+import { existsSync, copyFileSync } from "fs"
 import { isAbsolute, join } from "path"
 import { DatabaseMigration } from "./migration"
 import { InstallationChannel } from "../installation/version"
@@ -51,7 +52,16 @@ export function path() {
     process.env.BOLT_DISABLE_CHANNEL_DB === "true"
   )
     return join(Global.Path.data, "bolt.db")
-  return join(Global.Path.data, `opencode-${InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")}.db`)
+  const next = join(Global.Path.data, `bolt-${InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")}.db`)
+  const legacy = join(Global.Path.data, `opencode-${InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")}.db`)
+  if (!existsSync(next) && existsSync(legacy)) {
+    try {
+      copyFileSync(legacy, next)
+    } catch {
+      // fall through to opening legacy path via next on next boot
+    }
+  }
+  return next
 }
 
 export const node = makeGlobalNode({ service: Service, layer: layerFromPath(path()), deps: [] })
