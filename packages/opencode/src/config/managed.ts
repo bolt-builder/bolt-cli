@@ -20,9 +20,20 @@ const PLIST_META = new Set([
 function systemManagedConfigDir(): string {
   switch (process.platform) {
     case "darwin":
-      return "/Library/Application Support/opencode"
+      return "/Library/Application Support/bolt"
     case "win32":
       return path.join(process.env.ProgramData || "C:\\ProgramData", "bolt")
+    default:
+      return "/etc/bolt"
+  }
+}
+
+function legacyManagedConfigDir(): string | undefined {
+  switch (process.platform) {
+    case "darwin":
+      return "/Library/Application Support/opencode"
+    case "win32":
+      return undefined
     default:
       return "/etc/opencode"
   }
@@ -30,6 +41,13 @@ function systemManagedConfigDir(): string {
 
 export function managedConfigDir() {
   return process.env.BOLT_TEST_MANAGED_CONFIG_DIR || systemManagedConfigDir()
+}
+
+export function managedConfigDirs() {
+  const dirs = [managedConfigDir()]
+  const legacy = legacyManagedConfigDir()
+  if (legacy && legacy !== dirs[0]) dirs.unshift(legacy)
+  return dirs
 }
 
 export function parseManagedPlist(json: string): string {
