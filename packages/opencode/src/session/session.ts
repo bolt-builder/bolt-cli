@@ -29,7 +29,7 @@ import { SessionID, MessageID, PartID } from "./schema"
 
 import type { Provider } from "@/provider/provider"
 import { Global } from "@bolt-ai/core/global"
-import { Effect, Layer, Option, Context, Schema, Types } from "effect"
+import { Effect, Layer, Option, Context, Schema, Types, Exit, Cause } from "effect"
 import { NonNegativeInt, optional } from "@bolt-ai/core/schema"
 import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@bolt-ai/core/provider"
@@ -596,25 +596,30 @@ const layer: Layer.Layer<
 
     const remove: Interface["remove"] = Effect.fnUntraced(function* (sessionID: SessionID) {
       const session = yield* get(sessionID)
-      try {
-        // `remove` needs to work in all cases, such as broken sessions that
-        // run cleanup without instance state.
-        const hasInstance = yield* InstanceState.directory.pipe(
-          Effect.as(true),
-          Effect.catchCause(() => Effect.succeed(false)),
+      // `remove` needs to work in all cases, such as broken sessions that
+      // run cleanup without instance state. Background-job cancellation stays
+      // best-effort, but child deletes and the delete event must not be
+      // swallowed: otherwise the parent reports deleted while rows remain.
+      const hasInstance = yield* InstanceState.directory.pipe(
+        Effect.as(true),
+        Effect.catchCause(() => Effect.succeed(false)),
+      )
+
+      if (hasInstance) {
+        yield* cancelBackgroundJobs(background, sessionID).pipe(
+          Effect.catchCause((cause) => Effect.logError("failed to cancel background jobs", { sessionID, cause })),
         )
-
-        if (hasInstance) yield* cancelBackgroundJobs(background, sessionID)
-        const kids = yield* children(sessionID)
-        for (const child of kids) {
-          yield* remove(child.id)
-        }
-
-        yield* events.publish(SessionV1.Event.Deleted, { sessionID, info: session })
-        yield* events.remove(sessionID)
-      } catch (error) {
-        yield* Effect.logError("failed to remove session", { sessionID, error })
       }
+      const kids = yield* children(sessionID)
+      let firstError: Cause.Cause<NotFoundError> | undefined = undefined
+      for (const child of kids) {
+        const exit = yield* Effect.exit(remove(child.id))
+        if (Exit.isFailure(exit) && firstError === undefined) firstError = exit.cause
+      }
+      if (firstError !== undefined) return yield* Effect.failCause(firstError)
+
+      yield* events.publish(SessionV1.Event.Deleted, { sessionID, info: session })
+      yield* events.remove(sessionID)
     })
 
     const updateMessage = <T extends SessionV1.Info>(msg: T): Effect.Effect<T> =>
