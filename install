@@ -508,7 +508,7 @@ install_voice_deps() {
     fi
 
     # Model path must match the server default in packages/opencode/src/voice/transcription.ts.
-    local model_dir="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/models"
+    local model_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bolt/models"
     local model="$model_dir/ggml-large-v3-turbo-q5_0.bin"
     if [ -f "$model" ]; then
         print_message info "${MUTED}Voice model already downloaded${NC}"
