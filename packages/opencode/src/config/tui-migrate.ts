@@ -55,7 +55,13 @@ export async function migrateTuiConfig(input: MigrateInput) {
     }
     if (extracted.theme !== undefined) payload.theme = extracted.theme
     if (extracted.keybinds !== undefined) payload.keybinds = extracted.keybinds
-    if (tui) Object.assign(payload, tui)
+    if (extracted.tui) {
+      // Preserve unknown tui keys so migration never drops user data;
+      // known keys use their normalized values.
+      const { scroll_speed: _ss, scroll_acceleration: _sa, diff_style: _ds, ...rest } = extracted.tui
+      Object.assign(payload, rest)
+      if (tui) Object.assign(payload, tui)
+    }
 
     const wrote = await Filesystem.write(target, JSON.stringify(payload, null, 2))
       .then(() => true)
@@ -87,13 +93,15 @@ function normalizeTui(data: Record<string, unknown>):
 }
 
 async function backupAndStripLegacy(file: string, source: string) {
-  const backup = file + ".tui-migration.bak"
-  const hasBackup = await Filesystem.exists(backup)
-  const backed = hasBackup
-    ? true
-    : await Filesystem.write(backup, source)
-        .then(() => true)
-        .catch(() => false)
+  const base = file + ".tui-migration.bak"
+  const hasBackup = await Filesystem.exists(base)
+  // Never reuse a stale backup: second migration after user re-adds keys
+  // must snapshot current source, otherwise edits are destroyed with only
+  // the old backup left behind.
+  const backup = hasBackup ? `${base}.${Date.now()}` : base
+  const backed = await Filesystem.write(backup, source)
+    .then(() => true)
+    .catch(() => false)
   if (!backed) return false
 
   const text = ["theme", "keybinds", "tui"].reduce((acc, key) => {
@@ -114,10 +122,12 @@ async function backupAndStripLegacy(file: string, source: string) {
 
 async function opencodeFiles(input: { directories: string[]; cwd: string }) {
   const files = [
+    ...ConfigPaths.fileInDirectory(Global.Path.config, "opencode"),
     ...ConfigPaths.fileInDirectory(Global.Path.config, "bolt"),
-    ...(await Filesystem.findUp(["bolt.json", "bolt.jsonc"], input.cwd, undefined, { rootFirst: true })),
+    ...(await Filesystem.findUp(["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"], input.cwd, undefined, { rootFirst: true })),
   ]
   for (const dir of unique(input.directories)) {
+    files.push(...ConfigPaths.fileInDirectory(dir, "opencode"))
     files.push(...ConfigPaths.fileInDirectory(dir, "bolt"))
   }
   if (Flag.BOLT_CONFIG) files.push(Flag.BOLT_CONFIG)
