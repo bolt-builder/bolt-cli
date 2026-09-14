@@ -703,34 +703,6 @@
       },
     },
     "packages/plugin": {
-      "name": "@opencode-ai/plugin",
-      "dependencies": {
-        "@ai-sdk/provider": "3.0.8",
-        "@opencode-ai/sdk": "workspace:*",
-        "effect": "catalog:",
-        "zod": "catalog:",
-      },
-      "devDependencies": {
-        "@opentui/core": "catalog:",
-        "@opentui/keymap": "catalog:",
-        "@opentui/solid": "catalog:",
-        "@tsconfig/node22": "catalog:",
-        "@types/node": "catalog:",
-        "@typescript/native-preview": "catalog:",
-        "typescript": "catalog:",
-      },
-      "peerDependencies": {
-        "@opentui/core": ">=0.4.5",
-        "@opentui/keymap": ">=0.4.5",
-        "@opentui/solid": ">=0.4.5",
-      },
-      "optionalPeers": [
-        "@opentui/core",
-        "@opentui/keymap",
-        "@opentui/solid",
-      ],
-    },
-    "packages/plugin": {
       "name": "@bolt-ai/plugin",
       "version": "1.20.7",
       "dependencies": {
@@ -809,20 +781,6 @@
     "packages/sdk/js": {
       "name": "@bolt-ai/sdk",
       "version": "1.20.7",
-      "dependencies": {
-        "cross-spawn": "catalog:",
-      },
-      "devDependencies": {
-        "@hey-api/openapi-ts": "0.90.10",
-        "@tsconfig/node22": "catalog:",
-        "@types/cross-spawn": "catalog:",
-        "@types/node": "catalog:",
-        "@typescript/native-preview": "catalog:",
-        "typescript": "catalog:",
-      },
-    },
-    "packages/sdk/js": {
-      "name": "@opencode-ai/sdk",
       "dependencies": {
         "cross-spawn": "catalog:",
       },
