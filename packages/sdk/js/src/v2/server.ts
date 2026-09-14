@@ -32,7 +32,7 @@ export async function createBoltServer(options?: ServerOptions) {
   const args = [`serve`, `--hostname=${options.hostname}`, `--port=${options.port}`]
   if (options.config?.logLevel) args.push(`--log-level=${options.config.logLevel}`)
 
-  const proc = launch(`opencode`, args, {
+  const proc = launch(`bolt`, args, {
     env: {
       ...process.env,
       BOLT_CONFIG_CONTENT: JSON.stringify(options.config ?? {}),
@@ -115,7 +115,7 @@ export function createBoltTui(options?: TuiOptions) {
     args.push(`--agent=${options.agent}`)
   }
 
-  const proc = launch(`opencode`, args, {
+  const proc = launch(`bolt`, args, {
     stdio: "inherit",
     env: {
       ...process.env,
