@@ -58,23 +58,26 @@ function isEnoent(e: unknown): e is { code: "ENOENT" } {
 }
 
 export async function write(p: string, content: string | Buffer | Uint8Array, mode?: number): Promise<void> {
-  try {
+  const { rename, rm } = await import("fs/promises")
+  const dir = dirname(p)
+  const tmp = `${p}.${process.pid}.tmp`
+  const attempt = async () => {
     if (mode) {
-      await writeFile(p, content, { mode })
+      await writeFile(tmp, content, { mode })
     } else {
-      await writeFile(p, content)
+      await writeFile(tmp, content)
     }
+    await rename(tmp, p)
+  }
+  try {
+    await attempt()
   } catch (e) {
-    if (isEnoent(e)) {
-      await mkdir(dirname(p), { recursive: true })
-      if (mode) {
-        await writeFile(p, content, { mode })
-      } else {
-        await writeFile(p, content)
-      }
-      return
+    if (!isEnoent(e)) {
+      await rm(tmp, { force: true }).catch(() => {})
+      throw e
     }
-    throw e
+    await mkdir(dir, { recursive: true })
+    await attempt()
   }
 }
 
@@ -92,12 +95,22 @@ export async function writeStream(
     await mkdir(dir, { recursive: true })
   }
 
+  // Write to temp then rename so crashes never leave a truncated destination.
+  const tmp = `${p}.${process.pid}.tmp`
   const nodeStream = stream instanceof ReadableStream ? Readable.fromWeb(stream as any) : stream
-  const writeStream = createWriteStream(p)
-  await pipeline(nodeStream, writeStream)
-
-  if (mode) {
-    await chmod(p, mode)
+  try {
+    const out = createWriteStream(tmp, mode ? { mode } : undefined)
+    await pipeline(nodeStream, out)
+    if (mode) await chmod(tmp, mode)
+    const { rename, rm } = await import("fs/promises")
+    await rename(tmp, p).catch(async (e) => {
+      await rm(tmp, { force: true }).catch(() => {})
+      throw e
+    })
+  } catch (e) {
+    const { rm } = await import("fs/promises")
+    await rm(tmp, { force: true }).catch(() => {})
+    throw e
   }
 }
 
