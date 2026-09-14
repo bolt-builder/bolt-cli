@@ -49,9 +49,13 @@ export const make = <Key, E>(options: {
     }
 
     const settle = (key: Key, entry: Entry<E>, exit: Exit.Exit<void, E>) => {
+      // Coalesced wake after success chains a successor, but always complete
+      // the current entry so joiners are released promptly.
       if (Exit.isSuccess(exit) && !entry.stopping && entry.pendingWake) {
-        entry.pendingWake = false
-        start(key, entry, false, true)
+        const successor = makeEntry()
+        active.set(key, successor)
+        Deferred.doneUnsafe(entry.done, exit)
+        start(key, successor, false, true)
         return
       }
 
@@ -82,6 +86,9 @@ export const make = <Key, E>(options: {
       Effect.sync(() => {
         const entry = active.get(key)
         if (entry !== undefined) {
+          // Never resurrect work the interrupter thought was cancelled.
+          // Caller re-wakes after interrupt completes and a fresh entry exists.
+          if (entry.stopping) return
           entry.pendingWake = true
           return
         }
