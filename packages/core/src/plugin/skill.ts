@@ -20,7 +20,7 @@ export const Plugin = define({
           skill: SkillV2.Info.make({
             name: "bolt-config",
             description:
-              "Use ONLY when the user is editing or creating bolt's own configuration: bolt.json, bolt.jsonc, legacy bolt.json(c), files under .bolt/ or .bolt/, or files under ~/.config/opencode/. Also use when creating or fixing bolt agents, subagents, commands, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring bolt itself.",
+              "Use ONLY when the user is editing or creating bolt's own configuration: bolt.json, bolt.jsonc, legacy opencode.json(c), files under .opencode/ or .bolt/, or files under ~/.config/bolt/. Also use when creating or fixing bolt agents, subagents, commands, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring bolt itself.",
             location: AbsolutePath.make("/builtin/bolt-config.md"),
             content: BoltConfigContent,
           }),
