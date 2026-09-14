@@ -184,28 +184,45 @@ const MIGRATIONS: Migration[] = [
       cwd: dir,
       absolute: true,
     })) {
-      const raw = yield* fs.readJson(item)
-      const session = decodeSummary(raw, { onExcessProperty: "preserve" })
-      if (Option.isNone(session)) continue
-      const diffs = session.value.summary.diffs
-      yield* fs.writeWithDirs(
-        path.join(dir, "session_diff", session.value.id + ".json"),
-        JSON.stringify(diffs, null, 2),
-      )
-      yield* fs.writeWithDirs(
-        path.join(dir, "session", session.value.projectID, session.value.id + ".json"),
-        JSON.stringify(
-          {
-            ...(raw as Record<string, unknown>),
-            summary: {
-              additions: diffs.reduce((sum, x) => sum + x.additions, 0),
-              deletions: diffs.reduce((sum, x) => sum + x.deletions, 0),
+      // Per-file resilience: one poison file must not block boot forever.
+      // Already-migrated files (no summary.diffs) are skipped, but warn if
+      // their sidecar diff is missing so data loss is visible.
+      const step = Effect.gen(function* () {
+        const raw = yield* fs.readJson(item)
+        const session = decodeSummary(raw, { onExcessProperty: "preserve" })
+        if (Option.isNone(session)) {
+          const maybeId = (raw as Record<string, unknown>)?.["id"]
+          const maybeSummary = (raw as Record<string, unknown>)?.["summary"] as Record<string, unknown> | undefined
+          if (typeof maybeId === "string" && maybeSummary && typeof maybeSummary["additions"] === "number") {
+            const sidecar = path.join(dir, "session_diff", maybeId + ".json")
+            const hasSidecar = yield* fs.existsSafe(sidecar)
+            if (!hasSidecar) yield* Effect.logWarning("session summary migrated but sidecar diff missing", { item })
+          }
+          return
+        }
+        const diffs = session.value.summary.diffs
+        // Write sidecar first, then pointer file: crash between retries safely.
+        yield* fs.writeWithDirs(
+          path.join(dir, "session_diff", session.value.id + ".json"),
+          JSON.stringify(diffs, null, 2),
+        )
+        yield* fs.writeWithDirs(
+          path.join(dir, "session", session.value.projectID, session.value.id + ".json"),
+          JSON.stringify(
+            {
+              ...(raw as Record<string, unknown>),
+              summary: {
+                additions: diffs.reduce((sum, x) => sum + x.additions, 0),
+                deletions: diffs.reduce((sum, x) => sum + x.deletions, 0),
+              },
             },
-          },
-          null,
-          2,
-        ),
-      )
+            null,
+            2,
+          ),
+        )
+      })
+      const exit = yield* Effect.exit(step)
+      if (Exit.isFailure(exit)) yield* Effect.logError("skipping poison session file during migration-2", { item, cause: exit.cause })
     }
   }),
 ]
