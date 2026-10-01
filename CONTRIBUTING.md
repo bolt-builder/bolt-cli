@@ -29,6 +29,10 @@ Want to take on an issue? Leave a comment and a maintainer may assign it to you 
 New providers shouldn't require many if ANY code changes, but if you want to add support for a new provider first make a PR to:
 https://github.com/anomalyco/models.dev
 
+## Getting to know the codebase
+
+New to the repo? The [Codebase Guide](./docs/CODEBASE.md) walks you through how the packages fit together, where things live, and where to start. For user-facing basics there's also the [Quickstart](./docs/QUICKSTART.md).
+
 ## Developing Bolt
 
 - Requirements: Bun 1.3+
