@@ -38,6 +38,8 @@ import { SyncProvider, useSync } from "./context/sync"
 import { DataProvider } from "./context/data"
 import { LocationProvider } from "./context/location"
 import { NudgeProvider } from "./context/nudge"
+import { SpeakProvider } from "./context/speak"
+import { speak } from "./speak"
 import { LocalProvider, useLocal } from "./context/local"
 import { PermissionProvider } from "./context/permission"
 import { DialogModel } from "./component/dialog-model"
@@ -315,6 +317,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                       <PromptStashProvider>
                                                         <DialogProvider>
                                                           <NudgeProvider>
+<SpeakProvider>
                                                             <FrecencyProvider>
                                                               <PromptHistoryProvider>
                                                                 <PromptRefProvider>
@@ -329,7 +332,8 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                                 </PromptRefProvider>
                                                               </PromptHistoryProvider>
                                                             </FrecencyProvider>
-                                                          </NudgeProvider>
+                                                          </SpeakProvider>
+</NudgeProvider>
                                                         </DialogProvider>
                                                       </PromptStashProvider>
                                                     </LocalProvider>
@@ -959,6 +963,26 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "System",
         run: () => {
           kv.set("fire_animation_enabled", !kv.get("fire_animation_enabled", true))
+          dialog.clear()
+        },
+      },
+      {
+        name: "app.toggle.speak",
+        title: kv.get("speak_answers_enabled", false) ? "Disable spoken answers" : "Enable spoken answers",
+        category: "System",
+        run: () => {
+          const next = !kv.get("speak_answers_enabled", false)
+          if (next && !speak.available()) {
+            toast.show({
+              variant: "error",
+              message:
+                "No speech engine found. Install espeak-ng, piper+aplay, or speech-dispatcher (macOS and Windows work out of the box).",
+            })
+            dialog.clear()
+            return
+          }
+          kv.set("speak_answers_enabled", next)
+          if (!next) speak.stop()
           dialog.clear()
         },
       },
