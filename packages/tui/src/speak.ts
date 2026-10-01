@@ -50,7 +50,8 @@ export function clean(input: string) {
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/https?:\/\/\S+/g, "link")
     .replace(/^[#>\-*+\s]+/gm, "")
-    .replace(/[*_~|]/g, "")
+    .replace(/\|/g, " ")
+    .replace(/[*_~]/g, "")
     .replace(/\s+/g, " ")
     .trim()
 }
