@@ -71,6 +71,8 @@ bolt run --agent ask "what does this project do?"
 
 That's it. Bolt picks up your project context automatically.
 
+New here? The [Quickstart guide](./docs/QUICKSTART.md) walks you from install to your first result in about five minutes.
+
 ## Agents
 
 Built-in agents. Switch with `Tab` in the TUI.
@@ -176,6 +178,11 @@ All 46 items in this round shipped. See [docs/reference](./docs/reference/README
 - [x] `--json` everywhere: every command emits a stable, versioned JSON envelope for scripting
 
 ### Next
+
+- [ ] Spoken answers: optional text-to-speech for final answers, toggled from the command palette
+- [ ] Cross-session search: `/find` across all past sessions, jump back into any match
+- [ ] Hard budget mode: pause a session at a cost cap instead of nudging, plus a `/spend` panel
+- [ ] Provider failover: reroute to a backup provider when the primary is down
 
 <details>
 <summary><strong>Unix citizen (8)</strong></summary>
