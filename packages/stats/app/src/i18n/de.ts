@@ -61,6 +61,7 @@ export const dict = {
   "range.2W": "2 Wochen",
   "range.1M": "1 Monat",
   "range.2M": "2 Monate",
+  "chart.weekly": "Wöchentlich",
   "chart.daily": "Täglich",
   "chart.input": "Eingabe",
   "chart.output": "Ausgabe",
@@ -78,11 +79,15 @@ export const dict = {
   "chart.leaderboardAria": "Modell-Token-Bestenliste",
   "chart.scrollableLeaderboardAria": "Scrollbare Modell-Token-Bestenliste",
   "chart.byAuthor": "von {{author}}",
+  "chart.vsPreviousWeek": "ggü. Vorwoche",
+  "chart.date": "Datum",
   "home.updated": "Aktualisiert",
   "home.noRows": "Noch keine Zeilen",
   "home.justNow": "gerade eben",
   "home.heroCopy":
     "Sieh, welche Modelle echte Nutzung gewinnen, wie sich der Mix verschiebt und was das für die Kosten bedeutet.",
+  "home.summary":
+    "Stand {{date}}: {{first}} lag in den letzten 7 Tagen bei der Bolt-Nutzung mit {{firstTokens}} Tokens vorn, gefolgt von {{second}} ({{secondTokens}}) und {{third}} ({{thirdTokens}}).",
   "home.loadingTitle": "Daten werden geladen",
   "home.loadingDescription": "Modellaggregate werden gelesen.",
   "home.usageTitle": "Nutzung",
@@ -128,6 +133,8 @@ export const dict = {
   "lab.title": "{{lab}} KI-Modellnutzung und Rankings | Bolt Data",
   "lab.description":
     "Vergleiche {{lab}}-Modelle, die in Bolt verwendet werden, einschließlich Tokennutzung, Modellrankings, Kontextfenstern, Veröffentlichungsdaten, Kosten und modellspezifischen Daten.",
+  "lab.summary":
+    "{{lab}}-Modelle verarbeiteten in den letzten zwei Monaten {{tokens}} Tokens in Bolt, das sind {{share}} der gesamten Nutzung. {{model}} war das meistgenutzte {{lab}}-Modell.",
   "lab.loadingTitle": "Modelllabor",
   "lab.loadingDescription": "Modellverfügbarkeit und aktuelle Bolt-Nutzung werden gelesen.",
   "lab.notFound": "Keine Modelle passten zu diesem Lab.",
@@ -155,6 +162,10 @@ export const dict = {
   "model.title": "{{model}} Nutzung, Kosten und Rang | Bolt Data",
   "model.description":
     "Sieh dir Bolt-Nutzungsdaten für {{model}} an, einschließlich Tokenvolumen, Wochenrang, Tokenmix, Kosten, Cache-Anteil, Sitzungen, geografischer Aufschlüsselung und Vergleichsmodellen.",
+  "model.summary":
+    "{{model}} belegte letzte Woche Rang #{{rank}} nach Tokens in Bolt, mit {{share}} der Tokens der letzten zwei Monate.",
+  "model.summaryUnranked": "{{model}} kam in den letzten zwei Monaten auf {{share}} der Tokens in Bolt.",
+  "model.summaryPrice": "{{model}} kostet {{input}} pro 1M Eingabetokens und {{output}} pro 1M Ausgabetokens.",
   "model.loadingTitle": "Modelldaten",
   "model.loadingDescription": "Modellaggregate werden gelesen.",
   "model.loadingProfile": "Modellprofil wird gelesen.",
@@ -228,4 +239,21 @@ export const dict = {
   "model.pdf": "PDF",
   "format.users": "Nutzer",
   "format.tokens": "Tokens",
+  "methodology.title": "Methodik",
+  "methodology.description": "So werden diese Daten erhoben.",
+  "methodology.updatesLabel": "Aktualisierungen",
+  "methodology.updates": "Stündlich aggregiert. Tage und Wochen basieren auf UTC.",
+  "methodology.tokensLabel": "Tokens",
+  "methodology.tokens": "Eingabe-, Ausgabe-, Reasoning- und gecachte Tokens jeder Anfrage.",
+  "methodology.usersLabel": "Nutzer und Sitzungen",
+  "methodology.users": "Ungefähre Anzahl eindeutiger Nutzer und Bolt-Sitzungen.",
+  "methodology.costLabel": "Kosten",
+  "methodology.cost":
+    "Sitzungskosten sind die durchschnittlichen Kosten pro Bolt-Sitzung. Tokenpreise sind Listenpreise aus dem Bolt-Modellkatalog.",
+  "methodology.retentionLabel": "Nutzerbindung",
+  "methodology.retention":
+    "Der Anteil der Nutzer eines Modells in einer Woche, die es in der folgenden Woche erneut nutzen.",
+  "methodology.citeLabel": "Zitieren",
+  "methodology.cite":
+    "Zitiere Bolt Data (bolt.ai/data) mit der oben auf der Seite angezeigten Aktualisierungszeit.",
 } as const

@@ -9,8 +9,8 @@ export const config = {
   github: {
     repoUrl: "https://github.com/Bolt-builder/bolt-cli",
     starsFormatted: {
-      compact: "195K",
-      full: "195,000",
+      compact: "208K",
+      full: "208,000",
     },
   },
 

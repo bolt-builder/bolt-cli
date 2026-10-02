@@ -35,9 +35,9 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # duplicate checking requires an opencode API key; skip gracefully when the secret is not configured
-      - name: Check opencode API key
-        id: opencode
+      # duplicate checking requires an bolt API key; skip gracefully when the secret is not configured
+      - name: Check bolt API key
+        id: bolt
         env:
           BOLT_API_KEY: ${{ secrets.BOLT_API_KEY }}
         run: |
@@ -51,7 +51,7 @@ jobs:
       - uses: ./.github/actions/setup-bun
         if: steps.author.outputs.skip != 'true' && steps.bolt.outputs.configured == 'true'
 
-      - name: Install opencode
+      - name: Install bolt
         if: steps.author.outputs.skip != 'true' && steps.bolt.outputs.configured == 'true'
         run: curl -fsSL https://bolt.ai/install | bash
 
@@ -68,8 +68,7 @@ jobs:
               "webfetch": "deny"
             }
         run: |
-          bolt run -m opencode/claude-sonnet-4-6 "A new issue has been created:
-
+          bolt run -m opencode/gpt-6-luna --variant high "A new issue has been created:
           Issue number: ${{ github.event.issue.number }}
           Issue author association: ${{ github.event.issue.author_association }}
 
@@ -121,7 +120,7 @@ jobs:
 
           If the issue is NOT compliant and the author association is not OWNER or MEMBER, start the comment with:
           <!-- issue-compliance -->
-          Then explain what needs to be fixed and that they have 2 hours to edit the issue before it is automatically closed. Also add the label needs:compliance to the issue using: gh issue edit ${{ github.event.issue.number }} --add-label needs:compliance
+          Then explain what needs to be fixed and that they have 72 hours to edit the issue before it is automatically closed. Also add the label needs:compliance to the issue using: gh issue edit ${{ github.event.issue.number }} --add-label needs:compliance
 
           If duplicates were found, include a section about potential duplicates with links.
 
@@ -138,7 +137,7 @@ jobs:
           **What needs to be fixed:**
           - [specific reasons]
 
-          Please edit this issue to address the above within **2 hours**, or it will be automatically closed.
+          Please edit this issue to address the above within **72 hours**, or it will be automatically closed.
 
           [If duplicates found, add:]
           ---
@@ -183,9 +182,9 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # compliance rechecking requires an opencode API key; skip gracefully when the secret is not configured
-      - name: Check opencode API key
-        id: opencode
+      # compliance rechecking requires an bolt API key; skip gracefully when the secret is not configured
+      - name: Check bolt API key
+        id: bolt
         env:
           BOLT_API_KEY: ${{ secrets.BOLT_API_KEY }}
         run: |
@@ -199,7 +198,7 @@ jobs:
       - uses: ./.github/actions/setup-bun
         if: steps.author.outputs.skip != 'true' && steps.bolt.outputs.configured == 'true'
 
-      - name: Install opencode
+      - name: Install bolt
         if: steps.author.outputs.skip != 'true' && steps.bolt.outputs.configured == 'true'
         run: curl -fsSL https://bolt.ai/install | bash
 
@@ -216,8 +215,7 @@ jobs:
               "webfetch": "deny"
             }
         run: |
-          bolt run -m opencode/claude-sonnet-4-6 "Issue #${{ github.event.issue.number }} was previously flagged as non-compliant and has been edited.
-          Issue author association: ${{ github.event.issue.author_association }}
+          bolt run -m opencode/gpt-6-luna --variant high "Issue #${{ github.event.issue.number }} was previously flagged as non-compliant and has been edited.          Issue author association: ${{ github.event.issue.author_association }}
 
           Lookup this issue with gh issue view ${{ github.event.issue.number }}.
 

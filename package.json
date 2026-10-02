@@ -141,8 +141,8 @@
     "@babel/core": "7.29.7",
     "postcss": "8.5.25",
     "react-router": "6.30.4",
-    "@remix-run/router": "1.23.3"
-  },
+    "@remix-run/router": "1.23.3",
+    "open": "11.0.4"  },
   "patchedDependencies": {
     "@dnd-kit/dom@0.5.0": "patches/@dnd-kit%2Fdom@0.5.0.patch",
     "@npmcli/agent@4.0.2": "patches/@npmcli%2Fagent@4.0.2.patch",

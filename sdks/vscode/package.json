@@ -2,8 +2,7 @@
   "name": "bolt",
   "displayName": "bolt",
   "description": "bolt for VS Code",
-  "version": "1.20.7",
-  "publisher": "sst-dev",
+  "version": "1.20.7",  "publisher": "sst-dev",
   "repository": {
     "type": "git",
     "url": "https://github.com/bolt-builder/bolt-cli"

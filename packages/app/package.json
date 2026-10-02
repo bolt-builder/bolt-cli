@@ -1,7 +1,6 @@
 {
   "name": "@bolt-ai/app",
-  "version": "1.20.7",
-  "description": "",
+  "version": "1.20.7",  "description": "",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",

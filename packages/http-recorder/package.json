@@ -1,8 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "version": "1.20.7",
-  "name": "@bolt-ai/http-recorder",
-  "description": "Record and replay Effect HTTP client traffic with deterministic cassettes",
+  "name": "@bolt-ai/http-recorder",  "description": "Record and replay Effect HTTP client traffic with deterministic cassettes",
   "type": "module",
   "license": "MIT",
   "repository": {

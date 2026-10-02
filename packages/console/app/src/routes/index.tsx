@@ -1,8 +1,8 @@
 import "./index.css"
 import { Title, Meta } from "@solidjs/meta"
 //import { HttpHeader } from "@solidjs/start"
-import video from "../asset/lander/opencode-min.mp4"
-import videoPoster from "../asset/lander/opencode-poster.png"
+import video from "../asset/lander/bolt-min.mp4"
+import videoPoster from "../asset/lander/bolt-poster.png"
 import { IconCopy, IconCheck } from "../component/icon"
 import { A, createAsync } from "@solidjs/router"
 import { EmailSignup } from "~/component/email-signup"
@@ -54,22 +54,6 @@ export default function Home() {
 
         <div data-component="content">
           <section data-component="hero">
-            <div data-component="desktop-app-banner">
-              <span data-slot="badge">{i18n.t("home.banner.badge")}</span>
-              <div data-slot="content">
-                <span data-slot="text">
-                  {i18n.t("home.banner.text")}
-                  <span data-slot="platforms"> {i18n.t("home.banner.platforms")}</span>.
-                </span>
-                <a href={language.route("/download")} data-slot="link">
-                  {i18n.t("home.banner.downloadNow")}
-                </a>
-                <a href={language.route("/download")} data-slot="link-mobile">
-                  {i18n.t("home.banner.downloadBetaNow")}
-                </a>
-              </div>
-            </div>
-
             <div data-slot="hero-copy">
               {/*<a data-slot="releases"*/}
               {/*   href={release()?.url ?? `${config.github.repoUrl}/releases`}*/}
@@ -107,6 +91,9 @@ export default function Home() {
                   <Tabs.Trigger value="paru" data-slot="tab">
                     paru
                   </Tabs.Trigger>
+                  <Tabs.Trigger value="yay" data-slot="tab">
+                    yay
+                  </Tabs.Trigger>
                   <Tabs.Indicator />
                 </Tabs.List>
                 <div data-slot="panels">
@@ -115,8 +102,7 @@ export default function Home() {
                       <span data-slot="command-script">
                         <span>curl -fsSL </span>
                         <span data-slot="protocol">https://</span>
-                        <span data-slot="highlight">bolt.ai/install</span>
-                        <span> | bash</span>
+                        <span data-slot="highlight">bolt.ai/v2/install</span>                        <span> | bash</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -124,18 +110,16 @@ export default function Home() {
                   <Tabs.Content as="pre" data-slot="panel" value="npm">
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
-                        <span data-slot="protocol">npm i -g </span>
-                        <span data-slot="highlight">bolt-ai</span>
-                      </span>
+                        <span data-slot="protocol">npm install -g </span>
+                        <span data-slot="highlight">bolt-ai</span>                      </span>
                       <CopyStatus />
                     </button>
                   </Tabs.Content>
                   <Tabs.Content as="pre" data-slot="panel" value="bun">
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
-                        <span data-slot="protocol">bun add -g </span>
-                        <span data-slot="highlight">bolt-ai</span>
-                      </span>
+                        <span data-slot="protocol">bun install -g --trust </span>
+                        <span data-slot="highlight">bolt-ai</span>                      </span>
                       <CopyStatus />
                     </button>
                   </Tabs.Content>
@@ -143,7 +127,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">brew install </span>
-                        <span data-slot="highlight">anomalyco/tap/opencode</span>
+                        <span data-slot="highlight">anomalyco/tap/bolt-v2</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -152,7 +136,16 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">paru -S </span>
-                        <span data-slot="highlight">opencode</span>
+                        <span data-slot="highlight">bolt-beta</span>
+                      </span>
+                      <CopyStatus />
+                    </button>
+                  </Tabs.Content>
+                  <Tabs.Content as="pre" data-slot="panel" value="yay">
+                    <button data-copy data-slot="command" onClick={handleCopyClick}>
+                      <span>
+                        <span data-slot="protocol">yay -S </span>
+                        <span data-slot="highlight">bolt-beta</span>
                       </span>
                       <CopyStatus />
                     </button>

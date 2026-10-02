@@ -3,7 +3,7 @@ import { OAUTH_DUMMY_KEY } from "../auth"
 import { InstallationVersion } from "@bolt-ai/core/installation/version"
 import { OauthCallbackPage } from "@bolt-ai/core/oauth/page"
 import { createServer } from "http"
-import open from "open"
+import { openUrl } from "@bolt-ai/core/open"
 
 const OAUTH_CLIENT_ID = "LOCAL_APPLICATION"
 const OAUTH_CALLBACK_HOST = "127.0.0.1"
@@ -80,7 +80,7 @@ function authHeaders() {
   return {
     "Content-Type": "application/x-www-form-urlencoded",
     Accept: "application/json",
-    "User-Agent": `opencode/${InstallationVersion}`,
+    "User-Agent": `bolt/${InstallationVersion}`,
   }
 }
 
@@ -380,7 +380,7 @@ export async function SnowflakeCortexAuthPlugin(_input: PluginInput): Promise<Ho
                 }
               }
               headers.set("authorization", `Bearer ${currentOauth.access}`)
-              headers.set("User-Agent", `opencode/${InstallationVersion}`)
+              headers.set("User-Agent", `bolt/${InstallationVersion}`)
 
               let body = init?.body
               if (body && typeof body === "string") {
@@ -470,7 +470,7 @@ export async function SnowflakeCortexAuthPlugin(_input: PluginInput): Promise<Ho
             const role = (inputs.role || "").trim() || undefined
             const url = buildAuthorizeUrl(account, role, state, pkce)
             const callbackPromise = waitForOAuthCallback(account, pkce, state)
-            await open(url).catch(() => undefined)
+            await openUrl(url).catch(() => undefined)
 
             return {
               url,

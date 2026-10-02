@@ -10,8 +10,7 @@ export type HeaderLink = { href: string; label: string }
 export const githubLink = {
   href: "https://github.com/Bolt-builder/bolt-cli",
   apiHref: "https://api.github.com/repos/bolt-builder/bolt-cli",
-  fallbackStars: "195K",
-}
+  fallbackStars: "195K",}
 export const themePreferences = ["dark", "light", "system"] as const
 export const themeStorageKey = "bolt:stats-theme"
 export type ThemePreference = (typeof themePreferences)[number]
@@ -231,6 +230,7 @@ export function Footer(props: {
     { href: "#cache-ratio", label: i18n.t("nav.cacheRatio") },
     { href: "#market-share", label: i18n.t("nav.marketShare") },
     { href: "#geo-breakdown", label: i18n.t("nav.geoBreakdown") },
+    { href: "#methodology", label: i18n.t("methodology.title") },
   ]
   const legal = [
     { href: "https://bolt.ai/legal/terms-of-service", label: i18n.t("footer.terms") },

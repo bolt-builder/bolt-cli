@@ -2,8 +2,7 @@
   "name": "@bolt-ai/web",
   "type": "module",
   "license": "MIT",
-  "version": "1.20.7",
-  "scripts": {
+  "version": "1.20.7",  "scripts": {
     "dev": "astro dev",
     "dev:remote": "VITE_API_URL=https://api.bolt.ai astro dev",
     "start": "astro dev",

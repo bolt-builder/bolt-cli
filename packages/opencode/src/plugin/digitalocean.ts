@@ -3,7 +3,7 @@ import type { Model } from "@bolt-ai/sdk/v2"
 import { InstallationVersion } from "@bolt-ai/core/installation/version"
 import { OauthCallbackPage } from "@bolt-ai/core/oauth/page"
 import { createServer } from "http"
-import open from "open"
+import { openUrl } from "@bolt-ai/core/open"
 
 const DO_OAUTH_CLIENT_ID = "b1a6c5158156caac821fd1b30253ca8acb52454a48fa744420e41889cb589f82"
 const DO_AUTHORIZE_URL = "https://cloud.digitalocean.com/v1/oauth/authorize"
@@ -171,7 +171,7 @@ async function listRouters(
     headers: {
       Authorization: `Bearer ${bearer}`,
       Accept: "application/json",
-      "User-Agent": `opencode/${InstallationVersion}`,
+      "User-Agent": `bolt/${InstallationVersion}`,
     },
     signal: AbortSignal.timeout(10_000),
   }).catch(() => undefined)
@@ -279,7 +279,7 @@ export async function DigitalOceanAuthPlugin(input: PluginInput): Promise<Hooks>
             const state = generateState()
             const callbackPromise = waitForOAuthCallback(state)
             const url = buildAuthorizeUrl(state)
-            await open(url).catch(() => undefined)
+            await openUrl(url).catch(() => undefined)
             return {
               url,
               instructions:

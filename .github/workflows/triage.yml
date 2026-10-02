@@ -62,8 +62,7 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          bolt run --agent triage "The following issue was just opened, triage it:
-
+          bolt run --agent triage --variant high "The following issue was just opened, triage it:
           Title: $ISSUE_TITLE
 
           $ISSUE_BODY"

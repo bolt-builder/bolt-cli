@@ -176,7 +176,7 @@ for (const item of targets) {
       autoloadPackageJson: true,
       target: name.replace(pkg.name, "bun") as any,
       outfile: `dist/${name}/bin/bolt`,
-      execArgv: [`--user-agent=opencode/${Script.version}`, "--use-system-ca", "--"],
+      execArgv: [`--user-agent=bolt/${Script.version}`, "--use-system-ca", "--"],
       windows: {},
     },
     files: {
@@ -200,6 +200,12 @@ for (const item of targets) {
       ...(item.os === "linux" ? { "process.env.OPENTUI_LIBC": JSON.stringify(item.abi ?? "glibc") } : {}),
     },
   })
+
+  // Embedding the bundle invalidates the linker's ad-hoc signature, and macOS 27+
+  // SIGKILLs binaries with invalid pages. Re-sign ad-hoc; release CI re-signs with Developer ID.
+  if (item.os === "darwin" && process.platform === "darwin") {
+    await $`codesign --force --sign - dist/${name}/bin/bolt`
+  }
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {

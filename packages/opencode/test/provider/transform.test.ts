@@ -465,16 +465,20 @@ describe("ProviderTransform.options - minimax m3 thinking", () => {
 describe("ProviderTransform.options - google thinkingConfig gating", () => {
   const sessionID = "test-session-123"
 
-  const createGoogleModel = (reasoning: boolean, npm: "@ai-sdk/google" | "@ai-sdk/google-vertex") =>
+  const createGoogleModel = (
+    reasoning: boolean,
+    npm: "@ai-sdk/google" | "@ai-sdk/google-vertex",
+    apiId = "gemini-2.0-flash",
+  ) =>
     ({
-      id: `${npm === "@ai-sdk/google" ? "google" : "google-vertex"}/gemini-2.0-flash`,
+      id: `${npm === "@ai-sdk/google" ? "google" : "google-vertex"}/${apiId}`,
       providerID: npm === "@ai-sdk/google" ? "google" : "google-vertex",
       api: {
-        id: "gemini-2.0-flash",
+        id: apiId,
         url: npm === "@ai-sdk/google" ? "https://generativelanguage.googleapis.com" : "https://vertexai.googleapis.com",
         npm,
       },
-      name: "Gemini 2.0 Flash",
+      name: apiId,
       capabilities: {
         temperature: true,
         reasoning,
@@ -525,6 +529,73 @@ describe("ProviderTransform.options - google thinkingConfig gating", () => {
       providerOptions: {},
     })
     expect(result.thinkingConfig).toBeUndefined()
+  })
+
+  test.each(["gemini-1.5-pro", "gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.5-flash"])(
+    "omits default thinkingLevel for legacy model %s",
+    (apiId) => {
+      for (const npm of ["@ai-sdk/google", "@ai-sdk/google-vertex"] as const) {
+        const result = ProviderTransform.options({
+          model: createGoogleModel(true, npm, apiId),
+          sessionID,
+          providerOptions: {},
+        })
+        expect(result.thinkingConfig).toEqual({
+          includeThoughts: true,
+        })
+      }
+
+      const openrouterResult = ProviderTransform.options({
+        model: {
+          ...createGoogleModel(true, "@ai-sdk/google", `google/${apiId}`),
+          providerID: "openrouter",
+          api: {
+            id: `google/${apiId}`,
+            url: "https://openrouter.ai/api/v1",
+            npm: "@openrouter/ai-sdk-provider",
+          },
+        },
+        sessionID,
+        providerOptions: {},
+      })
+      expect(openrouterResult.reasoning).toBeUndefined()
+    },
+  )
+
+  test.each([
+    "gemini-3-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-9-pro",
+    "gemini-9-flash",
+    "gemini-pro-latest",
+    "gemini-flash-latest",
+  ])("sets default thinkingLevel=high and OpenRouter reasoning effort=high for %s", (apiId) => {
+    for (const npm of ["@ai-sdk/google", "@ai-sdk/google-vertex"] as const) {
+      const result = ProviderTransform.options({
+        model: createGoogleModel(true, npm, apiId),
+        sessionID,
+        providerOptions: {},
+      })
+      expect(result.thinkingConfig).toEqual({
+        includeThoughts: true,
+        thinkingLevel: "high",
+      })
+    }
+
+    const openrouterResult = ProviderTransform.options({
+      model: {
+        ...createGoogleModel(true, "@ai-sdk/google", `google/${apiId}`),
+        providerID: "openrouter",
+        api: {
+          id: `google/${apiId}`,
+          url: "https://openrouter.ai/api/v1",
+          npm: "@openrouter/ai-sdk-provider",
+        },
+      },
+      sessionID,
+      providerOptions: {},
+    })
+    expect(openrouterResult.reasoning).toEqual({ effort: "high" })
   })
 })
 
@@ -3291,7 +3362,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
   })
 
   test("preserves metadata using providerID key when store is false", () => {
-    const opencodeModel = {
+    const boltModel = {
       ...openaiModel,
       providerID: "bolt",
       api: {
@@ -3308,7 +3379,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
             type: "text",
             text: "Hello",
             providerOptions: {
-              opencode: {
+              bolt: {
                 itemId: "msg_123",
                 otherOption: "value",
               },
@@ -3318,14 +3389,14 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       },
     ] as any[]
 
-    const result = ProviderTransform.message(msgs, opencodeModel, { store: false }) as any[]
+    const result = ProviderTransform.message(msgs, boltModel, { store: false }) as any[]
 
     expect(result[0].content[0].providerOptions?.bolt?.itemId).toBe("msg_123")
     expect(result[0].content[0].providerOptions?.bolt?.otherOption).toBe("value")
   })
 
   test("preserves itemId across all providerOptions keys", () => {
-    const opencodeModel = {
+    const boltModel = {
       ...openaiModel,
       providerID: "bolt",
       api: {
@@ -3339,7 +3410,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
         role: "assistant",
         providerOptions: {
           openai: { itemId: "msg_root" },
-          opencode: { itemId: "msg_opencode" },
+          bolt: { itemId: "msg_bolt" },
           extra: { itemId: "msg_extra" },
         },
         content: [
@@ -3348,7 +3419,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
             text: "Hello",
             providerOptions: {
               openai: { itemId: "msg_openai_part" },
-              opencode: { itemId: "msg_opencode_part" },
+              bolt: { itemId: "msg_bolt_part" },
               extra: { itemId: "msg_extra_part" },
             },
           },
@@ -3356,13 +3427,13 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       },
     ] as any[]
 
-    const result = ProviderTransform.message(msgs, opencodeModel, { store: false }) as any[]
+    const result = ProviderTransform.message(msgs, boltModel, { store: false }) as any[]
 
     expect(result[0].providerOptions?.openai?.itemId).toBe("msg_root")
-    expect(result[0].providerOptions?.bolt?.itemId).toBe("msg_opencode")
+    expect(result[0].providerOptions?.bolt?.itemId).toBe("msg_bolt")
     expect(result[0].providerOptions?.extra?.itemId).toBe("msg_extra")
     expect(result[0].content[0].providerOptions?.openai?.itemId).toBe("msg_openai_part")
-    expect(result[0].content[0].providerOptions?.bolt?.itemId).toBe("msg_opencode_part")
+    expect(result[0].content[0].providerOptions?.bolt?.itemId).toBe("msg_bolt_part")
     expect(result[0].content[0].providerOptions?.extra?.itemId).toBe("msg_extra_part")
   })
 
@@ -5725,6 +5796,16 @@ describe("ProviderTransform.variants", () => {
     describe(provider.name, () => {
       for (const testCase of [
         {
+          apiId: "gemini-1.5-pro",
+          efforts: ["low", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemini-2.0-flash",
+          efforts: ["low", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
           apiId: "gemini-2.5-pro",
           efforts: ["high", "max"],
           expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingBudget: 16_000 } },
@@ -5764,6 +5845,31 @@ describe("ProviderTransform.variants", () => {
         {
           apiId: "gemini-3-pro-image-preview",
           efforts: ["high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemini-9-pro",
+          efforts: ["low", "medium", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemini-9-flash",
+          efforts: ["minimal", "low", "medium", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemini-pro-latest",
+          efforts: ["low", "medium", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemini-flash-latest",
+          efforts: ["minimal", "low", "medium", "high"],
+          expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
+        },
+        {
+          apiId: "gemma-4-31b-it",
+          efforts: ["minimal", "high"],
           expectedHigh: { thinkingConfig: { includeThoughts: true, thinkingLevel: "high" } },
         },
       ]) {

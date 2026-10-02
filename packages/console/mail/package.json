@@ -1,7 +1,6 @@
 {
   "name": "@bolt-ai/console-mail",
-  "version": "1.20.7",
-  "dependencies": {
+  "version": "1.20.7",  "dependencies": {
     "@jsx-email/all": "2.2.3",
     "@jsx-email/cli": "1.4.3",
     "@tsconfig/bun": "1.0.9",

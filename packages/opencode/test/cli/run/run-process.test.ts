@@ -1,7 +1,7 @@
 // Subprocess integration tests for `bolt run` (non-interactive mode).
 // These exercise the real CLI binary against a TestLLMServer running in the
 // same process. See `test/lib/cli-process.ts` for the harness — each test uses
-// `opencode.run(message, opts?)` to spawn `bun src/index.ts run ...` with
+// `bolt.run(message, opts?)` to spawn `bun src/index.ts run ...` with
 // `BOLT_CONFIG_CONTENT` providing the test provider config inline.
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
@@ -13,11 +13,11 @@ describe("bolt run (non-interactive subprocess)", () => {
   // If this fails, all the others likely will too — debug here first.
   cliIt.concurrent(
     "exits 0 and writes the response to stdout on a successful prompt",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.text("hello from the test llm")
-        const result = yield* opencode.run("say hi")
-        opencode.expectExit(result, 0)
+        const result = yield* bolt.run("say hi")
+        bolt.expectExit(result, 0)
         expect(result.stdout).toBe("hello from the test llm\n")
       }),
     60_000,
@@ -25,7 +25,7 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "prints each completed text part in order around a tool continuation",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.push(
           reply().text("  before tool  ").tool("bash", {
@@ -35,11 +35,11 @@ describe("bolt run (non-interactive subprocess)", () => {
         )
         yield* llm.text("  after tool  ")
 
-        const result = yield* opencode.run("use a tool", {
+        const result = yield* bolt.run("use a tool", {
           extraArgs: ["--dangerously-skip-permissions"],
         })
 
-        opencode.expectExit(result, 0)
+        bolt.expectExit(result, 0)
         expect(result.stdout).toBe("before tool\nafter tool\n")
       }),
     60_000,
@@ -47,16 +47,16 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "prints reasoning before text only with --thinking",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.reason("  considering  ", { text: "  answer  " })
-        const thinking = yield* opencode.run("think", { extraArgs: ["--thinking"] })
-        opencode.expectExit(thinking, 0)
+        const thinking = yield* bolt.run("think", { extraArgs: ["--thinking"] })
+        bolt.expectExit(thinking, 0)
         expect(thinking.stdout).toBe("Thinking: considering\nanswer\n")
 
         yield* llm.reason("hidden", { text: "visible" })
-        const plain = yield* opencode.run("think again")
-        opencode.expectExit(plain, 0)
+        const plain = yield* bolt.run("think again")
+        bolt.expectExit(plain, 0)
         expect(plain.stdout).toBe("visible\n")
       }),
     60_000,
@@ -67,11 +67,12 @@ describe("bolt run (non-interactive subprocess)", () => {
   // makes the SDK call surface an error promptly so the process exits nonzero.
   // We assert nonzero exit AND wall-clock under the harness timeout — a hang
   // would expire the timeout and produce a different (signal-killed) failure.
-  cliIt.concurrent(
+  // Keep competing CLI startups out of this wall-clock assertion on busy CI runners.
+  cliIt.live(
     "exits nonzero promptly when the model is unknown (regression for #27371)",
-    ({ opencode }) =>
+    ({ bolt }) =>
       Effect.gen(function* () {
-        const result = yield* opencode.run("say hi", {
+        const result = yield* bolt.run("say hi", {
           model: "test/nonexistent-model",
           timeoutMs: 15_000,
         })
@@ -86,7 +87,7 @@ describe("bolt run (non-interactive subprocess)", () => {
   // the prompt loop so a subsequent response can complete the run.
   cliIt.concurrent(
     "unknown stream finish preserves partial output and continues",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.push(
           reply().text("partial response").tool("bash", {
@@ -96,7 +97,7 @@ describe("bolt run (non-interactive subprocess)", () => {
         )
         yield* llm.fail("upstream provider exploded mid-stream")
         yield* llm.text("recovered")
-        const result = yield* opencode.run("trigger midstream error", { timeoutMs: 30_000 })
+        const result = yield* bolt.run("trigger midstream error", { timeoutMs: 30_000 })
         expect(result.exitCode).toBe(0)
         expect(result.stdout).toBe("partial response\nrecovered\n")
         expect(result.stderr).not.toContain("upstream provider exploded mid-stream")
@@ -109,13 +110,13 @@ describe("bolt run (non-interactive subprocess)", () => {
   // shape so a future event-emit change has to update this expectation.
   cliIt.concurrent(
     "--format json emits parseable line-delimited JSON to stdout",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.text("structured output")
-        const result = yield* opencode.run("say hi", { format: "json" })
-        opencode.expectExit(result, 0)
+        const result = yield* bolt.run("say hi", { format: "json" })
+        bolt.expectExit(result, 0)
 
-        const events = opencode.parseJsonEvents(result.stdout)
+        const events = bolt.parseJsonEvents(result.stdout)
         expect(events.length).toBeGreaterThan(0)
         for (const evt of events) {
           expect(typeof evt.type).toBe("string")
@@ -143,15 +144,15 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "--format json emits a pure error record for a rejected prompt request",
-    ({ opencode }) =>
+    ({ bolt }) =>
       Effect.gen(function* () {
-        const result = yield* opencode.run("use an unknown model", {
+        const result = yield* bolt.run("use an unknown model", {
           model: "test/nonexistent-model",
           format: "json",
         })
 
         expect(result.exitCode).not.toBe(0)
-        const events = opencode.parseJsonEvents(result.stdout)
+        const events = bolt.parseJsonEvents(result.stdout)
         expect(events.map((event) => event.type)).toEqual(["error"])
         expect(events[0]).toEqual({
           type: "error",
@@ -166,7 +167,7 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "--format json preserves reasoning, tool, and continuation ordering",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.push(
           reply().reason("reasoning").text("before").tool("bash", {
@@ -176,13 +177,13 @@ describe("bolt run (non-interactive subprocess)", () => {
         )
         yield* llm.text("after")
 
-        const result = yield* opencode.run("exercise json records", {
+        const result = yield* bolt.run("exercise json records", {
           format: "json",
           extraArgs: ["--thinking", "--dangerously-skip-permissions"],
         })
 
         expect(result.exitCode).toBe(0)
-        const events = opencode.parseJsonEvents(result.stdout)
+        const events = bolt.parseJsonEvents(result.stdout)
         expect(events.map((event) => event.type)).toEqual([
           "step_start",
           "reasoning",
@@ -215,7 +216,7 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "--format json records an unknown stream finish and continuation",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.push(
           reply().text("partial json").tool("bash", {
@@ -225,9 +226,9 @@ describe("bolt run (non-interactive subprocess)", () => {
         )
         yield* llm.fail("provider failed")
         yield* llm.text("recovered")
-        const result = yield* opencode.run("fail after output", { format: "json" })
+        const result = yield* bolt.run("fail after output", { format: "json" })
 
-        const events = opencode.parseJsonEvents(result.stdout)
+        const events = bolt.parseJsonEvents(result.stdout)
         expect(result.exitCode).toBe(0)
         expect(events.map((event) => event.type)).toEqual([
           "step_start",
@@ -250,34 +251,34 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "rejects requested permissions by default and allows them with the dangerous flag",
-    ({ home, llm, opencode }) =>
+    ({ home, llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.tool("bash", { command: "rm -f denied-file", description: "Remove a test file" })
         yield* llm.text("continued after rejection")
-        const denied = yield* opencode.run("request permission", { permission: { bash: "ask" } })
-        opencode.expectExit(denied, 0)
+        const denied = yield* bolt.run("request permission", { permission: { bash: "ask" } })
+        bolt.expectExit(denied, 0)
         expect(denied.stderr).toContain("permission requested: bash")
         expect(denied.stdout).toBe("")
 
         yield* llm.reset
         yield* llm.tool("bash", { command: "rm -f allowed-file", description: "Remove a test file" })
         yield* llm.text("continued after approval")
-        const allowed = yield* opencode.run("request permission", {
+        const allowed = yield* bolt.run("request permission", {
           permission: { bash: "ask" },
           extraArgs: ["--dangerously-skip-permissions"],
         })
-        opencode.expectExit(allowed, 0)
+        bolt.expectExit(allowed, 0)
         expect(allowed.stderr).not.toContain("permission requested: bash")
         expect(allowed.stdout).toContain("continued after approval")
 
         yield* llm.reset
         yield* llm.tool("bash", { command: "touch explicitly-denied", description: "Create a denied marker" })
         yield* llm.text("continued after explicit denial")
-        const explicitlyDenied = yield* opencode.run("request denied permission", {
+        const explicitlyDenied = yield* bolt.run("request denied permission", {
           permission: { bash: "deny" },
           extraArgs: ["--dangerously-skip-permissions"],
         })
-        opencode.expectExit(explicitlyDenied, 0)
+        bolt.expectExit(explicitlyDenied, 0)
         expect(explicitlyDenied.stdout).toContain("continued after explicit denial")
         expect(yield* Effect.promise(() => Bun.file(`${home}/explicitly-denied`).exists())).toBe(false)
       }),
@@ -286,19 +287,19 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.live(
     "attach mode sends client-local file contents without a shared path",
-    ({ home, llm, opencode }) =>
+    ({ home, llm, bolt }) =>
       Effect.gen(function* () {
         const source = `${home}/client-only.txt`
         const sentinel = "client-only attachment sentinel"
         yield* Effect.promise(() => Bun.write(source, sentinel))
         yield* llm.text("attachment received")
-        const server = yield* opencode.serve()
+        const server = yield* bolt.serve()
 
-        const result = yield* opencode.run("read the attachment", {
+        const result = yield* bolt.run("read the attachment", {
           extraArgs: ["--attach", server.url, `--file=${source}`, "--"],
         })
 
-        opencode.expectExit(result, 0)
+        bolt.expectExit(result, 0)
         const input = JSON.stringify(yield* llm.inputs)
         expect(input).toContain(sentinel)
         expect(input).not.toContain(`file://${source}`)
@@ -308,9 +309,9 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.concurrent(
     "attach mode rejects local directories before prompt admission",
-    ({ home, opencode }) =>
+    ({ home, bolt }) =>
       Effect.gen(function* () {
-        const result = yield* opencode.run("read the directory", {
+        const result = yield* bolt.run("read the directory", {
           extraArgs: ["--attach", "http://127.0.0.1:1", `--file=${home}`, "--"],
         })
 
@@ -322,10 +323,10 @@ describe("bolt run (non-interactive subprocess)", () => {
 
   cliIt.live(
     "SIGINT interrupts an active non-interactive run without leaking the process",
-    ({ llm, opencode }) =>
+    ({ llm, bolt }) =>
       Effect.gen(function* () {
         yield* llm.hang
-        const run = yield* opencode.startRun("wait forever")
+        const run = yield* bolt.startRun("wait forever")
         yield* llm.wait(1)
         run.interrupt()
         const result = yield* run.result

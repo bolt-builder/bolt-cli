@@ -1,8 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "version": "1.20.7",
-  "name": "@bolt-ai/effect-sqlite-node",
-  "type": "module",
+  "name": "@bolt-ai/effect-sqlite-node",  "type": "module",
   "license": "MIT",
   "private": true,
   "scripts": {

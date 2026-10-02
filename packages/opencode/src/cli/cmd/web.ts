@@ -3,8 +3,7 @@ import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions, enforceLoopbackWithoutAuth } from "../network"
 import { Flag } from "@bolt-ai/core/flag/flag"
-import open from "open"
-import { networkInterfaces } from "os"
+import { openUrl } from "@bolt-ai/core/open"import { networkInterfaces } from "os"
 
 function getNetworkIPs() {
   const nets = networkInterfaces()
@@ -76,11 +75,11 @@ export const WebCommand = effectCmd({
       }
 
       // Open localhost in browser
-      open(localhostUrl).catch(() => {})
+      openUrl(localhostUrl).catch(() => {})
     } else {
       const displayUrl = server.url.toString()
       UI.println(UI.Style.TEXT_INFO_BOLD + "  Web interface:    ", UI.Style.TEXT_NORMAL, displayUrl)
-      open(displayUrl).catch(() => {})
+      openUrl(displayUrl).catch(() => {})
     }
 
     yield* Effect.never
