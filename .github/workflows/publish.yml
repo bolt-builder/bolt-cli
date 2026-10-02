@@ -50,7 +50,7 @@ jobs:
         uses: ./.github/actions/setup-git-committer
         with:
           opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.BOLT_APP_SECRET }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Install Bolt
         if: inputs.bump || inputs.version
@@ -87,7 +87,7 @@ jobs:
         uses: ./.github/actions/setup-git-committer
         with:
           opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.BOLT_APP_SECRET }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Build
         id: build
@@ -156,7 +156,7 @@ jobs:
         uses: ./.github/actions/setup-git-committer
         with:
           opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.BOLT_APP_SECRET }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       # skip signing entirely unless the full Azure Trusted Signing configuration is present
       - name: Azure login
@@ -368,7 +368,7 @@ jobs:
         uses: ./.github/actions/setup-git-committer
         with:
           opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.BOLT_APP_SECRET }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Prepare
         run: bun ./scripts/prepare.ts
@@ -571,7 +571,7 @@ jobs:
         uses: ./.github/actions/setup-git-committer
         with:
           opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.BOLT_APP_SECRET }}
+          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Upload desktop release assets
         if: needs.version.outputs.release
