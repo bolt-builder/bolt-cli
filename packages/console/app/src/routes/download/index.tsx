@@ -118,10 +118,7 @@ export default function Download() {
               <span>[1]</span> {i18n.t("download.section.terminal")}
             </div>
             <div data-component="section-content">
-              <button
-                data-component="cli-row"
-                onClick={handleCopyClick("curl -fsSL https://bolt.ai/install | bash")}
-              >
+              <button data-component="cli-row" onClick={handleCopyClick("curl -fsSL https://bolt.ai/install | bash")}>
                 <code>
                   curl -fsSL https://<strong>bolt.ai/install</strong> | bash
                 </code>

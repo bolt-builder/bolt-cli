@@ -662,8 +662,7 @@ export const dict = {
   "error.chain.didYouMean": "Vai domājāt: {{suggestions}}",
   "error.chain.modelNotFound": "Modelis nav atrasts: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Pārbaudiet konfigurāciju (bolt.json) pakalpojuma/modela nosaukumus",
-  "error.chain.mcpFailed":
-    'MCP serveris "{{name}}" neizdevās. Ņemiet vērā, Bolt vēl neatbalsta MCP autentifikāciju.',
+  "error.chain.mcpFailed": 'MCP serveris "{{name}}" neizdevās. Ņemiet vērā, Bolt vēl neatbalsta MCP autentifikāciju.',
   "error.chain.providerAuthFailed": "Pakalpojuma autentifikācija neizdevās ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Neizdevās inicializēt pakalpojumu "{{provider}}". Pārbaudiet akreditācijas datus un konfigurāciju.',
@@ -937,8 +936,7 @@ export const dict = {
   "settings.general.row.appearance.title": "Izskats",
   "settings.general.row.appearance.description": "Pielāgojiet, kā Bolt izskatās jūsu ierīcē",
   "settings.general.row.colorScheme.title": "Krāsu shēma",
-  "settings.general.row.colorScheme.description":
-    "Izvēlieties, vai Bolt sekos sistēmas, gaišajai vai tumšajai tēmai",
+  "settings.general.row.colorScheme.description": "Izvēlieties, vai Bolt sekos sistēmas, gaišajai vai tumšajai tēmai",
   "settings.general.row.theme.title": "Tēma",
   "settings.general.row.theme.description": "Pielāgojiet Bolt tēmu.",
   "settings.general.row.font.title": "Koda fonts",

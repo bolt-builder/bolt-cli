@@ -1,11 +1,4 @@
-import type {
-  Config,
-  OpencodeClient,
-  Path,
-  Project,
-  ProviderAuthResponse,
-  SessionStatus,
-} from "@bolt-ai/sdk/v2/client"
+import type { Config, OpencodeClient, Path, Project, ProviderAuthResponse, SessionStatus } from "@bolt-ai/sdk/v2/client"
 import { showToast } from "@/utils/toast"
 import { getFilename } from "@bolt-ai/core/util/path"
 import { type Accessor, batch, createMemo, getOwner, onCleanup, onMount, untrack } from "solid-js"

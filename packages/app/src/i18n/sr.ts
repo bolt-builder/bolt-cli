@@ -662,8 +662,7 @@ export const dict = {
   "error.chain.didYouMean": "Да ли сте мислили: {{suggestions}}",
   "error.chain.modelNotFound": "Модел није пронађен: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Проверите имена добављача/модела конфигурације (bolt.json).",
-  "error.chain.mcpFailed":
-    "MCP сервер „{{name}}“ није успео. Напомена, Bolt још увек не подржава MCP аутентификацију.",
+  "error.chain.mcpFailed": "MCP сервер „{{name}}“ није успео. Напомена, Bolt још увек не подржава MCP аутентификацију.",
   "error.chain.providerAuthFailed": "аутентификација добављача није успела ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     "Иницијализација добављача „{{provider}}“ није успела. Проверите акредитиве и конфигурацију.",

@@ -567,10 +567,7 @@ export function Titlebar(props: { update?: TitlebarUpdate; debugTools?: { visibl
             </div>
 
             <div class="min-w-0 flex items-center justify-center pointer-events-none">
-              <div
-                id="bolt-titlebar-center"
-                class="pointer-events-auto min-w-0 flex justify-center w-fit max-w-full"
-              />
+              <div id="bolt-titlebar-center" class="pointer-events-auto min-w-0 flex justify-center w-fit max-w-full" />
             </div>
 
             <div

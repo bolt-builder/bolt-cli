@@ -47,9 +47,7 @@ export const SettingsProvidersV2: Component<{
   }
 
   const connected = createMemo(() => {
-    return providers
-      .connected()
-      .filter((p) => p.id !== "bolt" || Object.values(p.models).find((m) => m.cost?.input))
+    return providers.connected().filter((p) => p.id !== "bolt" || Object.values(p.models).find((m) => m.cost?.input))
   })
 
   const popular = createMemo(() => {

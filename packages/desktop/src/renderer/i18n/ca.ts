@@ -18,8 +18,7 @@ export const dict = {
   "desktop.updater.installFailed.title": "L'actualització ha fallat",
   "desktop.updater.installFailed.message": "No s'ha pogut instal·lar l'actualització",
   "desktop.cli.installed.title": "CLI instal·lada",
-  "desktop.cli.installed.message":
-    "CLI instal·lada a {{path}}\n\nReinicieu el terminal per utilitzar l'ordre 'bolt'.",
+  "desktop.cli.installed.message": "CLI instal·lada a {{path}}\n\nReinicieu el terminal per utilitzar l'ordre 'bolt'.",
   "desktop.cli.failed.title": "La instal·lació ha fallat",
   "desktop.cli.failed.message": "No s'ha pogut instal·lar CLI: {{error}}",
 

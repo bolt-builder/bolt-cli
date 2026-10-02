@@ -38,14 +38,14 @@ Not a strict layering, but a useful mental model: the frontends never touch `cor
 
 ### The ones you'll touch most
 
-| Package | Path | What's inside |
-| ------- | ---- | ------------- |
+| Package            | Path                 | What's inside                                                                        |
+| ------------------ | -------------------- | ------------------------------------------------------------------------------------ |
 | `bolt` (CLI entry) | `packages/opencode/` | The command tree you see with `bolt --help`, and the dev entry (`bun dev` from here) |
-| `@bolt-ai/tui` | `packages/tui/` | The interactive terminal UI |
-| `@bolt-ai/core` | `packages/core/` | Session runtime: storage, git integration, tools, file watching |
-| `@bolt-ai/llm` | `packages/llm/` | Provider abstraction, request routing, retries, prompt-cache policy |
-| `@bolt-ai/server` | `packages/server/` | HTTP API that fronts core; what `bolt serve` runs |
-| `@bolt-ai/sdk` | `packages/sdk/` | Generated JS client the frontends use |
+| `@bolt-ai/tui`     | `packages/tui/`      | The interactive terminal UI                                                          |
+| `@bolt-ai/core`    | `packages/core/`     | Session runtime: storage, git integration, tools, file watching                      |
+| `@bolt-ai/llm`     | `packages/llm/`      | Provider abstraction, request routing, retries, prompt-cache policy                  |
+| `@bolt-ai/server`  | `packages/server/`   | HTTP API that fronts core; what `bolt serve` runs                                    |
+| `@bolt-ai/sdk`     | `packages/sdk/`      | Generated JS client the frontends use                                                |
 
 ### Frontends and surfaces
 

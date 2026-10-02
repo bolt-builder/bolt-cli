@@ -46,8 +46,6 @@ await Bun.file(`./dist/${pkg.name}/package.json`).write(
 )
 
 await Promise.all(
-  Object.entries(binaries).map(([name, version]) =>
-    publish(`./dist/${name.replace("@bolt-ai/", "")}`, name, version),
-  ),
+  Object.entries(binaries).map(([name, version]) => publish(`./dist/${name.replace("@bolt-ai/", "")}`, name, version)),
 )
 await publish(`./dist/${pkg.name}`, pkg.name, version)

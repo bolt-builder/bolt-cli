@@ -45,13 +45,7 @@ import { StickyAccordionHeader } from "@bolt-ai/ui/sticky-accordion-header"
 import { TextField } from "@bolt-ai/ui/text-field"
 import { TextReveal } from "@bolt-ai/ui/text-reveal"
 import { TextShimmer } from "@bolt-ai/ui/text-shimmer"
-import type {
-  AssistantMessage,
-  Message as MessageType,
-  Part as PartType,
-  ToolPart,
-  UserMessage,
-} from "@bolt-ai/sdk/v2"
+import type { AssistantMessage, Message as MessageType, Part as PartType, ToolPart, UserMessage } from "@bolt-ai/sdk/v2"
 import { showToast } from "@/utils/toast"
 import { downloadSessionExport, fetchSessionExport, sessionExportFilename } from "@/utils/session-export"
 import { getDirectory, getFilename } from "@bolt-ai/core/util/path"

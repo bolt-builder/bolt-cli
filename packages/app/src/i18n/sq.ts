@@ -935,8 +935,7 @@ export const dict = {
   "settings.general.row.appearance.title": "Pamja e jashtme",
   "settings.general.row.appearance.description": "Personalizojeni se si duket Bolt në pajisjen tuaj",
   "settings.general.row.colorScheme.title": "Skema e ngjyrave",
-  "settings.general.row.colorScheme.description":
-    "Zgjidhni nëse Bolt ndjek temën e sistemit, të lehtë ose të errët",
+  "settings.general.row.colorScheme.description": "Zgjidhni nëse Bolt ndjek temën e sistemit, të lehtë ose të errët",
   "settings.general.row.theme.title": "Tema",
   "settings.general.row.theme.description": "Personalizojeni se si është tema e Bolt.",
   "settings.general.row.font.title": "Fonti i kodit",

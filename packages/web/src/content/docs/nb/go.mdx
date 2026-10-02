@@ -110,14 +110,14 @@ Klienten din skal:
 I tillegg til Bolt er følgende klienter validert for å fungere riktig
 med Bolt Go. Vi garanterer imidlertid ikke at de vil fortsette å fungere i fremtiden.
 
-| Klient            | Sesjonsstøtte                                                                                                                                                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Klient            | Sesjonsstøtte                                                                                                                                                                                                                                      |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hermes**        | Bygg som inneholder [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864), sender headeren i primære og sekundære Bolt-forespørsler. Rettelsen ble slått sammen etter v0.21.0; den versjonen inneholder den ikke alene.           |
-| **Claude Code**   | Go gjenkjenner den innebygde sesjonsheaderen. En wrapper for en egendefinert header er ikke nødvendig.                                                                                                                                                 |
-| **Codex**         | Go gjenkjenner den innebygde sesjonsheaderen. Noen versjoner og proxyoppsett utelater den fortsatt; behold sesjonsheaderen når forespørsler videresendes.                                                                                              |
-| **ZCode**         | Go gjenkjenner den innebygde sesjonsheaderen. Vår [forespørsel om `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) er fortsatt åpen, men det er ikke lenger nødvendig å sende akkurat denne headeren.                             |
+| **Claude Code**   | Go gjenkjenner den innebygde sesjonsheaderen. En wrapper for en egendefinert header er ikke nødvendig.                                                                                                                                             |
+| **Codex**         | Go gjenkjenner den innebygde sesjonsheaderen. Noen versjoner og proxyoppsett utelater den fortsatt; behold sesjonsheaderen når forespørsler videresendes.                                                                                          |
+| **ZCode**         | Go gjenkjenner den innebygde sesjonsheaderen. Vår [forespørsel om `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) er fortsatt åpen, men det er ikke lenger nødvendig å sende akkurat denne headeren.                         |
 | **Pi**            | Gjeldende bygg sender sesjonsinformasjon for Bolt. Oppdater eldre installasjoner.                                                                                                                                                                  |
-| **jcode**         | Oppdater til **v0.81.6 eller nyere**, som inneholder [rettelsen for sesjonsheaderen](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                   |
+| **jcode**         | Oppdater til **v0.81.6 eller nyere**, som inneholder [rettelsen for sesjonsheaderen](https://github.com/1jehuang/jcode/issues/1167).                                                                                                               |
 | **Kilo Code CLI** | Bygg som inneholder [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752), gjenoppretter Bolt-sesjonsheadere. Denne rettelsen dekker CLI-en, ikke VS Code-utvidelsen. Se [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Kjente problematiske klienter
@@ -284,8 +284,8 @@ For disse modellene får du fortsatt litt mer enn om du betalte modellleverandø
 
 Du kan også få tilgang til Go-modeller gjennom følgende API-endepunkter.
 
-| Modell                       | Modell-ID                    | Endepunkt                                        | AI SDK Package              |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Modell                       | Modell-ID                    | Endepunkt                                    | AI SDK Package              |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

@@ -7,9 +7,7 @@ describe("speak clean", () => {
   })
 
   test("replaces fenced code blocks with a spoken note", () => {
-    expect(clean("Here it is:\n```ts\nconst x = 1\n```\nDone.")).toBe(
-      "Here it is: code block omitted. Done.",
-    )
+    expect(clean("Here it is:\n```ts\nconst x = 1\n```\nDone.")).toBe("Here it is: code block omitted. Done.")
   })
 
   test("unwraps inline code spans", () => {

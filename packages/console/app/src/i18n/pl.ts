@@ -120,8 +120,7 @@ export const dict = {
   "home.install.ariaLabel": "Opcje instalacji",
 
   "home.what.title": "Czym jest Bolt?",
-  "home.what.body":
-    "Bolt to open source'owy agent, który pomaga pisać kod w terminalu, IDE lub aplikacji desktopowej.",
+  "home.what.body": "Bolt to open source'owy agent, który pomaga pisać kod w terminalu, IDE lub aplikacji desktopowej.",
   "home.what.lsp.title": "LSP włączone",
   "home.what.lsp.body": "Automatycznie ładuje odpowiednie LSP dla LLM",
   "home.what.multiSession.title": "Wielosesyjność",

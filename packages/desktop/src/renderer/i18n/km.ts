@@ -13,8 +13,7 @@ export const dict = {
   "desktop.updater.downloadFailed.title": "បរាជ័យក្នុងការអាប់ដេត",
   "desktop.updater.downloadFailed.message": "បានបរាជ័យក្នុងការទាញយកបច្ចុប្បន្នភាព",
   "desktop.updater.downloaded.title": "បានទាញយកបច្ចុប្បន្នភាព",
-  "desktop.updater.downloaded.prompt":
-    "កំណែ {{version}} នៃ Bolt ត្រូវបានទាញយក តើអ្នកចង់ដំឡើងវា ហើយចាប់ផ្ដើមឡើងវិញទេ?",
+  "desktop.updater.downloaded.prompt": "កំណែ {{version}} នៃ Bolt ត្រូវបានទាញយក តើអ្នកចង់ដំឡើងវា ហើយចាប់ផ្ដើមឡើងវិញទេ?",
   "desktop.updater.installFailed.title": "ការអាប់ដេតបានបរាជ័យ",
   "desktop.updater.installFailed.message": "បានបរាជ័យក្នុងការដំឡើងបច្ចុប្បន្នភាព",
   "desktop.cli.installed.title": "CLI បានដំឡើង",

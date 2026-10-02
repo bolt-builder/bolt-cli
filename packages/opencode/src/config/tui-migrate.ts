@@ -124,7 +124,9 @@ async function opencodeFiles(input: { directories: string[]; cwd: string }) {
   const files = [
     ...ConfigPaths.fileInDirectory(Global.Path.config, "opencode"),
     ...ConfigPaths.fileInDirectory(Global.Path.config, "bolt"),
-    ...(await Filesystem.findUp(["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"], input.cwd, undefined, { rootFirst: true })),
+    ...(await Filesystem.findUp(["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"], input.cwd, undefined, {
+      rootFirst: true,
+    })),
   ]
   for (const dir of unique(input.directories)) {
     files.push(...ConfigPaths.fileInDirectory(dir, "opencode"))

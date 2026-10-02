@@ -21,9 +21,7 @@ const config = Config.all({
   migrationsDir: Config.nonEmptyString("DATABASE_MIGRATIONS_DIR").pipe(Config.withDefault("./migrations")),
 }).pipe(Config.map(decodeDatabaseSettings))
 
-export class DatabaseConfig extends Context.Service<DatabaseConfig, DatabaseSettings>()(
-  "@bolt/stats/DatabaseConfig",
-) {
+export class DatabaseConfig extends Context.Service<DatabaseConfig, DatabaseSettings>()("@bolt/stats/DatabaseConfig") {
   static readonly config = config
   static readonly layer: Layer.Layer<DatabaseConfig, never, never> = Layer.effect(
     DatabaseConfig,

@@ -120,8 +120,7 @@ export const dict = {
   "home.install.ariaLabel": "Options d'installation",
 
   "home.what.title": "Qu'est-ce que Bolt ?",
-  "home.what.body":
-    "Bolt est un agent open source qui vous aide à écrire du code dans votre terminal, IDE ou desktop.",
+  "home.what.body": "Bolt est un agent open source qui vous aide à écrire du code dans votre terminal, IDE ou desktop.",
   "home.what.lsp.title": "LSP activé",
   "home.what.lsp.body": "Charge automatiquement les bons LSP pour le LLM",
   "home.what.multiSession.title": "Multi-session",
@@ -158,8 +157,7 @@ export const dict = {
   "home.faq.a2.before": "Le moyen le plus simple de commencer est de lire l'",
   "home.faq.a2.link": "intro",
   "home.faq.q3": "Ai-je besoin d'abonnements IA supplémentaires pour utiliser Bolt ?",
-  "home.faq.a3.p1":
-    "Pas forcément : Bolt propose des modèles gratuits que vous pouvez utiliser sans créer de compte.",
+  "home.faq.a3.p1": "Pas forcément : Bolt propose des modèles gratuits que vous pouvez utiliser sans créer de compte.",
   "home.faq.a3.p2.beforeZen": "En plus, vous pouvez utiliser des modèles populaires pour le code en créant un compte",
   "home.faq.a3.p2.afterZen": ".",
   "home.faq.a3.p3":
@@ -242,8 +240,7 @@ export const dict = {
   "zen.problem.title": "Quel problème Zen résout-il ?",
   "zen.problem.body":
     "Il existe de nombreux modèles disponibles, mais seuls quelques-uns fonctionnent bien avec les agents de code. La plupart des fournisseurs les configurent différemment avec des résultats variables.",
-  "zen.problem.subtitle":
-    "Nous résolvons ce problème pour tout le monde, pas seulement pour les utilisateurs de Bolt.",
+  "zen.problem.subtitle": "Nous résolvons ce problème pour tout le monde, pas seulement pour les utilisateurs de Bolt.",
   "zen.problem.item1": "Test des modèles sélectionnés et consultation de leurs équipes",
   "zen.problem.item2": "Collaboration avec les fournisseurs pour garantir une livraison correcte",
   "zen.problem.item3": "Benchmark de toutes les combinaisons modèle-fournisseur que nous recommandons",
@@ -674,8 +671,7 @@ export const dict = {
   "workspace.black.waitlist.title": "Liste d'attente",
   "workspace.black.waitlist.joined":
     "Vous êtes sur la liste d'attente pour le forfait Bolt Black à {{plan}} $ par mois.",
-  "workspace.black.waitlist.ready":
-    "Nous sommes prêts à vous inscrire au forfait Bolt Black à {{plan}} $ par mois.",
+  "workspace.black.waitlist.ready": "Nous sommes prêts à vous inscrire au forfait Bolt Black à {{plan}} $ par mois.",
   "workspace.black.waitlist.leave": "Quitter la liste d'attente",
   "workspace.black.waitlist.leaving": "Sortie...",
   "workspace.black.waitlist.left": "Quitté",

@@ -222,7 +222,8 @@ const MIGRATIONS: Migration[] = [
         )
       })
       const exit = yield* Effect.exit(step)
-      if (Exit.isFailure(exit)) yield* Effect.logError("skipping poison session file during migration-2", { item, cause: exit.cause })
+      if (Exit.isFailure(exit))
+        yield* Effect.logError("skipping poison session file during migration-2", { item, cause: exit.cause })
     }
   }),
 ]

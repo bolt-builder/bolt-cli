@@ -493,8 +493,7 @@ export const dict = {
   "wsl.onboarding.wslUnavailable.title": "WSL ekki í boði",
   "wsl.onboarding.wslUnavailable.description": "Bolt gat ekki staðfest WSL á þessari vél.",
   "wsl.onboarding.installWsl": "Settu upp WSL",
-  "wsl.onboarding.windowsRestartRequired":
-    "Endurræstu Windows til að klára að setja upp WSL, opnaðu síðan Bolt aftur.",
+  "wsl.onboarding.windowsRestartRequired": "Endurræstu Windows til að klára að setja upp WSL, opnaðu síðan Bolt aftur.",
   "wsl.onboarding.next": "Næst",
   "wsl.onboarding.refresh": "Endurnýja",
   "wsl.onboarding.allDistrosAdded": "Öllum uppsettum dreifingum er þegar bætt við.",

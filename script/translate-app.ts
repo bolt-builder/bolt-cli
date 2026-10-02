@@ -165,8 +165,7 @@ export function sessionIDFromEvents(output: string) {
 }
 
 export function sessionModels(value: unknown) {
-  if (!isRecord(value) || !Array.isArray(value.messages))
-    throw new Error("Bolt returned an invalid session export.")
+  if (!isRecord(value) || !Array.isArray(value.messages)) throw new Error("Bolt returned an invalid session export.")
   return value.messages.flatMap((message) => {
     if (!isRecord(message) || !isRecord(message.info) || message.info.role !== "assistant") return []
     if (typeof message.info.providerID !== "string" || typeof message.info.modelID !== "string") {

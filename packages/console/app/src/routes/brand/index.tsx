@@ -72,10 +72,7 @@ export default function Brand() {
           <section data-component="brand-content">
             <h1>{i18n.t("brand.heading")}</h1>
             <p>{i18n.t("brand.subtitle")}</p>
-            <button
-              data-component="download-button"
-              onClick={() => downloadFile(brandAssets, "bolt-brand-assets.zip")}
-            >
+            <button data-component="download-button" onClick={() => downloadFile(brandAssets, "bolt-brand-assets.zip")}>
               {i18n.t("brand.downloadAll")}
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path

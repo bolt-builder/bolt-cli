@@ -668,8 +668,7 @@ export const dict = {
   "error.chain.didYouMean": "Jeste li mislili: {{suggestions}}",
   "error.chain.modelNotFound": "Model nije pronađen: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Provjerite nazive dobavljača/modela svoje konfiguracije (bolt.json).",
-  "error.chain.mcpFailed":
-    'MCP poslužitelj "{{name}}" nije uspio. Napomena, Bolt još ne podržava MCP autentifikaciju.',
+  "error.chain.mcpFailed": 'MCP poslužitelj "{{name}}" nije uspio. Napomena, Bolt još ne podržava MCP autentifikaciju.',
   "error.chain.providerAuthFailed": "Provjera autentičnosti davatelja nije uspjela ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     'Inicijalizacija pružatelja "{{provider}}" nije uspjela. Provjerite vjerodajnice i konfiguraciju.',
@@ -940,8 +939,7 @@ export const dict = {
   "settings.general.row.appearance.title": "Izgled",
   "settings.general.row.appearance.description": "Prilagodite kako Bolt izgleda na vašem uređaju",
   "settings.general.row.colorScheme.title": "Shema boja",
-  "settings.general.row.colorScheme.description":
-    "Odaberite hoće li Bolt slijediti sistemsku, svijetlu ili tamnu temu",
+  "settings.general.row.colorScheme.description": "Odaberite hoće li Bolt slijediti sistemsku, svijetlu ili tamnu temu",
   "settings.general.row.theme.title": "Tema",
   "settings.general.row.theme.description": "Prilagodite način na koji je Bolt tematiziran.",
   "settings.general.row.font.title": "Font koda",

@@ -60,15 +60,15 @@ Type a request and press Enter, for example:
 
 Press `Tab` to switch, or choose one up front with `--agent`.
 
-| Agent         | Use it when you want to...                        |
-| ------------- | ------------------------------------------------- |
-| `code`        | Read, write, and run code (default)               |
-| `plan`        | Get a plan without any files being changed        |
-| `ask`         | Ask questions safely, read-only                   |
-| `debug`       | Chase down a failing test or crash                |
-| `refactor`    | Restructure code with tests checked at every step |
-| `code-review` | Review changes for bugs, style, and security      |
-| `orchestrator`| Coordinate a big multi-step job across agents     |
+| Agent          | Use it when you want to...                        |
+| -------------- | ------------------------------------------------- |
+| `code`         | Read, write, and run code (default)               |
+| `plan`         | Get a plan without any files being changed        |
+| `ask`          | Ask questions safely, read-only                   |
+| `debug`        | Chase down a failing test or crash                |
+| `refactor`     | Restructure code with tests checked at every step |
+| `code-review`  | Review changes for bugs, style, and security      |
+| `orchestrator` | Coordinate a big multi-step job across agents     |
 
 Not sure which one? Let Bolt choose:
 
@@ -126,12 +126,12 @@ bolt import <file-or-share-url>           # bring one in
 
 ## Troubleshooting
 
-| Problem                       | Try                                                                   |
-| ----------------------------- | --------------------------------------------------------------------- |
-| Something is behaving oddly   | `BOLT_PRINT_LOGS=1 BOLT_LOG_LEVEL=DEBUG bolt` to see logs on stderr   |
-| A plugin is causing trouble   | `BOLT_PURE=1 bolt` runs without external plugins                      |
-| Network is flaky              | `bolt run --offline ...` fails fast instead of hanging                |
-| Need to inspect your data     | `bolt db` queries the local session database                          |
-| Want help with any command    | `bolt <command> --help`                                               |
+| Problem                     | Try                                                                 |
+| --------------------------- | ------------------------------------------------------------------- |
+| Something is behaving oddly | `BOLT_PRINT_LOGS=1 BOLT_LOG_LEVEL=DEBUG bolt` to see logs on stderr |
+| A plugin is causing trouble | `BOLT_PURE=1 bolt` runs without external plugins                    |
+| Network is flaky            | `bolt run --offline ...` fails fast instead of hanging              |
+| Need to inspect your data   | `bolt db` queries the local session database                        |
+| Want help with any command  | `bolt <command> --help`                                             |
 
 Questions or ideas? Join the [Discussions](https://github.com/Bolt-builder/bolt-cli/discussions).

@@ -18,8 +18,7 @@ export const dict = {
   "desktop.updater.installFailed.title": "Uppfærsla mistókst",
   "desktop.updater.installFailed.message": "Mistókst að setja upp uppfærslu",
   "desktop.cli.installed.title": "CLI uppsett",
-  "desktop.cli.installed.message":
-    "CLI sett upp í {{path}}\n\nEndurræstu skjáherminn til að nota 'bolt' skipunina.",
+  "desktop.cli.installed.message": "CLI sett upp í {{path}}\n\nEndurræstu skjáherminn til að nota 'bolt' skipunina.",
   "desktop.cli.failed.title": "Uppsetning mistókst",
   "desktop.cli.failed.message": "Mistókst að setja upp CLI: {{error}}",
 

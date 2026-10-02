@@ -998,8 +998,7 @@ export const dict = {
   "settings.general.row.releaseNotes.description":
     "Mostra les finestres emergents Novetats després de les actualitzacions",
   "settings.updates.row.startup.title": "Comproveu si hi ha actualitzacions a l'inici",
-  "settings.updates.row.startup.description":
-    "Comprova automàticament si hi ha actualitzacions quan s'iniciï Bolt.",
+  "settings.updates.row.startup.description": "Comprova automàticament si hi ha actualitzacions quan s'iniciï Bolt.",
   "settings.updates.row.check.title": "Comproveu si hi ha actualitzacions",
   "settings.updates.row.check.description":
     "Comproveu manualment si hi ha actualitzacions i instal·leu si està disponible",

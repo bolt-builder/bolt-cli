@@ -945,8 +945,7 @@ export const dict: Record<string, string> = {
   "settings.general.row.shell.autoDefault": "རང་བཞིན་ (སྔོན་སྒྲིག)",
   "settings.general.row.shell.terminalOnly": "ཊར་མི་ནཱལ་རྐྱངམ་ཅིག།",
   "settings.general.row.appearance.title": "བཟོ་དབྱིབས",
-  "settings.general.row.appearance.description":
-    "Boltའདི་ཁྱོད་རའི་ཐབས་འཕྲུལ་གུ་ག་དེ་སྦེ་མཐོངམ་ཨིན་ན་སྲོལ་སྒྲིག་འབད།",
+  "settings.general.row.appearance.description": "Boltའདི་ཁྱོད་རའི་ཐབས་འཕྲུལ་གུ་ག་དེ་སྦེ་མཐོངམ་ཨིན་ན་སྲོལ་སྒྲིག་འབད།",
   "settings.general.row.colorScheme.title": "ཚོས་གཞིའི་འཆར་གཞི།",
   "settings.general.row.colorScheme.description":
     "Bolt གིས་ རིམ་ལུགས་དང་ འོད་ ཡང་ན་ གནགཔོ་གི་བརྗོད་དོན་ལུ་ རྗེས་སུ་འཇུག་ནི་ཨིན་ན་ གདམ་ཁ་རྐྱབས།",

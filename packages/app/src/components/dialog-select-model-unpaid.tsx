@@ -118,9 +118,7 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
                     </Show>
                     <Show when={i.id === "bolt-go"}>
                       <>
-                        <div class="text-14-regular text-text-weak">
-                          {language.t("dialog.provider.boltGo.tagline")}
-                        </div>
+                        <div class="text-14-regular text-text-weak">{language.t("dialog.provider.boltGo.tagline")}</div>
                         <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
                       </>
                     </Show>

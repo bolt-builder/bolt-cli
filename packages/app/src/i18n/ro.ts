@@ -488,8 +488,7 @@ export const dict = {
   "wsl.onboarding.wslUnavailable.title": "WSL indisponibil",
   "wsl.onboarding.wslUnavailable.description": "Bolt nu a putut verifica WSL pe acest calculator.",
   "wsl.onboarding.installWsl": "Instalează WSL",
-  "wsl.onboarding.windowsRestartRequired":
-    "Repornește Windows pentru a finaliza instalarea WSL, apoi redeschide Bolt.",
+  "wsl.onboarding.windowsRestartRequired": "Repornește Windows pentru a finaliza instalarea WSL, apoi redeschide Bolt.",
   "wsl.onboarding.next": "Următorul",
   "wsl.onboarding.refresh": "Reîmprospătează",
   "wsl.onboarding.allDistrosAdded": "Toate distro-urile instalate sunt deja adăugate.",

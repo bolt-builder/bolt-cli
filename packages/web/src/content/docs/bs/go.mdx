@@ -110,14 +110,14 @@ Vaš klijent treba:
 Pored Bolt-a, potvrđeno je da sljedeći klijenti ispravno rade
 s Bolt Go. Ipak, ne garantiramo da će nastaviti raditi i u budućnosti.
 
-| Klijent           | Podrška za sesije                                                                                                                                                                                                                                          |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Klijent           | Podrška za sesije                                                                                                                                                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hermes**        | Buildovi koji sadrže [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) šalju zaglavlje u glavnim i pomoćnim Bolt zahtjevima. Ispravka je spojena nakon verzije v0.21.0; samo to izdanje je ne sadrži.                             |
-| **Claude Code**   | Go prepoznaje njegovo izvorno zaglavlje sesije. Wrapper za prilagođeno zaglavlje nije potreban.                                                                                                                                                            |
-| **Codex**         | Go prepoznaje njegovo izvorno zaglavlje sesije. Neke verzije i proxy konfiguracije ga i dalje izostavljaju; sačuvajte zaglavlje sesije pri prosljeđivanju zahtjeva.                                                                                        |
-| **ZCode**         | Go prepoznaje njegovo izvorno zaglavlje sesije. Naš [zahtjev za `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) i dalje je otvoren, ali slanje tog konkretnog zaglavlja više nije potrebno.                                          |
+| **Claude Code**   | Go prepoznaje njegovo izvorno zaglavlje sesije. Wrapper za prilagođeno zaglavlje nije potreban.                                                                                                                                                        |
+| **Codex**         | Go prepoznaje njegovo izvorno zaglavlje sesije. Neke verzije i proxy konfiguracije ga i dalje izostavljaju; sačuvajte zaglavlje sesije pri prosljeđivanju zahtjeva.                                                                                    |
+| **ZCode**         | Go prepoznaje njegovo izvorno zaglavlje sesije. Naš [zahtjev za `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) i dalje je otvoren, ali slanje tog konkretnog zaglavlja više nije potrebno.                                      |
 | **Pi**            | Trenutni buildovi šalju informacije o sesiji za Bolt. Ažurirajte starije instalacije.                                                                                                                                                                  |
-| **jcode**         | Ažurirajte na **v0.81.6 ili noviju**, koja uključuje [ispravku zaglavlja sesije](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                           |
+| **jcode**         | Ažurirajte na **v0.81.6 ili noviju**, koja uključuje [ispravku zaglavlja sesije](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                       |
 | **Kilo Code CLI** | Buildovi koji sadrže [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) vraćaju Bolt zaglavlja sesije. Ova ispravka obuhvata CLI, ali ne i VS Code ekstenziju. Pogledajte [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Poznati problematični klijenti
@@ -284,8 +284,8 @@ Za ove modele i dalje dobijate malo više nego da direktno plaćate provajderima
 
 Također možete pristupiti Go modelima putem sljedećih API endpointa.
 
-| Model                        | Model ID                     | Endpoint                                         | AI SDK Paket                |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Model                        | Model ID                     | Endpoint                                     | AI SDK Paket                |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

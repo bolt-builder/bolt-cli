@@ -97,14 +97,14 @@ Trafik, diğer kullanıcıların deneyimini olumsuz etkileyen kötüye kullanım
 Bolt'un yanı sıra aşağıdaki istemcilerin Bolt Go ile düzgün çalıştığı doğrulanmıştır.
 Ancak gelecekte de çalışmaya devam edeceklerini garanti etmiyoruz.
 
-| İstemci           | Oturum desteği                                                                                                                                                                                                                                               |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| İstemci           | Oturum desteği                                                                                                                                                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hermes**        | [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) içeren derlemeler, ana ve yardımcı Bolt isteklerinde başlığı gönderir. Düzeltme v0.21.0'dan sonra birleştirilmiştir; dolayısıyla v0.21.0 sürümü tek başına bu düzeltmeyi içermez. |
-| **Claude Code**   | Go, Claude Code'un yerel oturum başlığını tanır. Özel başlık ekleyen bir sarmalayıcı gerekmez.                                                                                                                                                               |
-| **Codex**         | Go, Codex'in yerel oturum başlığını tanır. Bazı sürümler ve proxy yapılandırmaları hâlâ bu başlığı göndermemektedir; istekleri iletirken oturum başlığını koruyun.                                                                                           |
-| **ZCode**         | Go, ZCode'un yerel oturum başlığını tanır. [`x-opencode-session` talebimiz](https://github.com/zai-org/feedback/issues/492) hâlâ açıktır ancak artık özellikle bu başlığın gönderilmesi gerekli değildir.                                                    |
+| **Claude Code**   | Go, Claude Code'un yerel oturum başlığını tanır. Özel başlık ekleyen bir sarmalayıcı gerekmez.                                                                                                                                                           |
+| **Codex**         | Go, Codex'in yerel oturum başlığını tanır. Bazı sürümler ve proxy yapılandırmaları hâlâ bu başlığı göndermemektedir; istekleri iletirken oturum başlığını koruyun.                                                                                       |
+| **ZCode**         | Go, ZCode'un yerel oturum başlığını tanır. [`x-opencode-session` talebimiz](https://github.com/zai-org/feedback/issues/492) hâlâ açıktır ancak artık özellikle bu başlığın gönderilmesi gerekli değildir.                                                |
 | **Pi**            | Güncel derlemeler Bolt için oturum bilgilerini gönderir. Eski kurulumları güncelleyin.                                                                                                                                                                   |
-| **jcode**         | [Oturum başlığı düzeltmesini](https://github.com/1jehuang/jcode/issues/1167) içeren **v0.81.6 veya sonraki bir sürüme** güncelleyin.                                                                                                                         |
+| **jcode**         | [Oturum başlığı düzeltmesini](https://github.com/1jehuang/jcode/issues/1167) içeren **v0.81.6 veya sonraki bir sürüme** güncelleyin.                                                                                                                     |
 | **Kilo Code CLI** | [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) içeren derlemeler Bolt oturum başlıklarını geri getirir. Bu düzeltme CLI'ı kapsar, VS Code uzantısını kapsamaz. Bkz. [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723).     |
 
 ### Sorunlu Olduğu Bilinen İstemciler
@@ -269,8 +269,8 @@ Bu modellerde bile model sağlayıcılarına doğrudan ödeme yaptığınız dur
 
 Go modellerine aşağıdaki API uç noktaları aracılığıyla da erişebilirsiniz.
 
-| Model                        | Model ID                     | Uç Nokta                                         | AI SDK Paketi               |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Model                        | Model ID                     | Uç Nokta                                     | AI SDK Paketi               |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

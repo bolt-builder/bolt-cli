@@ -123,15 +123,15 @@ describe("inference stat normalization", () => {
       },
     ])
 
-    expect(
-      toModelAggregate({ ...aggregate("big-pickle", "bolt"), provider_model: "claude-sonnet-4-5" }),
-    ).toMatchObject([
-      {
-        provider: "anthropic",
-        model: "claude-sonnet-4-5",
-        provider_model: "claude-sonnet-4-5",
-      },
-    ])
+    expect(toModelAggregate({ ...aggregate("big-pickle", "bolt"), provider_model: "claude-sonnet-4-5" })).toMatchObject(
+      [
+        {
+          provider: "anthropic",
+          model: "claude-sonnet-4-5",
+          provider_model: "claude-sonnet-4-5",
+        },
+      ],
+    )
   })
 
   test("provider aggregates never keep opencode as the provider", () => {

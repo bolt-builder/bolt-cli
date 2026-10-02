@@ -104,14 +104,14 @@ Twój klient powinien:
 Poza Bolt zweryfikowano, że poniżsi klienci działają prawidłowo
 z Bolt Go. Nie gwarantujemy jednak, że będą nadal działać w przyszłości.
 
-| Klient            | Obsługa sesji                                                                                                                                                                                                                                              |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Klient            | Obsługa sesji                                                                                                                                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hermes**        | Kompilacje zawierające [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) wysyłają nagłówek w głównych i pomocniczych żądaniach Bolt. Poprawkę scalono po wersji v0.21.0; samo to wydanie jej nie zawiera.                         |
-| **Claude Code**   | Go rozpoznaje jego natywny nagłówek sesji. Wrapper dodający niestandardowy nagłówek nie jest potrzebny.                                                                                                                                                    |
-| **Codex**         | Go rozpoznaje jego natywny nagłówek sesji. Niektóre wersje i konfiguracje proxy nadal go pomijają; podczas przekazywania żądań należy zachować nagłówek sesji.                                                                                             |
-| **ZCode**         | Go rozpoznaje jego natywny nagłówek sesji. Nasza [prośba o `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) pozostaje otwarta, ale wysyłanie tego konkretnego nagłówka nie jest już konieczne.                                        |
+| **Claude Code**   | Go rozpoznaje jego natywny nagłówek sesji. Wrapper dodający niestandardowy nagłówek nie jest potrzebny.                                                                                                                                                |
+| **Codex**         | Go rozpoznaje jego natywny nagłówek sesji. Niektóre wersje i konfiguracje proxy nadal go pomijają; podczas przekazywania żądań należy zachować nagłówek sesji.                                                                                         |
+| **ZCode**         | Go rozpoznaje jego natywny nagłówek sesji. Nasza [prośba o `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) pozostaje otwarta, ale wysyłanie tego konkretnego nagłówka nie jest już konieczne.                                    |
 | **Pi**            | Aktualne kompilacje wysyłają informacje o sesji dla Bolt. Zaktualizuj starsze instalacje.                                                                                                                                                              |
-| **jcode**         | Zaktualizuj do wersji **v0.81.6 lub nowszej**, która zawiera [poprawkę nagłówka sesji](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                     |
+| **jcode**         | Zaktualizuj do wersji **v0.81.6 lub nowszej**, która zawiera [poprawkę nagłówka sesji](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                 |
 | **Kilo Code CLI** | Kompilacje zawierające [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) przywracają nagłówki sesji Bolt. Ta poprawka obejmuje CLI, ale nie rozszerzenie VS Code. Zobacz [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Klienty ze znanymi problemami
@@ -276,8 +276,8 @@ W przypadku tych modeli nadal otrzymujesz nieco więcej, niż płacąc bezpośre
 
 Możesz również uzyskać dostęp do modeli Go za pośrednictwem następujących punktów końcowych API.
 
-| Model                        | ID modelu                    | Punkt końcowy                                    | Pakiet AI SDK               |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Model                        | ID modelu                    | Punkt końcowy                                | Pakiet AI SDK               |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

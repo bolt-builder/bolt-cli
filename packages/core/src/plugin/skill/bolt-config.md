@@ -40,13 +40,13 @@ already-loaded config until then.
 | Scope                         | Path                                                                                                               |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Project config                | `./bolt.json`, `./bolt.jsonc`, or inside `.opencode/` / `.bolt/` (bolt walks up from the cwd to the worktree root) |
-| Global config                 | `~/.config/bolt/bolt.json` (NOT `~/.bolt/`)                                                                    |
+| Global config                 | `~/.config/bolt/bolt.json` (NOT `~/.bolt/`)                                                                        |
 | Project agents                | `.opencode/agent(s)/<name>.md` or `.bolt/agent(s)/<name>.md`                                                       |
-| Global agents                 | `~/.config/bolt/agent(s)/<name>.md`                                                                            |
+| Global agents                 | `~/.config/bolt/agent(s)/<name>.md`                                                                                |
 | Project commands              | `.opencode/command(s)/<name>.md` or `.bolt/command(s)/<name>.md`                                                   |
-| Global commands               | `~/.config/bolt/command(s)/<name>.md`                                                                          |
+| Global commands               | `~/.config/bolt/command(s)/<name>.md`                                                                              |
 | Project skills                | `.opencode/skill(s)/<name>/SKILL.md` or `.bolt/skill(s)/<name>/SKILL.md`                                           |
-| Global skills                 | `~/.config/bolt/skill(s)/<name>/SKILL.md`                                                                      |
+| Global skills                 | `~/.config/bolt/skill(s)/<name>/SKILL.md`                                                                          |
 | External skills (auto-loaded) | `~/.claude/skills/<name>/SKILL.md`, `~/.agents/skills/<name>/SKILL.md`                                             |
 
 Legacy `opencode.json` / `opencode.jsonc` files are still honored in every

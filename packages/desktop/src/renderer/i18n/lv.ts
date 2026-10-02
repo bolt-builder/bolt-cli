@@ -18,8 +18,7 @@ export const dict = {
   "desktop.updater.installFailed.title": "Atjaunināšana neizdevās",
   "desktop.updater.installFailed.message": "Neizdevās instalēt atjauninājumu",
   "desktop.cli.installed.title": "CLI instalēts",
-  "desktop.cli.installed.message":
-    "CLI instalēts uz {{path}}\n\nRestartējiet termināli, lai izmantotu komandu 'bolt'.",
+  "desktop.cli.installed.message": "CLI instalēts uz {{path}}\n\nRestartējiet termināli, lai izmantotu komandu 'bolt'.",
   "desktop.cli.failed.title": "Instalēšana neizdevās",
   "desktop.cli.failed.message": "Neizdevās instalēt CLI: {{error}}",
 

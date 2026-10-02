@@ -85,10 +85,7 @@ import { Storage } from "@/storage/storage"
 
 export function webSearchEnabled(providerID: ProviderV2.ID, flags = { exa: false, parallel: false }) {
   return (
-    providerID === ProviderV2.ID.bolt ||
-    providerID === ProviderV2.ID.make("bolt-go") ||
-    flags.exa ||
-    flags.parallel
+    providerID === ProviderV2.ID.bolt || providerID === ProviderV2.ID.make("bolt-go") || flags.exa || flags.parallel
   )
 }
 

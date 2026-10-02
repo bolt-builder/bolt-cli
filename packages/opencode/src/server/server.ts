@@ -49,9 +49,7 @@ interface ListenerServer {
   readonly closeAll: Effect.Effect<void>
 }
 
-class ListenerServerService extends Context.Service<ListenerServerService, ListenerServer>()(
-  "@bolt/ListenerServer",
-) {}
+class ListenerServerService extends Context.Service<ListenerServerService, ListenerServer>()("@bolt/ListenerServer") {}
 
 export const Default = lazy(() => {
   const handler = HttpApiApp.webHandler().handler

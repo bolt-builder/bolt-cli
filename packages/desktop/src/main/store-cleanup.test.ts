@@ -64,12 +64,7 @@ describe("store cleanup", () => {
     const now = new Date("2026-07-01T00:00:00.000Z")
     await Promise.all(
       Array.from({ length: 102 }, (_, index) =>
-        writeStore(
-          root,
-          `bolt.draft.${index}.dat`,
-          '{"draft:prompt":"hello"}',
-          new Date(now.getTime() - index * 1000),
-        ),
+        writeStore(root, `bolt.draft.${index}.dat`, '{"draft:prompt":"hello"}', new Date(now.getTime() - index * 1000)),
       ),
     )
 

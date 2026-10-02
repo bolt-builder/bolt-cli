@@ -667,8 +667,7 @@ export const dict = {
   "error.chain.didYouMean": "Ar turėjote omenyje: {{suggestions}}",
   "error.chain.modelNotFound": "Modelis nerastas: {{provider}}/{{model}}",
   "error.chain.checkConfig": "Patikrinkite konfigūracijos (bolt.json) teikėjo / modelio pavadinimus",
-  "error.chain.mcpFailed":
-    "MCP serveris „{{name}}“ nepavyko. Atminkite, kad Bolt dar nepalaiko MCP autentifikavimo.",
+  "error.chain.mcpFailed": "MCP serveris „{{name}}“ nepavyko. Atminkite, kad Bolt dar nepalaiko MCP autentifikavimo.",
   "error.chain.providerAuthFailed": "Teikėjo autentifikavimas nepavyko ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     "Nepavyko inicijuoti teikėjo „{{provider}}“. Patikrinkite kredencialus ir konfigūraciją.",

@@ -489,8 +489,7 @@ export const dict: Record<string, string> = {
   "wsl.onboarding.wslUnavailable.title": "WSL অনুপলব্ধ",
   "wsl.onboarding.wslUnavailable.description": "Bolt এই মেশিনে WSL যাচাই করতে পারেনি।",
   "wsl.onboarding.installWsl": "WSL ইনস্টল করুন",
-  "wsl.onboarding.windowsRestartRequired":
-    "WSL ইনস্টল করা শেষ করতে Windows পুনরায় চালু করুন, তারপর Bolt আবার খুলুন।",
+  "wsl.onboarding.windowsRestartRequired": "WSL ইনস্টল করা শেষ করতে Windows পুনরায় চালু করুন, তারপর Bolt আবার খুলুন।",
   "wsl.onboarding.next": "পরবর্তী",
   "wsl.onboarding.refresh": "রিফ্রেশ",
   "wsl.onboarding.allDistrosAdded": "সমস্ত ইনস্টল করা ডিস্ট্রো ইতিমধ্যেই যোগ করা হয়েছে।",
@@ -661,8 +660,7 @@ export const dict: Record<string, string> = {
   "error.chain.didYouMean": "আপনি কি বলতে চাইছেন: {{suggestions}}",
   "error.chain.modelNotFound": "মডেল পাওয়া যায়নি: {{provider}}/{{model}}",
   "error.chain.checkConfig": "আপনার কনফিগারেশন (bolt.json) প্রদানকারী/মডেলের নাম পরীক্ষা করুন",
-  "error.chain.mcpFailed":
-    'MCP সার্ভার "{{name}}" ব্যর্থ হয়েছে৷ মনে রাখবেন, Bolt এখনও MCP প্রমাণীকরণ সমর্থন করে না।',
+  "error.chain.mcpFailed": 'MCP সার্ভার "{{name}}" ব্যর্থ হয়েছে৷ মনে রাখবেন, Bolt এখনও MCP প্রমাণীকরণ সমর্থন করে না।',
   "error.chain.providerAuthFailed": "প্রদানকারীর প্রমাণীকরণ ব্যর্থ হয়েছে ({{provider}}): {{message}}",
   "error.chain.providerInitFailed":
     '"{{provider}}" প্রদানকারী শুরু করতে ব্যর্থ হয়েছে৷ শংসাপত্র এবং কনফিগারেশন চেক করুন.',

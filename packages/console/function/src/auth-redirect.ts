@@ -11,8 +11,5 @@ export const isAllowedAuthorizationRedirect = (clientID: string, redirectURI: st
   if (redirect.hostname === "localhost" || redirect.hostname === "127.0.0.1") {
     return redirect.protocol === "http:" || redirect.protocol === "https:"
   }
-  return (
-    redirect.protocol === "https:" &&
-    (redirect.hostname === "bolt.ai" || redirect.hostname.endsWith(".bolt.ai"))
-  )
+  return redirect.protocol === "https:" && (redirect.hostname === "bolt.ai" || redirect.hostname.endsWith(".bolt.ai"))
 }

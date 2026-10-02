@@ -223,8 +223,7 @@ const AUTH_API_URL = new sst.Linkable("AUTH_API_URL", {
   properties: { value: auth.url.apply((url) => url!) },
 })
 // Preview branches have independent databases; do not send their workspaces to shared dev.
-const migrationDomain =
-  $app.stage === "production" ? "bolt.ai" : $app.stage === "dev" ? "dev.bolt.ai" : undefined
+const migrationDomain = $app.stage === "production" ? "bolt.ai" : $app.stage === "dev" ? "dev.bolt.ai" : undefined
 const consoleMigration = new sst.Linkable("ConsoleMigration", {
   properties: {
     consoleUrl: migrationDomain ? `https://${migrationDomain}/console` : "",

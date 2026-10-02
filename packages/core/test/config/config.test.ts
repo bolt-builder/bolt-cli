@@ -516,10 +516,7 @@ describe("Config", () => {
                     permission: { read: "allow" },
                   },
                 },
-                plugin: [
-                  "bolt-helicone-session",
-                  ["@my-org/audit-plugin", { endpoint: "https://audit.example.com" }],
-                ],
+                plugin: ["bolt-helicone-session", ["@my-org/audit-plugin", { endpoint: "https://audit.example.com" }]],
                 skills: { paths: ["./skills"], urls: ["https://example.com/.well-known/skills/"] },
                 references: {
                   docs: { path: "../docs", description: "Use for product documentation", hidden: true },
@@ -747,10 +744,7 @@ describe("Config", () => {
               fs.writeFile(path.join(parent, "bolt.jsonc"), JSON.stringify({ $schema: "parent" })),
               fs.writeFile(path.join(directory, "bolt.json"), JSON.stringify({ $schema: "directory" })),
               fs.writeFile(path.join(root, ".bolt", "bolt.json"), JSON.stringify({ $schema: "root-dot" })),
-              fs.writeFile(
-                path.join(directory, ".bolt", "bolt.jsonc"),
-                JSON.stringify({ $schema: "directory-dot" }),
-              ),
+              fs.writeFile(path.join(directory, ".bolt", "bolt.jsonc"), JSON.stringify({ $schema: "directory-dot" })),
             ])
           })
 

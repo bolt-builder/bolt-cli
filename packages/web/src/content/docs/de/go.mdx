@@ -102,14 +102,14 @@ Dein Client sollte:
 Neben Bolt wurden die folgenden Clients für die ordnungsgemäße Verwendung mit
 Bolt Go validiert. Wir garantieren jedoch nicht, dass sie auch in Zukunft funktionieren werden.
 
-| Client            | Sitzungsunterstützung                                                                                                                                                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client            | Sitzungsunterstützung                                                                                                                                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hermes**        | Builds mit [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) senden den Header bei Haupt- und zusätzlichen Bolt-Anfragen. Der Fix wurde nach v0.21.0 gemergt; diese Version allein enthält ihn nicht.                                |
-| **Claude Code**   | Go erkennt seinen nativen Sitzungs-Header. Es ist kein Wrapper für benutzerdefinierte Header erforderlich.                                                                                                                                                    |
-| **Codex**         | Go erkennt seinen nativen Sitzungs-Header. Einige Versionen und Proxy-Konfigurationen lassen ihn weiterhin weg; stelle sicher, dass der Sitzungs-Header beim Weiterleiten von Anfragen erhalten bleibt.                                                       |
-| **ZCode**         | Go erkennt seinen nativen Sitzungs-Header. Unsere [Anfrage für `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) ist weiterhin offen, aber es ist nicht mehr erforderlich, genau diesen Header zu senden.                                 |
+| **Claude Code**   | Go erkennt seinen nativen Sitzungs-Header. Es ist kein Wrapper für benutzerdefinierte Header erforderlich.                                                                                                                                                |
+| **Codex**         | Go erkennt seinen nativen Sitzungs-Header. Einige Versionen und Proxy-Konfigurationen lassen ihn weiterhin weg; stelle sicher, dass der Sitzungs-Header beim Weiterleiten von Anfragen erhalten bleibt.                                                   |
+| **ZCode**         | Go erkennt seinen nativen Sitzungs-Header. Unsere [Anfrage für `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) ist weiterhin offen, aber es ist nicht mehr erforderlich, genau diesen Header zu senden.                             |
 | **Pi**            | Aktuelle Builds senden Sitzungsinformationen für Bolt. Aktualisiere ältere Installationen.                                                                                                                                                                |
-| **jcode**         | Aktualisiere auf **v0.81.6 oder neuer**. Diese Version enthält den [Fix für den Sitzungs-Header](https://github.com/1jehuang/jcode/issues/1167).                                                                                                              |
+| **jcode**         | Aktualisiere auf **v0.81.6 oder neuer**. Diese Version enthält den [Fix für den Sitzungs-Header](https://github.com/1jehuang/jcode/issues/1167).                                                                                                          |
 | **Kilo Code CLI** | Builds mit [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) stellen Bolt-Sitzungs-Header wieder her. Dieser Fix gilt für die CLI, nicht für die VS-Code-Erweiterung. Siehe [Issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Bekannte problematische Clients
@@ -274,8 +274,8 @@ Bei diesen Modellen erhältst du immer noch etwas mehr, als wenn du die Modellan
 
 Du kannst auf die Go-Modelle auch über die folgenden API-Endpunkte zugreifen.
 
-| Modell                       | Modell-ID                    | Endpunkt                                         | AI SDK Package              |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Modell                       | Modell-ID                    | Endpunkt                                     | AI SDK Package              |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

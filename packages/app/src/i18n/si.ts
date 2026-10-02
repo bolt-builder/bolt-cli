@@ -488,8 +488,7 @@ export const dict: Record<string, string> = {
   "wsl.onboarding.wslUnavailable.title": "WSL නොමැත",
   "wsl.onboarding.wslUnavailable.description": "Bolt හට මෙම යන්ත්‍රයේ WSL සත්‍යාපනය කළ නොහැක.",
   "wsl.onboarding.installWsl": "WSL ස්ථාපනය කරන්න",
-  "wsl.onboarding.windowsRestartRequired":
-    "WSL ස්ථාපනය අවසන් කිරීමට Windows නැවත අරඹන්න, පසුව Bolt නැවත විවෘත කරන්න.",
+  "wsl.onboarding.windowsRestartRequired": "WSL ස්ථාපනය අවසන් කිරීමට Windows නැවත අරඹන්න, පසුව Bolt නැවත විවෘත කරන්න.",
   "wsl.onboarding.next": "ඊළඟ",
   "wsl.onboarding.refresh": "නැවුම් කරන්න",
   "wsl.onboarding.allDistrosAdded": "ස්ථාපිත සියලුම බෙදාහැරීම් දැනටමත් එකතු කර ඇත.",

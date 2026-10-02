@@ -317,23 +317,23 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                       <PromptStashProvider>
                                                         <DialogProvider>
                                                           <NudgeProvider>
-<SpeakProvider>
-                                                            <FrecencyProvider>
-                                                              <PromptHistoryProvider>
-                                                                <PromptRefProvider>
-                                                                  <EditorContextProvider>
-                                                                    <LocationProvider>
-                                                                      <App
-                                                                        onSnapshot={input.onSnapshot}
-                                                                        pluginHost={input.pluginHost}
-                                                                      />
-                                                                    </LocationProvider>
-                                                                  </EditorContextProvider>
-                                                                </PromptRefProvider>
-                                                              </PromptHistoryProvider>
-                                                            </FrecencyProvider>
-                                                          </SpeakProvider>
-</NudgeProvider>
+                                                            <SpeakProvider>
+                                                              <FrecencyProvider>
+                                                                <PromptHistoryProvider>
+                                                                  <PromptRefProvider>
+                                                                    <EditorContextProvider>
+                                                                      <LocationProvider>
+                                                                        <App
+                                                                          onSnapshot={input.onSnapshot}
+                                                                          pluginHost={input.pluginHost}
+                                                                        />
+                                                                      </LocationProvider>
+                                                                    </EditorContextProvider>
+                                                                  </PromptRefProvider>
+                                                                </PromptHistoryProvider>
+                                                              </FrecencyProvider>
+                                                            </SpeakProvider>
+                                                          </NudgeProvider>
                                                         </DialogProvider>
                                                       </PromptStashProvider>
                                                     </LocalProvider>
@@ -1197,9 +1197,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         evt.stopPropagation()
       }}
       onMouseUp={
-        !Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT
-          ? () => Selection.copy(renderer, toast, clipboard)
-          : undefined
+        !Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? () => Selection.copy(renderer, toast, clipboard) : undefined
       }
     >
       <Show when={Flag.BOLT_SHOW_TTFD}>

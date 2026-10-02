@@ -110,14 +110,14 @@ Your client should:
 Besides Bolt, the following clients have been validated to work properly
 with Bolt Go. Although we do not guarantee that they will continue to work in the future.
 
-| Client            | Session support                                                                                                                                                                                                                             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client            | Session support                                                                                                                                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hermes**        | Builds containing [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) send the header on main and auxiliary Bolt requests. The fix was merged after v0.21.0; that release alone does not include it.                 |
-| **Claude Code**   | Go recognizes its native session header. No custom-header wrapper is needed.                                                                                                                                                                |
-| **Codex**         | Go recognizes its native session header. Some versions and proxy setups still omit it; preserve the session header when forwarding requests.                                                                                                |
-| **ZCode**         | Go recognizes its native session header. Our [request for `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) remains open, but it is no longer necessary to send that specific header.                                   |
+| **Claude Code**   | Go recognizes its native session header. No custom-header wrapper is needed.                                                                                                                                                            |
+| **Codex**         | Go recognizes its native session header. Some versions and proxy setups still omit it; preserve the session header when forwarding requests.                                                                                            |
+| **ZCode**         | Go recognizes its native session header. Our [request for `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) remains open, but it is no longer necessary to send that specific header.                               |
 | **Pi**            | Current builds send session information for Bolt. Update older installations.                                                                                                                                                           |
-| **jcode**         | Update to **v0.81.6 or later**, which includes the [session-header fix](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                     |
+| **jcode**         | Update to **v0.81.6 or later**, which includes the [session-header fix](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                 |
 | **Kilo Code CLI** | Builds containing [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) restore Bolt session headers. This fix covers the CLI, not the VS Code extension. See [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Known Problematic Clients
@@ -286,8 +286,8 @@ For these models, you still get a little more than if you paid the model provide
 
 You can also access Go models through the following API endpoints.
 
-| Model                        | Model ID                     | Endpoint                                         | AI SDK Package              |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Model                        | Model ID                     | Endpoint                                     | AI SDK Package              |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

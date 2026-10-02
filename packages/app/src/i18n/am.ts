@@ -80,8 +80,7 @@ export const dict = {
   "desktop.wsl.error.boltMissing": "ክፍት ኮድ በዚህ ዲስትሪ ውስጥ አልተጫነም",
   "desktop.wsl.error.boltCannotRun": "ክፍት ኮድ ተጭኗል ግን ማሄድ አልቻለም",
   "desktop.wsl.error.boltNotInstalled": "Bolt በ{{distro}}] ውስጥ አልተጫነም",
-  "desktop.wsl.error.updateVersion":
-    "Bolt ዝማኔ አልቋል ግን {{distro}} አሁንም ሪፖርት ያደርጋል {{installed}}; የሚጠበቀው {{expected}}",
+  "desktop.wsl.error.updateVersion": "Bolt ዝማኔ አልቋል ግን {{distro}} አሁንም ሪፖርት ያደርጋል {{installed}}; የሚጠበቀው {{expected}}",
   "desktop.wsl.error.noVersion": "ምንም ስሪት የለም",
   "desktop.wsl.error.serverExited": "WSL አገልጋይ ከተጀመረ በኋላ ወጥቷል (code={{code}} signal={{signal}})",
   "desktop.wsl.error.serverExitedBeforeHealthy":
@@ -219,8 +218,7 @@ export const dict = {
   "provider.connect.status.inProgress": "ፍቃድ በሂደት ላይ...",
   "provider.connect.status.waiting": "ፈቀዳን በመጠበቅ ላይ...",
   "provider.connect.status.failed": "ፍቃድ መስጠት አልተሳካም፡ {{error}}",
-  "provider.connect.apiKey.description":
-    "መለያዎን ለማገናኘት የ{{provider}} API ቁልፍዎን ያስገቡ እና {{provider}} ሞዴሎችን በBolt ይጠቀሙ።",
+  "provider.connect.apiKey.description": "መለያዎን ለማገናኘት የ{{provider}} API ቁልፍዎን ያስገቡ እና {{provider}} ሞዴሎችን በBolt ይጠቀሙ።",
   "provider.connect.apiKey.label": "{{provider}} API ቁልፍ",
   "provider.connect.apiKey.placeholder": "API ቁልፍ",
   "provider.connect.apiKey.required": "API ቁልፍ ያስፈልጋል",
@@ -231,8 +229,7 @@ export const dict = {
   "provider.connect.boltZen.visit.suffix": " የእርስዎን API ቁልፍ ለመሰብሰብ።",
   "provider.connect.oauth.code.visit.prefix": "ጎብኝ ",
   "provider.connect.oauth.code.visit.link": "ይህ ሊንክ",
-  "provider.connect.oauth.code.visit.suffix":
-    " መለያዎን ለማገናኘት የፈቀዳ ኮድዎን ለመሰብሰብ እና {{provider}} ሞዴሎችን በBolt ውስጥ ይጠቀሙ።",
+  "provider.connect.oauth.code.visit.suffix": " መለያዎን ለማገናኘት የፈቀዳ ኮድዎን ለመሰብሰብ እና {{provider}} ሞዴሎችን በBolt ውስጥ ይጠቀሙ።",
   "provider.connect.oauth.code.label": "{{method}}የፈቀዳ ኮድ",
   "provider.connect.oauth.code.placeholder": "የፈቃድ ኮድ",
   "provider.connect.oauth.code.required": "የፈቃድ ኮድ ያስፈልጋል",

@@ -933,8 +933,7 @@ export const dict = {
   "settings.general.row.shell.autoDefault": "Авто (Пешфарз)",
   "settings.general.row.shell.terminalOnly": "танҳо терминал",
   "settings.general.row.appearance.title": "Намуди зоҳирӣ",
-  "settings.general.row.appearance.description":
-    "Фармоиш диҳед, ки чӣ гуна Bolt дар дастгоҳи шумо намуди зоҳирӣ дорад",
+  "settings.general.row.appearance.description": "Фармоиш диҳед, ки чӣ гуна Bolt дар дастгоҳи шумо намуди зоҳирӣ дорад",
   "settings.general.row.colorScheme.title": "Схемаи ранг",
   "settings.general.row.colorScheme.description":
     "Интихоб кунед, ки Bolt аз рӯи система, равшанӣ ё мавзӯи торик пайравӣ мекунад",

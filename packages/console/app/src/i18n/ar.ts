@@ -157,8 +157,7 @@ export const dict = {
   "home.faq.a2.before": "أسهل طريقة للبدء هي قراءة",
   "home.faq.a2.link": "المقدمة",
   "home.faq.q3": "هل أحتاج لاشتراكات ذكاء اصطناعي إضافية لاستخدام Bolt؟",
-  "home.faq.a3.p1":
-    "ليس بالضرورة، فـ Bolt يأتي مع مجموعة من النماذج المجانية التي تستطيع استخدامها دون إنشاء حساب.",
+  "home.faq.a3.p1": "ليس بالضرورة، فـ Bolt يأتي مع مجموعة من النماذج المجانية التي تستطيع استخدامها دون إنشاء حساب.",
   "home.faq.a3.p2.beforeZen": "وبخلاف ذلك، يمكنك استخدام أي من نماذج البرمجة الشائعة بإنشاء حساب",
   "home.faq.a3.p2.afterZen": ".",
   "home.faq.a3.p3":
@@ -690,8 +689,7 @@ export const dict = {
   "workspace.lite.subscription.contribution": "%",
   "workspace.lite.subscription.total": "الإجمالي",
   "workspace.lite.subscription.useBalance": "استخدم رصيدك المتوفر بعد الوصول إلى حدود الاستخدام",
-  "workspace.lite.subscription.selectProvider":
-    'اختر "Bolt Go" كمزود في إعدادات opencode الخاصة بك لاستخدام نماذج Go.',
+  "workspace.lite.subscription.selectProvider": 'اختر "Bolt Go" كمزود في إعدادات opencode الخاصة بك لاستخدام نماذج Go.',
   "workspace.lite.providers.title": "المزودون",
   "workspace.lite.providers.description": "تحكم في المزودين المستخدمين للتوجيه.",
   "workspace.lite.providers.allowTraining": "السماح بالنماذج التي تتدرب على بيانات الطلبات",

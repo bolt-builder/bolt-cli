@@ -38,8 +38,8 @@ export default function PrivacyPolicy() {
 
               <p>
                 Remember that your use of Bolt is at all times subject to our Terms of Use,{" "}
-                <a href={language.route("/legal/terms-of-service")}>https://bolt.ai/legal/terms-of-service</a>,
-                which incorporates this Privacy Policy. Any terms we use in this Policy without defining them have the
+                <a href={language.route("/legal/terms-of-service")}>https://bolt.ai/legal/terms-of-service</a>, which
+                incorporates this Privacy Policy. Any terms we use in this Policy without defining them have the
                 definitions given to them in the Terms of Use.
               </p>
 
@@ -47,8 +47,8 @@ export default function PrivacyPolicy() {
 
               <p>
                 As we continually work to improve our Services, we may need to change this Privacy Policy from time to
-                time. We will alert you of material changes by placing a notice on the Bolt website, by sending you
-                an email and/or by some other means. Please note that if you've opted not to receive legal notice emails
+                time. We will alert you of material changes by placing a notice on the Bolt website, by sending you an
+                email and/or by some other means. Please note that if you've opted not to receive legal notice emails
                 from us (or you haven't provided us with your email address), those legal notices will still govern your
                 use of the Services, and you are still responsible for reading and understanding them. If you use the
                 Services after any changes to the Privacy Policy have been posted, that means you agree to all of the
@@ -299,8 +299,8 @@ export default function PrivacyPolicy() {
                 requirements and enforcing legal terms including: fulfilling our legal obligations under applicable law,
                 regulation, court order or other legal process, such as preventing, detecting and investigating security
                 incidents and potentially illegal or prohibited activities; protecting the rights, property or safety of
-                you, Bolt or another party; enforcing any agreements with you; responding to claims that any posting
-                or other content violates third-party rights; and resolving disputes.
+                you, Bolt or another party; enforcing any agreements with you; responding to claims that any posting or
+                other content violates third-party rights; and resolving disputes.
               </p>
 
               <p>

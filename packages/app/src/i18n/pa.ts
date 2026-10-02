@@ -233,8 +233,7 @@ export const dict = {
   "provider.connect.apiKey.required": "API کلید دی لوڑ اے",
   "provider.connect.boltZen.line1":
     "زین تہانوں کوڈنگ ایجنٹاں لئی قابل اعتماد مرضی دے ماڈلاں دے اک کیوریٹڈ سیٹ تک رسائی فراہم کردا اے۔",
-  "provider.connect.boltZen.line2":
-    "اک API کلید دے نال تہانوں Claude، GPT، Gemini، GLM تے ہور ماڈلاں تک رسائی ملے گی۔",
+  "provider.connect.boltZen.line2": "اک API کلید دے نال تہانوں Claude، GPT، Gemini، GLM تے ہور ماڈلاں تک رسائی ملے گی۔",
   "provider.connect.boltZen.visit.prefix": "ویکھو ",
   "provider.connect.boltZen.visit.link": "bolt.ai/zen",
   "provider.connect.boltZen.visit.suffix": " اپنی API کلید حاصل کرن لئی۔",

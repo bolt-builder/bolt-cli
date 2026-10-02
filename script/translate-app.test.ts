@@ -28,16 +28,7 @@ describe("translate app", () => {
 
   test("parses all locales with bounded concurrency overrides", () => {
     expect(
-      parseTranslationArgs([
-        "all",
-        "--concurrency",
-        "7",
-        "--model",
-        "bolt/gpt-5.4",
-        "--variant",
-        "high",
-        "--dry-run",
-      ]),
+      parseTranslationArgs(["all", "--concurrency", "7", "--model", "bolt/gpt-5.4", "--variant", "high", "--dry-run"]),
     ).toEqual({
       target: "all",
       concurrency: 7,

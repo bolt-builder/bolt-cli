@@ -95,9 +95,7 @@ export function createDialogProviderOptions() {
     const value = await DialogPrompt.show(dialog, "Other", {
       placeholder: "Provider id",
       description: () => (
-        <text fg={theme.textMuted}>
-          This only stores a credential. Configure the provider in bolt.json to use it.
-        </text>
+        <text fg={theme.textMuted}>This only stores a credential. Configure the provider in bolt.json to use it.</text>
       ),
     })
     if (value === null) return
@@ -371,8 +369,7 @@ function ApiMethod(props: ApiMethodProps) {
           opencode: (
             <box gap={1}>
               <text fg={theme.textMuted}>
-                Bolt Zen gives you access to all the best coding models at the cheapest prices with a single API
-                key.
+                Bolt Zen gives you access to all the best coding models at the cheapest prices with a single API key.
               </text>
               <text fg={theme.text}>
                 Go to <span style={{ fg: theme.primary }}>https://bolt.ai/zen</span> to get a key
@@ -382,8 +379,8 @@ function ApiMethod(props: ApiMethodProps) {
           "bolt-go": (
             <box gap={1}>
               <text fg={theme.textMuted}>
-                Bolt Go is a $10 per month subscription that provides reliable access to popular open coding models
-                with generous usage limits.
+                Bolt Go is a $10 per month subscription that provides reliable access to popular open coding models with
+                generous usage limits.
               </text>
               <text fg={theme.text}>
                 Go to <span style={{ fg: theme.primary }}>https://bolt.ai/go</span> and enable Bolt Go

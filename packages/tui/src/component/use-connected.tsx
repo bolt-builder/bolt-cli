@@ -5,8 +5,7 @@ export function useConnected() {
   const sync = useSync()
   return createMemo(() =>
     sync.data.provider.some(
-      (provider) =>
-        provider.id !== "bolt" || Object.values(provider.models).some((model) => model.cost?.input !== 0),
+      (provider) => provider.id !== "bolt" || Object.values(provider.models).some((model) => model.cost?.input !== 0),
     ),
   )
 }

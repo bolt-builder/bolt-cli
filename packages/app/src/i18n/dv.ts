@@ -946,8 +946,7 @@ export const dict = {
   "settings.general.row.appearance.title": "މަލަމަތި",
   "settings.general.row.appearance.description": "ޑިވައިސްގައި Bolt ފެންނަ ގޮތް ކަސްޓަމައިޒް ކުރާށެވެ",
   "settings.general.row.colorScheme.title": "ކުލަ ސްކީމް",
-  "settings.general.row.colorScheme.description":
-    "Bolt އިން ސިސްޓަމް، ލައިޓް، ނުވަތަ ޑާކް ތީމް އަށް ތަބާވާތޯ ހޮވާށެވެ",
+  "settings.general.row.colorScheme.description": "Bolt އިން ސިސްޓަމް، ލައިޓް، ނުވަތަ ޑާކް ތީމް އަށް ތަބާވާތޯ ހޮވާށެވެ",
   "settings.general.row.theme.title": "ތީމް",
   "settings.general.row.theme.description": "Bolt ތީމް ކުރެވިފައިވާ ގޮތް ކަސްޓަމައިޒް ކުރުން.",
   "settings.general.row.font.title": "ކޯޑް ފޮންޓެވެ",

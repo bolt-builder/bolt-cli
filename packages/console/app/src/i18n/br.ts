@@ -779,16 +779,14 @@ export const dict = {
     "Não necessariamente, mas provavelmente. Você precisará de uma assinatura de IA se quiser conectar o Bolt a um provedor pago, embora você possa trabalhar com",
   "download.faq.a3.localLink": "modelos locais",
   "download.faq.a3.afterLocal.beforeZen": "de graça. Embora incentivemos os usuários a usar o",
-  "download.faq.a3.afterZen":
-    ", o Bolt funciona com todos os provedores populares, como OpenAI, Anthropic, xAI etc.",
+  "download.faq.a3.afterZen": ", o Bolt funciona com todos os provedores populares, como OpenAI, Anthropic, xAI etc.",
 
   "download.faq.a5.p1": "O Bolt é 100% gratuito para usar.",
   "download.faq.a5.p2.beforeZen":
     "Quaisquer custos adicionais virão da sua assinatura de um provedor de modelo. Embora o Bolt funcione com qualquer provedor de modelo, recomendamos o uso do",
   "download.faq.a5.p2.afterZen": ".",
 
-  "download.faq.a6.p1":
-    "Seus dados e informações só são armazenados quando você cria links compartilháveis no Bolt.",
+  "download.faq.a6.p1": "Seus dados e informações só são armazenados quando você cria links compartilháveis no Bolt.",
   "download.faq.a6.p2.beforeShare": "Saiba mais sobre",
   "download.faq.a6.shareLink": "páginas de compartilhamento",
 

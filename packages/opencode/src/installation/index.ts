@@ -273,9 +273,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
         if (detectedMethod === "scoop") {
           const response = yield* httpOk.execute(
-            HttpClientRequest.get(
-              "https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/bolt.json",
-            ).pipe(HttpClientRequest.setHeaders({ Accept: "application/json" })),
+            HttpClientRequest.get("https://raw.githubusercontent.com/ScoopInstaller/Main/master/bucket/bolt.json").pipe(
+              HttpClientRequest.setHeaders({ Accept: "application/json" }),
+            ),
           )
           const data = yield* HttpClientResponse.schemaBodyJson(ScoopManifest)(response)
           return data.version

@@ -361,11 +361,7 @@ it.instance(
 it.instance("updates config and preserves empty shell sentinel", () =>
   Effect.gen(function* () {
     const test = yield* TestInstance
-    yield* writeConfigEffect(
-      test.directory,
-      { $schema: "https://bolt.ai/config.json", shell: "bash" },
-      "config.json",
-    )
+    yield* writeConfigEffect(test.directory, { $schema: "https://bolt.ai/config.json", shell: "bash" }, "config.json")
 
     yield* Config.Service.use((svc) => svc.update(ConfigParse.schema(ConfigV1.Info, { shell: "" }, "test:config")))
 

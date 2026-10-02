@@ -664,8 +664,7 @@ export const dict = {
   "workspace.black.subscription.resetsIn": "リセットまで",
   "workspace.black.subscription.useBalance": "利用限度額に達したら利用可能な残高を使用する",
   "workspace.black.waitlist.title": "ウェイトリスト",
-  "workspace.black.waitlist.joined":
-    "あなたは月額 ${{plan}} の Bolt Black プランのウェイトリストに登録されています。",
+  "workspace.black.waitlist.joined": "あなたは月額 ${{plan}} の Bolt Black プランのウェイトリストに登録されています。",
   "workspace.black.waitlist.ready": "月額 ${{plan}} の Bolt Black プランに登録する準備ができました。",
   "workspace.black.waitlist.leave": "ウェイトリストから抜ける",
   "workspace.black.waitlist.leaving": "処理中...",

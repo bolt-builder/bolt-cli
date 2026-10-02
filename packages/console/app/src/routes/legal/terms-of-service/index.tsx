@@ -24,9 +24,9 @@ export default function TermsOfService() {
               <p class="effective-date">Effective date: Aug 15, 2026</p>
 
               <p>
-                Welcome to Bolt. Please read on to learn the rules and restrictions that govern your use of
-                Bolt&apos;s website, inference product and hosted software offering (the "Services"). If you have
-                any questions, comments, or concerns regarding these terms or the Services, please contact us at:
+                Welcome to Bolt. Please read on to learn the rules and restrictions that govern your use of Bolt&apos;s
+                website, inference product and hosted software offering (the "Services"). If you have any questions,
+                comments, or concerns regarding these terms or the Services, please contact us at:
               </p>
 
               <p>
@@ -35,8 +35,8 @@ export default function TermsOfService() {
 
               <p>
                 These Terms of Use (the "Terms") are a binding contract between you and{" "}
-                <strong>ANOMALY INNOVATIONS, INC.</strong> ("Bolt," "we" and "us"). Your use of the Services in any
-                way means that you agree to all of these Terms, and these Terms will remain in effect while you use the
+                <strong>ANOMALY INNOVATIONS, INC.</strong> ("Bolt," "we" and "us"). Your use of the Services in any way
+                means that you agree to all of these Terms, and these Terms will remain in effect while you use the
                 Services. These Terms include the provisions in this document as well as those in the Privacy Policy{" "}
                 <a href={language.route("/legal/privacy-policy")}>https://bolt.ai/legal/privacy-policy</a>.{" "}
                 <strong>
@@ -75,9 +75,9 @@ export default function TermsOfService() {
               <p>
                 Bolt is an AI-powered coding agent that helps you write, understand, and modify code using large
                 language models. Certain of these large language models are provided by third parties ("Third Party
-                Models") and certain of these models are provided directly by us if you use the Bolt Zen paid
-                offering ("Zen"). Regardless of whether you use Third Party Models or Zen, Bolt enables you to
-                access the functionality of models through a coding agent running within your terminal.
+                Models") and certain of these models are provided directly by us if you use the Bolt Zen paid offering
+                ("Zen"). Regardless of whether you use Third Party Models or Zen, Bolt enables you to access the
+                functionality of models through a coding agent running within your terminal.
               </p>
 
               <h2 id="will-these-terms-ever-change">Will these Terms ever change?</h2>
@@ -100,9 +100,8 @@ export default function TermsOfService() {
 
               <h2 id="what-about-my-privacy">What about my privacy?</h2>
               <p>
-                Bolt takes the privacy of its users very seriously. For the current Bolt Privacy Policy, please
-                click here{" "}
-                <a href="https://bolt.ai/legal/privacy-policy">https://bolt.ai/legal/privacy-policy</a>.
+                Bolt takes the privacy of its users very seriously. For the current Bolt Privacy Policy, please click
+                here <a href="https://bolt.ai/legal/privacy-policy">https://bolt.ai/legal/privacy-policy</a>.
               </p>
 
               <h3>Children's Online Privacy Protection Act</h3>
@@ -238,17 +237,17 @@ export default function TermsOfService() {
 
               <h2 id="what-about-third-party-models">What about Third Party Models?</h2>
               <p>
-                The Services enable you to access and use Third Party Models, which are not owned or controlled by
-                Bolt. Your ability to access Third Party Models is contingent on you having API keys or otherwise
-                having the right to access such Third Party Models.
+                The Services enable you to access and use Third Party Models, which are not owned or controlled by Bolt.
+                Your ability to access Third Party Models is contingent on you having API keys or otherwise having the
+                right to access such Third Party Models.
               </p>
 
               <p>
-                Bolt has no control over, and assumes no responsibility for, the content, accuracy, privacy
-                policies, or practices of any providers of Third Party Models. We encourage you to read the terms and
-                conditions and privacy policy of each provider of a Third Party Model that you choose to utilize. By
-                using the Services, you release and hold us harmless from any and all liability arising from your use of
-                any Third Party Model.
+                Bolt has no control over, and assumes no responsibility for, the content, accuracy, privacy policies, or
+                practices of any providers of Third Party Models. We encourage you to read the terms and conditions and
+                privacy policy of each provider of a Third Party Model that you choose to utilize. By using the
+                Services, you release and hold us harmless from any and all liability arising from your use of any Third
+                Party Model.
               </p>
 
               <h2 id="will-opencode-ever-change-the-services">Will Bolt ever change the Services?</h2>
@@ -269,10 +268,9 @@ export default function TermsOfService() {
               <h3>Paid Services</h3>
               <p>
                 Certain of our Services, including Zen, may be subject to payments now or in the future (the "Paid
-                Services"). Please see our Paid Services page{" "}
-                <a href={language.route("/zen")}>https://bolt.ai/zen</a> for a description of the current Paid
-                Services. Please note that any payment terms presented to you in the process of using or signing up for
-                a Paid Service are deemed part of these Terms.
+                Services"). Please see our Paid Services page <a href={language.route("/zen")}>https://bolt.ai/zen</a>{" "}
+                for a description of the current Paid Services. Please note that any payment terms presented to you in
+                the process of using or signing up for a Paid Service are deemed part of these Terms.
               </p>
 
               <h3>Billing</h3>
@@ -326,15 +324,15 @@ export default function TermsOfService() {
               <h2 id="what-if-i-want-to-stop">What if I want to stop using the Services?</h2>
               <p>
                 You're free to do that at any time; please refer to our Privacy Policy{" "}
-                <a href={language.route("/legal/privacy-policy")}>https://bolt.ai/legal/privacy-policy</a>, as well
-                as the licenses above, to understand how we treat information you provide to us after you have stopped
+                <a href={language.route("/legal/privacy-policy")}>https://bolt.ai/legal/privacy-policy</a>, as well as
+                the licenses above, to understand how we treat information you provide to us after you have stopped
                 using our Services.
               </p>
 
               <p>
                 Bolt is also free to terminate (or suspend access to) your use of the Services for any reason in our
-                discretion, including your breach of these Terms. Bolt has the sole right to decide whether you are
-                in violation of any of the restrictions set forth in these Terms.
+                discretion, including your breach of these Terms. Bolt has the sole right to decide whether you are in
+                violation of any of the restrictions set forth in these Terms.
               </p>
 
               <p>
@@ -348,36 +346,35 @@ export default function TermsOfService() {
 
               <h3>Warranty Disclaimer</h3>
               <p>
-                Bolt and its licensors, suppliers, partners, parent, subsidiaries or affiliated entities, and each
-                of their respective officers, directors, members, employees, consultants, contract employees,
+                Bolt and its licensors, suppliers, partners, parent, subsidiaries or affiliated entities, and each of
+                their respective officers, directors, members, employees, consultants, contract employees,
                 representatives and agents, and each of their respective successors and assigns (Bolt and all such
                 parties together, the "Bolt Parties") make no representations or warranties concerning the Services,
                 including without limitation regarding any Content contained in or accessed through the Services, and
-                the Bolt Parties will not be responsible or liable for the accuracy, copyright compliance, legality,
-                or decency of material contained in or accessed through the Services or any claims, actions, suits
+                the Bolt Parties will not be responsible or liable for the accuracy, copyright compliance, legality, or
+                decency of material contained in or accessed through the Services or any claims, actions, suits
                 procedures, costs, expenses, damages or liabilities arising out of use of, or in any way related to your
                 participation in, the Services. The Bolt Parties make no representations or warranties regarding
                 suggestions or recommendations of services or products offered or purchased through or in connection
-                with the Services. THE SERVICES AND CONTENT ARE PROVIDED BY BOLT (AND ITS LICENSORS AND SUPPLIERS)
-                ON AN "AS-IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT
-                LIMITATION, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT,
-                OR THAT USE OF THE SERVICES WILL BE UNINTERRUPTED OR ERROR-FREE. SOME STATES DO NOT ALLOW LIMITATIONS ON
-                HOW LONG AN IMPLIED WARRANTY LASTS, SO THE ABOVE LIMITATIONS MAY NOT APPLY TO YOU.
+                with the Services. THE SERVICES AND CONTENT ARE PROVIDED BY BOLT (AND ITS LICENSORS AND SUPPLIERS) ON AN
+                "AS-IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION,
+                IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR THAT USE
+                OF THE SERVICES WILL BE UNINTERRUPTED OR ERROR-FREE. SOME STATES DO NOT ALLOW LIMITATIONS ON HOW LONG AN
+                IMPLIED WARRANTY LASTS, SO THE ABOVE LIMITATIONS MAY NOT APPLY TO YOU.
               </p>
 
               <h3 id="limitation-of-liability">Limitation of Liability</h3>
               <p>
                 TO THE FULLEST EXTENT ALLOWED BY APPLICABLE LAW, UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL THEORY
-                (INCLUDING, WITHOUT LIMITATION, TORT, CONTRACT, STRICT LIABILITY, OR OTHERWISE) SHALL ANY OF THE
-                BOLT PARTIES BE LIABLE TO YOU OR TO ANY OTHER PERSON FOR (A) ANY INDIRECT, SPECIAL, INCIDENTAL,
-                PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND, INCLUDING DAMAGES FOR LOST PROFITS, BUSINESS
-                INTERRUPTION, LOSS OF DATA, LOSS OF GOODWILL, WORK STOPPAGE, ACCURACY OF RESULTS, OR COMPUTER FAILURE OR
-                MALFUNCTION, (B) ANY SUBSTITUTE GOODS, SERVICES OR TECHNOLOGY, (C) ANY AMOUNT, IN THE AGGREGATE, IN
-                EXCESS OF THE GREATER OF (I) ONE-HUNDRED ($100) DOLLARS OR (II) THE AMOUNTS PAID AND/OR PAYABLE BY YOU
-                TO BOLT IN CONNECTION WITH THE SERVICES IN THE TWELVE (12) MONTH PERIOD PRECEDING THIS APPLICABLE
-                CLAIM OR (D) ANY MATTER BEYOND OUR REASONABLE CONTROL. SOME STATES DO NOT ALLOW THE EXCLUSION OR
-                LIMITATION OF INCIDENTAL OR CONSEQUENTIAL OR CERTAIN OTHER DAMAGES, SO THE ABOVE LIMITATION AND
-                EXCLUSIONS MAY NOT APPLY TO YOU.
+                (INCLUDING, WITHOUT LIMITATION, TORT, CONTRACT, STRICT LIABILITY, OR OTHERWISE) SHALL ANY OF THE BOLT
+                PARTIES BE LIABLE TO YOU OR TO ANY OTHER PERSON FOR (A) ANY INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE OR
+                CONSEQUENTIAL DAMAGES OF ANY KIND, INCLUDING DAMAGES FOR LOST PROFITS, BUSINESS INTERRUPTION, LOSS OF
+                DATA, LOSS OF GOODWILL, WORK STOPPAGE, ACCURACY OF RESULTS, OR COMPUTER FAILURE OR MALFUNCTION, (B) ANY
+                SUBSTITUTE GOODS, SERVICES OR TECHNOLOGY, (C) ANY AMOUNT, IN THE AGGREGATE, IN EXCESS OF THE GREATER OF
+                (I) ONE-HUNDRED ($100) DOLLARS OR (II) THE AMOUNTS PAID AND/OR PAYABLE BY YOU TO BOLT IN CONNECTION WITH
+                THE SERVICES IN THE TWELVE (12) MONTH PERIOD PRECEDING THIS APPLICABLE CLAIM OR (D) ANY MATTER BEYOND
+                OUR REASONABLE CONTROL. SOME STATES DO NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR
+                CONSEQUENTIAL OR CERTAIN OTHER DAMAGES, SO THE ABOVE LIMITATION AND EXCLUSIONS MAY NOT APPLY TO YOU.
               </p>
 
               <h3>Indemnity</h3>
@@ -393,9 +390,8 @@ export default function TermsOfService() {
               <h3>Assignment</h3>
               <p>
                 You may not assign, delegate or transfer these Terms or your rights or obligations hereunder, or your
-                Services account, in any way (by operation of law or otherwise) without Bolt's prior written
-                consent. We may transfer, assign, or delegate these Terms and our rights and obligations without
-                consent.
+                Services account, in any way (by operation of law or otherwise) without Bolt's prior written consent. We
+                may transfer, assign, or delegate these Terms and our rights and obligations without consent.
               </p>
 
               <h3>Choice of Law</h3>
@@ -407,12 +403,12 @@ export default function TermsOfService() {
               <h3 id="arbitration-agreement">Arbitration Agreement</h3>
               <p>
                 Please read the following ARBITRATION AGREEMENT carefully because it requires you to arbitrate certain
-                disputes and claims with Bolt and limits the manner in which you can seek relief from Bolt. Both
-                you and Bolt acknowledge and agree that for the purposes of any dispute arising out of or relating
-                to the subject matter of these Terms, Bolt's officers, directors, employees and independent
-                contractors ("Personnel") are third-party beneficiaries of these Terms, and that upon your acceptance of
-                these Terms, Personnel will have the right (and will be deemed to have accepted the right) to enforce
-                these Terms against you as the third-party beneficiary hereof.
+                disputes and claims with Bolt and limits the manner in which you can seek relief from Bolt. Both you and
+                Bolt acknowledge and agree that for the purposes of any dispute arising out of or relating to the
+                subject matter of these Terms, Bolt's officers, directors, employees and independent contractors
+                ("Personnel") are third-party beneficiaries of these Terms, and that upon your acceptance of these
+                Terms, Personnel will have the right (and will be deemed to have accepted the right) to enforce these
+                Terms against you as the third-party beneficiary hereof.
               </p>
 
               <h4>Arbitration Rules; Applicability of Arbitration Agreement</h4>
@@ -431,8 +427,8 @@ export default function TermsOfService() {
               <h4>Costs of Arbitration</h4>
               <p>
                 The Rules will govern payment of all arbitration fees. Bolt will pay all arbitration fees for claims
-                less than seventy-five thousand ($75,000) dollars. Bolt will not seek its attorneys' fees and costs
-                in arbitration unless the arbitrator determines that your claim is frivolous.
+                less than seventy-five thousand ($75,000) dollars. Bolt will not seek its attorneys' fees and costs in
+                arbitration unless the arbitrator determines that your claim is frivolous.
               </p>
 
               <h4>Small Claims Court; Infringement</h4>
@@ -447,12 +443,12 @@ export default function TermsOfService() {
 
               <h4>Waiver of Jury Trial</h4>
               <p>
-                YOU AND BOLT WAIVE ANY CONSTITUTIONAL AND STATUTORY RIGHTS TO GO TO COURT AND HAVE A TRIAL IN FRONT
-                OF A JUDGE OR JURY. You and Bolt are instead choosing to have claims and disputes resolved by
-                arbitration. Arbitration procedures are typically more limited, more efficient, and less costly than
-                rules applicable in court and are subject to very limited review by a court. In any litigation between
-                you and Bolt over whether to vacate or enforce an arbitration award, YOU AND BOLT WAIVE ALL
-                RIGHTS TO A JURY TRIAL, and elect instead to have the dispute be resolved by a judge.
+                YOU AND BOLT WAIVE ANY CONSTITUTIONAL AND STATUTORY RIGHTS TO GO TO COURT AND HAVE A TRIAL IN FRONT OF A
+                JUDGE OR JURY. You and Bolt are instead choosing to have claims and disputes resolved by arbitration.
+                Arbitration procedures are typically more limited, more efficient, and less costly than rules applicable
+                in court and are subject to very limited review by a court. In any litigation between you and Bolt over
+                whether to vacate or enforce an arbitration award, YOU AND BOLT WAIVE ALL RIGHTS TO A JURY TRIAL, and
+                elect instead to have the dispute be resolved by a judge.
               </p>
 
               <h4 id="waiver-of-class">Waiver of Class or Consolidated Actions</h4>
@@ -460,9 +456,9 @@ export default function TermsOfService() {
                 ALL CLAIMS AND DISPUTES WITHIN THE SCOPE OF THIS ARBITRATION AGREEMENT MUST BE ARBITRATED OR LITIGATED
                 ON AN INDIVIDUAL BASIS AND NOT ON A CLASS BASIS. CLAIMS OF MORE THAN ONE CUSTOMER OR USER CANNOT BE
                 ARBITRATED OR LITIGATED JOINTLY OR CONSOLIDATED WITH THOSE OF ANY OTHER CUSTOMER OR USER. If however,
-                this waiver of class or consolidated actions is deemed invalid or unenforceable, neither you nor
-                Bolt is entitled to arbitration; instead all claims and disputes will be resolved in a court as set
-                forth in (g) below.
+                this waiver of class or consolidated actions is deemed invalid or unenforceable, neither you nor Bolt is
+                entitled to arbitration; instead all claims and disputes will be resolved in a court as set forth in (g)
+                below.
               </p>
 
               <h4>Opt-out</h4>
@@ -477,11 +473,11 @@ export default function TermsOfService() {
               <h4>Exclusive Venue</h4>
               <p>
                 If you send the opt-out notice in (f), and/or in any circumstances where the foregoing arbitration
-                agreement permits either you or Bolt to litigate any dispute arising out of or relating to the
-                subject matter of these Terms in court, then the foregoing arbitration agreement will not apply to
-                either party, and both you and Bolt agree that any judicial proceeding (other than small claims
-                actions) will be brought in the state or federal courts located in, respectively, New Castle County,
-                Delaware, or the federal district in which that county falls.
+                agreement permits either you or Bolt to litigate any dispute arising out of or relating to the subject
+                matter of these Terms in court, then the foregoing arbitration agreement will not apply to either party,
+                and both you and Bolt agree that any judicial proceeding (other than small claims actions) will be
+                brought in the state or federal courts located in, respectively, New Castle County, Delaware, or the
+                federal district in which that county falls.
               </p>
 
               <h4>Severability</h4>
@@ -496,16 +492,16 @@ export default function TermsOfService() {
               <p>
                 You will be responsible for paying, withholding, filing, and reporting all taxes, duties, and other
                 governmental assessments associated with your activity in connection with the Services, provided that
-                the Bolt may, in its sole discretion, do any of the foregoing on your behalf or for itself as it
-                sees fit. The failure of either you or us to exercise, in any way, any right herein shall not be deemed
-                a waiver of any further rights hereunder. If any provision of these Terms are found to be unenforceable
-                or invalid, that provision will be limited or eliminated, to the minimum extent necessary, so that these
+                the Bolt may, in its sole discretion, do any of the foregoing on your behalf or for itself as it sees
+                fit. The failure of either you or us to exercise, in any way, any right herein shall not be deemed a
+                waiver of any further rights hereunder. If any provision of these Terms are found to be unenforceable or
+                invalid, that provision will be limited or eliminated, to the minimum extent necessary, so that these
                 Terms shall otherwise remain in full force and effect and enforceable. You and Bolt agree that these
                 Terms are the complete and exclusive statement of the mutual understanding between you and Bolt, and
                 that these Terms supersede and cancel all previous written and oral agreements, communications and other
                 understandings relating to the subject matter of these Terms. You hereby acknowledge and agree that you
-                are not an employee, agent, partner, or joint venture of Bolt, and you do not have any authority of
-                any kind to bind Bolt in any respect whatsoever.
+                are not an employee, agent, partner, or joint venture of Bolt, and you do not have any authority of any
+                kind to bind Bolt in any respect whatsoever.
               </p>
 
               <p>

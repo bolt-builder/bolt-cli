@@ -932,8 +932,7 @@ export const dict = {
   "settings.general.row.appearance.title": "Daş görnüşi",
   "settings.general.row.appearance.description": "Bolt enjamyňyzda nähili görünýändigini düzüň",
   "settings.general.row.colorScheme.title": "Reňk shemasy",
-  "settings.general.row.colorScheme.description":
-    "Bolt ulgamy, ýagtylygy ýa-da garaňky temany yzarlaýandygyny saýlaň",
+  "settings.general.row.colorScheme.description": "Bolt ulgamy, ýagtylygy ýa-da garaňky temany yzarlaýandygyny saýlaň",
   "settings.general.row.theme.title": "Mowzuk",
   "settings.general.row.theme.description": "Bolt-iň mowzuklydygyny düzüň.",
   "settings.general.row.font.title": "Kod şrifti",

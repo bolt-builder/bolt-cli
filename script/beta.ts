@@ -184,7 +184,7 @@ async function fix(pr: PR, files: string[], prs: PR[], applied: number[], idx: n
 
   if (!(await typecheck())) return false
 
-    console.log("  Conflicts resolved with bolt")
+  console.log("  Conflicts resolved with bolt")
   return true
 }
 

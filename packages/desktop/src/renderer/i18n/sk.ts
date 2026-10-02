@@ -13,8 +13,7 @@ export const dict = {
   "desktop.updater.downloadFailed.title": "Aktualizácia zlyhala",
   "desktop.updater.downloadFailed.message": "Nepodarilo sa stiahnuť aktualizáciu",
   "desktop.updater.downloaded.title": "Aktualizácia stiahnutá",
-  "desktop.updater.downloaded.prompt":
-    "Verzia {{version}} Bolt bola stiahnutá. Chcete ju nainštalovať a reštartovať?",
+  "desktop.updater.downloaded.prompt": "Verzia {{version}} Bolt bola stiahnutá. Chcete ju nainštalovať a reštartovať?",
   "desktop.updater.installFailed.title": "Aktualizácia zlyhala",
   "desktop.updater.installFailed.message": "Nepodarilo sa nainštalovať aktualizáciu",
   "desktop.cli.installed.title": "CLI nainštalované",

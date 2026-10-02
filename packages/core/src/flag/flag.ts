@@ -34,9 +34,7 @@ export const Flag = {
   BOLT_DISABLE_FFF: fff === undefined ? process.platform === "win32" : truthy("BOLT_DISABLE_FFF"),
 
   // Experimental
-  BOLT_EXPERIMENTAL_FILEWATCHER: Config.boolean("BOLT_EXPERIMENTAL_FILEWATCHER").pipe(
-    Config.withDefault(false),
-  ),
+  BOLT_EXPERIMENTAL_FILEWATCHER: Config.boolean("BOLT_EXPERIMENTAL_FILEWATCHER").pipe(Config.withDefault(false)),
   BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER: Config.boolean("BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER").pipe(
     Config.withDefault(false),
   ),

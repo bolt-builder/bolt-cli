@@ -224,8 +224,7 @@ export const dict = {
   "provider.connect.apiKey.label": "សោ API {{provider}}",
   "provider.connect.apiKey.placeholder": "សោ API",
   "provider.connect.apiKey.required": "ត្រូវការសោ API",
-  "provider.connect.boltZen.line1":
-    "Bolt Zen ផ្តល់ឱ្យអ្នកនូវម៉ូដែលដែលបានជ្រើសរើស និងកែលម្អសម្រាប់ភ្នាក់ងារសរសេរកូដ។",
+  "provider.connect.boltZen.line1": "Bolt Zen ផ្តល់ឱ្យអ្នកនូវម៉ូដែលដែលបានជ្រើសរើស និងកែលម្អសម្រាប់ភ្នាក់ងារសរសេរកូដ។",
   "provider.connect.boltZen.line2":
     "ជាមួយនឹងសោ API តែមួយ អ្នកនឹងទទួលបានការចូលប្រើម៉ូដែលដូចជា Claude, GPT, Gemini, GLM និងច្រើនទៀត។",
   "provider.connect.boltZen.visit.prefix": "ទស្សនា",

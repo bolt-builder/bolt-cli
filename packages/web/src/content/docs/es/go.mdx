@@ -110,14 +110,14 @@ Tu cliente debe:
 Además de Bolt, se ha validado que los siguientes clientes funcionan correctamente
 con Bolt Go. Sin embargo, no garantizamos que sigan funcionando en el futuro.
 
-| Cliente           | Compatibilidad con sesiones                                                                                                                                                                                                                                                              |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cliente           | Compatibilidad con sesiones                                                                                                                                                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hermes**        | Las compilaciones que incluyen el [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) envían el encabezado en las peticiones principales y auxiliares de Bolt. La corrección se fusionó después de v0.21.0; esa versión por sí sola no la incluye.                |
-| **Claude Code**   | Go reconoce su encabezado de sesión nativo. No se necesita ningún wrapper para encabezados personalizados.                                                                                                                                                                               |
-| **Codex**         | Go reconoce su encabezado de sesión nativo. Algunas versiones y configuraciones de proxy aún lo omiten; conserva el encabezado de sesión al reenviar peticiones.                                                                                                                         |
-| **ZCode**         | Go reconoce su encabezado de sesión nativo. Nuestra [solicitud de `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) sigue abierta, pero ya no es necesario enviar ese encabezado específico.                                                                         |
+| **Claude Code**   | Go reconoce su encabezado de sesión nativo. No se necesita ningún wrapper para encabezados personalizados.                                                                                                                                                                           |
+| **Codex**         | Go reconoce su encabezado de sesión nativo. Algunas versiones y configuraciones de proxy aún lo omiten; conserva el encabezado de sesión al reenviar peticiones.                                                                                                                     |
+| **ZCode**         | Go reconoce su encabezado de sesión nativo. Nuestra [solicitud de `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) sigue abierta, pero ya no es necesario enviar ese encabezado específico.                                                                     |
 | **Pi**            | Las compilaciones actuales envían información de sesión para Bolt. Actualiza las instalaciones antiguas.                                                                                                                                                                             |
-| **jcode**         | Actualiza a la versión **v0.81.6 o posterior**, que incluye la [corrección del encabezado de sesión](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                                     |
+| **jcode**         | Actualiza a la versión **v0.81.6 o posterior**, que incluye la [corrección del encabezado de sesión](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                                 |
 | **Kilo Code CLI** | Las compilaciones que incluyen el [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) restauran los encabezados de sesión de Bolt. Esta corrección cubre la CLI, no la extensión de VS Code. Consulta el [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Clientes con problemas conocidos
@@ -284,8 +284,8 @@ Con estos modelos, aun así obtienes un poco más que si pagaras directamente a 
 
 También puedes acceder a los modelos de Go a través de los siguientes endpoints de la API.
 
-| Modelo                       | ID del modelo                | Endpoint                                         | Paquete de AI SDK           |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Modelo                       | ID del modelo                | Endpoint                                     | Paquete de AI SDK           |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

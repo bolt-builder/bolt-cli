@@ -100,14 +100,14 @@ Votre client doit :
 Outre Bolt, le bon fonctionnement des clients suivants avec Bolt Go a été
 validé. Nous ne garantissons toutefois pas qu'ils continueront à fonctionner à l'avenir.
 
-| Client            | Prise en charge des sessions                                                                                                                                                                                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client            | Prise en charge des sessions                                                                                                                                                                                                                                          |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Hermes**        | Les builds contenant la [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) envoient l'en-tête sur les requêtes Bolt principales et auxiliaires. Le correctif a été fusionné après la v0.21.0 ; cette version seule ne l'inclut pas.               |
-| **Claude Code**   | Go reconnaît son en-tête de session natif. Aucun wrapper d'en-tête personnalisé n'est nécessaire.                                                                                                                                                                         |
-| **Codex**         | Go reconnaît son en-tête de session natif. Certaines versions et configurations de proxy l'omettent encore ; conservez l'en-tête de session lors du transfert des requêtes.                                                                                               |
-| **ZCode**         | Go reconnaît son en-tête de session natif. Notre [demande concernant `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) reste ouverte, mais il n'est plus nécessaire d'envoyer spécifiquement cet en-tête.                                             |
+| **Claude Code**   | Go reconnaît son en-tête de session natif. Aucun wrapper d'en-tête personnalisé n'est nécessaire.                                                                                                                                                                     |
+| **Codex**         | Go reconnaît son en-tête de session natif. Certaines versions et configurations de proxy l'omettent encore ; conservez l'en-tête de session lors du transfert des requêtes.                                                                                           |
+| **ZCode**         | Go reconnaît son en-tête de session natif. Notre [demande concernant `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) reste ouverte, mais il n'est plus nécessaire d'envoyer spécifiquement cet en-tête.                                         |
 | **Pi**            | Les builds actuels envoient les informations de session pour Bolt. Mettez à jour les installations plus anciennes.                                                                                                                                                    |
-| **jcode**         | Passez à la version **v0.81.6 ou ultérieure**, qui inclut le [correctif de l'en-tête de session](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                          |
+| **jcode**         | Passez à la version **v0.81.6 ou ultérieure**, qui inclut le [correctif de l'en-tête de session](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                      |
 | **Kilo Code CLI** | Les builds contenant la [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) rétablissent les en-têtes de session Bolt. Ce correctif concerne la CLI, pas l'extension VS Code. Consultez l'[issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Clients connus pour poser problème
@@ -272,8 +272,8 @@ Pour ces modèles, vous obtenez tout de même un peu plus que si vous payiez dir
 
 Vous pouvez également accéder aux modèles Go via les points de terminaison d'API suivants.
 
-| Modèle                       | ID de modèle                 | Point de terminaison                             | Package AI SDK              |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Modèle                       | ID de modèle                 | Point de terminaison                         | Package AI SDK              |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |

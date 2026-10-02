@@ -108,14 +108,14 @@ Il tuo client deve:
 Oltre a Bolt, è stato verificato che i seguenti client funzionino correttamente
 con Bolt Go. Tuttavia, non garantiamo che continueranno a funzionare in futuro.
 
-| Client            | Supporto delle sessioni                                                                                                                                                                                                                                                      |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client            | Supporto delle sessioni                                                                                                                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hermes**        | Le build contenenti la [PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864) inviano l'header nelle richieste Bolt principali e ausiliarie. La correzione è stata unita dopo la v0.21.0; quella versione da sola non la include.                        |
-| **Claude Code**   | Go riconosce il suo header di sessione nativo. Non è necessario alcun wrapper per header personalizzati.                                                                                                                                                                     |
-| **Codex**         | Go riconosce il suo header di sessione nativo. Alcune versioni e configurazioni proxy continuano a ometterlo; mantieni l'header di sessione quando inoltri le richieste.                                                                                                     |
-| **ZCode**         | Go riconosce il suo header di sessione nativo. La nostra [richiesta per `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) è ancora aperta, ma non è più necessario inviare proprio quell'header.                                                         |
+| **Claude Code**   | Go riconosce il suo header di sessione nativo. Non è necessario alcun wrapper per header personalizzati.                                                                                                                                                                 |
+| **Codex**         | Go riconosce il suo header di sessione nativo. Alcune versioni e configurazioni proxy continuano a ometterlo; mantieni l'header di sessione quando inoltri le richieste.                                                                                                 |
+| **ZCode**         | Go riconosce il suo header di sessione nativo. La nostra [richiesta per `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) è ancora aperta, ma non è più necessario inviare proprio quell'header.                                                     |
 | **Pi**            | Le build attuali inviano le informazioni di sessione per Bolt. Aggiorna le installazioni meno recenti.                                                                                                                                                                   |
-| **jcode**         | Aggiorna alla versione **v0.81.6 o successiva**, che include la [correzione dell'header di sessione](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                         |
+| **jcode**         | Aggiorna alla versione **v0.81.6 o successiva**, che include la [correzione dell'header di sessione](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                     |
 | **Kilo Code CLI** | Le build contenenti la [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) ripristinano gli header di sessione Bolt. Questa correzione riguarda la CLI, non l'estensione VS Code. Consulta l'[issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Client con problemi noti
@@ -282,8 +282,8 @@ Per questi modelli, ottieni comunque un po’ più di utilizzo rispetto a quanto
 
 Puoi anche accedere ai modelli Go tramite i seguenti endpoint API.
 
-| Modello                      | ID Modello                   | Endpoint                                         | Pacchetto AI SDK            |
-| ---------------------------- | ---------------------------- | ------------------------------------------------ | --------------------------- |
+| Modello                      | ID Modello                   | Endpoint                                     | Pacchetto AI SDK            |
+| ---------------------------- | ---------------------------- | -------------------------------------------- | --------------------------- |
 | Grok 4.6                     | grok-4.6                     | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GPT 5.6 Luna                 | gpt-5.6-luna                 | `https://bolt.ai/zen/go/v1/responses`        | `@ai-sdk/openai`            |
 | GLM-5.3-Flash                | glm-5.3-flash                | `https://bolt.ai/zen/go/v1/chat/completions` | `@ai-sdk/openai-compatible` |
