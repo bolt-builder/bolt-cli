@@ -77,7 +77,8 @@ runs:
           fi
         done
         echo "::error::bun install failed after 3 attempts"
-        exit 1      shell: bash
+        exit 1
+      shell: bash
 
     - name: Save Bun dependencies
       if: steps.bun-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
