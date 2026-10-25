@@ -53,7 +53,7 @@ code also require one.
 
 ## Methods
 
-OpenCode receives provider credentials through four integration methods:
+Bolt receives provider credentials through four integration methods:
 
 | Method | Behavior |
 | --- | --- |
@@ -75,7 +75,7 @@ ANTHROPIC_API_KEY=sk-ant-... opencode --standalone
 ```
 
 For the shared background server, add the variable to its managed environment. This stops a running service; the next
-OpenCode command starts it with the new value.
+Bolt command starts it with the new value.
 
 ```bash
 opencode service set env ANTHROPIC_API_KEY sk-ant-...
@@ -136,5 +136,5 @@ opencode debug paths db
 The usual release path is `~/.local/share/opencode/opencode.db`; `XDG_DATA_HOME`, the release channel, and `OPENCODE_DB`
 can change it. Do not edit the database to manage credentials; use `/connect` or the `auth` commands.
 
-V2 imports supported credentials from the legacy `auth.json` in the OpenCode data directory during its database
+V2 imports supported credentials from the legacy `auth.json` in the Bolt data directory during its database
 migration. New and updated credentials are stored in SQLite rather than written back to that file.

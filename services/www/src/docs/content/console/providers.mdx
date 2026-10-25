@@ -8,7 +8,7 @@ with everyone in the workspace. Console stores the credential and serves each pr
 use the models without ever seeing the provider key. The same gateway is available to your own tools through the
 [Providers API](/console/api/providers).
 
-Owners and admins manage providers from the **Providers** tab. Members get the enabled models in OpenCode after
+Owners and admins manage providers from the **Providers** tab. Members get the enabled models in Bolt after
 running `/connect`.
 
 ## Connect a provider
@@ -83,7 +83,7 @@ Add a **Context** tier when a model charges more above a context size, for examp
 Click **Add Model** to add a model the catalog doesn't include, with its **Display name** and **Model ID**. Use
 **⋯ › Duplicate...** on an existing model to start from its settings.
 
-## OpenCode models
+## Bolt models
 
 The **Models** tab manages the [models](/console/models) Console provides, which are paid from workspace credits. It
 works like a provider page:
@@ -94,7 +94,7 @@ works like a provider page:
 
 Disable the whole provider from **⋯ › Disable** to use only your own providers.
 
-## Use in OpenCode
+## Use in Bolt
 
 Members run `/connect` and choose the workspace. Each enabled provider appears as the workspace name followed by the
 provider name, and `/models` lists its enabled models.
@@ -103,7 +103,7 @@ provider name, and `/models` lists its enabled models.
 Acme Inc. / Anthropic
 ```
 
-Turn on **Managed providers only** in **Settings › General** to restrict OpenCode to the workspace's providers for
+Turn on **Managed providers only** in **Settings › General** to restrict Bolt to the workspace's providers for
 everyone.
 
 ## Disable or remove
@@ -121,4 +121,4 @@ To rotate a key, click the credential on the provider page and enter the new one
 The provider bills you for tokens; Console does not charge credits for them. Console still records each request and
 its cost using the model's pricing, so usage reports and [budgets](/console/budgets) include it.
 
-To call a provider from your own tools instead of OpenCode, use the [Providers API](/console/api/providers).
+To call a provider from your own tools instead of Bolt, use the [Providers API](/console/api/providers).

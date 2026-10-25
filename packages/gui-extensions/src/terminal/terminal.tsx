@@ -3,20 +3,25 @@ import { useTheme } from "@bolt-ai/ui/theme/context"
 import { resolveThemeVariant } from "@bolt-ai/ui/theme/resolve"
 import { resolveThemeVariantV2 } from "@bolt-ai/ui/theme/v2/resolve"
 import type { HexColor, ResolvedV2Theme } from "@bolt-ai/ui/theme/types"
-import { showToast } from "@/utils/toast"
-import type { FitAddon, Ghostty, Terminal as Term } from "ghostty-web"
-import { type ComponentProps, createEffect, createMemo, onCleanup, onMount, splitProps } from "solid-js"
-import { SerializeAddon } from "@/addons/serialize"
-import { matchKeybind, parseKeybind } from "@/context/command"
-import { useLanguage } from "@/context/language"
-import { usePlatform } from "@/context/platform"
-import { useSDK } from "@/context/sdk"
-import { useServerSDK } from "@/context/server-sdk"
-import { terminalFontFamily, useSettings } from "@/context/settings"
-import type { LocalPTY } from "@/context/terminal"
-import { disposeIfDisposable, getHoveredLinkText, setOptionIfSupported } from "@/utils/runtime-adapters"
-import { terminalWriter } from "@/utils/terminal-writer"
-import { terminalWebSocketURL } from "@/utils/terminal-websocket-url"
+import { showToast } from "@bolt-ai/ui/toast"
+import { createPtyClient } from "@bolt-ai/client/solid"
+import type { FitAddon, Terminal as Term } from "ghostty-web"
+import { Option, Predicate, Schema } from "effect"
+import { type ComponentProps, createMemo, onCleanup, onMount, splitProps } from "solid-js"
+import { createKeyed, useExtension, type ServerRef } from "../sdk"
+import type { TerminalModel } from "./model"
+import type { LocalPTY } from "./state"
+import { SerializeAddon } from "./serialize"
+import { disposeIfDisposable, getHoveredLinkText, setOptionIfSupported } from "./runtime-adapters"
+import { terminalKeyInput } from "./terminal-key-event"
+import { terminalWriter } from "./writer"
+
+// Serialization on unmount is a synchronous O(rows x cols) walk on the main thread and the
+// result is written to localStorage or desktop state for every terminal in the workspace.
+// Persisting the most recent 2k scrollback rows keeps restore fidelity for the history users
+// actually scroll back through while capping teardown cost and snapshot size; the live
+// terminal keeps its full 10k scrollback while mounted.
+const persistedScrollbackRows = 2_000
 
 export interface TerminalProps extends ComponentProps<"div"> {
   pty: LocalPTY
@@ -182,16 +187,6 @@ export const Terminal = (props: TerminalProps) => {
   const system = extension.system
   const desktop = extension.desktop
   const theme = useTheme()
-  const language = useLanguage()
-  // Terminal captures its connection for the PTY lifetime, so callers must key it per server/session.
-  const connection = useServerSDK()().server
-  const directory = sdk().directory
-  const url = sdk().url
-  const auth = connection.http
-  const username = auth?.username ?? "bolt"
-  const password = auth?.password ?? ""
-  const authToken = connection.type === "http" ? connection.authToken : false
-  const sameOrigin = new URL(url, location.href).origin === location.origin
   let container!: HTMLDivElement
 
   const [local, others] = splitProps(props, [
@@ -606,17 +601,8 @@ export const Terminal = (props: TerminalProps) => {
       }
 
       const gone = async () => {
-        if ((await sdk().protocol) === "v1") {
-          return sdk()
-            .client.pty.get({ ptyID: id }, { throwOnError: false })
-            .then((result) => result.response?.status === 404)
-            .catch((err) => {
-              debugTerminal("failed to inspect terminal session", err)
-              return false
-            })
-        }
-        return sdk()
-          .api.pty.get({ ptyID: id, location: { directory } })
+        return server.client.pty
+          .get({ ptyID: id, location: { directory } })
           .then((result) => result.data.status === "exited")
           .catch((err) => {
             if (Predicate.isTagged(err, "PtyNotFoundError")) return true
@@ -627,37 +613,7 @@ export const Terminal = (props: TerminalProps) => {
           })
       }
 
-      const connectToken = async () => {
-        if ((await sdk().protocol) === "v1") {
-          const result = await sdk()
-            .client.pty.connectToken(
-              { ptyID: id, directory },
-              {
-                throwOnError: false,
-                headers: { "x-opencode-ticket": "1" },
-              },
-            )
-            .catch((err: unknown) => {
-              if (err instanceof Error && err.message.includes("Request is not supported")) return
-              throw err
-            })
-          if (!result) return
-          if (result.response?.status === 200 && result.data?.ticket) return result.data.ticket
-          if (result.response?.status === 404 || result.response?.status === 405) return
-          if (result.response?.status === 403)
-            throw new Error("PTY connect ticket rejected by origin or CSRF checks. Check the server CORS config.")
-          if (result.response) throw new Error(`PTY connect ticket failed with ${result.response.status}`)
-        }
-        // return sdk()
-        //   .api.pty.connectToken({
-        //     ptyID: id,
-        //     location: { directory },
-        //     "x-opencode-ticket": "1",
-        //   })
-        //   .then((result) => result.data.ticket)
-      }
-
-      const retry = (err: unknown) => {
+      const retry = (err: Error) => {
         if (disposed) return
 
         if (reconn !== undefined) return

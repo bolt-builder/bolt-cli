@@ -1,5 +1,5 @@
-import type { DesktopMenuAction } from "@opencode/app/desktop-menu"
-import type { DesktopNativeBundle } from "@opencode/app/i18n/desktop-native"
+import type { DesktopMenuAction } from "@bolt-ai/app/desktop-menu"
+import type { DesktopNativeBundle } from "@bolt-ai/app/i18n/desktop-native"
 import type { WindowBootstrap } from "../shared/window-bootstrap"
 import type {
   ClipboardImage,

@@ -10,7 +10,7 @@ import {
 
 export type Interface = MediaClient.Interface<VideoRequestFor, VideoEvent, VideoResponse>
 
-export class VideoClientService extends Context.Service<VideoClientService, Interface>()("@opencode/VideoClient") {}
+export class VideoClientService extends Context.Service<VideoClientService, Interface>()("@bolt-ai/VideoClient") {}
 export const Service = VideoClientService
 export type Service = VideoClientService
 

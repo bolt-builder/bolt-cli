@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { SessionMessageAssistant, SessionMessageInfo } from "@opencode/client/promise"
+import type { SessionMessageAssistant, SessionMessageInfo } from "@bolt-ai/client/promise"
 import type { ProviderMetricEvent, ProviderMetricState } from "./metrics"
 import { applyProviderMetricEvent, projectedProviderMetrics } from "./metrics"
 

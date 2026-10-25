@@ -1,5 +1,5 @@
 import { makeEventListener } from "@solid-primitives/event-listener"
-import type { Definition } from "@opencode/gui-extensions/sdk"
+import type { Definition } from "@bolt-ai/gui-extensions/sdk"
 import { BUILTINS_UPDATED } from "./builtins"
 import { useExtensionHost } from "./host"
 

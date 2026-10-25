@@ -1,5 +1,5 @@
 import { createMemo, lazy, onCleanup, Suspense } from "solid-js"
-import { Icon } from "@opencode/ui/icon"
+import { Icon } from "@bolt-ai/ui/icon"
 import { Command, createKeyed, onIdle, Panel, type PanelTab, type Setup } from "../sdk"
 import type Btw from "./index"
 import { createBtw } from "./model"

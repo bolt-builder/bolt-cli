@@ -1,10 +1,10 @@
 ---
 title: "ACP"
-description: "Use OpenCode with an Agent Client Protocol client."
+description: "Use Bolt with an Agent Client Protocol client."
 ---
 
-`opencode acp` runs OpenCode as an [Agent Client Protocol](https://agentclientprotocol.com) agent, so you can use it
-from an ACP client such as Zed. This example adds OpenCode to Zed:
+`opencode acp` runs Bolt as an [Agent Client Protocol](https://agentclientprotocol.com) agent, so you can use it
+from an ACP client such as Zed. This example adds Bolt to Zed:
 
 ```json title="~/.config/zed/settings.json"
 {
@@ -22,15 +22,15 @@ a graphical client can't find `opencode`, set `command` to the absolute path tha
 
 ## Authentication
 
-OpenCode uses the provider credentials it already has. Sign in from a terminal before you start the ACP client:
+Bolt uses the provider credentials it already has. Sign in from a terminal before you start the ACP client:
 
 ```bash
 opencode auth login
 ```
 
-OpenCode offers one auth method, `opencode-login`. By default it's an agent auth method. The `authenticate` request
+Bolt offers one auth method, `opencode-login`. By default it's an agent auth method. The `authenticate` request
 accepts only that method and doesn't collect credentials. If a prompt fails because a provider needs authentication,
-OpenCode returns ACP's `auth_required` error.
+Bolt returns ACP's `auth_required` error.
 
 If the client sets `clientCapabilities.auth.terminal` to `true`, the auth method is a terminal auth method:
 
@@ -44,8 +44,8 @@ If the client sets `clientCapabilities.auth.terminal` to `true`, the auth method
 }
 ```
 
-The client must not send this method to `authenticate`. Instead, it adds `--login` to the command that starts OpenCode,
-for example `opencode acp --login`, and runs it in a terminal. OpenCode runs the `opencode auth login` flow and exits.
+The client must not send this method to `authenticate`. Instead, it adds `--login` to the command that starts Bolt,
+for example `opencode acp --login`, and runs it in a terminal. Bolt runs the `opencode auth login` flow and exits.
 Exit status 0 means the login succeeded. The client then reconnects and sends `initialize` again.
 
 If the client sets `clientCapabilities._meta["terminal-auth"]` to `true`, the auth method includes the login command:
@@ -65,7 +65,7 @@ If the client sets `clientCapabilities._meta["terminal-auth"]` to `true`, the au
 an ACP client instead.
 
 If the client reports that the process exited or wrote invalid protocol output, add `--print-logs` before `acp` in the
-client's arguments. OpenCode then writes its ACP and private server logs to stderr. Stdout carries only ACP messages.
+client's arguments. Bolt then writes its ACP and private server logs to stderr. Stdout carries only ACP messages.
 
 ```bash
 opencode --print-logs acp
@@ -73,8 +73,8 @@ opencode --print-logs acp
 
 ## Protocol reference
 
-This section is for ACP client authors. It lists the parts of ACP that OpenCode supports and the `_meta` keys that
-OpenCode adds. Clients that don't recognize these keys can ignore them. The
+This section is for ACP client authors. It lists the parts of ACP that Bolt supports and the `_meta` keys that
+Bolt adds. Clients that don't recognize these keys can ignore them. The
 [ACP documentation](https://agentclientprotocol.com) defines the messages.
 
 ### Transport
@@ -82,13 +82,13 @@ OpenCode adds. Clients that don't recognize these keys can ignore them. The
 The client starts `opencode acp` as a child process. The two exchange newline-delimited JSON-RPC messages over stdin and
 stdout, using ACP protocol version 1.
 
-`opencode acp` starts a private OpenCode server for its own use. It doesn't connect to the shared background service,
+`opencode acp` starts a private Bolt server for its own use. It doesn't connect to the shared background service,
 and it doesn't open a network port for ACP. One process can serve many ACP sessions. It exits when the client closes
 stdin.
 
 ### Capabilities
 
-OpenCode's `initialize` response includes these agent capabilities:
+Bolt's `initialize` response includes these agent capabilities:
 
 ```json
 {
@@ -106,36 +106,36 @@ OpenCode's `initialize` response includes these agent capabilities:
 }
 ```
 
-OpenCode reads these client capabilities:
+Bolt reads these client capabilities:
 
 | Capability                             | Effect                                                         |
 | -------------------------------------- | -------------------------------------------------------------- |
 | `auth.terminal` set to `true`          | The auth method is a [terminal auth method](#authentication).  |
-| `elicitation.form`                     | OpenCode asks [questions](#questions) as forms.                |
-| `session.compaction`                   | OpenCode reports [compaction](#compaction) with ACP's updates. |
+| `elicitation.form`                     | Bolt asks [questions](#questions) as forms.                |
+| `session.compaction`                   | Bolt reports [compaction](#compaction) with ACP's updates. |
 | `_meta["terminal-auth"]` set to `true` | The auth method includes the [login command](#authentication). |
 
 ### Sessions
 
-The client sets the working directory when it creates a session. OpenCode uses that directory's configuration,
+The client sets the working directory when it creates a session. Bolt uses that directory's configuration,
 including its models, agents, commands, skills, instructions, plugins, and MCP servers.
 
-- `cwd` must be an absolute path. OpenCode rejects a relative `cwd` with an invalid params error.
+- `cwd` must be an absolute path. Bolt rejects a relative `cwd` with an invalid params error.
 - `session/load` replays the saved messages. `session/resume` and `session/fork` don't replay them.
-- To load, resume, or fork a session, the client must pass that session's directory as `cwd`. OpenCode rejects a
+- To load, resume, or fork a session, the client must pass that session's directory as `cwd`. Bolt rejects a
   different `cwd` with an invalid params error.
 - `session/list` returns up to 100 sessions per page. It accepts a `cwd` filter and a `cursor`.
-- `session/close` interrupts active work and detaches the session from the ACP process. OpenCode keeps the saved
+- `session/close` interrupts active work and detaches the session from the ACP process. Bolt keeps the saved
   session.
 - `session/delete` ends an active prompt like `session/cancel`, then removes the session. Deleting a session that
   doesn't exist succeeds.
-- A session runs one prompt at a time. OpenCode returns an error for a second `session/prompt` while the first is
+- A session runs one prompt at a time. Bolt returns an error for a second `session/prompt` while the first is
   active.
 
 ### Cancellation
 
 `session/cancel` ends the active prompt with `stopReason: "cancelled"`. A `$/cancel_request` for the prompt request does
-the same. OpenCode rejects pending permission requests. It reports tool calls that don't finish after a cancel as
+the same. Bolt rejects pending permission requests. It reports tool calls that don't finish after a cancel as
 `failed`.
 
 ### Additional directories
@@ -147,11 +147,11 @@ The client can pass `additionalDirectories` on `session/new`, `session/load`, `s
 ```
 
 - Each entry must be an absolute path without `*` or `?`.
-- OpenCode allows external directory access inside each root. Read, edit, and shell permission rules still apply.
+- Bolt allows external directory access inside each root. Read, edit, and shell permission rules still apply.
 - Each request's list replaces the session's previous list, as the
   [additional directories RFD](https://agentclientprotocol.com/rfds/additional-directories) specifies.
-- OpenCode stores the grants on the session, so they also apply when another OpenCode client uses the session. Child
-  sessions copy the grants when OpenCode creates them.
+- Bolt stores the grants on the session, so they also apply when another Bolt client uses the session. Child
+  sessions copy the grants when Bolt creates them.
 
 `session/list` returns each session's stored list in `additionalDirectories`.
 
@@ -172,15 +172,15 @@ New sessions use the directory's default model and primary agent. The responses 
 { "sessionId": "ses_123", "configId": "model", "value": "anthropic/claude-sonnet-5-5" }
 ```
 
-`session/set_mode` also sets the agent. OpenCode sends `config_option_update` when the available models or agents
+`session/set_mode` also sets the agent. Bolt sends `config_option_update` when the available models or agents
 change. It also sends one when another client changes the session's model or agent.
 
 ### Prompt content
 
-Prompts can contain text, images, embedded resources, and resource links. OpenCode ignores audio blocks. It handles the
+Prompts can contain text, images, embedded resources, and resource links. Bolt ignores audio blocks. It handles the
 other blocks like this:
 
-| Block                                                 | What OpenCode does                                                                     |
+| Block                                                 | What Bolt does                                                                     |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `text`                                                | Sends it to the model.                                                                 |
 | `text` with audience `assistant` only                 | Sends it to the model as separate context, outside the user's message.                 |
@@ -193,7 +193,7 @@ other blocks like this:
 | `resource_link` to a `zed://` URI with a `path` query | Attaches the file at `path`.                                                           |
 | `resource_link` to another URI                        | Sends a Markdown link such as `[spec](https://example.com/spec.md)`.                   |
 
-The audience comes from the block's `annotations`. OpenCode rejects an `image` block that has neither `data` nor `uri`.
+The audience comes from the block's `annotations`. Bolt rejects an `image` block that has neither `data` nor `uri`.
 This block is context for the model only:
 
 ```json
@@ -202,7 +202,7 @@ This block is context for the model only:
 
 ### Commands
 
-After `session/new`, `session/load`, `session/resume`, or `session/fork`, OpenCode sends `available_commands_update`
+After `session/new`, `session/load`, `session/resume`, or `session/fork`, Bolt sends `available_commands_update`
 with the directory's commands and the built-in `compact` command. It sends another update when the commands change.
 
 ```json
@@ -212,15 +212,15 @@ with the directory's commands and the built-in `compact` command. It sends anoth
 }
 ```
 
-If a prompt starts with `/` and the name of an available command, OpenCode runs that command with the rest of the text
-as arguments. OpenCode sends other text that starts with `/` as a normal prompt. `/compact` runs
+If a prompt starts with `/` and the name of an available command, Bolt runs that command with the rest of the text
+as arguments. Bolt sends other text that starts with `/` as a normal prompt. `/compact` runs
 [compaction](/compaction).
 
 ### MCP servers
 
 The client can pass stdio and HTTP MCP servers on `session/new`, `session/load`, `session/resume`, and `session/fork`.
-OpenCode adds them to the session's directory for the life of the `opencode acp` process, so other sessions in that
-directory can use them. OpenCode passes HTTP headers through and doesn't use OAuth for these servers. It doesn't
+Bolt adds them to the session's directory for the life of the `opencode acp` process, so other sessions in that
+directory can use them. Bolt passes HTTP headers through and doesn't use OAuth for these servers. It doesn't
 advertise MCP over SSE, and it doesn't support MCP over ACP.
 
 | Case                             | Behavior                                                            |
@@ -244,12 +244,12 @@ Permission requests offer three options:
 ]
 ```
 
-When a request changes files, OpenCode includes `diff` content if it can build a preview of the change.
+When a request changes files, Bolt includes `diff` content if it can build a preview of the change.
 
 ### Questions
 
-If the client advertises `elicitation.form`, OpenCode asks questions with `elicitation/create` in form mode. The request
-includes `toolCallId` when OpenCode sent that tool call as a `session/update` for this session.
+If the client advertises `elicitation.form`, Bolt asks questions with `elicitation/create` in form mode. The request
+includes `toolCallId` when Bolt sent that tool call as a `session/update` for this session.
 
 ```json
 {
@@ -265,19 +265,19 @@ includes `toolCallId` when OpenCode sent that tool call as a `session/update` fo
 }
 ```
 
-- OpenCode never sends forms that might collect secrets.
+- Bolt never sends forms that might collect secrets.
 - If a field accepts a typed answer next to its options, the schema adds an optional `<key>_custom` string property.
-  For a single choice, a non-empty custom answer replaces the selected option. For a multiple choice, OpenCode adds it
+  For a single choice, a non-empty custom answer replaces the selected option. For a multiple choice, Bolt adds it
   to the selected options.
-- If the user declines or cancels the form, OpenCode cancels the question.
+- If the user declines or cancels the form, Bolt cancels the question.
 
-If OpenCode can't show a question, it cancels the question and tells the model to continue without an answer.
+If Bolt can't show a question, it cancels the question and tells the model to continue without an answer.
 
 ### Compaction
 
-If the client advertises `session.compaction`, OpenCode reports compaction with the `compaction_update` and
+If the client advertises `session.compaction`, Bolt reports compaction with the `compaction_update` and
 `compaction_summary_chunk` updates from ACP's [session compaction](https://agentclientprotocol.com/rfds/session-compaction)
-RFD, which is in Preview. When the client loads a session, OpenCode replays each completed or failed compaction as one
+RFD, which is in Preview. When the client loads a session, Bolt replays each completed or failed compaction as one
 update.
 
 ```json
@@ -300,9 +300,9 @@ RFD, which is a draft. `usage` sums the prompt's model calls in this session. It
 { "stopReason": "end_turn", "usage": { "inputTokens": 1200, "outputTokens": 340, "totalTokens": 1540 }, "_meta": {} }
 ```
 
-Before the response, OpenCode sends `usage_update` from the
+Before the response, Bolt sends `usage_update` from the
 [session usage](https://agentclientprotocol.com/rfds/session-usage) RFD. It sends it only if the prompt used tokens and
-OpenCode knows the model's context size. `cost` is the session's total cost in USD.
+Bolt knows the model's context size. `cost` is the session's total cost in USD.
 
 ```json
 { "sessionUpdate": "usage_update", "used": 1540, "size": 200000, "cost": { "amount": 0.012, "currency": "USD" } }
@@ -310,8 +310,8 @@ OpenCode knows the model's context size. `cost` is the session's total cost in U
 
 ### Child sessions
 
-While a prompt runs, OpenCode sends updates from its child sessions as `session/update` notifications on the prompt's
-session. Each update carries `_meta["opencode/child-session"]`. OpenCode prefixes tool call IDs with
+While a prompt runs, Bolt sends updates from its child sessions as `session/update` notifications on the prompt's
+session. Each update carries `_meta["opencode/child-session"]`. Bolt prefixes tool call IDs with
 `<childSessionId>:`. It prefixes tool call titles with the child session's title if the child session has one.
 
 ```json
@@ -330,15 +330,15 @@ session. Each update carries `_meta["opencode/child-session"]`. OpenCode prefixe
 | `id`       | `string` | The child session's ID.                                                                |
 | `parentID` | `string` | The ID of the child session's parent session.                                          |
 | `depth`    | `number` | 1 for a child of the prompt's session, 2 for a child of that child session, and so on. |
-| `title`    | `string` | The child session's title. OpenCode omits it when the child session has no title.      |
+| `title`    | `string` | The child session's title. Bolt omits it when the child session has no title.      |
 
-Permission requests from a child session carry the same key on `toolCall._meta`. After the prompt ends, OpenCode stops
+Permission requests from a child session carry the same key on `toolCall._meta`. After the prompt ends, Bolt stops
 sending child session updates. Permission requests and questions from child sessions still reach the client.
 
 ### Retry status
 
-When a model call fails and OpenCode schedules a retry, it sends `session_info_update` with `_meta["opencode/retry"]`.
-When the retry starts, OpenCode sends `"opencode/retry": null`. Clear any retry status when the prompt response arrives.
+When a model call fails and Bolt schedules a retry, it sends `session_info_update` with `_meta["opencode/retry"]`.
+When the retry starts, Bolt sends `"opencode/retry": null`. Clear any retry status when the prompt response arrives.
 
 ```json
 {
@@ -361,8 +361,8 @@ When the retry starts, OpenCode sends `"opencode/retry": null`. Clear any retry 
 
 ### Compaction marker
 
-If the client doesn't advertise `session.compaction`, OpenCode reports compaction progress as `session_info_update` with
-`_meta["opencode/compaction"]`. OpenCode always uses the marker for child session compactions.
+If the client doesn't advertise `session.compaction`, Bolt reports compaction progress as `session_info_update` with
+`_meta["opencode/compaction"]`. Bolt always uses the marker for child session compactions.
 
 ```json
 {
@@ -379,4 +379,4 @@ If the client doesn't advertise `session.compaction`, OpenCode reports compactio
 | `error`     | `object` | Present when `status` is `failed`. Same shape as the [retry](#retry-status) `error`. |
 
 The marker doesn't include a summary. An automatic compaction can fail without a `started` marker. When the client
-loads a session, OpenCode replays each completed or failed compaction as one marker.
+loads a session, Bolt replays each completed or failed compaction as one marker.

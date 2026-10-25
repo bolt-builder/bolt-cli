@@ -2,13 +2,13 @@
 title: "Overview"
 ---
 
-Plugins can modify OpenCode's behavior and add new features. To change the terminal UI, build a [CLI
+Plugins can modify Bolt's behavior and add new features. To change the terminal UI, build a [CLI
 plugin](/build/plugins/cli).
 
-Migrating an existing OpenCode 1 plugin? Follow the [V1 plugin migration guide](/build/plugins/migrate-v1).
+Migrating an existing Bolt 1 plugin? Follow the [V1 plugin migration guide](/build/plugins/migrate-v1).
 
 ```ts title=".opencode/plugins/example/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "example",
@@ -50,7 +50,7 @@ See [Configure plugins](/plugins) for more loading and configuration options.
 `setup` runs when the plugin loads. It may return a cleanup function that runs when the plugin unloads.
 
 ```ts
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "example",
@@ -63,7 +63,7 @@ export default Plugin.define({
 
 ### Context
 
-The plugin context is essentially an [OpenCode server client](/build/client).
+The plugin context is essentially an [Bolt server client](/build/client).
 Its read and action methods use the same inputs and responses as the client. It
 adds plugin-only methods for transforms, runtime hooks, reloads, registrations,
 and plugin options.
@@ -107,7 +107,7 @@ Pass plugin options with the object form in `opencode.json(c)`.
 Read those values from `ctx.options` during `setup`.
 
 ```ts title="plugins/company/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "company",
@@ -119,7 +119,7 @@ export default Plugin.define({
 
 ## Transforms
 
-Transforms are synchronous edits to OpenCode's domain state, and each builds on earlier registrations in its domain.
+Transforms are synchronous edits to Bolt's domain state, and each builds on earlier registrations in its domain.
 Registry reads such as `ctx.model.list()` reflect every registration so far, including during plugin setup;
 startup batching only coalesces update notifications and never delays what a read returns. Resource status APIs still
 report the state of running resources: a registered definition does not mean its connection or other resource work has
@@ -128,7 +128,7 @@ completed.
 Sources contribute providers and immutable model definitions through `ctx.provider.transform`.
 
 ```ts title="plugins/models/index.ts"
-import { Model, Plugin, Provider } from "@opencode/plugin"
+import { Model, Plugin, Provider } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "company.models",
@@ -141,7 +141,7 @@ export default Plugin.define({
           ...Provider.Info.empty(providerID),
           name: "Acme",
           activation: "enabled",
-          package: "@opencode/ai/providers/openai-compatible",
+          package: "@bolt-ai/ai/providers/openai-compatible",
           settings: { baseURL: "http://127.0.0.1:8000/v1" },
         },
         models,
@@ -157,12 +157,12 @@ Any registration, removal, or `reload()` marks the registry changed; the next re
 active transform in registration order onto a fresh value. Keep transforms cheap and repeatable. A value you have
 already read is never modified by later rebuilds.
 
-After provider transforms and availability are resolved, OpenCode materializes the active providers' models and replays
+After provider transforms and availability are resolved, Bolt materializes the active providers' models and replays
 every model transform in order. A model policy can inspect the whole candidate collection, including newly refreshed
 sources.
 
 ```ts title="plugins/model-budget/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "company.model-budget",
@@ -184,7 +184,7 @@ Captured inputs are not watched automatically. Load external data before the syn
 `{ info: Provider.Info, models: readonly Model.Info[] }` entries.
 
 ```ts title="plugins/models/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "company.models",
@@ -303,7 +303,7 @@ source.models = await loadModels()
 await ctx.provider.reload()
 ```
 
-For account-specific discovery, pass the connection used to load the inventory as `sourceConnection`. OpenCode excludes
+For account-specific discovery, pass the connection used to load the inventory as `sourceConnection`. Bolt excludes
 that provider while another connection is selected, until your plugin publishes its refreshed inventory.
 
 ```ts
@@ -369,7 +369,7 @@ await ctx.model.transform((editor) => {
 })
 ```
 
-Callbacks edit raw model overrides. Provider defaults are merged once when OpenCode commits the result; unchanged reads
+Callbacks edit raw model overrides. Provider defaults are merged once when Bolt commits the result; unchanged reads
 reuse that result. `editor.provider` exposes immutable source definitions, including inactive templates, rather than
 model-transform output.
 
@@ -631,7 +631,7 @@ await ctx.mcp.transform((editor) => {
 ```
 
 Set `disabled: true` in a transform to disable a server and disconnect it, or `disabled: false` to enable it and allow
-OpenCode to connect. OpenCode reconciles server lifecycle from the transformed configuration.
+Bolt to connect. Bolt reconciles server lifecycle from the transformed configuration.
 
 Call `reload()` after external state used by a transform changes to reapply transforms and reconcile the servers.
 
@@ -874,7 +874,7 @@ Register a transform to inspect, add, update, or remove skills. `get(id)` return
 when the skill is absent.
 
 ```ts
-import { Skill } from "@opencode/plugin"
+import { Skill } from "@bolt-ai/plugin"
 
 await ctx.skill.transform((editor) => {
   const skills = editor.list()
@@ -1095,11 +1095,11 @@ await ctx.vcs.transform((editor) => {
 
 Provider callbacks receive the current location, working-copy root, canonical project root, and optional repository
 store. Diff callbacks also receive the selected mode, requested context, and output byte budget. Repository discovery
-continues to use OpenCode's built-in Git and Mercurial detectors.
+continues to use Bolt's built-in Git and Mercurial detectors.
 
 Providers can optionally implement `init(scope, { signal })` to create a repository in `scope.worktree`. Initialization
 selects the provider by ID (Git by default), not by the detected repository type. Register a provider with `init` even
-when the location has no repository yet; OpenCode checks that the directory exists and has no repository before calling
+when the location has no repository yet; Bolt checks that the directory exists and has no repository before calling
 it, then rediscovers the project. New repository formats still need discovery support beyond this callback.
 
 #### Reference
@@ -1139,7 +1139,7 @@ Register a local worktree strategy using the normal plugin lifecycle. The implem
 option validation and the backend's `create`, `remove`, and `list` operations.
 
 ```ts title="plugins/worktrees/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 import { makeStrategy } from "./strategy"
 
 export default Plugin.define({
@@ -1205,7 +1205,7 @@ await ctx.worktree.remove({
 ```
 
 Missing owners fail removal rather than falling back to Git. A strategy can throw `new Worktree.OperationError({
-message: "Uncommitted changes", forceRequired: true })`, importing `Worktree` from `@opencode/plugin`, to request
+message: "Uncommitted changes", forceRequired: true })`, importing `Worktree` from `@bolt-ai/plugin`, to request
 force confirmation without depending on Core or Git errors.
 
 Refresh loads canonical configuration and asks all available strategies to find worktrees across known checkout roots.
@@ -1220,10 +1220,10 @@ await ctx.worktree.refresh({ projectID })
 #### Reference
 
 Implementations receive a suggested destination after naming and collision handling. Return the actual directory from
-`create`; it may differ when a backend requires its own layout. OpenCode resolves the returned path and uses it for
+`create`; it may differ when a backend requires its own layout. Bolt resolves the returned path and uses it for
 inventory, startup commands, and the API result. The returned directory must exist.
 
-Strategies choosing another destination handle naming collisions there. OpenCode still creates the suggested parent
+Strategies choosing another destination handle naming collisions there. Bolt still creates the suggested parent
 directory before calling the strategy. `list` must report only directories the strategy owns, plus any repository roots.
 
 ```ts
@@ -1342,7 +1342,7 @@ const registration = await ctx.session.hook("context", () => {})
 await registration.dispose()
 ```
 
-Multiple plugins can register the same hook. OpenCode runs them in plugin order,
+Multiple plugins can register the same hook. Bolt runs them in plugin order,
 so later hooks see changes made by earlier hooks.
 
 ### Sessions
@@ -1383,7 +1383,7 @@ Prompt hooks run under these conditions:
 - Provider scoping is unavailable because model resolution happens after admission.
 
 Edits become the canonical persisted user input. If preparation fails or is
-interrupted, OpenCode does not admit the prompt.
+interrupted, Bolt does not admit the prompt.
 
 Keep prompt hooks retry-safe. They are not an exactly-once side-effect boundary:
 
@@ -1398,7 +1398,7 @@ kind of request a session issues has its own hook, so a plugin can treat the age
 differently:
 
 - `context` runs for the agent loop, including tool-driven continuations.
-- `compaction` runs for checkpoint summaries. `messages` is the transcript being summarized; OpenCode appends its
+- `compaction` runs for checkpoint summaries. `messages` is the transcript being summarized; Bolt appends its
   summary prompt after hooks run. Set `result` to record the compaction yourself and skip the model call; it takes the
   same fields as a completed compaction message.
 - `generate` runs for transient `ctx.session.generate` calls.
@@ -1514,7 +1514,7 @@ editing an HTTP request or response body. `send` runs after the provider driver 
 is written; `receive` runs on each inbound frame before the driver observes it. Both carry the frame as a string and
 send whatever `frame` holds when the hook returns.
 
-OpenCode does not validate rewritten frames. The driver tracks state from the provider's replies, so a rewrite that
+Bolt does not validate rewritten frames. The driver tracks state from the provider's replies, so a rewrite that
 changes protocol meaning is the plugin's responsibility, just as a rewritten HTTP body is.
 
 ```ts
@@ -1537,8 +1537,8 @@ These hooks are experimental and their names or shapes may change.
 
 #### Retry policy
 
-Override the retry decision for a provider failure or replace its delay in milliseconds. The hook runs after OpenCode
-classifies the failure and proposes its policy, but before any retry is scheduled. It does not expose how OpenCode
+Override the retry decision for a provider failure or replace its delay in milliseconds. The hook runs after Bolt
+classifies the failure and proposes its policy, but before any retry is scheduled. It does not expose how Bolt
 internally performs the next attempt.
 
 ```ts
@@ -1555,7 +1555,7 @@ await ctx.session.hook("retry", (event) => {
 })
 ```
 
-Retry hooks can change OpenCode's initial `decision` by making a terminal failure
+Retry hooks can change Bolt's initial `decision` by making a terminal failure
 retryable or vetoing a proposed retry.
 
 Retry decisions follow these rules:
@@ -1569,7 +1569,7 @@ Retry decisions follow these rules:
 #### Session reference
 
 ```ts
-import type { SessionPrompt } from "@opencode/plugin/promise/session"
+import type { SessionPrompt } from "@bolt-ai/plugin/promise/session"
 
 interface SessionHooks {
   prompt: SessionPrompt
@@ -1780,7 +1780,7 @@ manifest is:
     "./rpc": "./src/rpc.ts"
   },
   "dependencies": {
-    "@opencode/plugin": "latest"
+    "@bolt-ai/plugin": "latest"
   }
 }
 ```
@@ -1789,7 +1789,7 @@ The `./rpc` export is optional; include it when publishing a shared
 [RPC contract](/build/plugins/rpc) for other plugins and clients to import
 without loading your implementation.
 
-Use versions compatible with the OpenCode release you target and test the
+Use versions compatible with the Bolt release you target and test the
 installed package, not only a workspace-linked copy. Publish a compatible
 plugin update when you adopt a newer API contract.
 
@@ -1799,7 +1799,7 @@ A plugin can support V1 and V2 from the same package entrypoint. Default export
 one object with a V1 `server()` function and a V2 `setup()` function:
 
 ```ts title="src/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default {
   ...Plugin.define({
@@ -1825,6 +1825,6 @@ export default {
 - Keep each implementation on its own API; sharing an export does not translate V1 hooks into V2 hooks.
 - Spread `Plugin.define(...)` into the exported object so it type-checks the V2 definition separately from `server()`.
 
-The V1 object form is supported in OpenCode `1.18.29`. Older V1 releases may
+The V1 object form is supported in Bolt `1.18.29`. Older V1 releases may
 expect function exports instead; test the installed package with the oldest V1
 release you intend to support and with V2.

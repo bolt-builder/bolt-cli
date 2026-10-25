@@ -5,7 +5,7 @@ test("groups only providers managed by the active Console workspace", () => {
   const direct = { id: "openai", integrationID: "openai", name: "Anomaly / OpenAI" }
 
   const group = consoleProviderGroup([
-    { id: "opencode", integrationID: "opencode", name: "Anomaly / OpenCode" },
+    { id: "opencode", integrationID: "opencode", name: "Anomaly / Bolt" },
     { id: "console-openai", integrationID: "opencode", name: "Anomaly / OpenAI" },
     { id: "console-google", integrationID: "opencode", name: "Anomaly / Google" },
     direct,

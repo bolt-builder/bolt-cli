@@ -30,7 +30,7 @@ export const Path = paths
 
 Flock.setGlobal({ state })
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Global") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Global") {}
 
 export interface Interface {
   readonly home: string

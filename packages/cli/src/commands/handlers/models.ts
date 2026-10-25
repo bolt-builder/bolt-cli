@@ -1,5 +1,5 @@
-import { OpenCode } from "@opencode/client"
-import { Service } from "@opencode/client/effect/service"
+import { OpenCode } from "@bolt-ai/client"
+import { Service } from "@bolt-ai/client/effect/service"
 import { Effect } from "effect"
 import { EOL } from "node:os"
 import { Commands } from "../commands"

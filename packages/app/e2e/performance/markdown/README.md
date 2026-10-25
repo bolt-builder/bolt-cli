@@ -2,7 +2,7 @@
 
 This manual benchmark uses the production app, restored session tabs, the real
 `MessageTimeline` preload, and the real Markdown worker. Only API data and result
-delivery timing are fixture-owned. It does not connect to a running OpenCode
+delivery timing are fixture-owned. It does not connect to a running Bolt
 service or send prompts.
 
 From `packages/app`, set absolute `MARKDOWN_APP_BUILD_DIR` and

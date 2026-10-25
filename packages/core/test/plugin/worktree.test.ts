@@ -1,9 +1,9 @@
 import { expect } from "bun:test"
 import { Cause, Deferred, Effect, Exit, Fiber } from "effect"
-import { Plugin } from "@opencode/plugin"
-import type { WorktreeDefinition } from "@opencode/plugin/effect/worktree"
-import { PluginPromise } from "@opencode/core/plugin/promise"
-import { State } from "@opencode/core/state"
+import { Plugin } from "@bolt-ai/plugin"
+import type { WorktreeDefinition } from "@bolt-ai/plugin/effect/worktree"
+import { PluginPromise } from "@bolt-ai/core/plugin/promise"
+import { State } from "@bolt-ai/core/state"
 import { it } from "../lib/effect"
 import { host } from "./host"
 

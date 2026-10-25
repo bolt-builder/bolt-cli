@@ -7,7 +7,7 @@ import { discoverThemes } from "../src/theme/discovery"
 import { configDirectories } from "../src/util/config-directories"
 import { terminalMode } from "../src/theme/system"
 import opencodeSource from "../src/theme/assets/opencode.json" with { type: "json" }
-import type { ThemeV1Json } from "@opencode/theme/tui/v1"
+import type { ThemeV1Json } from "@bolt-ai/theme/tui/v1"
 import { tmpdir } from "./fixture/fixture"
 
 test("addTheme writes into module theme store", () => {

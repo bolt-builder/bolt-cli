@@ -42,7 +42,7 @@ export interface AskResult {
   readonly effect: Permission.Effect
 }
 
-export { Event } from "@opencode/schema/permission"
+export { Event } from "@bolt-ai/schema/permission"
 
 export class DeclinedError extends Schema.TaggedError<DeclinedError>()("Permission.DeclinedError", {}) {}
 

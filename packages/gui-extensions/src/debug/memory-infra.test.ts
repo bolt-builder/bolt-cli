@@ -10,7 +10,7 @@ const size = (mib: number) => ({ type: "scalar", units: "bytes", value: hex(mib)
 const trace = {
   traceEvents: [
     { pid: 10, ph: "M", name: "process_name", args: { name: "Renderer" } },
-    { pid: 10, ph: "M", name: "process_labels", args: { labels: "OpenCode" } },
+    { pid: 10, ph: "M", name: "process_labels", args: { labels: "Bolt" } },
     { pid: 20, ph: "M", name: "process_name", args: { name: "Browser" } },
     { pid: 10, ph: "X", name: "unrelated", args: { anything: [1, 2] } },
     // An earlier dump that a later one supersedes.
@@ -52,7 +52,7 @@ test("summarizes each process's latest complete dump, largest first", () => {
     {
       pid: 10,
       name: "Renderer",
-      labels: "OpenCode",
+      labels: "Bolt",
       totals: { privateFootprint: 900, resident: undefined },
       allocators: { cc: 400, partition_alloc: 300 },
       detail: { "cc/tile_memory": 400, "partition_alloc/partitions/layout": 250 },

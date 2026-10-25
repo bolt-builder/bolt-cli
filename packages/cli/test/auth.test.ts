@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import path from "node:path"
-import { OPENCODE_VERSION } from "../src/version"
-import type { FormFields } from "@opencode/client"
+import { BOLT_VERSION } from "../src/version"
+import type { FormFields } from "@bolt-ai/client"
 
 const consoleForm = [
   { type: "string", key: "server", hidden: true, format: "uri", default: "https://opencode.ai/console" },
@@ -359,7 +359,7 @@ function authServer(fetch: (request: Request, url: URL) => Response | Promise<Re
 }
 
 function status() {
-  return Response.json({ version: OPENCODE_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } })
+  return Response.json({ version: BOLT_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } })
 }
 
 function located<T>(data: T) {

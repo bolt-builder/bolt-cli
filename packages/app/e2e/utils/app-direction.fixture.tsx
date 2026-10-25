@@ -6,7 +6,7 @@ import { useLanguage, type Direction } from "../../src/runtime/i18n/language"
 import { PlatformProvider } from "../../src/runtime/platform/platform"
 import { createWebPlatform } from "../../src/runtime/platform/web"
 import { ServerConnection } from "../../src/runtime/server/registry"
-import { Command } from "@opencode/gui-extensions/sdk"
+import { Command } from "@bolt-ai/gui-extensions/sdk"
 import { useExtensionHost } from "../../src/runtime/extension/host"
 import { useCommand } from "../../src/shell/commands/command"
 

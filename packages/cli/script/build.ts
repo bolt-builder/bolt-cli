@@ -7,7 +7,7 @@ import { Script } from "@bolt-ai/script"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import type { BunPlugin } from "bun"
 import pkg from "../package.json"
-import { discoverPluginRuntimeSpecifiers, pluginRuntimeLoaderCode } from "@opencode/plugin/runtime-modules"
+import { discoverPluginRuntimeSpecifiers, pluginRuntimeLoaderCode } from "@bolt-ai/plugin/runtime-modules"
 import { buildAppArchive } from "./app-assets"
 import { verifyArtifact, verifySimulationGraph } from "./verify-artifact"
 import { resolveOpencodePty } from "./opencode-pty"
@@ -175,7 +175,7 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       outfile: path.join(outdir, name, "bin", binary),
       execArgv: [
         "--smol",
-        `--user-agent=opencode/${Script.channel}/${Script.version}/cli`,
+        `--user-agent=bolt/${Script.channel}/${Script.version}/cli`,
         "--use-system-ca",
         "--no-warnings",
         "--",
@@ -187,6 +187,8 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       BOLT_CLI_NAME: `'${binary}'`,
       BOLT_MODELS_DEV: modelsData,
       BOLT_CHANNEL: `'${Script.channel}'`,
+      BOLT_ARTIFACT: `'cli'`,
+      BOLT_RELEASE_HIGHLIGHTS: JSON.stringify(process.env.BOLT_RELEASE_HIGHLIGHTS ?? ""),
       BOLT_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "undefined",
       // FFF_LIBC selects the fff native lib variant: "musl" or "gnu".
       FFF_LIBC: item.os === "linux" ? `'${item.abi ?? "gnu"}'` : "undefined",

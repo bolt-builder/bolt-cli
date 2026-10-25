@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { SessionInfo } from "@opencode/client/promise"
+import type { SessionInfo } from "@bolt-ai/client/promise"
 import {
   filterWorkspaceInventory,
   inspectWorkspaceDeletion,
@@ -31,7 +31,7 @@ describe("isWorkspaceDirectory", () => {
     expect(isWorkspaceDirectory(undefined, "C:\\repo-workspaces\\feature")).toBe(false)
   })
 
-  const root = "C:/OpenCode/WorkspaceAccent"
+  const root = "C:/Bolt/WorkspaceAccent"
 
   const inventoried = withWorktreeInventory(
     normalizeProjectInfo({
@@ -43,16 +43,16 @@ describe("isWorkspaceDirectory", () => {
     [
       { directory: root },
       { directory: `${root}/.worktrees/feature`, strategy: "git" },
-      { directory: "C:/OpenCode/WorkspaceCopy", strategy: "copy" },
-      { directory: "C:/OpenCode/RegisteredDirectory" },
+      { directory: "C:/Bolt/WorkspaceCopy", strategy: "copy" },
+      { directory: "C:/Bolt/RegisteredDirectory" },
     ],
   )
 
   test.each([
     { name: "nested main directory", directory: `${root}/packages/app`, expected: false },
     { name: "unregistered sibling with the same prefix", directory: `${root}/.worktrees/feature-x`, expected: false },
-    { name: "workspace using another strategy", directory: "C:/OpenCode/WorkspaceCopy", expected: true },
-    { name: "registered directory without a strategy", directory: "C:/OpenCode/RegisteredDirectory", expected: true },
+    { name: "workspace using another strategy", directory: "C:/Bolt/WorkspaceCopy", expected: true },
+    { name: "registered directory without a strategy", directory: "C:/Bolt/RegisteredDirectory", expected: true },
   ])("classifies an inventoried $name", ({ directory, expected }) => {
     expect(isWorkspaceDirectory(inventoried, directory)).toBe(expected)
   })

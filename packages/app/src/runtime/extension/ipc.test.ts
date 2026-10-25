@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test"
-import { Ipc } from "@opencode/gui-extensions/sdk"
+import { Ipc } from "@bolt-ai/gui-extensions/sdk"
 import { Schema } from "effect"
-import type { Bridge, BridgeMessage } from "@opencode/gui-extensions/sdk/bridge"
+import type { Bridge, BridgeMessage } from "@bolt-ai/gui-extensions/sdk/bridge"
 import { createIpcClients } from "./ipc"
 
 const token: Ipc = { kind: "ipc", id: "fixture", spec: { id: "fixture", methods: {} } }

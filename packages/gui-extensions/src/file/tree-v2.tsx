@@ -1,23 +1,8 @@
-import { useFile } from "@/context/file"
-import { FileIcon } from "@bolt-ai/ui/file-icon"
-import "@bolt-ai/ui/v2/file-tree-v2.css"
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Show,
-  splitProps,
-  type ComponentProps,
-  type ParentProps,
-} from "solid-js"
+import { createMemo, createSignal, For, Show, splitProps, type ComponentProps, type ParentProps } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import type { FileNode } from "@bolt-ai/sdk/v2"
-import { Icon } from "@bolt-ai/ui/v2/icon"
-import { pathToFileUrl, withFileDragImage, type Kind } from "@/components/file-tree"
 import { createVirtualizer, defaultRangeExtractor } from "@tanstack/solid-virtual"
-import { FileIcon } from "@opencode/ui/file-icon"
-import { Icon } from "@opencode/ui/icon"
+import { FileIcon } from "@bolt-ai/ui/file-icon"
+import { Icon } from "@bolt-ai/ui/icon"
 import type { ChangeKind } from "../review/contract"
 import { createKeyed, useExtension, type FileNode, type MountedSession, type SessionScreen } from "../sdk"
 import { startFileDrag } from "./drag"

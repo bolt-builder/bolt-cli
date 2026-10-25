@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import type { ModelSelection } from "@/providers/models/selection"
 import type { SessionMessageHandoff } from "@/session/handoff"
-import { Skill } from "@opencode/schema/skill"
+import { Skill } from "@bolt-ai/schema/skill"
 import type {
   ActiveComposerAdapter,
   ComposerControls,

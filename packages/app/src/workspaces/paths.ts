@@ -1,6 +1,6 @@
-import { containsDirectory, sameDirectory } from "@opencode/util/path"
+import { containsDirectory, sameDirectory } from "@bolt-ai/util/path"
 import type { WorkspaceDefaultDestination, WorkspaceLastUsed } from "@/settings/model"
-import type { SessionInfo, WorktreeDirectory } from "@opencode/client/promise"
+import type { SessionInfo, WorktreeDirectory } from "@bolt-ai/client/promise"
 
 type WorkspaceProject = {
   worktree: string

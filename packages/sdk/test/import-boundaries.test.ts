@@ -8,7 +8,7 @@ const core = resolve(import.meta.dir, "../../core")
 const server = resolve(import.meta.dir, "../../server")
 
 test("bundles the Promise and Effect clients with the in-memory host", async () => {
-  const bundles = await Promise.all([bundleInputs("@opencode/sdk"), bundleInputs("@opencode/sdk/effect")])
+  const bundles = await Promise.all([bundleInputs("@bolt-ai/sdk-v2"), bundleInputs("@bolt-ai/sdk-v2/effect")])
 
   for (const inputs of bundles) {
     expect(within(inputs, client).length).toBeGreaterThan(0)

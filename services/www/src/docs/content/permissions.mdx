@@ -53,7 +53,7 @@ Each rule requires three string fields:
 | `deny`  | Block the operation                 |
 | `ask`   | Wait for a decision from the client |
 
-If no rule matches, OpenCode uses `ask`.
+If no rule matches, Bolt uses `ask`.
 
 ## Matching
 
@@ -84,7 +84,7 @@ A shell pattern ending in ` *` also matches the command without arguments:
 
 This matches both `git status` and `git status --short`.
 
-OpenCode combines rules in order and uses the last match. Lower-priority
+Bolt combines rules in order and uses the last match. Lower-priority
 configuration is loaded first, global rules are appended next, and agent rules
 are appended last.
 

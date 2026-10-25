@@ -3,10 +3,10 @@
 // version-mismatched background service before the TUI attaches.
 import { createCliRenderer, RGBA, TextAttributes, type CliRenderer } from "@opentui/core"
 import { render, useTerminalDimensions } from "@opentui/solid"
-import { OPENCODE_VERSION } from "../version"
-import "@opencode/tui/component/spinner-renderable"
-import { SPINNER_FRAMES } from "@opencode/tui/component/spinner"
-import { go } from "@opencode/tui/logo"
+import { BOLT_VERSION } from "../version"
+import "@bolt-ai/tui/component/spinner-renderable"
+import { SPINNER_FRAMES } from "@bolt-ai/tui/component/spinner"
+import { go } from "@bolt-ai/tui/logo"
 import { setTimeout } from "node:timers/promises"
 import {
   batch,
@@ -22,7 +22,7 @@ import {
   untrack,
 } from "solid-js"
 
-const stages = ["Keeping your session safe", "Starting the new background service", "Loading OpenCode"] as const
+const stages = ["Keeping your session safe", "Starting the new background service", "Loading Bolt"] as const
 const stageFloor = 480
 const transitionDuration = 420
 const completionHold = 650
@@ -327,7 +327,7 @@ function UpdateFooter(props: {
   const statusSweep = createSweep()
   const runningHeader = () =>
     phrase(
-      ["OpenCode", colors.muted, true],
+      ["Bolt", colors.muted, true],
       ["is updating", colors.muted],
       ...(props.from
         ? ([
@@ -336,14 +336,14 @@ function UpdateFooter(props: {
           ] as const)
         : []),
       ["to", colors.muted],
-      [OPENCODE_VERSION, colors.accent],
+      [BOLT_VERSION, colors.accent],
     )
   const completedHeader = phrase(
-    ["OpenCode", colors.muted, true],
+    ["Bolt", colors.muted, true],
     ["updated to", colors.muted],
-    [OPENCODE_VERSION, colors.accent],
+    [BOLT_VERSION, colors.accent],
   )
-  const pausedHeader = phrase(["OpenCode", colors.muted, true], ["update paused", colors.muted])
+  const pausedHeader = phrase(["Bolt", colors.muted, true], ["update paused", colors.muted])
   const outcomeStatus = () =>
     props.outcome() === "success"
       ? [...styled("✓", colors.success), ...styled(" Ready", colors.text)]

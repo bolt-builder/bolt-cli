@@ -10,7 +10,7 @@ OpenCode Go gives you reliable access to popular open coding models, with two mo
 | **Go**      | **$10/month** | Lower-cost access to the models below       |
 | **Go Plus** | **$40/month** | Higher usage limits across the models below |
 
-Go works like any other provider in OpenCode. You subscribe to OpenCode Go and get your API key. It's **completely optional** and you don't need it to use OpenCode.
+Go works like any other provider in Bolt. You subscribe to OpenCode Go and get your API key. It's **completely optional** and you don't need it to use Bolt.
 
 The service is designed primarily for international users and provides stable global access.
 
@@ -84,7 +84,7 @@ See [Privacy](#privacy) for each model's training and retention terms.
 
 ## Where can I use it?
 
-OpenCode Go is designed for [OpenCode](https://opencode.ai) and other coding agents
+OpenCode Go is designed for [Bolt](https://opencode.ai) and other coding agents
 that produce similar types of requests. Traffic is monitored for abuse that
 degrades the experience for other users.
 
@@ -100,18 +100,18 @@ See [Harnesses](/console/harnesses) to set up Go in Claude Code, Codex, Hermes, 
 
 ### Validated clients
 
-Besides OpenCode, the following clients have been validated to work properly
+Besides Bolt, the following clients have been validated to work properly
 with OpenCode Go, although we do not guarantee that they will continue to work in the future.
 
 | Client            | Session support                                                                                                                                                                                                                             |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hermes**        | Update to **v0.21.6 or later**, which sends the header on main and auxiliary OpenCode requests ([PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864)).                                                                    |
+| **Hermes**        | Update to **v0.21.6 or later**, which sends the header on main and auxiliary Bolt requests ([PR #101864](https://github.com/NousResearch/hermes-agent/pull/101864)).                                                                    |
 | **Claude Code**   | Go recognizes its native session header. No custom-header wrapper is needed.                                                                                                                                                                |
 | **Codex**         | Go recognizes its native session header. Some versions and proxy setups still omit it; preserve the session header when forwarding requests.                                                                                                |
 | **ZCode**         | Go recognizes its native session header. Our [request for `x-opencode-session`](https://github.com/zai-org/feedback/issues/492) remains open, but it is no longer necessary to send that specific header.                                   |
-| **Pi**            | Current builds send session information for OpenCode. Update older installations.                                                                                                                                                           |
+| **Pi**            | Current builds send session information for Bolt. Update older installations.                                                                                                                                                           |
 | **jcode**         | Update to **v0.81.6 or later**, which includes the [session-header fix](https://github.com/1jehuang/jcode/issues/1167).                                                                                                                     |
-| **Kilo Code CLI** | Builds containing [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) restore OpenCode session headers. This fix covers the CLI, not the VS Code extension. See [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
+| **Kilo Code CLI** | Builds containing [PR #13752](https://github.com/Kilo-Org/kilocode/pull/13752) restore Bolt session headers. This fix covers the CLI, not the VS Code extension. See [issue #13723](https://github.com/Kilo-Org/kilocode/issues/13723). |
 
 ### Known problematic clients
 
@@ -410,7 +410,7 @@ You can also access Go models through the following API endpoints.
 
 </div>
 
-These AI SDK packages are for applications calling Go directly. To use Go in OpenCode, connect with `/connect` and set
+These AI SDK packages are for applications calling Go directly. To use Go in Bolt, connect with `/connect` and set
 the [model](/models) using the format `opencode-go/<model-id>`:
 
 ```jsonc title="opencode.jsonc"
@@ -477,7 +477,7 @@ Open models have gotten really good. They now reach performance close to proprie
 
 However, getting reliable, low latency access to them can be difficult. Providers vary in quality and availability.
 
-<Callout type="tip">We tested a select group of models and providers that work well with OpenCode.</Callout>
+<Callout type="tip">We tested a select group of models and providers that work well with Bolt.</Callout>
 
 To fix this, we did a couple of things:
 
@@ -494,4 +494,4 @@ We created OpenCode Go to:
 1. Make AI coding **accessible** to more people with a low cost subscription.
 2. Provide **reliable** access to the best open coding models.
 3. Curate models that are **tested and benchmarked** for coding agent use.
-4. Have **no lock-in** by allowing you to use any other provider with OpenCode as well.
+4. Have **no lock-in** by allowing you to use any other provider with Bolt as well.

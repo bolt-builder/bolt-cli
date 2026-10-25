@@ -1,14 +1,14 @@
 import { createMemo, For, lazy, Show, Suspense, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Tabs } from "@opencode/ui/tabs"
-import { Icon } from "@opencode/ui/icon"
+import { Tabs } from "@bolt-ai/ui/tabs"
+import { Icon } from "@bolt-ai/ui/icon"
 import {
   Panel,
   type PanelSidebar,
   type PanelTab,
   type MountedSession,
   type SessionScreen,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import { useLanguage } from "@/runtime/i18n/language"
 import { useExtensionHost } from "./host"
 import { panelKey } from "./panel-keys"

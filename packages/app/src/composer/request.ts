@@ -1,4 +1,4 @@
-import { encodeFilePath, getFilename } from "@opencode/util/path"
+import { encodeFilePath, getFilename } from "@bolt-ai/util/path"
 import type { FileSelection } from "@/workspaces/files/model"
 import type {
   AgentPart,

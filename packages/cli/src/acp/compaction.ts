@@ -1,7 +1,7 @@
 import type { SessionUpdate } from "@agentclientprotocol/sdk"
-import type { OpenCodeEvent } from "@opencode/client/effect"
-import type { SessionError } from "@opencode/schema/session-error"
-import { SessionMessage } from "@opencode/schema/session-message"
+import type { OpenCodeEvent } from "@bolt-ai/client/effect"
+import type { SessionError } from "@bolt-ai/schema/session-error"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
 
 const MarkerMeta = "opencode/compaction"
 

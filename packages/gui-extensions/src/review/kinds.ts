@@ -1,4 +1,4 @@
-import type { FileDiffInfo } from "@opencode/client/promise"
+import type { FileDiffInfo } from "@bolt-ai/client/promise"
 import type { ChangeKind } from "./contract"
 
 export type RenderDiff = FileDiffInfo

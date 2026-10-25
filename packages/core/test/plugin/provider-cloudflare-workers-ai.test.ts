@@ -79,7 +79,7 @@ describe("CloudflareWorkersAIPlugin", () => {
     withEnv({ CLOUDFLARE_ACCOUNT_ID: "acct", CLOUDFLARE_API_KEY: "key" }, () =>
       Effect.gen(function* () {
         const catalog = yield* seed((provider) => {
-          provider.package = "@opencode/ai/providers/cloudflare-workers-ai"
+          provider.package = "@bolt-ai/ai/providers/cloudflare-workers-ai"
         })
         yield* addPlugin()
         const integrations = yield* Integration.Service
@@ -88,7 +88,7 @@ describe("CloudflareWorkersAIPlugin", () => {
           label: "API key",
         })
         expect(required(yield* catalog.get(providerID)).package).toBe(
-          "@opencode/ai/providers/cloudflare-workers-ai",
+          "@bolt-ai/ai/providers/cloudflare-workers-ai",
         )
       }),
     ),
@@ -98,7 +98,7 @@ describe("CloudflareWorkersAIPlugin", () => {
     withEnv({ CLOUDFLARE_ACCOUNT_ID: "acct" }, () =>
       Effect.gen(function* () {
         const catalog = yield* seed((provider) => {
-          provider.package = "@opencode/ai/providers/cloudflare-workers-ai"
+          provider.package = "@bolt-ai/ai/providers/cloudflare-workers-ai"
         })
         yield* addPlugin()
         expect(required(yield* catalog.get(providerID)).settings).toEqual({ accountId: "acct" })

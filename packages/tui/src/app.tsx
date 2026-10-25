@@ -1,10 +1,12 @@
-import { render, TimeToFirstDraw, useRenderer, useTerminalDimensions } from "@opentui/solid"
-import { registerBoltSpinner } from "./component/register-spinner"
-import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
-import { Deferred, Effect } from "effect"
-import { Global } from "@bolt-ai/core/global"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { InstallationVersion } from "@bolt-ai/core/installation/version"
+import { existsSync } from "fs"
+import path from "path"
+import { render, useRenderer, useTerminalDimensions } from "@opentui/solid"
+import "./component/spinner-renderable"
+import { Effect, Latch } from "effect"
+import { Service, type Endpoint } from "@bolt-ai/client/effect/service"
+import { OpenCode, type SessionInfo } from "@bolt-ai/client"
+import { Global } from "@bolt-ai/util/global"
+import { noTimeoutFetch } from "@bolt-ai/util/no-timeout-fetch"
 import { ClipboardProvider, useClipboard } from "./context/clipboard"
 import { LogProvider, type LogSink } from "./context/log"
 import { ExitProvider, useExit } from "./context/exit"
@@ -52,12 +54,12 @@ import { EditorContextProvider } from "./context/editor"
 import { useEvent } from "./context/event"
 import { ClientProvider, useClient } from "./context/client"
 import { StartupLoading } from "./component/startup-loading"
-import { SyncProvider, useSync } from "./context/sync"
-import { DataProvider } from "./context/data"
-import { LocationProvider } from "./context/location"
-import { NudgeProvider } from "./context/nudge"
-import { SpeakProvider } from "./context/speak"
-import { speak } from "./speak"
+import { DevToolsBar } from "./component/devtools-bar"
+import { Reconnecting } from "./component/reconnecting"
+import { MigrationOverlay } from "./component/migration-overlay"
+import { DataProvider, useData } from "./context/data"
+import { SessionTabsProvider, useSessionTabs } from "./context/session-tabs"
+import { LocationProvider, useLocation } from "./context/location"
 import { LocalProvider, useLocal } from "./context/local"
 import { PermissionProvider } from "./context/permission"
 import { DialogModel } from "./component/dialog-model"
@@ -87,10 +89,10 @@ import { PromptHistoryProvider } from "./prompt/history"
 import { FrecencyProvider } from "./prompt/frecency"
 import { PromptStashProvider } from "./prompt/stash"
 import { Toast, ToastProvider, useToast } from "./ui/toast"
-import { isFallbackTitle } from "@opencode/util/session-title-fallback"
+import { isFallbackTitle } from "@bolt-ai/util/session-title-fallback"
 import * as Model from "./util/model"
 import { ArgsProvider, useArgs, type Args } from "./context/args"
-import { openUrl } from "@bolt-ai/core/open"
+import { openUrl } from "@bolt-ai/util/open"
 import { PromptRefProvider, usePromptRef } from "./context/prompt"
 import { Config, ConfigProvider, useConfig } from "./config"
 import { newSessionLocation } from "./config/new-session-location"
@@ -99,21 +101,10 @@ import { PluginProvider, usePlugin, type PackageSource } from "./plugin/context"
 import { localPluginDirectories } from "./plugin/discovery"
 import { PluginRoute, Slot } from "./plugin/render"
 import { CommandPaletteDialog } from "./component/command-palette"
-import {
-  COMMAND_PALETTE_COMMAND,
-  BOLT_BASE_MODE,
-  BoltKeymapProvider,
-  registerBoltKeymap,
-  useBindings,
-  useBoltKeymap,
-} from "./keymap"
+import { COMMAND_PALETTE_COMMAND, Keymap, type KeymapCommand } from "./context/keymap"
 
 import { DialogVariant } from "./component/dialog-variant"
-import { createTuiAttention } from "./attention"
-import { voice } from "./voice"
-import * as TuiAudio from "./audio"
-import { win32DisableProcessedInput, win32FlushInputBuffer } from "./terminal-win32"
-import { destroyRenderer } from "./util/renderer"
+import { destroyRenderer, setTerminalTitle } from "./util/renderer"
 import { cliErrorMessage, errorFormat } from "./util/error"
 import { AttentionProvider } from "./context/attention"
 import { StorageProvider, useStorage } from "./context/storage"
@@ -123,7 +114,7 @@ import { PanelProvider, usePanel } from "./context/panel"
 import { SessionFrame } from "./component/session-frame"
 import { createTuiClipboard } from "./clipboard"
 
-registerBoltSpinner()
+const appGlobalBindingCommands = ["session.list", "session.new", "open.menu"] as const
 
 const sessionTabBindingCommands = [
   "session.tab.next",
@@ -171,9 +162,13 @@ const appBindingCommands = [
   "variant.cycle",
   "variant.list",
   "provider.connect",
-  "console.org.switch",
-  "bolt.status",
-  "bolt.debug",
+  "opencode.settings",
+  "opencode.status",
+  "opencode.update",
+  "server.pair",
+  "service.restart",
+  "location.reload",
+  "opencode.debug",
   "theme.switch",
   "theme.switch_mode",
   "theme.mode.lock",
@@ -184,13 +179,10 @@ const appBindingCommands = [
   "app.console",
   "terminal.suspend",
   "terminal.title.toggle",
-  "app.toggle.fire",
   "app.toggle.animations",
   "app.toggle.file_context",
   "app.toggle.diffwrap",
   "app.toggle.paste_summary",
-  "app.toggle.session_directory_filter",
-  "voice.toggle",
 ] as const
 
 export type TuiInput = {
@@ -256,26 +248,32 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
   }
   const result = yield* Effect.scoped(
     Effect.gen(function* () {
-      const renderer = yield* Effect.acquireRelease(
-        Effect.tryPromise({
-          try: () =>
-            createCliRenderer({
-              externalOutputMode: "passthrough",
-              targetFps: 60,
-              gatherStats: false,
-              exitOnCtrlC: false,
-              useKittyKeyboard: {},
-              autoFocus: false,
-              openConsoleOnError: false,
-              useMouse: !Flag.BOLT_DISABLE_MOUSE && input.config.mouse,
-              consoleOptions: {
-                keyBindings: [{ name: "y", ctrl: true, action: "copy-selection" }],
-              },
+      const options = {
+        externalOutputMode: "passthrough",
+        targetFps: 60,
+        gatherStats: false,
+        exitOnCtrlC: false,
+        useKittyKeyboard: {},
+        autoFocus: false,
+        openConsoleOnError: false,
+        useMouse: config.mouse,
+        consoleOptions: {
+          keyBindings: [{ name: "y", ctrl: true, action: "copy-selection" }],
+        },
+      } satisfies CliRendererConfig
+      const renderer = yield* Effect.gen(function* () {
+        if (handoff) {
+          handoff.renderer.useMouse = options.useMouse
+          return yield* Effect.acquireRelease(Effect.succeed(handoff.renderer), (renderer) =>
+            Effect.promise(async () => {
+              destroyRenderer(renderer)
+              // closed rejects when the terminal is gone or the final flush times out; nothing is left to restore.
+              await renderer.closed.catch(() => {})
             }),
           )
         }
         if (process.env.OPENCODE_DRIVE) {
-          const { Drive } = yield* Effect.promise(() => import("@opencode/simulation/frontend"))
+          const { Drive } = yield* Effect.promise(() => import("@bolt-ai/simulation/frontend"))
           return yield* Drive.create(options, input.app.version)
         }
         return yield* Effect.acquireRelease(
@@ -298,12 +296,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
             Effect.catch((error) => Effect.sync(() => log("error", "Failed to dispose TUI clipboard", { error }))),
           ),
       )
-      win32DisableProcessedInput()
-      const keymap = createDefaultOpenTuiKeymap(renderer)
-      yield* Effect.acquireRelease(
-        Effect.sync(() => registerBoltKeymap(keymap, renderer, input.config)),
-        (unregister) => Effect.sync(unregister),
-      )
+      const finalizers = new Set<() => Promise<void>>()
       yield* Effect.addFinalizer(() =>
         Effect.promise(async () => {
           const results = await Promise.allSettled([...finalizers].reverse().map((finalizer) => finalizer()))
@@ -349,83 +342,133 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                     >
                       <TuiPathsProvider
                         value={{
-                          initialRoute: process.env.BOLT_ROUTE ? JSON.parse(process.env.BOLT_ROUTE) : undefined,
-                          skipInitialLoading: Boolean(process.env.BOLT_FAST_BOOT),
+                          cwd: process.cwd(),
+                          home: global.home,
+                          state: global.state,
+                          worktree: global.data + "/worktree",
                         }}
                       >
-                        <ClipboardProvider>
-                          <BoltKeymapProvider keymap={keymap}>
-                            <ArgsProvider {...input.args}>
-                              <KVProvider>
-                                <ToastProvider>
-                                  <RouteProvider
-                                    initialRoute={
-                                      input.args.continue
-                                        ? {
-                                            type: "session",
-                                            sessionID: "dummy",
-                                          }
-                                        : undefined
-                                    }
-                                  >
-                                    <TuiConfigProvider config={input.config}>
-                                      <PluginRuntimeProvider value={pluginRuntime}>
-                                        <SDKProvider
-                                          url={input.url}
-                                          directory={input.directory}
-                                          fetch={input.fetch}
-                                          headers={input.headers}
-                                          events={input.events}
-                                        >
-                                          <PermissionProvider>
-                                            <ProjectProvider>
-                                              <SyncProvider>
-                                                <DataProvider>
-                                                  <ThemeProvider mode={mode}>
-                                                    <LocalProvider>
-                                                      <PromptStashProvider>
-                                                        <DialogProvider>
-                                                          <NudgeProvider>
-                                                            <SpeakProvider>
-                                                              <FrecencyProvider>
-                                                                <PromptHistoryProvider>
-                                                                  <PromptRefProvider>
-                                                                    <EditorContextProvider>
-                                                                      <LocationProvider>
-                                                                        <App
-                                                                          onSnapshot={input.onSnapshot}
-                                                                          pluginHost={input.pluginHost}
-                                                                        />
-                                                                      </LocationProvider>
-                                                                    </EditorContextProvider>
-                                                                  </PromptRefProvider>
-                                                                </PromptHistoryProvider>
-                                                              </FrecencyProvider>
-                                                            </SpeakProvider>
-                                                          </NudgeProvider>
-                                                        </DialogProvider>
-                                                      </PromptStashProvider>
-                                                    </LocalProvider>
-                                                  </ThemeProvider>
+                        <StorageProvider>
+                          <TuiLifecycleProvider
+                            value={{
+                              add(finalizer) {
+                                finalizers.add(finalizer)
+                                return () => finalizers.delete(finalizer)
+                              },
+                            }}
+                          >
+                            <TuiTerminalEnvironmentProvider
+                              value={{
+                                platform: process.platform,
+                                variables: input.environment,
+                              }}
+                            >
+                              <TuiStartupProvider
+                                value={{
+                                  initialRoute: process.env.OPENCODE_STORY
+                                    ? {
+                                        type: "plugin",
+                                        id: "opencode.storybook",
+                                        name: "storybook",
+                                        // OPENCODE_STORY=1 opens the index; any other value opens that story.
+                                        data:
+                                          process.env.OPENCODE_STORY === "1"
+                                            ? undefined
+                                            : { story: process.env.OPENCODE_STORY },
+                                      }
+                                    : process.env.OPENCODE_ROUTE
+                                      ? JSON.parse(process.env.OPENCODE_ROUTE)
+                                      : undefined,
+                                  skipInitialLoading: Boolean(process.env.OPENCODE_FAST_BOOT),
+                                }}
+                              >
+                                <ClipboardProvider value={clipboard}>
+                                  <ArgsProvider {...input.args}>
+                                    <ConfigProvider
+                                      config={config}
+                                      service={input.config}
+                                      options={{ terminalSuspend: process.platform !== "win32" }}
+                                    >
+                                      <Keymap.Provider>
+                                        <ToastProvider>
+                                          <RouteProvider
+                                            initialRoute={
+                                              input.args.continue
+                                                ? {
+                                                    type: "session",
+                                                    sessionID: "dummy",
+                                                  }
+                                                : undefined
+                                            }
+                                          >
+                                            <ClientProvider
+                                              api={api}
+                                              url={input.server.endpoint.url}
+                                              headers={headers}
+                                              service={service}
+                                            >
+                                              <PermissionProvider>
+                                                <DataProvider directory={directory}>
+                                                  <LocationProvider>
+                                                    <SessionTabsProvider>
+                                                      <SessionTerminalsProvider>
+                                                        <ThemeProvider
+                                                          mode={mode}
+                                                          source={createThemeSource(global.config)}
+                                                        >
+                                                          <ThemeErrorToast />
+                                                          <ClientMcp />
+                                                          <LocalProvider>
+                                                            <PromptStashProvider>
+                                                              <DialogProvider>
+                                                                <FrecencyProvider>
+                                                                  <PromptHistoryProvider>
+                                                                    <PromptRefProvider>
+                                                                      <EditorContextProvider>
+                                                                        <AttentionProvider>
+                                                                          <UpdateNotificationProvider
+                                                                            updater={input.updater}
+                                                                          >
+                                                                            <PanelProvider>
+                                                                              <PluginProvider
+                                                                                packages={input.packages}
+                                                                                directories={pluginDirectories}
+                                                                              >
+                                                                                <App />
+                                                                              </PluginProvider>
+                                                                            </PanelProvider>
+                                                                          </UpdateNotificationProvider>
+                                                                        </AttentionProvider>
+                                                                      </EditorContextProvider>
+                                                                    </PromptRefProvider>
+                                                                  </PromptHistoryProvider>
+                                                                </FrecencyProvider>
+                                                              </DialogProvider>
+                                                            </PromptStashProvider>
+                                                          </LocalProvider>
+                                                        </ThemeProvider>
+                                                      </SessionTerminalsProvider>
+                                                    </SessionTabsProvider>
+                                                  </LocationProvider>
                                                 </DataProvider>
-                                              </SyncProvider>
-                                            </ProjectProvider>
-                                          </PermissionProvider>
-                                        </SDKProvider>
-                                      </PluginRuntimeProvider>
-                                    </TuiConfigProvider>
-                                  </RouteProvider>
-                                </ToastProvider>
-                              </KVProvider>
-                            </ArgsProvider>
-                          </BoltKeymapProvider>
-                        </ClipboardProvider>
-                      </TuiStartupProvider>
-                    </TuiTerminalEnvironmentProvider>
-                  </TuiPathsProvider>
-                </ErrorBoundary>
-              </EpilogueProvider>
-            </ExitProvider>
+                                              </PermissionProvider>
+                                            </ClientProvider>
+                                          </RouteProvider>
+                                        </ToastProvider>
+                                      </Keymap.Provider>
+                                    </ConfigProvider>
+                                  </ArgsProvider>
+                                </ClipboardProvider>
+                              </TuiStartupProvider>
+                            </TuiTerminalEnvironmentProvider>
+                          </TuiLifecycleProvider>
+                        </StorageProvider>
+                      </TuiPathsProvider>
+                    </ErrorBoundary>
+                  </TuiAppProvider>
+                </EpilogueProvider>
+              </ExitProvider>
+            </LogProvider>
           )
         }, renderer)
         if (handoff) {
@@ -455,17 +498,17 @@ function App() {
   const renderer = useRenderer()
   const dialog = useDialog()
   const local = useLocal()
-  const kv = useKV()
-  const keymap = useBoltKeymap()
+  const sessionTabs = useSessionTabs()
+  const panels = usePanel()
+  const keymap = Keymap.use()
   const event = useEvent()
   const client = useClient()
   const toast = useToast()
-  const themeState = useTheme()
-  const { theme, mode, setMode, locked, lock, unlock } = themeState
-  // Agent to restore when /plan toggles plan mode back off.
-  let prior: string | undefined
-  const sync = useSync()
-  const project = useProject()
+  const updater = useUpdateNotification()
+  const theme = useTheme()
+  const { mode, supports, setMode, locked, lock, unlock, afterPaint } = useThemes()
+  const data = useData()
+  const location = useLocation()
   const exit = useExit()
   const promptRef = usePromptRef()
   const plugins = usePlugin()
@@ -545,8 +588,7 @@ function App() {
   const offSelectionKeys = keymap.intercept(
     "key",
     ({ event }) => {
-      if (!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
-      Selection.handleSelectionKey(renderer, toast, event, clipboard)
+      Selection.handleSelectionKey(renderer, toast, event, clipboard, copyOnSelectEnabled())
     },
     { priority: 101 },
   )
@@ -592,17 +634,19 @@ function App() {
   let active: { id: string; title?: string } | undefined
   // Update terminal window title based on current route and session
   createEffect(() => {
-    if (!terminalTitleEnabled() || Flag.BOLT_DISABLE_TERMINAL_TITLE) return
+    const session = route.data.type === "session" ? data.session.get(route.data.sessionID) : undefined
+    if (session) active = { id: session.id, title: session.title }
+    if (!terminalTitleEnabled()) return
 
     if (route.data.type === "home") {
-      renderer.setTerminalTitle("Bolt")
+      setTerminalTitle(renderer, "Bolt")
       return
     }
 
     if (route.data.type === "session") {
-      const session = sync.session.get(route.data.sessionID)
-      if (!session || isDefaultTitle(session.title)) {
-        renderer.setTerminalTitle("Bolt")
+      const title = session?.title
+      if (!title || isFallbackTitle(title)) {
+        setTerminalTitle(renderer, "Bolt")
         return
       }
 
@@ -752,60 +796,10 @@ function App() {
         },
       },
       {
-        name: "voice.toggle",
-        title: voice.status() === "recording" ? "Stop voice recording" : "Start voice recording",
+        name: "session.clear",
+        title: "Clear session",
         category: "Session",
-        slashName: "voice",
-        run: async () => {
-          dialog.clear()
-          if (voice.status() === "transcribing") return
-          if (voice.status() === "idle") {
-            const error = voice.start()
-            if (error) toast.show({ message: error, variant: "warning" })
-            return
-          }
-          const stopped = await voice.stop()
-          if (!stopped.audio) {
-            toast.show({ message: stopped.error ?? "No audio captured", variant: "warning" })
-            return
-          }
-          const result = await sdk.client.voice
-            .transcribe({ voiceTranscribeInput: { audio: stopped.audio, mime: "audio/wav" } })
-            .catch(() => undefined)
-          voice.reset()
-          if (!result || result.error) {
-            toast.show({ message: result?.error?.message ?? "Transcription failed", variant: "error" })
-            return
-          }
-          const text = result.data?.text.trim()
-          if (!text) {
-            toast.show({ message: "Transcription was empty", variant: "warning" })
-            return
-          }
-          promptRef.current?.insert?.(text)
-        },
-      },
-      {
-        name: "workspace.copy_path",
-        title: "Copy worktree path",
-        category: "Workspace",
-        enabled: () => currentWorktreeWorkspace() !== undefined,
-        run: async () => {
-          const workspace = currentWorktreeWorkspace()
-          if (!workspace?.directory) return
-          await clipboard
-            .write?.(workspace.directory)
-            .then(() => toast.show({ message: "Copied worktree path", variant: "info" }))
-            .catch(toast.error)
-          dialog.clear()
-        },
-      },
-      {
-        name: "workspace.list",
-        title: "Manage workspaces",
-        category: "Workspace",
-        hidden: !Flag.BOLT_EXPERIMENTAL_WORKSPACES,
-        slashName: "workspaces",
+        slash: { name: "clear" },
         run: () => {
           const model = local.model.current()
           const agent = local.agent.current()
@@ -959,29 +953,8 @@ function App() {
         },
       },
       {
-        name: "agent.plan",
-        title: "Toggle plan mode",
-        category: "Agent",
-        slashName: "plan",
-        run: () => {
-          const current = local.agent.current()?.name
-          if (current === "plan") {
-            local.agent.set(prior ?? "build")
-            toast.show({ variant: "info", message: `Plan mode off, back to ${prior ?? "build"}`, duration: 3000 })
-            return
-          }
-          prior = current
-          local.agent.set("plan")
-          toast.show({
-            variant: "info",
-            message: "Plan mode on, the agent will propose before changing files",
-            duration: 3000,
-          })
-        },
-      },
-      {
-        name: "mcp.list",
-        title: "Toggle MCPs",
+        name: "usage.show",
+        title: "View usage",
         category: "Agent",
         slash: { name: "usage" },
         run: () => {
@@ -1066,7 +1039,17 @@ function App() {
           ]
         : []),
       {
-        name: "bolt.status",
+        name: "opencode.settings",
+        title: "Open settings",
+        suggested: true,
+        slash: { name: "settings" },
+        run: () => {
+          dialog.replace(() => <DialogConfig />)
+        },
+        category: "System",
+      },
+      {
+        name: "opencode.status",
         title: "View status",
         slash: { name: "status" },
         run: () => {
@@ -1078,7 +1061,7 @@ function App() {
         ? [
             {
               name: "opencode.update",
-              title: "Update OpenCode",
+              title: "Update Bolt",
               slash: { name: "update" },
               run: () => updater.open?.("manual"),
               category: "System",
@@ -1132,7 +1115,7 @@ function App() {
         category: "System",
       },
       {
-        name: "bolt.debug",
+        name: "opencode.debug",
         title: "View debug info",
         slash: { name: "debug" },
         run: () => {
@@ -1184,7 +1167,8 @@ function App() {
         name: "docs.open",
         title: "Open docs",
         run: () => {
-          openUrl("https://bolt.ai/docs").catch(() => {})          dialog.clear()
+          openUrl("https://opencode.ai/v2/docs").catch(() => {})
+          dialog.clear()
         },
         category: "System",
       },
@@ -1239,35 +1223,6 @@ function App() {
               draft.terminal = { ...draft.terminal, title: next }
             })
             .catch(toast.error)
-          dialog.clear()
-        },
-      },
-      {
-        name: "app.toggle.fire",
-        title: kv.get("fire_animation_enabled", true) ? "Disable fire animation" : "Enable fire animation",
-        category: "System",
-        run: () => {
-          kv.set("fire_animation_enabled", !kv.get("fire_animation_enabled", true))
-          dialog.clear()
-        },
-      },
-      {
-        name: "app.toggle.speak",
-        title: kv.get("speak_answers_enabled", false) ? "Disable spoken answers" : "Enable spoken answers",
-        category: "System",
-        run: () => {
-          const next = !kv.get("speak_answers_enabled", false)
-          if (next && !speak.available()) {
-            toast.show({
-              variant: "error",
-              message:
-                "No speech engine found. Install espeak-ng, piper+aplay, or speech-dispatcher (macOS and Windows work out of the box).",
-            })
-            dialog.clear()
-            return
-          }
-          kv.set("speak_answers_enabled", next)
-          if (!next) speak.stop()
           dialog.clear()
         },
       },
@@ -1330,34 +1285,16 @@ function App() {
           dialog.clear()
         },
       },
-      {
-        name: "app.toggle.session_directory_filter",
-        title: kv.get("session_directory_filter_enabled", true)
-          ? "Disable session directory filtering"
-          : "Enable session directory filtering",
-        category: "System",
-        run: async () => {
-          kv.set("session_directory_filter_enabled", !kv.get("session_directory_filter_enabled", true))
-          await sync.session.refresh()
-          dialog.clear()
-        },
-      },
-      {
-        name: "permission.mode",
-        title:
-          local.permission.mode === "auto" ? "Disable auto-approve permissions" : "Enable auto-approve permissions",
-        category: "System",
-        slashName: "auto-approve",
-        slashAliases: ["autoapprove", "approve-all", "approveall", "yolo"],
-        run: () => {
-          local.permission.toggle()
-          dialog.clear()
-        },
-      },
-    ].map((command) => ({
-      namespace: "palette",
-      ...command,
-    })),
+    ].map(
+      ({ name, category, ...command }) =>
+        ({
+          id: name,
+          group: category,
+          bind: false,
+          palette: true as const,
+          ...command,
+        }) satisfies KeymapCommand,
+    ),
   )
 
   Keymap.createLayer(() => ({
@@ -1365,9 +1302,8 @@ function App() {
     commands: appCommands(),
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
-    bindings: tuiConfig.keybinds.gather("app", appBindingCommands),
+  Keymap.createLayer(() => ({
+    bindings: appBindingCommands,
   }))
 
   Keymap.createLayer(() => ({
@@ -1375,8 +1311,19 @@ function App() {
     bindings: appGlobalBindingCommands,
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
+    mode: "global",
+    enabled: sessionTabs.enabled,
+    bindings: sessionTabBindingCommands,
+  }))
+
+  Keymap.createLayer(() => ({
+    mode: "global",
+    enabled: () => !sessionTabs.enabled(),
+    bindings: pinnedSessionBindingCommands,
+  }))
+
+  Keymap.createLayer(() => ({
     enabled: () => {
       const current = promptRef.current
       if (!current?.focused) return true
@@ -1440,34 +1387,13 @@ function App() {
       setShowReconnecting(false)
       return
     }
-
-    if (choice !== true) return
-
-    toast.show({
-      variant: "info",
-      message: `Updating to v${version}…`,
-      duration: 30000,
-    })
-
-    const result = await sdk.client.global.upgrade({ target: version })
-
-    if (result.error || !result.data?.success) {
-      toast.show({
-        variant: "error",
-        title: "Update Failed",
-        message: "Update failed",
-        duration: 10000,
-      })
-      return
-    }
-
-    await DialogAlert.show(
-      dialog,
-      "Update Complete",
-      `Successfully updated to Bolt v${result.data.version}. Please restart the application.`,
-    )
-
-    void exit()
+    reconnectTimer = setTimeout(
+      () => {
+        reconnectTimer = undefined
+        setShowReconnecting(true)
+      },
+      status === "reconnecting" ? 1000 : 5000,
+    ).unref()
   })
   onCleanup(() => {
     if (reconnectTimer) clearTimeout(reconnectTimer)
@@ -1480,29 +1406,36 @@ function App() {
       flexDirection="column"
       backgroundColor={theme.background.base}
       onMouseDown={(evt) => {
-        if (!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+        if (copyOnSelectEnabled()) return
         if (evt.button !== MouseButton.RIGHT) return
 
         if (!Selection.copy(renderer, toast, clipboard)) return
         evt.preventDefault()
         evt.stopPropagation()
       }}
-      onMouseUp={
-        !Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? () => Selection.copy(renderer, toast, clipboard) : undefined
-      }
+      onMouseUp={(event) => {
+        const url = clickedLink(renderer, event)
+        if (url) return void openUrl(url).catch(toast.error)
+        if (copyOnSelectEnabled()) Selection.copyOnSelectRelease(event, renderer, toast, clipboard)
+      }}
     >
-      <Show when={Flag.BOLT_SHOW_TTFD}>
-        <TimeToFirstDraw />
-      </Show>
-      <Show when={ready()}>
-        <box flexGrow={1} minHeight={0} flexDirection="column">
-          <Switch>
-            <Match when={route.data.type === "home"}>
-              <Home />
-            </Match>
-            <Match when={route.data.type === "session"}>
-              <Show when={route.data.type === "session" ? route.data.sessionID : undefined} keyed>
-                {(_) => <Session />}
+      <box
+        flexGrow={1}
+        minHeight={0}
+        flexDirection="row"
+        position="relative"
+        onMouseDrag={tabsResize.onMouseDrag}
+        onMouseDragEnd={tabsResize.onMouseDragEnd}
+        onMouseUp={tabsResize.onMouseUp}
+      >
+        <Show when={verticalTabsVisible()}>
+          <SessionTabs orientation="vertical" width={tabsResize.size()} />
+        </Show>
+        <box flexGrow={1} minWidth={0} flexDirection="column">
+          <Show when={plugins.ready()}>
+            <box flexGrow={1} minHeight={0} flexDirection="column">
+              <Show when={tabsVisible() && !tabsVertical()}>
+                <SessionTabs />
               </Show>
               <Switch>
                 <Match when={route.data.type === "home"}>

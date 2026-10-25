@@ -15,10 +15,10 @@ import { useCommand } from "@/shell/commands/command"
 import { useTabs } from "@/shell/tabs/tabs"
 import { useSessionTabAvatarState } from "@/shell/layout/project-avatar-state"
 import { createTabComposerState } from "@/composer/persistence"
-import { base64Encode } from "@opencode/util/encode"
+import { base64Encode } from "@bolt-ai/util/encode"
 import { showToast } from "@/shell/notifications/toast"
 import { adjacentTabKey, mergeVisibleTabOrder } from "./tab-order"
-import type { SessionInfo } from "@opencode/client/promise"
+import type { SessionInfo } from "@bolt-ai/client/promise"
 
 function SessionTabSlot(props: {
   tab: SessionTab

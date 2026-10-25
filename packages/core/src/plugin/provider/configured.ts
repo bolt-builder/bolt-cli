@@ -1,5 +1,5 @@
 import { Effect, Option } from "effect"
-import type { Document, Entry } from "@opencode/schema/config"
+import type { Document, Entry } from "@bolt-ai/schema/config"
 import { Config } from "../../config.js"
 import { Provider } from "../../provider.js"
 

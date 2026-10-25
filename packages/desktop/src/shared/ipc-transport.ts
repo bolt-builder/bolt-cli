@@ -1,4 +1,4 @@
-import type { EnableState } from "@opencode/gui-extensions/sdk/bridge"
+import type { EnableState } from "@bolt-ai/gui-extensions/sdk/bridge"
 
 export const IpcTransportPort = "desktop-rpc-port"
 

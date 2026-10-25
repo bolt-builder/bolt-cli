@@ -18,7 +18,7 @@ description: Prepare release notes, version bumps, and GitHub releases
 4. Run `scripts/changelog.ts` only after the user approves the version.
 ```
 
-OpenCode advertises this skill when it is relevant. The agent can then load its instructions with the `skill` tool instead of adding every skill to every prompt.
+Bolt advertises this skill when it is relevant. The agent can then load its instructions with the `skill` tool instead of adding every skill to every prompt.
 
 ## Create
 
@@ -38,7 +38,7 @@ Paths written inside the skill are relative to the directory containing `SKILL.m
 
 ## Discovery
 
-OpenCode automatically searches these locations:
+Bolt automatically searches these locations:
 
 | Scope                 | Sources                                |
 | --------------------- | -------------------------------------- |
@@ -47,7 +47,7 @@ OpenCode automatically searches these locations:
 | Project               | `.opencode/skills`                     |
 | Project compatibility | `.claude/skills`, `.agents/skills`     |
 
-For project sources, OpenCode searches from the current directory up to the project root and includes matching directories at every level.
+For project sources, Bolt searches from the current directory up to the project root and includes matching directories at every level.
 
 Each source can contain either form:
 
@@ -60,7 +60,7 @@ skills/
 
 - Markdown files must be at the source root, such as `skills/review.md`.
 - Files named exactly `SKILL.md` can be nested in grouping directories, such as `skills/git-release/SKILL.md` or `skills/teams/release/SKILL.md`.
-- A directory containing `SKILL.md` is one skill. OpenCode does not search inside it for more skills.
+- A directory containing `SKILL.md` is one skill. Bolt does not search inside it for more skills.
 - Hidden files and directories and `node_modules` are skipped.
 - Search stops six directories below the source root.
 
@@ -82,7 +82,7 @@ Add more local directories or HTTP catalogs with the `skills` array in any `open
 
 | Value | Resolution |
 | ----- | ---------- |
-| Relative path | From the active OpenCode working directory, not the config file |
+| Relative path | From the active Bolt working directory, not the config file |
 | `~/` path | From the current user's home directory |
 | Absolute path | Used as written |
 | `http://` or `https://` URL | Loaded as an HTTP catalog |
@@ -105,13 +105,13 @@ An HTTP catalog is a base URL with an `index.json` file:
 }
 ```
 
-For that entry, OpenCode downloads each file from `<base-url>/git-release/<file>`.
+For that entry, Bolt downloads each file from `<base-url>/git-release/<file>`.
 
 | Rule | Requirement |
 | ---- | ----------- |
 | Paths | Must be safe, relative, and same-origin |
 | Entry file | Include `SKILL.md` or `<name>.md`, such as `git-release.md` |
-| Updates | Increment `version` when files change so OpenCode refreshes its cache |
+| Updates | Increment `version` when files change so Bolt refreshes its cache |
 
 Each downloaded skill directory becomes a source root named after the entry, so both `git-release.md` and `SKILL.md` have the ID `git-release`.
 
@@ -161,7 +161,7 @@ V2 currently does not enforce this pattern, the 1–64 character recommendation,
 
 ## Precedence
 
-Skills are selected by ID. If two sources define `git-release`, the source registered later supplies the skill that OpenCode loads:
+Skills are selected by ID. If two sources define `git-release`, the source registered later supplies the skill that Bolt loads:
 
 ```text
 ~/.config/opencode/skills/git-release/SKILL.md  ← lower precedence
@@ -181,7 +181,7 @@ Avoid duplicate IDs unless you intend to override an earlier skill.
 
 ## Loading
 
-At each model step, OpenCode lists permitted skills that have a description and do not set `opencode/autoinvoke` to `false`. The list includes only the ID, name, and description, not the full Markdown body.
+At each model step, Bolt lists permitted skills that have a description and do not set `opencode/autoinvoke` to `false`. The list includes only the ID, name, and description, not the full Markdown body.
 
 The model loads a skill by calling the `skill` tool with its exact ID:
 
@@ -191,7 +191,7 @@ The model loads a skill by calling the `skill` tool with its exact ID:
 }
 ```
 
-OpenCode then:
+Bolt then:
 
 1. Selects the current definition for that ID.
 2. Checks the selected agent's `skill` permission.

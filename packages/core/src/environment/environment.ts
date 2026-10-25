@@ -1,5 +1,5 @@
-import { CrossSpawnSpawner } from "@opencode/util/cross-spawn-spawner"
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { CrossSpawnSpawner } from "@bolt-ai/util/cross-spawn-spawner"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer } from "effect"
 import { ChildProcessSpawner } from "effect/process/ChildProcessSpawner"
 import type { Files } from "./files.js"
@@ -13,7 +13,7 @@ export interface Interface {
   readonly spawner: ChildProcessSpawner["Service"]
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Environment") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Environment") {}
 
 const layer = Layer.effect(
   Service,

@@ -1,8 +1,8 @@
-import type { OpenCodeClient, OpenCodeEvent } from "@opencode/client/effect"
-import type { Agent } from "@opencode/schema/agent"
-import type { Command } from "@opencode/schema/command"
-import type { Model } from "@opencode/schema/model"
-import { FSUtil } from "@opencode/util/fs-util"
+import type { OpenCodeClient, OpenCodeEvent } from "@bolt-ai/client/effect"
+import type { Agent } from "@bolt-ai/schema/agent"
+import type { Command } from "@bolt-ai/schema/command"
+import type { Model } from "@bolt-ai/schema/model"
+import { FSUtil } from "@bolt-ai/util/fs-util"
 import { Cause, Deferred, Effect, Exit, Schedule, Semaphore, Stream, SubscriptionRef } from "effect"
 import { ACPError } from "./error"
 

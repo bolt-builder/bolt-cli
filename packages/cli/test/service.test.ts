@@ -1,8 +1,8 @@
 import { NodeFileSystem } from "@effect/platform-node"
 import { validateRoutes } from "@opentunnel/client/effect"
-import { Service, type Info } from "@opencode/client/effect/service"
-import { Global } from "@opencode/util/global"
-import { OPENCODE_VERSION } from "../src/version"
+import { Service, type Info } from "@bolt-ai/client/effect/service"
+import { Global } from "@bolt-ai/util/global"
+import { BOLT_VERSION } from "../src/version"
 import { expect, test } from "bun:test"
 import { Deferred, Effect, FileSystem, Schedule, Schema } from "effect"
 import { NetAddress } from "effect/net"
@@ -10,8 +10,8 @@ import { TestClock } from "effect/testing"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { LayerNode } from "@opencode/util/effect/layer-node"
-import { AppProcess } from "@opencode/util/process"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { AppProcess } from "@bolt-ai/util/process"
 import { PortOwner } from "../src/services/port-owner"
 import { ServiceConfig } from "../src/services/service-config"
 import { ServiceRegistration } from "../src/services/service-registration"
@@ -551,7 +551,7 @@ test("the original managed service contender binds when the occupied port is rel
     registration,
     JSON.stringify({
       id: "stale",
-      version: OPENCODE_VERSION,
+      version: BOLT_VERSION,
       url: "http://127.0.0.1:1",
       pid: 2_147_483_647,
       password: "stale",
@@ -586,7 +586,7 @@ test("the original managed service contender binds when the occupied port is rel
       await fetch(new URL("/api/info", endpoint.url), { headers: Service.headers(endpoint) }).then((response) =>
         response.json(),
       ),
-    ).toMatchObject({ pid: contender.pid, version: OPENCODE_VERSION, urls: [endpoint.url] })
+    ).toMatchObject({ pid: contender.pid, version: BOLT_VERSION, urls: [endpoint.url] })
     expect(contender.exitCode).toBe(null)
     await Effect.runPromise(Service.stop({ file: registration }).pipe(Effect.provide(NodeFileSystem.layer)))
     expect(await waitForExit(contender)).toBe(true)
@@ -621,7 +621,7 @@ test("unresponsive managed port occupancy reports a bounded conflict", async () 
   )
   const stale = {
     id: "stale",
-    version: OPENCODE_VERSION,
+    version: BOLT_VERSION,
     url: "http://127.0.0.1:1",
     pid: process.pid,
     password: "stale",
@@ -672,7 +672,7 @@ test("port contender recognizes an incumbent registered during the bind race", a
       requests.count += 1
       if (requests.count === 2) recognizing.resolve()
       return Response.json(
-        { version: OPENCODE_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } },
+        { version: BOLT_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } },
         { status: 503 },
       )
     },
@@ -686,7 +686,7 @@ test("port contender recognizes an incumbent registered during the bind race", a
     registration,
     JSON.stringify({
       id: "stale",
-      version: OPENCODE_VERSION,
+      version: BOLT_VERSION,
       url: "http://127.0.0.1:1",
       pid: 2_147_483_647,
       password: "stale",
@@ -703,7 +703,7 @@ test("port contender recognizes an incumbent registered during the bind race", a
     await Bun.sleep(8_000)
     const info = {
       id: "incumbent",
-      version: OPENCODE_VERSION,
+      version: BOLT_VERSION,
       url: `http://127.0.0.1:${listener.port}`,
       pid: process.pid,
       password: "incumbent",
@@ -739,7 +739,7 @@ test("service registration replaces a stale owner with the bound address", async
     )
     expect(await Bun.file(registration).json()).toEqual({
       id: "owner",
-      version: OPENCODE_VERSION,
+      version: BOLT_VERSION,
       url: "http://127.0.0.1:4321",
       pid: process.pid,
       password: "secret",

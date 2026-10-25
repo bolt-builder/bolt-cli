@@ -1,6 +1,6 @@
 export * as Integration from "./integration.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import {
   Cause,
   Clock,
@@ -137,7 +137,7 @@ export class AttemptNotFoundError extends Schema.TaggedError<AttemptNotFoundErro
 
 export type Error = CodeRequiredError | AuthorizationError | AttemptNotFoundError
 
-export { Event } from "@opencode/schema/integration"
+export { Event } from "@bolt-ai/schema/integration"
 
 export const Ref = Integration.Ref
 export type Ref = Integration.Ref

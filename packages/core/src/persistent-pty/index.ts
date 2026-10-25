@@ -2,12 +2,12 @@ export * as PersistentPty from "./index.js"
 
 import path from "node:path"
 import { Context, Effect, Layer, Schema } from "effect"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
-import { Added, Handoff, PersistentPty, ReadLines, Removed, type ReadResult } from "@opencode/schema/persistent-pty"
-import { Session } from "@opencode/schema/session"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { Added, Handoff, PersistentPty, ReadLines, Removed, type ReadResult } from "@bolt-ai/schema/persistent-pty"
+import { Session } from "@bolt-ai/schema/session"
 import { Bus } from "../bus.js"
-import { Pty } from "@opencode/schema/pty"
-import { Global } from "@opencode/util/global"
+import { Pty } from "@bolt-ai/schema/pty"
+import { Global } from "@bolt-ai/util/global"
 import { ShellSelect } from "../shell/select.js"
 import {
   makeDaemonTransport,
@@ -20,7 +20,7 @@ import {
 import { resolveBinary } from "#persistent-pty-binary"
 
 export type { Role, StreamEvent } from "./daemon.js"
-export { Handoff } from "@opencode/schema/persistent-pty"
+export { Handoff } from "@bolt-ai/schema/persistent-pty"
 export { available } from "#persistent-pty-binary"
 
 export const Options = Schema.Struct({
@@ -114,7 +114,7 @@ export interface Interface {
   ) => Effect.Effect<Attachment, NotFoundError | UnavailableError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/PersistentPty") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/PersistentPty") {}
 
 const makeLayer = (options: Options = {}) =>
   Layer.effect(

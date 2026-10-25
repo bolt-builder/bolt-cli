@@ -28,7 +28,7 @@ describe("public import boundaries", () => {
     expect(within(network.all, core)).toEqual([])
     expect(within(network.all, server)).toEqual([])
 
-    const promiseService = await bundleInputs("@opencode/client/service", "bun")
+    const promiseService = await bundleInputs("@bolt-ai/client/service", "bun")
 
     expect(within(promiseService.all, effect)).toEqual([])
     expect(within(promiseService.all, schema)).toEqual([])
@@ -36,13 +36,13 @@ describe("public import boundaries", () => {
     expect(within(promiseService.all, core)).toEqual([])
     expect(within(promiseService.all, server)).toEqual([])
 
-    const effectService = await bundleInputs("@opencode/client/effect/service", "bun")
+    const effectService = await bundleInputs("@bolt-ai/client/effect/service", "bun")
 
     expect(within(effectService.eager, effect).length).toBeGreaterThan(0)
     expect(within(effectService.all, core)).toEqual([])
     expect(within(effectService.all, server)).toEqual([])
 
-    const mcp = await bundleInputs("@opencode/client/mcp", "browser")
+    const mcp = await bundleInputs("@bolt-ai/client/mcp", "browser")
 
     // The MCP entrypoint is dependency-free: only the generated entry and mcp.ts itself.
     expect(mcp.all.filter((file) => !file.endsWith("index.ts"))).toEqual([resolve(directory, "src/mcp.ts")])

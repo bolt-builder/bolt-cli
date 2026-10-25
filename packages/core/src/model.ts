@@ -45,7 +45,7 @@ export type RuntimeInfo = Omit<Info, "settings"> & { readonly settings?: Provide
 
 export type MutableInfo = DeepMutable<Info>
 
-export { Event } from "@opencode/schema/model"
+export { Event } from "@bolt-ai/schema/model"
 
 export interface Editor {
   /** Includes disabled candidates so later transforms can re-enable them. */
@@ -72,7 +72,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly small: (providerID: Provider.ID) => Effect.Effect<Info | undefined>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Model") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Model") {}
 
 type Data = {
   models: Map<Provider.ID, ReadonlyMap<ID, Info>>
@@ -286,7 +286,7 @@ const layer = Layer.effect(
 
 export const node = makeLocationNode({ service: Service, layer, deps: [Provider.node, Bus.node, Location.node] })
 
-// Signed out, only free OpenCode models are enabled. Clients default to the first available model, so keep
+// Signed out, only free Bolt models are enabled. Clients default to the first available model, so keep
 // these free models ahead of each new free launch instead of letting release order pick the default.
 const PREFERRED_FREE = [
   "big-pickle",

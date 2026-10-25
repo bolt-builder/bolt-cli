@@ -1,4 +1,4 @@
-import type { FormField, FormValue } from "@opencode/client"
+import type { FormField, FormValue } from "@bolt-ai/client"
 
 export type FormAnswerField = Exclude<FormField, { type: "external" }>
 

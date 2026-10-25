@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { ImageView, screen, type BrowserWindow, type WebContentsView } from "electron"
-import type { BridgeLayout } from "@opencode/gui-extensions/sdk/bridge"
-import type { Embed } from "@opencode/gui-extensions/sdk/main"
+import type { BridgeLayout } from "@bolt-ai/gui-extensions/sdk/bridge"
+import type { Embed } from "@bolt-ai/gui-extensions/sdk/main"
 import { createCornerImages } from "../native/corners"
 import type { Instance } from "./lifecycle"
 

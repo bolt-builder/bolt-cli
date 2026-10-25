@@ -1,4 +1,4 @@
-import { base64Encode } from "@opencode/util/encode"
+import { base64Encode } from "@bolt-ai/util/encode"
 import { expect, test } from "@playwright/test"
 import { NO_PROVIDER, REMOTE_SERVER, SERVER, project, provider, session } from "../utils/app"
 import { mockOpenCodeServer, mockServers } from "../utils/mock-server"

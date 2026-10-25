@@ -1,5 +1,5 @@
-import { selectTheme } from "@opencode/theme/tui"
-import type { BackgroundDefinition, TextDefinition, ThemeDefinition, ThemeDocument } from "@opencode/theme/tui"
+import { selectTheme } from "@bolt-ai/theme/tui"
+import type { BackgroundDefinition, TextDefinition, ThemeDefinition, ThemeDocument } from "@bolt-ai/theme/tui"
 import { getOpenCodeTheme } from "../../../src/theme"
 
 const text = {

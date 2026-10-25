@@ -7,10 +7,10 @@ import type {
   SessionMessageUser,
   SessionStatus,
   SessionStructuredError,
-} from "@opencode/client/promise"
-import { EventManifest } from "@opencode/schema/event-manifest"
-import { SessionMessage } from "@opencode/schema/session-message"
-import type { TimelineDetail } from "@opencode/session-ui/timeline/detail"
+} from "@bolt-ai/client/promise"
+import { EventManifest } from "@bolt-ai/schema/event-manifest"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
+import type { TimelineDetail } from "@bolt-ai/session-ui/timeline/detail"
 import { expect, test, type Page, type TestInfo } from "@playwright/test"
 import { Schema } from "effect"
 import { SERVER, seed, sessionHref } from "./app"

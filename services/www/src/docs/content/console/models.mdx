@@ -3,16 +3,16 @@ title: "Models"
 description: "Curated coding models, pay-as-you-go pricing, and API access through OpenCode Console."
 ---
 
-OpenCode Console provides a list of models tested and verified by the OpenCode team. Sign in, add credits, and get an
-API key to use them with OpenCode or another coding agent.
+OpenCode Console provides a list of models tested and verified by the Bolt team. Sign in, add credits, and get an
+API key to use them with Bolt or another coding agent.
 
-Console works like any other provider in OpenCode. It's **completely optional**, and you can use any other provider
+Console works like any other provider in Bolt. It's **completely optional**, and you can use any other provider
 instead. For a subscription with included usage, see [OpenCode Go](/console/go).
 
 ## How it works
 
 1. Sign in to the [console](https://opencode.ai/console), add your billing details and credits, and copy your API key.
-2. Run `/connect` in the TUI, choose the OpenCode pay-as-you-go provider, and paste your API key.
+2. Run `/connect` in the TUI, choose the Bolt pay-as-you-go provider, and paste your API key.
 
    ```text
    /connect
@@ -28,7 +28,7 @@ You are charged per request and can add credits to your account.
 
 ## Endpoints
 
-You can also access the models directly through the following API endpoints. Free-tier chat models require OpenCode;
+You can also access the models directly through the following API endpoints. Free-tier chat models require Bolt;
 use paid models or [Go](/console/go) from other clients.
 
 <div class="docs-table-scroll" role="region" aria-label="Console model endpoints" tabIndex={0}>
@@ -121,7 +121,7 @@ use paid models or [Go](/console/go) from other clients.
 
 </div>
 
-These AI SDK packages are for applications calling the endpoints directly. To select a [model](/models) in OpenCode,
+These AI SDK packages are for applications calling the endpoints directly. To select a [model](/models) in Bolt,
 use the format `opencode/<model-id>`:
 
 ```jsonc title="opencode.jsonc"
@@ -302,7 +302,7 @@ Console uses pay-as-you-go pricing. Below are the prices **per 1M tokens**.
 
 **Gemini 4 Argon:** The 50% discount applies through November 30, 2026.
 
-You may notice [low-cost models](/models), such as Haiku, Nano, or Flash, in your usage history. OpenCode uses these
+You may notice [low-cost models](/models), such as Haiku, Nano, or Flash, in your usage history. Bolt uses these
 models to generate session titles.
 
 <Callout>
@@ -311,18 +311,18 @@ models to generate session titles.
 
 ### Free models
 
-- GLM-5.3-Flash Free is free on OpenCode for a limited time. Its provider follows a zero-retention policy and does not use your data for model training.
-- DeepSeek V4.1 Flash Free is free on OpenCode for a limited time. Its provider follows a zero-retention policy and does not use your data for model training.
-- MiMo-V2.6-Flash Free is available on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Nemotron 3 Ultra Free is available on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Nemotron 3.5 Lightning Free is available on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Nemotron 3.5 Super VL Free is available on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Big Pickle is a stealth model that's free on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Beam Free is free on OpenCode for a limited time. Its provider does not use your data for model training and retains it for 30 days for safety reasons. It's not available in Angola, Belarus, Cambodia, China (including Hong Kong and Macau), Cuba, the Democratic Republic of the Congo, Equatorial Guinea, Iran, Iraq, Laos, Libya, Nigeria, North Korea, Russia, Syria, Turkmenistan, Uzbekistan, Venezuela, or the Crimea, Donetsk, and Luhansk regions of Ukraine.
-- Flint 40B Free is free on OpenCode for a limited time. The team is using this time to collect feedback and improve the model.
-- Jev 1.13 Free is available on OpenCode for a limited time.
+- GLM-5.3-Flash Free is free on Bolt for a limited time. Its provider follows a zero-retention policy and does not use your data for model training.
+- DeepSeek V4.1 Flash Free is free on Bolt for a limited time. Its provider follows a zero-retention policy and does not use your data for model training.
+- MiMo-V2.6-Flash Free is available on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Nemotron 3 Ultra Free is available on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Nemotron 3.5 Lightning Free is available on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Nemotron 3.5 Super VL Free is available on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Big Pickle is a stealth model that's free on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Beam Free is free on Bolt for a limited time. Its provider does not use your data for model training and retains it for 30 days for safety reasons. It's not available in Angola, Belarus, Cambodia, China (including Hong Kong and Macau), Cuba, the Democratic Republic of the Congo, Equatorial Guinea, Iran, Iraq, Laos, Libya, Nigeria, North Korea, Russia, Syria, Turkmenistan, Uzbekistan, Venezuela, or the Crimea, Donetsk, and Luhansk regions of Ukraine.
+- Flint 40B Free is free on Bolt for a limited time. The team is using this time to collect feedback and improve the model.
+- Jev 1.13 Free is available on Bolt for a limited time.
 
-To hide free models in OpenCode, set `OPENCODE_DISABLE_FREE_MODELS=1`. See [free models](/models#free-models).
+To hide free models in Bolt, set `OPENCODE_DISABLE_FREE_MODELS=1`. See [free models](/models#free-models).
 
 [Contact us](mailto:help@anoma.ly) if you have any questions.
 
@@ -382,7 +382,7 @@ Share Console models with your team from a [workspace](/console/workspaces). Own
 There are many models available, but only a few work well as coding agents. Providers also vary in configuration,
 performance, and quality, so a model accessed through a gateway such as OpenRouter may perform differently.
 
-<Callout type="tip">We tested a select group of models and providers that work well with OpenCode.</Callout>
+<Callout type="tip">We tested a select group of models and providers that work well with Bolt.</Callout>
 
 To build this catalog, we:
 
@@ -399,4 +399,4 @@ We built Console to:
 1. **Benchmark** the best models and providers for coding agents.
 2. Provide the **highest quality** options without downgrading performance or routing to cheaper providers.
 3. Pass along **price drops** by selling at cost, with markup only to cover processing fees.
-4. Have **no lock-in**: use Console with any coding agent, or use another provider with OpenCode.
+4. Have **no lock-in**: use Console with any coding agent, or use another provider with Bolt.

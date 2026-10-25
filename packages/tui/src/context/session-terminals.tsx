@@ -1,4 +1,4 @@
-import type { PersistentPtyInfo } from "@opencode/client"
+import type { PersistentPtyInfo } from "@bolt-ai/client"
 import { createSignal, onCleanup } from "solid-js"
 import { createSimpleContext } from "./helper"
 import { useClient } from "./client"

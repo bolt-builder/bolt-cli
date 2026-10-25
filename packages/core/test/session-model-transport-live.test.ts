@@ -1,16 +1,16 @@
 import { describe, expect, test } from "bun:test"
-import { AIError, LLM, Message } from "@opencode/ai/effect"
+import { AIError, LLM, Message } from "@bolt-ai/ai/effect"
 import {
   LLMClient,
   RequestExecutor,
   WebSocketTransport,
   type ChannelObservation,
   type WebSocketChannelExchange,
-} from "@opencode/ai/route"
-import { configure } from "@opencode/ai/providers/openai"
-import { SessionModelTransport } from "@opencode/core/session/model-transport"
-import { WebSocketConstructor } from "@opencode/core/effect/websocket-constructor"
-import { Session } from "@opencode/schema/session"
+} from "@bolt-ai/ai/route"
+import { configure } from "@bolt-ai/ai/providers/openai"
+import { SessionModelTransport } from "@bolt-ai/core/session/model-transport"
+import { WebSocketConstructor } from "@bolt-ai/core/effect/websocket-constructor"
+import { Session } from "@bolt-ai/schema/session"
 import { Effect, Fiber, Layer, Stream } from "effect"
 import { Headers } from "effect/http"
 import { Socket } from "effect/socket"

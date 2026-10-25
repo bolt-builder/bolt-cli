@@ -1,7 +1,7 @@
 import { createContext, createEffect, createMemo, createSignal, useContext, type ParentProps } from "solid-js"
 import { reconcile } from "solid-js/store"
 import { Schema } from "effect"
-import { MenuItem, Server, type ServerEntry } from "@opencode/gui-extensions/sdk"
+import { MenuItem, Server, type ServerEntry } from "@bolt-ai/gui-extensions/sdk"
 import { Persistence } from "@/runtime/persistence/schema"
 import { Persist, persisted } from "@/runtime/persistence/storage"
 import type { ServerConnection } from "@/runtime/server/registry"

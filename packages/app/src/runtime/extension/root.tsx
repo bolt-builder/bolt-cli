@@ -1,6 +1,6 @@
 import { createMemo, lazy, onCleanup, Show, Suspense, type ParentProps } from "solid-js"
-import { extensionEnabled } from "@opencode/gui-extensions/sdk/bridge"
-import type { Definition } from "@opencode/gui-extensions/sdk"
+import { extensionEnabled } from "@bolt-ai/gui-extensions/sdk/bridge"
+import type { Definition } from "@bolt-ai/gui-extensions/sdk"
 import { builtins } from "./builtins"
 import { createInstalled } from "./installed"
 import { createMenubarItems, MenubarItemsProvider } from "./menubar-items"

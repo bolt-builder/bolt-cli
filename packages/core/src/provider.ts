@@ -14,7 +14,7 @@ export function packageName(value: undefined): undefined
 export function packageName(value: string | undefined): string | undefined
 export function packageName(value: string | undefined) {
   // Native provider entrypoints can persist in user configuration across the npm scope migration.
-  if (value?.startsWith("@opencode-ai/ai/")) return value.replace("@opencode-ai/", "@opencode/")
+  if (value?.startsWith("@opencode-ai/ai/")) return value.replace("@opencode-ai/", "@bolt-ai/")
   if (value === undefined || !isAISDK(value)) return value
   return value.slice(AISDK_PREFIX.length)
 }
@@ -31,112 +31,112 @@ export type ProviderPackage = ProviderPackageDefinition
 
 const packages = new Map<string, Promise<unknown>>()
 const builtins = new Map<string, () => Promise<unknown>>([
-  ["@opencode/ai/providers/alibaba", () => import("@opencode/ai/providers/alibaba")],
-  ["@opencode/ai/providers/alibaba/chat", () => import("@opencode/ai/providers/alibaba/chat")],
-  ["@opencode/ai/providers/alibaba/messages", () => import("@opencode/ai/providers/alibaba/messages")],
-  ["@opencode/ai/providers/alibaba/responses", () => import("@opencode/ai/providers/alibaba/responses")],
-  ["@opencode/ai/providers/amazon-bedrock", () => import("@opencode/ai/providers/amazon-bedrock")],
-  ["@opencode/ai/providers/amazon-bedrock/mantle", () => import("@opencode/ai/providers/amazon-bedrock/mantle")],
+  ["@bolt-ai/ai/providers/alibaba", () => import("@bolt-ai/ai/providers/alibaba")],
+  ["@bolt-ai/ai/providers/alibaba/chat", () => import("@bolt-ai/ai/providers/alibaba/chat")],
+  ["@bolt-ai/ai/providers/alibaba/messages", () => import("@bolt-ai/ai/providers/alibaba/messages")],
+  ["@bolt-ai/ai/providers/alibaba/responses", () => import("@bolt-ai/ai/providers/alibaba/responses")],
+  ["@bolt-ai/ai/providers/amazon-bedrock", () => import("@bolt-ai/ai/providers/amazon-bedrock")],
+  ["@bolt-ai/ai/providers/amazon-bedrock/mantle", () => import("@bolt-ai/ai/providers/amazon-bedrock/mantle")],
   [
-    "@opencode/ai/providers/amazon-bedrock/mantle/chat",
-    () => import("@opencode/ai/providers/amazon-bedrock/mantle/chat"),
+    "@bolt-ai/ai/providers/amazon-bedrock/mantle/chat",
+    () => import("@bolt-ai/ai/providers/amazon-bedrock/mantle/chat"),
   ],
   [
-    "@opencode/ai/providers/amazon-bedrock/mantle/messages",
-    () => import("@opencode/ai/providers/amazon-bedrock/mantle/messages"),
+    "@bolt-ai/ai/providers/amazon-bedrock/mantle/messages",
+    () => import("@bolt-ai/ai/providers/amazon-bedrock/mantle/messages"),
   ],
   [
-    "@opencode/ai/providers/amazon-bedrock/mantle/responses",
-    () => import("@opencode/ai/providers/amazon-bedrock/mantle/responses"),
+    "@bolt-ai/ai/providers/amazon-bedrock/mantle/responses",
+    () => import("@bolt-ai/ai/providers/amazon-bedrock/mantle/responses"),
   ],
-  ["@opencode/ai/providers/amazon-bedrock-mantle", () => import("@opencode/ai/providers/amazon-bedrock-mantle")],
-  ["@opencode/ai/providers/anthropic", () => import("@opencode/ai/providers/anthropic")],
-  ["@opencode/ai/providers/anthropic-compatible", () => import("@opencode/ai/providers/anthropic-compatible")],
-  ["@opencode/ai/providers/azure", () => import("@opencode/ai/providers/azure")],
-  ["@opencode/ai/providers/azure/chat", () => import("@opencode/ai/providers/azure/chat")],
-  ["@opencode/ai/providers/azure/responses", () => import("@opencode/ai/providers/azure/responses")],
-  ["@opencode/ai/providers/baseten", () => import("@opencode/ai/providers/baseten")],
-  ["@opencode/ai/providers/cerebras", () => import("@opencode/ai/providers/cerebras")],
-  ["@opencode/ai/providers/cloudflare-ai-gateway", () => import("@opencode/ai/providers/cloudflare-ai-gateway")],
-  ["@opencode/ai/providers/cloudflare-workers-ai", () => import("@opencode/ai/providers/cloudflare-workers-ai")],
-  ["@opencode/ai/providers/cohere", () => import("@opencode/ai/providers/cohere")],
-  ["@opencode/ai/providers/cohere/chat", () => import("@opencode/ai/providers/cohere/chat")],
-  ["@opencode/ai/providers/deepinfra", () => import("@opencode/ai/providers/deepinfra")],
-  ["@opencode/ai/providers/deepseek", () => import("@opencode/ai/providers/deepseek")],
-  ["@opencode/ai/providers/digitalocean", () => import("@opencode/ai/providers/digitalocean")],
-  ["@opencode/ai/providers/fireworks", () => import("@opencode/ai/providers/fireworks")],
-  ["@opencode/ai/providers/google", () => import("@opencode/ai/providers/google")],
-  ["@opencode/ai/providers/google/interactions", () => import("@opencode/ai/providers/google/interactions")],
-  ["@opencode/ai/providers/google-vertex", () => import("@opencode/ai/providers/google-vertex")],
-  ["@opencode/ai/providers/google-vertex/chat", () => import("@opencode/ai/providers/google-vertex/chat")],
-  ["@opencode/ai/providers/google-vertex/gemini", () => import("@opencode/ai/providers/google-vertex/gemini")],
+  ["@bolt-ai/ai/providers/amazon-bedrock-mantle", () => import("@bolt-ai/ai/providers/amazon-bedrock-mantle")],
+  ["@bolt-ai/ai/providers/anthropic", () => import("@bolt-ai/ai/providers/anthropic")],
+  ["@bolt-ai/ai/providers/anthropic-compatible", () => import("@bolt-ai/ai/providers/anthropic-compatible")],
+  ["@bolt-ai/ai/providers/azure", () => import("@bolt-ai/ai/providers/azure")],
+  ["@bolt-ai/ai/providers/azure/chat", () => import("@bolt-ai/ai/providers/azure/chat")],
+  ["@bolt-ai/ai/providers/azure/responses", () => import("@bolt-ai/ai/providers/azure/responses")],
+  ["@bolt-ai/ai/providers/baseten", () => import("@bolt-ai/ai/providers/baseten")],
+  ["@bolt-ai/ai/providers/cerebras", () => import("@bolt-ai/ai/providers/cerebras")],
+  ["@bolt-ai/ai/providers/cloudflare-ai-gateway", () => import("@bolt-ai/ai/providers/cloudflare-ai-gateway")],
+  ["@bolt-ai/ai/providers/cloudflare-workers-ai", () => import("@bolt-ai/ai/providers/cloudflare-workers-ai")],
+  ["@bolt-ai/ai/providers/cohere", () => import("@bolt-ai/ai/providers/cohere")],
+  ["@bolt-ai/ai/providers/cohere/chat", () => import("@bolt-ai/ai/providers/cohere/chat")],
+  ["@bolt-ai/ai/providers/deepinfra", () => import("@bolt-ai/ai/providers/deepinfra")],
+  ["@bolt-ai/ai/providers/deepseek", () => import("@bolt-ai/ai/providers/deepseek")],
+  ["@bolt-ai/ai/providers/digitalocean", () => import("@bolt-ai/ai/providers/digitalocean")],
+  ["@bolt-ai/ai/providers/fireworks", () => import("@bolt-ai/ai/providers/fireworks")],
+  ["@bolt-ai/ai/providers/google", () => import("@bolt-ai/ai/providers/google")],
+  ["@bolt-ai/ai/providers/google/interactions", () => import("@bolt-ai/ai/providers/google/interactions")],
+  ["@bolt-ai/ai/providers/google-vertex", () => import("@bolt-ai/ai/providers/google-vertex")],
+  ["@bolt-ai/ai/providers/google-vertex/chat", () => import("@bolt-ai/ai/providers/google-vertex/chat")],
+  ["@bolt-ai/ai/providers/google-vertex/gemini", () => import("@bolt-ai/ai/providers/google-vertex/gemini")],
   [
-    "@opencode/ai/providers/google-vertex/interactions",
-    () => import("@opencode/ai/providers/google-vertex/interactions"),
+    "@bolt-ai/ai/providers/google-vertex/interactions",
+    () => import("@bolt-ai/ai/providers/google-vertex/interactions"),
   ],
-  ["@opencode/ai/providers/google-vertex/messages", () => import("@opencode/ai/providers/google-vertex/messages")],
-  ["@opencode/ai/providers/google-vertex/mistral", () => import("@opencode/ai/providers/google-vertex/mistral")],
-  ["@opencode/ai/providers/google-vertex/responses", () => import("@opencode/ai/providers/google-vertex/responses")],
-  ["@opencode/ai/providers/google-vertex-chat", () => import("@opencode/ai/providers/google-vertex-chat")],
+  ["@bolt-ai/ai/providers/google-vertex/messages", () => import("@bolt-ai/ai/providers/google-vertex/messages")],
+  ["@bolt-ai/ai/providers/google-vertex/mistral", () => import("@bolt-ai/ai/providers/google-vertex/mistral")],
+  ["@bolt-ai/ai/providers/google-vertex/responses", () => import("@bolt-ai/ai/providers/google-vertex/responses")],
+  ["@bolt-ai/ai/providers/google-vertex-chat", () => import("@bolt-ai/ai/providers/google-vertex-chat")],
   [
-    "@opencode/ai/providers/google-vertex-interactions",
-    () => import("@opencode/ai/providers/google-vertex-interactions"),
+    "@bolt-ai/ai/providers/google-vertex-interactions",
+    () => import("@bolt-ai/ai/providers/google-vertex-interactions"),
   ],
-  ["@opencode/ai/providers/google-vertex-messages", () => import("@opencode/ai/providers/google-vertex-messages")],
-  ["@opencode/ai/providers/google-vertex-mistral", () => import("@opencode/ai/providers/google-vertex-mistral")],
-  ["@opencode/ai/providers/google-vertex-responses", () => import("@opencode/ai/providers/google-vertex-responses")],
-  ["@opencode/ai/providers/groq", () => import("@opencode/ai/providers/groq")],
-  ["@opencode/ai/providers/meta", () => import("@opencode/ai/providers/meta")],
-  ["@opencode/ai/providers/meta/chat", () => import("@opencode/ai/providers/meta/chat")],
-  ["@opencode/ai/providers/meta/messages", () => import("@opencode/ai/providers/meta/messages")],
-  ["@opencode/ai/providers/meta/responses", () => import("@opencode/ai/providers/meta/responses")],
-  ["@opencode/ai/providers/minimax", () => import("@opencode/ai/providers/minimax")],
-  ["@opencode/ai/providers/minimax/chat", () => import("@opencode/ai/providers/minimax/chat")],
-  ["@opencode/ai/providers/minimax/messages", () => import("@opencode/ai/providers/minimax/messages")],
-  ["@opencode/ai/providers/minimax/responses", () => import("@opencode/ai/providers/minimax/responses")],
-  ["@opencode/ai/providers/mistral", () => import("@opencode/ai/providers/mistral")],
-  ["@opencode/ai/providers/moonshot", () => import("@opencode/ai/providers/moonshot")],
-  ["@opencode/ai/providers/moonshot/chat", () => import("@opencode/ai/providers/moonshot/chat")],
-  ["@opencode/ai/providers/moonshot/messages", () => import("@opencode/ai/providers/moonshot/messages")],
-  ["@opencode/ai/providers/moonshot/responses", () => import("@opencode/ai/providers/moonshot/responses")],
-  ["@opencode/ai/providers/openai", () => import("@opencode/ai/providers/openai")],
-  ["@opencode/ai/providers/openai/chat", () => import("@opencode/ai/providers/openai/chat")],
-  ["@opencode/ai/providers/openai/responses", () => import("@opencode/ai/providers/openai/responses")],
-  ["@opencode/ai/providers/openai-compatible", () => import("@opencode/ai/providers/openai-compatible")],
+  ["@bolt-ai/ai/providers/google-vertex-messages", () => import("@bolt-ai/ai/providers/google-vertex-messages")],
+  ["@bolt-ai/ai/providers/google-vertex-mistral", () => import("@bolt-ai/ai/providers/google-vertex-mistral")],
+  ["@bolt-ai/ai/providers/google-vertex-responses", () => import("@bolt-ai/ai/providers/google-vertex-responses")],
+  ["@bolt-ai/ai/providers/groq", () => import("@bolt-ai/ai/providers/groq")],
+  ["@bolt-ai/ai/providers/meta", () => import("@bolt-ai/ai/providers/meta")],
+  ["@bolt-ai/ai/providers/meta/chat", () => import("@bolt-ai/ai/providers/meta/chat")],
+  ["@bolt-ai/ai/providers/meta/messages", () => import("@bolt-ai/ai/providers/meta/messages")],
+  ["@bolt-ai/ai/providers/meta/responses", () => import("@bolt-ai/ai/providers/meta/responses")],
+  ["@bolt-ai/ai/providers/minimax", () => import("@bolt-ai/ai/providers/minimax")],
+  ["@bolt-ai/ai/providers/minimax/chat", () => import("@bolt-ai/ai/providers/minimax/chat")],
+  ["@bolt-ai/ai/providers/minimax/messages", () => import("@bolt-ai/ai/providers/minimax/messages")],
+  ["@bolt-ai/ai/providers/minimax/responses", () => import("@bolt-ai/ai/providers/minimax/responses")],
+  ["@bolt-ai/ai/providers/mistral", () => import("@bolt-ai/ai/providers/mistral")],
+  ["@bolt-ai/ai/providers/moonshot", () => import("@bolt-ai/ai/providers/moonshot")],
+  ["@bolt-ai/ai/providers/moonshot/chat", () => import("@bolt-ai/ai/providers/moonshot/chat")],
+  ["@bolt-ai/ai/providers/moonshot/messages", () => import("@bolt-ai/ai/providers/moonshot/messages")],
+  ["@bolt-ai/ai/providers/moonshot/responses", () => import("@bolt-ai/ai/providers/moonshot/responses")],
+  ["@bolt-ai/ai/providers/openai", () => import("@bolt-ai/ai/providers/openai")],
+  ["@bolt-ai/ai/providers/openai/chat", () => import("@bolt-ai/ai/providers/openai/chat")],
+  ["@bolt-ai/ai/providers/openai/responses", () => import("@bolt-ai/ai/providers/openai/responses")],
+  ["@bolt-ai/ai/providers/openai-compatible", () => import("@bolt-ai/ai/providers/openai-compatible")],
   [
-    "@opencode/ai/providers/openai-compatible/responses",
-    () => import("@opencode/ai/providers/openai-compatible/responses"),
-  ],
-  [
-    "@opencode/ai/providers/openai-compatible-responses",
-    () => import("@opencode/ai/providers/openai-compatible-responses"),
-  ],
-  ["@opencode/ai/providers/openrouter", () => import("@opencode/ai/providers/openrouter")],
-  ["@opencode/ai/providers/togetherai", () => import("@opencode/ai/providers/togetherai")],
-  ["@opencode/ai/providers/venice", () => import("@opencode/ai/providers/venice")],
-  ["@opencode/ai/providers/vercel-ai-gateway", () => import("@opencode/ai/providers/vercel-ai-gateway")],
-  ["@opencode/ai/providers/vercel-ai-gateway/chat", () => import("@opencode/ai/providers/vercel-ai-gateway/chat")],
-  [
-    "@opencode/ai/providers/vercel-ai-gateway/messages",
-    () => import("@opencode/ai/providers/vercel-ai-gateway/messages"),
+    "@bolt-ai/ai/providers/openai-compatible/responses",
+    () => import("@bolt-ai/ai/providers/openai-compatible/responses"),
   ],
   [
-    "@opencode/ai/providers/vercel-ai-gateway/responses",
-    () => import("@opencode/ai/providers/vercel-ai-gateway/responses"),
+    "@bolt-ai/ai/providers/openai-compatible-responses",
+    () => import("@bolt-ai/ai/providers/openai-compatible-responses"),
   ],
-  ["@opencode/ai/providers/xai", () => import("@opencode/ai/providers/xai")],
-  ["@opencode/ai/providers/zai", () => import("@opencode/ai/providers/zai")],
-  ["@opencode/ai/providers/zai/chat", () => import("@opencode/ai/providers/zai/chat")],
-  ["@opencode/ai/providers/zai-coding-plan", () => import("@opencode/ai/providers/zai-coding-plan")],
-  ["@opencode/ai/providers/zai-coding-plan/chat", () => import("@opencode/ai/providers/zai-coding-plan/chat")],
-  ["@opencode/ai/providers/zai-coding-plan/messages", () => import("@opencode/ai/providers/zai-coding-plan/messages")],
+  ["@bolt-ai/ai/providers/openrouter", () => import("@bolt-ai/ai/providers/openrouter")],
+  ["@bolt-ai/ai/providers/togetherai", () => import("@bolt-ai/ai/providers/togetherai")],
+  ["@bolt-ai/ai/providers/venice", () => import("@bolt-ai/ai/providers/venice")],
+  ["@bolt-ai/ai/providers/vercel-ai-gateway", () => import("@bolt-ai/ai/providers/vercel-ai-gateway")],
+  ["@bolt-ai/ai/providers/vercel-ai-gateway/chat", () => import("@bolt-ai/ai/providers/vercel-ai-gateway/chat")],
   [
-    "@opencode/ai/providers/zai-coding-plan/responses",
-    () => import("@opencode/ai/providers/zai-coding-plan/responses"),
+    "@bolt-ai/ai/providers/vercel-ai-gateway/messages",
+    () => import("@bolt-ai/ai/providers/vercel-ai-gateway/messages"),
+  ],
+  [
+    "@bolt-ai/ai/providers/vercel-ai-gateway/responses",
+    () => import("@bolt-ai/ai/providers/vercel-ai-gateway/responses"),
+  ],
+  ["@bolt-ai/ai/providers/xai", () => import("@bolt-ai/ai/providers/xai")],
+  ["@bolt-ai/ai/providers/zai", () => import("@bolt-ai/ai/providers/zai")],
+  ["@bolt-ai/ai/providers/zai/chat", () => import("@bolt-ai/ai/providers/zai/chat")],
+  ["@bolt-ai/ai/providers/zai-coding-plan", () => import("@bolt-ai/ai/providers/zai-coding-plan")],
+  ["@bolt-ai/ai/providers/zai-coding-plan/chat", () => import("@bolt-ai/ai/providers/zai-coding-plan/chat")],
+  ["@bolt-ai/ai/providers/zai-coding-plan/messages", () => import("@bolt-ai/ai/providers/zai-coding-plan/messages")],
+  [
+    "@bolt-ai/ai/providers/zai-coding-plan/responses",
+    () => import("@bolt-ai/ai/providers/zai-coding-plan/responses"),
   ],
 ])
 
-/** Native `@opencode/ai/providers/*` entrypoints bundled with Core and loadable by name from config. */
+/** Native `@bolt-ai/ai/providers/*` entrypoints bundled with Core and loadable by name from config. */
 export const builtinPackages: ReadonlySet<string> = new Set(builtins.keys())
 
 export const loadPackage = Effect.fn("Provider.loadPackage")(function* (input: string, npm?: Npm.Interface) {
@@ -144,7 +144,7 @@ export const loadPackage = Effect.fn("Provider.loadPackage")(function* (input: s
   const builtin = builtins.get(specifier)
   if (builtin) return yield* importPackage(specifier, specifier, builtin)
   const resolved = yield* Effect.sync(() => {
-    if (specifier.startsWith("file://") || specifier.startsWith("@opencode/ai/")) return specifier
+    if (specifier.startsWith("file://") || specifier.startsWith("@bolt-ai/ai/")) return specifier
     try {
       return import.meta.resolve(specifier)
     } catch {
@@ -270,7 +270,7 @@ export type Info = Provider.Info
 
 export type MutableInfo = DeepMutable<Info>
 
-export { Event } from "@opencode/schema/provider"
+export { Event } from "@bolt-ai/schema/provider"
 
 /** Provider metadata owns its drafts; model definitions remain immutable inputs. */
 export type Definition = {
@@ -310,7 +310,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly snapshot: () => Effect.Effect<Snapshot>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Provider") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Provider") {}
 
 // Every location references the same index for a shared immutable definition array.
 const definitions = new WeakMap<readonly Model.Info[], Map<ID, ReadonlyMap<Model.ID, Model.Info>>>()

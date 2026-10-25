@@ -1,5 +1,5 @@
 import { Tooltip } from "./tooltip"
-import { Keybind } from "@opencode/ui/keybind"
+import { Keybind } from "@bolt-ai/ui/keybind"
 
 const docs = `### Overview
 Floating tooltip built on Kobalte's tooltip primitive.

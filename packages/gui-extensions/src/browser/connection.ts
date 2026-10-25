@@ -1,4 +1,4 @@
-import type { Browser } from "@opencode/plugin-browser/rpc"
+import type { Browser } from "@bolt-ai/plugin-browser/rpc"
 import type { IpcClient } from "../sdk"
 import type { BrowserPane, PaneEvent } from "./ipc"
 

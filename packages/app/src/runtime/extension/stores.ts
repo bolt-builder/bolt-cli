@@ -11,7 +11,7 @@ import {
 } from "solid-js"
 import { produce, reconcile, type SetStoreFunction } from "solid-js/store"
 import { Predicate } from "effect"
-import type { Mutable, Persisted, SessionRef, StoreFrom } from "@opencode/gui-extensions/sdk"
+import type { Mutable, Persisted, SessionRef, StoreFrom } from "@bolt-ai/gui-extensions/sdk"
 import { Persist, type persisted } from "@/runtime/persistence/storage"
 import type { SessionStateKey } from "@/runtime/server/scope"
 

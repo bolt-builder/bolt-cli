@@ -1,7 +1,7 @@
-import { Service, type Endpoint } from "@opencode/client/effect/service"
-import { ClientError, OpenCode, type OpenCodeClient } from "@opencode/client/promise"
-import type { MiniFrontendInput } from "@opencode/tui/mini"
-import { noTimeoutFetch } from "@opencode/util/no-timeout-fetch"
+import { Service, type Endpoint } from "@bolt-ai/client/effect/service"
+import { ClientError, OpenCode, type OpenCodeClient } from "@bolt-ai/client/promise"
+import type { MiniFrontendInput } from "@bolt-ai/tui/mini"
+import { noTimeoutFetch } from "@bolt-ai/util/no-timeout-fetch"
 import { setTimeout } from "node:timers/promises"
 import { readStdin } from "./util/io"
 import { createMiniHost, INTERACTIVE_INPUT_ERROR, usingInteractiveStdin } from "./mini-host"
@@ -36,7 +36,7 @@ export async function runMini(input: MiniCommandInput) {
     validate(input)
     await usingInteractiveStdin(async (terminal) => {
       const initialInput = mergeInput(process.stdin.isTTY ? undefined : await readStdin(), input.prompt)
-      const frontendTask = import("@opencode/tui/mini")
+      const frontendTask = import("@bolt-ai/tui/mini")
       const directory = localDirectory()
       const connection = createMiniConnection(input.server)
       const sdk = connection.sdk

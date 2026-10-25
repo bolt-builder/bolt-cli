@@ -1,11 +1,11 @@
 export * as OpenCodeTools from "./opencode.js"
 
-import { SystemPart, ToolFailure } from "@opencode/ai/effect"
-import type { Context } from "@opencode/plugin/effect/plugin"
-import type { SessionHooks } from "@opencode/plugin/effect/session"
-import { Model } from "@opencode/schema/model"
-import { AbsolutePath } from "@opencode/schema/schema"
-import { Session } from "@opencode/schema/session"
+import { SystemPart, ToolFailure } from "@bolt-ai/ai/effect"
+import type { Context } from "@bolt-ai/plugin/effect/plugin"
+import type { SessionHooks } from "@bolt-ai/plugin/effect/session"
+import { Model } from "@bolt-ai/schema/model"
+import { AbsolutePath } from "@bolt-ai/schema/schema"
+import { Session } from "@bolt-ai/schema/session"
 import { Effect, Schema } from "effect"
 import { FileAccess } from "../../file-access.js"
 import { Git } from "../../git.js"
@@ -86,7 +86,7 @@ const ModelsOutput = Schema.Struct({
 
 export const Plugin = {
   id: "opencode.tools",
-  effect: Effect.fn("OpenCodeTools.Plugin")(function* (ctx: Context) {
+  effect: Effect.fn("BoltTools.Plugin")(function* (ctx: Context) {
     const access = yield* FileAccess.Service
     const permission = yield* Permission.Service
     const hook = (event: SessionHooks["context"]) =>
@@ -105,7 +105,7 @@ export const Plugin = {
         draft.namespace({
           name: "opencode",
           description:
-            "Tools for managing OpenCode itself, such as working with sessions and worktrees, searching the available models, and reading MCP resources.",
+            "Tools for managing Bolt itself, such as working with sessions and worktrees, searching the available models, and reading MCP resources.",
         })
         draft.add({
           name: "session_rename",

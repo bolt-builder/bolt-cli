@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode/plugin/tui"
+import { Plugin } from "@bolt-ai/plugin/tui"
 import { batch, createSignal } from "solid-js"
 
 const generation = "generation 1"

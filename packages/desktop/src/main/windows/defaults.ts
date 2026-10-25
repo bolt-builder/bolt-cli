@@ -1,5 +1,5 @@
-import { resolveThemeVariant } from "@opencode/ui/theme/resolve"
-import type { DesktopTheme } from "@opencode/ui/theme/types"
+import { resolveThemeVariant } from "@bolt-ai/ui/theme/resolve"
+import type { DesktopTheme } from "@bolt-ai/ui/theme/types"
 import { nativeTheme } from "electron"
 import oc2ThemeJson from "../../../../ui/src/theme/themes/oc-2.json"
 import { BACKGROUND_COLOR_KEY } from "../storage/keys"

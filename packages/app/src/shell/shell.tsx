@@ -1,7 +1,7 @@
 import { Show, Suspense, type ParentProps } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
-import { ResizeHandle } from "@opencode/ui/resize-handle"
+import { ResizeHandle } from "@bolt-ai/ui/resize-handle"
 import { Titlebar } from "@/shell/titlebar/titlebar"
 import { usePlatform } from "@/runtime/platform/platform"
 import { ToastRegion } from "@/shell/notifications/toast"

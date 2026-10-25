@@ -2,11 +2,11 @@ import fs from "fs/promises"
 import path from "path"
 import { pathToFileURL } from "url"
 import { describe, expect, test } from "bun:test"
-import { Effect, Option } from "effect"
+import { Effect } from "effect"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { Global } from "@bolt-ai/core/global"
-import { Npm } from "@bolt-ai/core/npm"
-import { which } from "@bolt-ai/core/util/which"import { tmpdir } from "./fixture/tmpdir"
+import { Global } from "@bolt-ai/util/global"
+import { Npm } from "@bolt-ai/util/npm"
+import { tmpdir } from "./fixture/tmpdir"
 
 const win = process.platform === "win32"
 
@@ -113,8 +113,8 @@ async function createRegistryFixture(directory: string) {
 
 describe("Npm.sanitize", () => {
   test("keeps normal scoped package specs unchanged", () => {
-    expect(Npm.sanitize("@bolt/acme")).toBe("@bolt/acme")
-    expect(Npm.sanitize("@bolt/acme@1.0.0")).toBe("@bolt/acme@1.0.0")
+    expect(Npm.sanitize("@bolt-ai/acme")).toBe("@bolt-ai/acme")
+    expect(Npm.sanitize("@bolt-ai/acme@1.0.0")).toBe("@bolt-ai/acme@1.0.0")
     expect(Npm.sanitize("prettier")).toBe("prettier")
   })
 
@@ -155,9 +155,9 @@ describe("Npm.isInstallablePackage", () => {
 
 describe("Npm.cacheKey", () => {
   test("canonicalizes registry keys and hashes Git specs", async () => {
-    expect(await Npm.cacheKey("@opencode/acme@1.0.0")).toBe(Npm.sanitize("@opencode/acme@1.0.0"))
+    expect(await Npm.cacheKey("@bolt-ai/acme@1.0.0")).toBe(Npm.sanitize("@bolt-ai/acme@1.0.0"))
     expect(await Npm.cacheKey("plugin")).toBe(Npm.sanitize("plugin@latest"))
-    expect(await Npm.cacheKey("@opencode/acme")).toBe(Npm.sanitize("@opencode/acme@latest"))
+    expect(await Npm.cacheKey("@bolt-ai/acme")).toBe(Npm.sanitize("@bolt-ai/acme@latest"))
     const spec = "git+ssh://git@github.com/acme/plugin.git#main"
     expect(await Npm.cacheKey(spec)).toMatch(/^git-plugin-[a-f0-9]{12}$/)
     expect(await Npm.cacheKey(spec)).toBe(await Npm.cacheKey(spec))

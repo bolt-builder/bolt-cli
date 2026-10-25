@@ -8,7 +8,7 @@ Choose a model for the current session with `/models`:
 /models
 ```
 
-OpenCode lists models from [models.dev](https://models.dev), provider integrations, and your configuration. The selector
+Bolt lists models from [models.dev](https://models.dev), provider integrations, and your configuration. The selector
 only shows enabled models whose provider is available in the current project. Connect providers in
 [Providers](/providers).
 
@@ -48,7 +48,7 @@ Set `model` in `opencode.json` or `opencode.jsonc` to choose the default for new
 }
 ```
 
-The configured model becomes the catalog default when it is enabled and its provider is available. Otherwise, OpenCode
+The configured model becomes the catalog default when it is enabled and its provider is available. Otherwise, Bolt
 falls back to the newest available supported model.
 
 - A model already selected for a session takes precedence over the configured default.
@@ -59,7 +59,7 @@ See [Config](/config) for configuration locations and precedence.
 
 ## Free models
 
-Set `OPENCODE_DISABLE_FREE_MODELS=1` (or `true`) on the server process to hide [free OpenCode models](/console/models#free-models):
+Set `OPENCODE_DISABLE_FREE_MODELS=1` (or `true`) on the server process to hide [free Bolt models](/console/models#free-models):
 
 ```bash
 OPENCODE_DISABLE_FREE_MODELS=1 opencode serve
@@ -124,7 +124,7 @@ Define new variants, or replace catalog variants with the same ID, in the model'
 Each variant can contain `settings`, `headers`, and `body`. Its values are applied after provider and model values.
 
 To replace a model's reasoning variants, describe its reasoning controls in `capabilities.reasoning`, using the
-[models.dev](https://models.dev) v2 shape. OpenCode builds the variants for the model's package from them:
+[models.dev](https://models.dev) v2 shape. Bolt builds the variants for the model's package from them:
 
 ```jsonc title="opencode.jsonc"
 {
@@ -189,7 +189,7 @@ Provider and model entries can customize requests with `settings`, `headers`, an
 | `headers`  | Additional HTTP request headers.                                 |
 | `body`     | Provider-specific request body fields.                            |
 
-OpenCode applies provider values first, model values second, and the selected variant last.
+Bolt applies provider values first, model values second, and the selected variant last.
 
 - Nested `settings` and `body` objects are merged.
 - Later arrays and scalar values replace earlier values.
@@ -227,7 +227,7 @@ Use `modelID` to give an API model a friendlier catalog ID:
 ```
 
 Here, `openai/coding-default` is the selectable reference and `gpt-6.1-sol` is sent to the provider. For a model that is not
-already in the catalog, OpenCode assumes:
+already in the catalog, Bolt assumes:
 
 - Tool support, text and image input, and text output.
 - A 200,000-token context limit and 32,000-token output limit.
@@ -271,21 +271,21 @@ For an OpenAI-compatible model that streams reasoning in a custom assistant-mess
 }
 ```
 
-OpenCode recognizes `reasoning`, `reasoning_content`, and `reasoning_text`, and also accepts another provider-specific
+Bolt recognizes `reasoning`, `reasoning_content`, and `reasoning_text`, and also accepts another provider-specific
 string. It reads streamed reasoning from that field and restores the field when sending prior assistant messages back to
 the model.
 
 ## Prompt caching
 
-OpenCode places prompt-cache breakpoints automatically on routes that are known to need them, such as Anthropic. When
-Claude models are served through an OpenAI-compatible proxy such as LiteLLM, OpenCode cannot tell that they need
+Bolt places prompt-cache breakpoints automatically on routes that are known to need them, such as Anthropic. When
+Claude models are served through an OpenAI-compatible proxy such as LiteLLM, Bolt cannot tell that they need
 Anthropic-style `cache_control` breakpoints. Set `compatibility.cacheFormat` on those Claude models:
 
 ```jsonc title="opencode.jsonc"
 {
   "providers": {
     "litellm": {
-      "package": "@opencode/ai/providers/openai-compatible",
+      "package": "@bolt-ai/ai/providers/openai-compatible",
       "settings": { "baseURL": "https://litellm.example.com/v1" },
       "models": {
         "claude-sonnet-5-5": {
@@ -302,14 +302,14 @@ Anthropic-style `cache_control` breakpoints. Set `compatibility.cacheFormat` on 
 }
 ```
 
-OpenCode then marks the last tool definition, the system prompt, and the latest message with
+Bolt then marks the last tool definition, the system prompt, and the latest message with
 `cache_control: { "type": "ephemeral" }`, which uses the endpoint's default five-minute cache lifetime. Use `"alibaba"`
 for Alibaba Model Studio models, which accept the same markers but ignore them on tool definitions. Set
 `compatibility.cacheFormat` on the provider instead when every model it serves accepts the same format.
 
 ## Local
 
-OpenCode automatically discovers models from Ollama, LM Studio, and vLLM at their default local addresses. You can also
+Bolt automatically discovers models from Ollama, LM Studio, and vLLM at their default local addresses. You can also
 configure any OpenAI-compatible server manually.
 
 ```text
@@ -329,7 +329,7 @@ With Ollama listening at `http://127.0.0.1:11434`, select a discovered model wit
 }
 ```
 
-OpenCode refreshes the inventory in the background and reads context, vision, and tool-use capabilities from Ollama.
+Bolt refreshes the inventory in the background and reads context, vision, and tool-use capabilities from Ollama.
 Embedding-only models are excluded.
 
 For another host or port, set Ollama's OpenAI-compatible URL. Discovery still uses the native Ollama API at the same
@@ -363,7 +363,7 @@ provider ID:
 }
 ```
 
-OpenCode refreshes the inventory in the background and reads context, vision, and tool-use capabilities from LM Studio.
+Bolt refreshes the inventory in the background and reads context, vision, and tool-use capabilities from LM Studio.
 Embedding models are excluded.
 
 For another host or port, set the OpenAI-compatible URL. Models are still discovered automatically:
@@ -395,7 +395,7 @@ With vLLM listening at `http://127.0.0.1:8000`, select a discovered model with t
 }
 ```
 
-OpenCode checks `/health`, refreshes `/v1/models` in the background, uses the reported `max_model_len` as the context
+Bolt checks `/health`, refreshes `/v1/models` in the background, uses the reported `max_model_len` as the context
 limit, and includes only model cards owned by `vllm`.
 
 Discovered models advertise text input and output, but not vision or tools. vLLM enables tool calling with server flags
@@ -432,7 +432,7 @@ For another OpenAI-compatible server, define its provider package, endpoint, and
   "providers": {
     "local": {
       "name": "Local server",
-      "package": "@opencode/ai/providers/openai-compatible",
+      "package": "@bolt-ai/ai/providers/openai-compatible",
       "settings": {
         "baseURL": "http://127.0.0.1:1234/v1",
       },
@@ -455,7 +455,7 @@ For another OpenAI-compatible server, define its provider package, endpoint, and
 }
 ```
 
-Use the server's real model name, limits, input and output types, and tool support. OpenCode cannot detect whether the
+Use the server's real model name, limits, input and output types, and tool support. Bolt cannot detect whether the
 custom-model fallback values are accurate. If the endpoint requires a key, add `apiKey` to `settings` with an environment
 substitution such as `"apiKey": "{env:LOCAL_API_KEY}"`; do not commit secrets.
 

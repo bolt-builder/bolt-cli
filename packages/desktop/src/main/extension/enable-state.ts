@@ -1,5 +1,5 @@
 import type { DatabaseSync } from "node:sqlite"
-import type { EnableState } from "@opencode/gui-extensions/sdk/bridge"
+import type { EnableState } from "@bolt-ai/gui-extensions/sdk/bridge"
 
 /** Explicit settings only: both startup readers and the manager resolve absent rows through the same SDK rule. */
 export function readEnableState(db: DatabaseSync): readonly EnableState[] {

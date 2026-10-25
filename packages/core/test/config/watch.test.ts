@@ -1,9 +1,9 @@
 import path from "path"
 import { describe, expect, test } from "bun:test"
-import type { ConfigDiscovery } from "@opencode/core/config/discovery"
-import { ConfigWatch } from "@opencode/core/config/watch"
-import { AbsolutePath } from "@opencode/core/schema"
-import { FSUtil } from "@opencode/util/fs-util"
+import type { ConfigDiscovery } from "@bolt-ai/core/config/discovery"
+import { ConfigWatch } from "@bolt-ai/core/config/watch"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { FSUtil } from "@bolt-ai/util/fs-util"
 
 const project = path.resolve("watch-plan-project")
 const root = AbsolutePath.make(path.join(project, ".opencode"))

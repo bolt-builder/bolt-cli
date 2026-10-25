@@ -1,6 +1,6 @@
 import { expect } from "bun:test"
-import { McpCodeModeDefaultsPlugin } from "@opencode/core/plugin/mcp-codemode-defaults"
-import type { Mcp } from "@opencode/schema/mcp"
+import { McpCodeModeDefaultsPlugin } from "@bolt-ai/core/plugin/mcp-codemode-defaults"
+import type { Mcp } from "@bolt-ai/schema/mcp"
 import { Effect, type Types } from "effect"
 import { it } from "../lib/effect"
 import { host } from "./host"

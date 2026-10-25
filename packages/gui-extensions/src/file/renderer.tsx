@@ -11,8 +11,8 @@ import {
   type Signal,
 } from "solid-js"
 import { createStore, produce } from "solid-js/store"
-import { Icon } from "@opencode/ui/icon"
-import { encodeFilePath, getFilename } from "@opencode/util/path"
+import { Icon } from "@bolt-ai/ui/icon"
+import { encodeFilePath, getFilename } from "@bolt-ai/util/path"
 import {
   createKeyed,
   bindExtension,
@@ -32,7 +32,7 @@ import {
   type Setup,
   onIdle,
 } from "../sdk"
-import { artifactKind } from "@opencode/util/artifact"
+import { artifactKind } from "@bolt-ai/util/artifact"
 import { resolveArtifactPath } from "./artifact"
 import { FileContext, type FileShared } from "./context"
 import type { OpenApp } from "./apps"

@@ -1,7 +1,7 @@
-import { Database } from "@opencode/core/database/database"
-import { Project } from "@opencode/core/project"
-import { upsertProject } from "@opencode/core/project/sql"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { Database } from "@bolt-ai/core/database/database"
+import { Project } from "@bolt-ai/core/project"
+import { upsertProject } from "@bolt-ai/core/project/sql"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 import { Effect, Layer } from "effect"
 
 export const globalProjectNode = makeGlobalNode({

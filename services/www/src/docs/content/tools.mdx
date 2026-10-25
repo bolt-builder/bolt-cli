@@ -2,7 +2,7 @@
 title: "Tools"
 ---
 
-Ask for the outcome you want. OpenCode chooses the available tools, requests
+Ask for the outcome you want. Bolt chooses the available tools, requests
 approval when required, and returns the result.
 
 ```text
@@ -73,7 +73,7 @@ is true.
 In src/config.ts, replace the unique text "timeout: 60" with "timeout: 30".
 ```
 
-Use `edit` for a focused change. OpenCode may format the file after writing it.
+Use `edit` for a focused change. Bolt may format the file after writing it.
 Permission: `edit` with the target path as its resource.
 
 ### Write
@@ -98,7 +98,7 @@ sections.
 Use patch to rename src/old.ts to src/new.ts and update its exported name.
 ```
 
-OpenCode exposes `patch` for supported GPT models; other models receive `edit`
+Bolt exposes `patch` for supported GPT models; other models receive `edit`
 and `write` instead. Permission: `edit` with every affected path as a resource.
 
 Paths outside the active Location or its project worktree are also checked
@@ -244,7 +244,7 @@ The same namespace manages worktrees for the session's project:
   `directory`. The project's worktree configuration selects the destination and
   strategy.
 - `worktree_list` lists the project's worktrees.
-- `worktree_remove` removes a worktree OpenCode recorded for the project. Set
+- `worktree_remove` removes a worktree Bolt recorded for the project. Set
   `force` to discard uncommitted changes.
 
 ```text
@@ -257,7 +257,7 @@ action.
 
 ## Browser
 
-The `browser` Code Mode namespace controls the browser attached by the OpenCode
+The `browser` Code Mode namespace controls the browser attached by the Bolt
 desktop app. Open a tab, keep its returned `tabID`, then pass that explicit ID to
 every page operation.
 

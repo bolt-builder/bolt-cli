@@ -4,7 +4,7 @@ import {
   flushPersisted,
   type NamespaceStorage,
   type Platform,
-} from "@opencode/app/desktop"
+} from "@bolt-ai/app/desktop"
 import type { ElectronAPI } from "../api-types"
 import { onBeforeDispose } from "../ipc-client"
 

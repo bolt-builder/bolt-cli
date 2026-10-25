@@ -1,5 +1,5 @@
-import { Form } from "@opencode/schema/form"
-import { Location } from "@opencode/schema/location"
+import { Form } from "@bolt-ai/schema/form"
+import { Location } from "@bolt-ai/schema/location"
 import { Context, Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiMiddleware, OpenApi } from "effect/http-api"
 import { LocationQuery, locationQueryOpenApi } from "./location.js"

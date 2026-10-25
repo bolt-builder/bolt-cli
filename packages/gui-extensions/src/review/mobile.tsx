@@ -1,6 +1,6 @@
 import { onCleanup, Show } from "solid-js"
 import { makeEventListener } from "@solid-primitives/event-listener"
-import { SessionReview } from "@opencode/session-ui/session-review"
+import { SessionReview } from "@bolt-ai/session-ui/session-review"
 import { createKeyed, useExtension, type MountedSession } from "../sdk"
 import type Review from "./index"
 import type { ReviewModel } from "./model"

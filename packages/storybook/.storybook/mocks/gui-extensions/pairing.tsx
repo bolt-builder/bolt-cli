@@ -1,4 +1,4 @@
-import { useDialog } from "@opencode/ui/context/dialog"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query"
 import type { JSX } from "solid-js"
 import { ExtensionContext, useExtension, type IpcClient } from "../../../../gui-extensions/src/sdk"

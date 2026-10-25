@@ -7,7 +7,7 @@ import { State } from "./state"
 
 export const Info = Command.Info
 export type Info = Command.Info
-export { Event } from "@opencode/schema/command"
+export { Event } from "@bolt-ai/schema/command"
 
 export interface Invocation {
   readonly sessionID: Session.ID

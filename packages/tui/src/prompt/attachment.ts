@@ -1,4 +1,4 @@
-import type { PromptInput } from "@opencode/schema"
+import type { PromptInput } from "@bolt-ai/schema"
 
 type PromptFile = PromptInput.FileAttachment
 type PromptFileIdentity = Pick<PromptFile, "uri" | "name" | "description">

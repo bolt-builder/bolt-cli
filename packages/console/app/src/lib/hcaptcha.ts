@@ -1,4 +1,4 @@
-import { Resource } from "@opencode/console-resource"
+import { Resource } from "@bolt-ai/console-resource"
 
 const TIMEOUT_MS = 3000
 const CONFIG_ERRORS = new Set(["missing-input-secret", "invalid-input-secret", "sitekey-secret-mismatch"])

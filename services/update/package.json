@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@opencode/update",
+  "name": "@bolt-ai/update",
   "version": "2.1.4",
   "private": true,
   "type": "module",

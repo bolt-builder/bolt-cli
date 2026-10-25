@@ -36,7 +36,7 @@ Use `system` to follow your terminal's appearance, or lock the theme to one mode
 | `dark`   | Always uses the dark theme.                   |
 | `light`  | Always uses the light theme.                  |
 
-If a custom theme provides only one mode, OpenCode uses that mode when the other is requested.
+If a custom theme provides only one mode, Bolt uses that mode when the other is requested.
 
 ## Builtins
 
@@ -58,7 +58,7 @@ Available themes include:
 - `one-dark`, `opencode`, `orng`, `lucent-orng`, `osaka-jade`, `palenight`, `rosepine`
 - `solarized`, `synthwave84`, `tokyonight`, `vercel`, `vesper`, `zenburn`
 
-The `system` theme is available when OpenCode can read your terminal palette.
+The `system` theme is available when Bolt can read your terminal palette.
 
 ## Files
 
@@ -88,13 +88,13 @@ theme name.
 | Global  | `~/.config/opencode/themes/`               |
 | Project | `.opencode/themes/` in the project tree    |
 
-OpenCode reads `.json` files only. A theme closer to the current directory replaces a global or parent theme with the
+Bolt reads `.json` files only. A theme closer to the current directory replaces a global or parent theme with the
 same name.
 
 ## Format
 
 Every V2 theme declares one complete `base` token tree and at least one `light` or `dark` hue palette.
-Modes inherit only from that file's base; they do not inherit from the built-in OpenCode theme or from each other. Use
+Modes inherit only from that file's base; they do not inherit from the built-in Bolt theme or from each other. Use
 the theme tool to generate a complete base before customizing it.
 
 The examples below show only the sections relevant to each concept; they are not complete theme files.

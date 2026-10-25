@@ -1,7 +1,7 @@
 export * as SessionRestart from "./restart.js"
 
 import { Context, Effect, Layer } from "effect"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 import { Bus } from "../../bus.js"
 import { Job } from "../../job.js"
 import { Session } from "../../session.js"
@@ -60,7 +60,7 @@ export interface Interface {
  * — the managed server invokes it at boot; embedders may call it from their
  * own start-up.
  */
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionRestart") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionRestart") {}
 
 export const layer = (options?: Options) =>
   Layer.effect(

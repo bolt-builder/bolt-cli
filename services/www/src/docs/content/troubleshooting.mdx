@@ -3,11 +3,11 @@ title: "Troubleshooting"
 ---
 
 <Callout type="tip">
-  You can ask OpenCode to debug itself. Describe the problem and ask it to use this troubleshooting page; it can read
+  You can ask Bolt to debug itself. Describe the problem and ask it to use this troubleshooting page; it can read
   the steps below, inspect its service and logs, and help identify the issue.
 </Callout>
 
-OpenCode uses a client-server architecture. A background server owns sessions, plugins, permissions, and other application
+Bolt uses a client-server architecture. A background server owns sessions, plugins, permissions, and other application
 state. Start by determining whether an issue is in a client, the shared server, or a specific project.
 
 ## Check the background service
@@ -38,7 +38,7 @@ opencode service start
 ```
 
 <Callout type="note">
-  OpenCode normally discovers or starts the shared background service automatically. The service commands are only
+  Bolt normally discovers or starts the shared background service automatically. The service commands are only
   needed when diagnosing its lifecycle.
 </Callout>
 
@@ -165,7 +165,7 @@ opencode-heap-2026-10-23T013012345Z/
 
 ## Capture CPU and memory profiles
 
-On macOS and Linux, you can signal a running OpenCode process to capture diagnostic data. Get the background server PID
+On macOS and Linux, you can signal a running Bolt process to capture diagnostic data. Get the background server PID
 from the health endpoint:
 
 ```bash

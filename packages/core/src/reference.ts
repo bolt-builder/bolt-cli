@@ -19,7 +19,7 @@ export type GitSource = Reference.GitSource
 export const Source = Reference.Source
 export type Source = Reference.Source
 
-export { Event } from "@opencode/schema/reference"
+export { Event } from "@bolt-ai/schema/reference"
 
 export const Info = Reference.Info
 export type Info = Reference.Info

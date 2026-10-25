@@ -1,6 +1,6 @@
 import { createEffect, onCleanup } from "solid-js"
-import type { PermissionRequest } from "@opencode/client/promise"
-import type { Data } from "@opencode/client/solid"
+import type { PermissionRequest } from "@bolt-ai/client/promise"
+import type { Data } from "@bolt-ai/client/solid"
 import type { ServerSDK } from "@/runtime/server/client"
 import { projectSettingsKey, useSettings } from "@/settings/model"
 

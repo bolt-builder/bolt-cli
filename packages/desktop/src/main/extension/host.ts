@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron"
-import { builtins } from "@opencode/gui-extensions/main"
-import type { BridgeLayout, BridgeMenubarItem } from "@opencode/gui-extensions/sdk/bridge"
+import { builtins } from "@bolt-ai/gui-extensions/main"
+import type { BridgeLayout, BridgeMenubarItem } from "@bolt-ai/gui-extensions/sdk/bridge"
 import {
   MenubarItem,
   type BaseContext,
@@ -26,7 +26,7 @@ import {
   type ServerEndpoint,
   type ServerEndpoints,
   type Windows,
-} from "@opencode/gui-extensions/sdk/main"
+} from "@bolt-ai/gui-extensions/sdk/main"
 import { Exit, Match, Predicate, Schema } from "effect"
 import type { ExtensionEndpoint, ExtensionInstalled } from "../../shared/ipc-rpc/extensions"
 import {

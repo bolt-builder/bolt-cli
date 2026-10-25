@@ -19,9 +19,9 @@ import {
   TranscriptionClient,
   Video,
   VideoClient,
-} from "@opencode/ai/effect"
-import { Route, Protocol, RequestExecutor, WebSocketTransport } from "@opencode/ai/route"
-import { Provider as ProviderSubpath } from "@opencode/ai/provider"
+} from "@bolt-ai/ai/effect"
+import { Route, Protocol, RequestExecutor, WebSocketTransport } from "@bolt-ai/ai/route"
+import { Provider as ProviderSubpath } from "@bolt-ai/ai/provider"
 import {
   Alibaba,
   AssemblyAI,
@@ -49,7 +49,7 @@ import {
   VercelAIGateway,
   XAI,
   ZAI,
-} from "@opencode/ai/providers"
+} from "@bolt-ai/ai/providers"
 import {
   OpenAIChat,
   OpenAICompatibleChat,
@@ -57,9 +57,9 @@ import {
   OpenAIResponses,
   OpenResponses,
   OpenResponsesChannel,
-} from "@opencode/ai/protocols"
-import * as AnthropicMessages from "@opencode/ai/protocols/anthropic-messages"
-import { TestLLM } from "@opencode/ai/testing"
+} from "@bolt-ai/ai/protocols"
+import * as AnthropicMessages from "@bolt-ai/ai/protocols/anthropic-messages"
+import { TestLLM } from "@bolt-ai/ai/testing"
 
 describe("public exports", () => {
   test("modality, provider, and protocol entrypoints load first in a fresh process", async () => {
@@ -130,7 +130,7 @@ describe("public exports", () => {
   })
 
   test("provider barrels expose user-facing facades", async () => {
-    const { OpenAICompatibleResponses } = await import("@opencode/ai/providers")
+    const { OpenAICompatibleResponses } = await import("@bolt-ai/ai/providers")
 
     expect(OpenAI.model).toBeFunction()
     expect(OpenAI.provider.responses).toBe(OpenAI.responses)

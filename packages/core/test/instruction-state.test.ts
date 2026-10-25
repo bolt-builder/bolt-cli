@@ -1,25 +1,25 @@
 import { describe, expect } from "bun:test"
 import { and, asc, eq } from "drizzle-orm"
 import { Effect, Schema } from "effect"
-import { Database } from "@opencode/core/database/database"
-import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
-import { LayerNode } from "@opencode/util/effect/layer-node"
-import { Bus } from "@opencode/core/bus"
-import { Event } from "@opencode/schema/event"
-import { EventTable } from "@opencode/core/event/sql"
-import { Instructions } from "@opencode/core/instructions/index"
-import { Project } from "@opencode/core/project"
-import { ProjectTable } from "@opencode/core/project/sql"
-import { AbsolutePath } from "@opencode/core/schema"
-import { InstructionState } from "@opencode/core/session/instruction-state"
-import { SessionProjector } from "@opencode/core/session/projector"
-import { SessionSchema } from "@opencode/core/session/schema"
+import { Database } from "@bolt-ai/core/database/database"
+import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { Event } from "@bolt-ai/schema/event"
+import { EventTable } from "@bolt-ai/core/event/sql"
+import { Instructions } from "@bolt-ai/core/instructions/index"
+import { Project } from "@bolt-ai/core/project"
+import { ProjectTable } from "@bolt-ai/core/project/sql"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { InstructionState } from "@bolt-ai/core/session/instruction-state"
+import { SessionProjector } from "@bolt-ai/core/session/projector"
+import { SessionSchema } from "@bolt-ai/core/session/schema"
 import {
   InstructionBlobTable,
   InstructionStateTable,
   SessionMessageTable,
   SessionTable,
-} from "@opencode/core/session/sql"
+} from "@bolt-ai/core/session/sql"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(

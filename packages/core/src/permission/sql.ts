@@ -1,8 +1,8 @@
 import { sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
-import type { Project } from "@opencode/schema/project"
+import type { Project } from "@bolt-ai/schema/project"
 import { Timestamps } from "../database/schema.sql.js"
 import { ProjectTable } from "../project/sql.js"
-import type { PermissionSaved } from "@opencode/schema/permission-saved"
+import type { PermissionSaved } from "@bolt-ai/schema/permission-saved"
 
 export const PermissionTable = sqliteTable(
   "permission",

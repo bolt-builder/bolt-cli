@@ -33,8 +33,8 @@
   },
   "devDependencies": {
     "@opencode-ai/pty": "0.3.1",
-    "@opencode/client": "workspace:*",
-    "@opencode/plugin": "workspace:*",
+    "@bolt-ai/client": "workspace:*",
+    "@bolt-ai/plugin": "workspace:*",
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
     "@typescript/native": "catalog:",

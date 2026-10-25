@@ -21,8 +21,8 @@ import {
 } from "solid-js"
 import { createStore } from "solid-js/store"
 import { Predicate } from "effect"
-import { useDialog } from "@opencode/ui/context/dialog"
-import { pluralCategory, resolveTemplate } from "@opencode/ui/context/i18n"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
+import { pluralCategory, resolveTemplate } from "@bolt-ai/ui/context/i18n"
 import {
   ExtensionContext,
   LifetimeContext,
@@ -47,7 +47,7 @@ import {
   type SessionRef,
   type SetupContext,
   type Token,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import { useLanguage } from "@/runtime/i18n/language"
 import { createSessionStore, whenLoaded } from "./stores"
 

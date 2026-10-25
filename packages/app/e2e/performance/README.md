@@ -16,7 +16,7 @@ Run the desktop development startup benchmark from the repository root:
 bun run bench:devex
 ```
 
-It runs five serial samples of the exact `bun dev:desktop` command. Each sample uses a fresh desktop profile, database, service configuration, service registration, and service process; the desktop selects an isolated ephemeral loopback endpoint. It removes desktop build output and the desktop Vite cache before every run; dependencies, Bun's package cache, and Electron remain installed. The harness stops only that sample's service; it does not stop or change the elected global OpenCode service. The measured endpoint is a visible Home page whose empty-state controls pass Playwright actionability checks. The command's Electron installation check remains inside the measured interval.
+It runs five serial samples of the exact `bun dev:desktop` command. Each sample uses a fresh desktop profile, database, service configuration, service registration, and service process; the desktop selects an isolated ephemeral loopback endpoint. It removes desktop build output and the desktop Vite cache before every run; dependencies, Bun's package cache, and Electron remain installed. The harness stops only that sample's service; it does not stop or change the elected global Bolt service. The measured endpoint is a visible Home page whose empty-state controls pass Playwright actionability checks. The command's Electron installation check remains inside the measured interval.
 
 Set `DESKTOP_STARTUP_RUNS` only for focused diagnostics:
 
@@ -136,7 +136,7 @@ $env:OPENCODE_PERFORMANCE_HTTP_FIXTURE = "1"
 bun run bench:tabs
 ```
 
-Use `--dist` to select a frozen production bundle when comparing revisions. An explicit `PLAYWRIGHT_BASE_URL` means the benchmark does not rebuild or start another preview. The fixture gives hashed assets immutable cache headers; it serves the deterministic read workload, not the live OpenCode service. Each test still gets a fresh browser context, and source-session setup still occurs before the measured switch. API responses use `no-store`, service workers remain blocked, and no destination Markdown is rendered before a cold switch. Records identify the transport as `http` or `playwright-route`; keep these series separate. Unset `OPENCODE_PERFORMANCE_HTTP_FIXTURE` when returning to the default routed harness.
+Use `--dist` to select a frozen production bundle when comparing revisions. An explicit `PLAYWRIGHT_BASE_URL` means the benchmark does not rebuild or start another preview. The fixture gives hashed assets immutable cache headers; it serves the deterministic read workload, not the live Bolt service. Each test still gets a fresh browser context, and source-session setup still occurs before the measured switch. API responses use `no-store`, service workers remain blocked, and no destination Markdown is rendered before a cold switch. Records identify the transport as `http` or `playwright-route`; keep these series separate. Unset `OPENCODE_PERFORMANCE_HTTP_FIXTURE` when returning to the default routed harness.
 
 ## Retained renderer memory
 
@@ -147,7 +147,7 @@ bunx playwright test --config e2e/performance/playwright.config.ts \
   timeline/provider-memory-benchmark.spec.ts --repeat-each=3
 ```
 
-`PROVIDER_MEMORY_MODELS` defaults to 1,200 and `PROVIDER_MEMORY_SWITCHES` defaults to 10. Each sample records Chromium's `Runtime.getHeapUsage` and `Memory.getDOMCounters` after an explicit garbage collection. This measures retained state, not allocation peaks or normal GC timing. It does not include worker heaps, the Electron main/GPU processes, or the OpenCode server, and must not be reported as total desktop RAM. Use identical model counts and navigation sequences for before/after comparisons.
+`PROVIDER_MEMORY_MODELS` defaults to 1,200 and `PROVIDER_MEMORY_SWITCHES` defaults to 10. Each sample records Chromium's `Runtime.getHeapUsage` and `Memory.getDOMCounters` after an explicit garbage collection. This measures retained state, not allocation peaks or normal GC timing. It does not include worker heaps, the Electron main/GPU processes, or the Bolt server, and must not be reported as total desktop RAM. Use identical model counts and navigation sequences for before/after comparisons.
 
 ## Chrome traces
 

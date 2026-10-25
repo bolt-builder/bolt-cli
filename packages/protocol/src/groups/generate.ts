@@ -1,4 +1,4 @@
-import { Model } from "@opencode/schema/model"
+import { Model } from "@bolt-ai/schema/model"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
 import { LocationNotFoundError, InvalidRequestError, ServiceUnavailableError } from "../errors.js"

@@ -1,20 +1,20 @@
 #!/usr/bin/env bun
 
-import { ensurePluginRuntime } from "@opencode/plugin/runtime"
+import { ensurePluginRuntime } from "@bolt-ai/plugin/runtime"
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
 import { Cause, Effect } from "effect"
 import { getErrorReported } from "effect/Runtime"
 import { Commands } from "./commands/commands"
 import { Runtime } from "./framework/runtime"
-import { Observability } from "@opencode/util/observability"
+import { Observability } from "@bolt-ai/util/observability"
 import { Updater } from "./services/updater"
-import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_LOCAL, OPENCODE_VERSION } from "./version"
-import { LayerNode } from "@opencode/util/effect/layer-node"
-import { Global } from "@opencode/util/global"
-import { AppProcess } from "@opencode/util/process"
+import { BOLT_ARTIFACT, BOLT_CHANNEL, BOLT_LOCAL, BOLT_VERSION } from "./version"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Global } from "@bolt-ai/util/global"
+import { AppProcess } from "@bolt-ai/util/process"
 import { Config } from "./config"
-import { Npm } from "@opencode/util/npm"
-import { EffectFlock } from "@opencode/util/effect-flock"
+import { Npm } from "@bolt-ai/util/npm"
+import { EffectFlock } from "@bolt-ai/util/effect-flock"
 import { Heap } from "./heap"
 import { CpuProfile } from "./cpu-profile"
 import { ShutdownDeadline } from "./shutdown-deadline"
@@ -103,12 +103,12 @@ Effect.gen(function* () {
     }),
   )
   yield* Effect.logInfo("cli starting", {
-    version: OPENCODE_VERSION,
-    channel: OPENCODE_CHANNEL,
-    local: OPENCODE_LOCAL,
+    version: BOLT_VERSION,
+    channel: BOLT_CHANNEL,
+    local: BOLT_LOCAL,
     args: process.argv.slice(2),
   })
-  return yield* Runtime.run(Commands, Handlers, { version: OPENCODE_VERSION })
+  return yield* Runtime.run(Commands, Handlers, { version: BOLT_VERSION })
 }).pipe(
   Effect.catchCause((cause) =>
     Effect.logError("cli process failed", {
@@ -132,9 +132,9 @@ Effect.gen(function* () {
     Observability.layer({
       endpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
       headers: process.env.OTEL_EXPORTER_OTLP_HEADERS,
-      client: process.env.OPENCODE_CLIENT ?? OPENCODE_ARTIFACT,
-      version: OPENCODE_VERSION,
-      channel: OPENCODE_CHANNEL,
+      client: process.env.OPENCODE_CLIENT ?? BOLT_ARTIFACT,
+      version: BOLT_VERSION,
+      channel: BOLT_CHANNEL,
     }),
   ),
   Effect.provide(NodeServices.layer),

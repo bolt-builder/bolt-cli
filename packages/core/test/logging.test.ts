@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import path from "path"
-import { Global } from "@opencode/util/global"
-import { Logging } from "@opencode/util/observability/logging"
+import { Global } from "@bolt-ai/util/global"
+import { Logging } from "@bolt-ai/util/observability/logging"
 
 describe("Logging", () => {
   test("uses a local-specific log file for local installs", () => {

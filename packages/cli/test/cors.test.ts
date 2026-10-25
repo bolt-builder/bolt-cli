@@ -1,5 +1,5 @@
 import { NodeServices } from "@effect/platform-node"
-import { Global } from "@opencode/util/global"
+import { Global } from "@bolt-ai/util/global"
 import { expect, test } from "bun:test"
 import { Effect, Exit, FileSystem } from "effect"
 import { Command } from "effect/cli"

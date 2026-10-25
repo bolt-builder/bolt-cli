@@ -16,8 +16,8 @@ import { Git } from "../src/git"
 import { Location } from "../src/location"
 import { AbsolutePath, RelativePath } from "../src/schema"
 import { Snapshot } from "../src/snapshot"
-import { Global } from "@opencode/util/global"
-import { AppProcess } from "@opencode/util/process"
+import { Global } from "@bolt-ai/util/global"
+import { AppProcess } from "@bolt-ai/util/process"
 
 const args = process.argv.slice(2)
 const flag = (name: string) => {

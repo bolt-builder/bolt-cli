@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@opencode/plugin-browser",
+  "name": "@bolt-ai/plugin-browser",
   "version": "2.1.4",
   "description": "OpenCode's desktop browser plugin",
   "type": "module",
@@ -28,8 +28,8 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@opencode/plugin": "workspace:*",
-    "@opencode/schema": "workspace:*",
+    "@bolt-ai/plugin": "workspace:*",
+    "@bolt-ai/schema": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

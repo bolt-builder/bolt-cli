@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js"
-import type { IconName } from "@opencode/ui/icons/catalog"
+import type { IconName } from "@bolt-ai/ui/icons/catalog"
 import { Registry } from "./core"
 import type { SessionRef, MountedSession, SessionScreen } from "./host-apis"
 

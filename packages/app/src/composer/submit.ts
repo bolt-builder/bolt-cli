@@ -1,5 +1,5 @@
-import { SessionMessage } from "@opencode/schema/session-message"
-import type { SessionMessageUser } from "@opencode/client/promise"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
+import type { SessionMessageUser } from "@bolt-ai/client/promise"
 import type { Accessor } from "solid-js"
 import type { PromptComment } from "./comment-note"
 import type { PromptHistoryComment } from "./history/entry"

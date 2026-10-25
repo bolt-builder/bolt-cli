@@ -1,5 +1,5 @@
-import type { WebSearch } from "@opencode/schema/websearch"
-import type { WebSearchApi } from "@opencode/client/effect/api"
+import type { WebSearch } from "@bolt-ai/schema/websearch"
+import type { WebSearchApi } from "@bolt-ai/client/effect/api"
 import type { Effect } from "effect"
 import type { Transform } from "./registration.js"
 

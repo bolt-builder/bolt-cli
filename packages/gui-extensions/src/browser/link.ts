@@ -1,4 +1,4 @@
-import { encodeFilePath } from "@opencode/util/path"
+import { encodeFilePath } from "@bolt-ai/util/path"
 import type { Files } from "../sdk"
 
 /** The file:// URL of a workspace-relative path. */

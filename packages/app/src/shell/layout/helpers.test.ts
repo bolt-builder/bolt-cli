@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { SessionInfo } from "@opencode/client/promise"
+import type { SessionInfo } from "@bolt-ai/client/promise"
 import { closeHomeProject, errorMessage, projectForSession, toggleHomeProjectSelection } from "./helpers"
 import { ServerConnection } from "@/runtime/server/registry"
 

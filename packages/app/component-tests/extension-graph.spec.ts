@@ -1,4 +1,4 @@
-import type { Definition } from "@opencode/gui-extensions/sdk"
+import type { Definition } from "@bolt-ai/gui-extensions/sdk"
 import { expect, sourceURL, story } from "../../storybook/playwright/story"
 
 const source = (path: string) => sourceURL(new URL(path, import.meta.url))

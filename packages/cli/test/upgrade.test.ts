@@ -87,7 +87,7 @@ async function cli(args: string[], env: Record<string, string> = {}, entry = "fi
   const root = await mkdtemp(path.join(os.tmpdir(), "opencode-upgrade-"))
   try {
     const child = Bun.spawn(
-      [process.execPath, "--define", 'OPENCODE_VERSION="0.0.0-beta-old"', path.join(import.meta.dir, entry), ...args],
+      [process.execPath, "--define", 'BOLT_VERSION="0.0.0-beta-old"', path.join(import.meta.dir, entry), ...args],
       {
         cwd: path.join(import.meta.dir, ".."),
         env: {

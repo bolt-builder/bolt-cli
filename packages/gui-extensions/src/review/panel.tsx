@@ -1,6 +1,6 @@
 import { createMemo, createResource, createSignal, Show, type JSX } from "solid-js"
 import { Dynamic } from "solid-js/web"
-import type { FileDiffInfo } from "@opencode/client/promise"
+import type { FileDiffInfo } from "@bolt-ai/client/promise"
 import {
   SESSION_REVIEW_V2_SIDEBAR_WIDTH_MAX,
   SESSION_REVIEW_V2_SIDEBAR_WIDTH_MIN,
@@ -8,9 +8,9 @@ import {
   SessionReviewV2Sidebar,
   SessionReviewV2SidebarToggle,
   type SessionReviewExpandMode,
-} from "@opencode/session-ui/v2/session-review-v2"
-import { SessionReviewFilePreviewV2 } from "@opencode/session-ui/v2/session-review-file-preview-v2"
-import { DiffChanges } from "@opencode/ui/diff-changes"
+} from "@bolt-ai/session-ui/v2/session-review-v2"
+import { SessionReviewFilePreviewV2 } from "@bolt-ai/session-ui/v2/session-review-file-preview-v2"
+import { DiffChanges } from "@bolt-ai/ui/diff-changes"
 import type {
   SessionReviewComment,
   SessionReviewCommentActions,
@@ -19,7 +19,7 @@ import type {
   SessionReviewDiffStyle,
   SessionReviewFocus,
   SessionReviewLineComment,
-} from "@opencode/session-ui/session-review"
+} from "@bolt-ai/session-ui/session-review"
 import { useExtension, usePanel, type MountedSession, type PanelSidebar, type SessionScreen } from "../sdk"
 import type Review from "./index"
 import {

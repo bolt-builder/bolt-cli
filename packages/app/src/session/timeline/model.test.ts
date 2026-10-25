@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { SessionMessageAssistant, SessionMessageInfo, SessionMessageUser } from "@opencode/client/promise"
+import type { SessionMessageAssistant, SessionMessageInfo, SessionMessageUser } from "@bolt-ai/client/promise"
 import { enrichLeadingTurn, loadOlderTimeline } from "./model"
 
 const user = (id: string): SessionMessageUser => ({ id, type: "user", text: id, time: { created: 1 } })

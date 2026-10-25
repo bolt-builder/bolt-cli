@@ -8,7 +8,7 @@ import { useSettings } from "@/settings/model"
 import { useTabs } from "@/shell/tabs/tabs"
 import { ServerConnection } from "@/runtime/server/registry"
 import { normalizeProjectInfo } from "@/runtime/server/global-sync/utils"
-import { sameDirectory } from "@opencode/util/path"
+import { sameDirectory } from "@bolt-ai/util/path"
 import {
   isWorkspaceDirectory,
   isWorkspaceSelection,

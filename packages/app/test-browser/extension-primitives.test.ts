@@ -10,7 +10,7 @@ import {
   type Context,
   type Persisted,
   type SessionRef,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import type { Platform } from "@/runtime/platform/platform"
 import { flushPersisted } from "@/runtime/persistence/persist"
 import { Persist, persisted, removePersisted } from "@/runtime/persistence/storage"

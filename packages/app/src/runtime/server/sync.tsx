@@ -1,6 +1,6 @@
 import type { Config, Path, Project, ProviderAuthResponse } from "@/runtime/server/types"
 import { showToast } from "@/shell/notifications/toast"
-import { getFilename } from "@opencode/util/path"
+import { getFilename } from "@bolt-ai/util/path"
 import { getOwner, onCleanup, untrack } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLanguage } from "@/runtime/i18n/language"
@@ -19,7 +19,7 @@ import type { ServerApi } from "@/runtime/server/api"
 import { toggleMcp } from "./global-sync/mcp"
 import { createConnectionSync, reconnectOrder } from "./server-sync/connection"
 import { usePlatform } from "@/runtime/platform/platform"
-import type { Data } from "@opencode/client/solid"
+import type { Data } from "@bolt-ai/client/solid"
 import { createWorktreeInventory, withWorktreeInventory, worktreeInventoryViewKey } from "@/workspaces/inventory"
 
 type GlobalStore = {

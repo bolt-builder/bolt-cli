@@ -16,9 +16,9 @@ export function renderLlmsTxt(site: URL) {
   ])
 
   return [
-    "# OpenCode V2 Documentation",
+    "# Bolt V2 Documentation",
     "",
-    "> Official documentation for using, configuring, and building with OpenCode V2.",
+    "> Official documentation for using, configuring, and building with Bolt V2.",
     "",
     ...sections,
   ].join("\n")

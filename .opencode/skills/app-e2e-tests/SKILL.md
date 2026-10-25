@@ -122,7 +122,7 @@ Run from `packages/app`:
 
 ## When CI flakes
 
-- **Find it.** e2e runs on pull requests that affect `@opencode/app` or `@opencode/storybook`, including their workspace dependencies, and on every manual dispatch (`.github/workflows/test.yml:42-54`). It never runs on dev (`:28`).
+- **Find it.** e2e runs on pull requests that affect `@bolt-ai/app` or `@bolt-ai/storybook`, including their workspace dependencies, and on every manual dispatch (`.github/workflows/test.yml:42-54`). It never runs on dev (`:28`).
   - Each OS has the legs `app-1` and `app-2` (the shards), `session-ui-components` and `app-components`.
   - The required `e2e (linux)` and `e2e (windows)` checks only aggregate those legs (`:316-335`).
   - A pass on retry leaves a leg green. Check each Windows shard report's Flaky list, and make sure your new tests are not on it.

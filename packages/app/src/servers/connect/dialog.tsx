@@ -1,9 +1,9 @@
-import { Button } from "@opencode/ui/button"
-import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@opencode/ui/dialog"
-import { Divider } from "@opencode/ui/divider"
-import { Icon } from "@opencode/ui/icon"
-import { TextInput } from "@opencode/ui/text-input"
-import { useDialog } from "@opencode/ui/context/dialog"
+import { Button } from "@bolt-ai/ui/button"
+import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@bolt-ai/ui/dialog"
+import { Divider } from "@bolt-ai/ui/divider"
+import { Icon } from "@bolt-ai/ui/icon"
+import { TextInput } from "@bolt-ai/ui/text-input"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { useMutation } from "@tanstack/solid-query"
 import {
   type Component,

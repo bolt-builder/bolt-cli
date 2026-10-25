@@ -1,5 +1,5 @@
 import { Toast, showToast } from "./toast"
-import { Button } from "@opencode/ui/button"
+import { Button } from "@bolt-ai/ui/button"
 
 const docs = `### Overview
 Toast notifications with optional icons, actions, and progress.

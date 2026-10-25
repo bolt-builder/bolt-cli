@@ -8,8 +8,8 @@ import type {
   PanelTab,
   SessionRef,
   SessionScreen,
-} from "@opencode/gui-extensions/sdk"
-import type { Bridge, BridgeMessage, EnableState, Installed } from "@opencode/gui-extensions/sdk/bridge"
+} from "@bolt-ai/gui-extensions/sdk"
+import type { Bridge, BridgeMessage, EnableState, Installed } from "@bolt-ai/gui-extensions/sdk/bridge"
 import { expect, sourceURL, story } from "../../storybook/playwright/story"
 
 const fixture = sourceURL(new URL("./extension-host.fixture.tsx", import.meta.url))

@@ -53,7 +53,7 @@ const fixtureSnapshot = [
       id: Provider.ID.make("acme"),
       name: "Acme",
       activation: "auto",
-      package: "@opencode/ai/providers/openai-compatible",
+      package: "@bolt-ai/ai/providers/openai-compatible",
     },
     models: [
       {
@@ -117,7 +117,7 @@ const fixture2Snapshot = [
       id: Provider.ID.make("beta"),
       name: "Beta",
       activation: "auto",
-      package: "@opencode/ai/providers/openai-compatible",
+      package: "@bolt-ai/ai/providers/openai-compatible",
     },
     models: [
       {
@@ -299,14 +299,14 @@ describe("ModelsDev Service", () => {
         cache,
         ModelsDev.Service.use((service) => service.get()),
       )
-      expect(result[0]?.info.package).toBe("@opencode/ai/providers/openai-compatible")
-      expect(result[0]?.models[0]?.package).toBe("@opencode/ai/providers/openai")
-      expect(result[1]?.info.package).toBe("@opencode/ai/providers/cloudflare-workers-ai")
+      expect(result[0]?.info.package).toBe("@bolt-ai/ai/providers/openai-compatible")
+      expect(result[0]?.models[0]?.package).toBe("@bolt-ai/ai/providers/openai")
+      expect(result[1]?.info.package).toBe("@bolt-ai/ai/providers/cloudflare-workers-ai")
       expect(result[1]?.info.settings).toBeUndefined()
-      expect(result[2]?.info.package).toBe("@opencode/ai/providers/azure/responses")
+      expect(result[2]?.info.package).toBe("@bolt-ai/ai/providers/azure/responses")
       expect(result[2]?.models.find((model) => model.id === "gpt-5")?.package).toBeUndefined()
       expect(result[2]?.models.find((model) => model.id === "custom-chat")?.package).toBe(
-        "@opencode/ai/providers/azure/chat",
+        "@bolt-ai/ai/providers/azure/chat",
       )
     }),
   )

@@ -1,6 +1,6 @@
 import { createMemo, type JSX } from "solid-js"
-import { Button } from "@opencode/ui/button"
-import { Switch } from "@opencode/ui/switch"
+import { Button } from "@bolt-ai/ui/button"
+import { Switch } from "@bolt-ai/ui/switch"
 import { useExtension } from "../sdk"
 import { updaterAction } from "./action"
 import type { UpdaterState } from "./contract"

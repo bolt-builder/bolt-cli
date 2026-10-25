@@ -4,7 +4,7 @@ import { expectSessionTitle } from "../../utils/waits"
 import { fixture, installStressSessionTabs, installTimelineSettings, pageMessages } from "../../utils/session-fixture"
 import { sessionHref } from "../../utils/app"
 import { waitForStableTimeline } from "./session-tab-switch-probe"
-import type { ModelUpdated } from "@opencode/client/promise"
+import type { ModelUpdated } from "@bolt-ai/client/promise"
 
 benchmark("measures retained renderer memory with a large model catalog", async ({ page, report }) => {
   benchmark.setTimeout(120_000)

@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { createSignal } from "solid-js"
-import { Field } from "@opencode/ui/field"
+import { Field } from "@bolt-ai/ui/field"
 import { Textarea } from "./textarea"
 
 const docs = `### Overview

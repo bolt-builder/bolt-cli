@@ -1,5 +1,5 @@
 import { Effect, JsonSchema, Schema } from "effect"
-import { Tool } from "@opencode/schema/tool"
+import { Tool } from "@bolt-ai/schema/tool"
 import type {
   ToolCallPart,
   ToolDefinition as ToolDefinitionClass,

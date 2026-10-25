@@ -6,7 +6,7 @@ const file = (name: string) => ({ name, directory: false })
 const directory = (name: string) => ({ name, directory: true })
 
 describe("hasExistingAppState", () => {
-  test("recognizes state from an earlier OpenCode launch but not files Electron creates on a fresh install", () => {
+  test("recognizes state from an earlier Bolt launch but not files Electron creates on a fresh install", () => {
     expect(hasExistingAppState([])).toBe(false)
     expect(hasExistingAppState([file("Local State"), directory("Crashpad")])).toBe(false)
   })

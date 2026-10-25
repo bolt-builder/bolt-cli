@@ -1,5 +1,5 @@
 import { batch, createEffect, createSignal, untrack } from "solid-js"
-import type { SessionRef } from "@opencode/gui-extensions/sdk"
+import type { SessionRef } from "@bolt-ai/gui-extensions/sdk"
 
 /**
  * Layout writes find a session's stored layout through its location, which is unknown until the server reports it

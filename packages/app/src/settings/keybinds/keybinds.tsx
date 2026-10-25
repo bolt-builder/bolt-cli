@@ -1,7 +1,7 @@
 import { For, Show, createMemo, onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
-import { Button } from "@opencode/ui/button"
+import { Button } from "@bolt-ai/ui/button"
 import { showToast } from "@/shell/notifications/toast"
 import fuzzysort from "fuzzysort"
 import { Predicate } from "effect"

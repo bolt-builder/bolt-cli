@@ -1,4 +1,4 @@
-import type { Endpoint } from "@opencode/client/effect/service"
+import type { Endpoint } from "@bolt-ai/client/effect/service"
 import { Effect } from "effect"
 import path from "node:path"
 import { Standalone } from "../services/standalone"

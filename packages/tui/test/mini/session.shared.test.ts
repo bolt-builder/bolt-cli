@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test"
-import { OpenCode, type SessionMessageUser } from "@opencode/client/promise"
+import { OpenCode, type SessionMessageUser } from "@bolt-ai/client/promise"
 import {
   createSession,
   resolveCurrentSession,

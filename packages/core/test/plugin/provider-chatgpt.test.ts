@@ -1,36 +1,36 @@
-import { Money } from "@opencode/schema/money"
-import { Agent } from "@opencode/schema/agent"
-import { Session } from "@opencode/core/session"
-import { OpenAIResponses } from "@opencode/ai/protocols/openai-responses"
-import { AIError, HttpContext, LLM, Message, RateLimitError } from "@opencode/ai/effect"
-import { classifyProviderFailure } from "@opencode/ai/provider-error"
-import { compileRequest } from "@opencode/ai/route/client"
+import { Money } from "@bolt-ai/schema/money"
+import { Agent } from "@bolt-ai/schema/agent"
+import { Session } from "@bolt-ai/core/session"
+import { OpenAIResponses } from "@bolt-ai/ai/protocols/openai-responses"
+import { AIError, HttpContext, LLM, Message, RateLimitError } from "@bolt-ai/ai/effect"
+import { classifyProviderFailure } from "@bolt-ai/ai/provider-error"
+import { compileRequest } from "@bolt-ai/ai/route/client"
 import { describe, expect } from "bun:test"
 // import { DateTime, Deferred, Effect, Schedule } from "effect"
 import { DateTime, Effect, Schedule } from "effect"
 import { HttpClient, HttpClientResponse } from "effect/http"
 import { exportJWK, generateKeyPair, SignJWT } from "jose"
-import { App } from "@opencode/core/app"
-import { Credential } from "@opencode/core/credential"
-import { Integration } from "@opencode/core/integration"
-import { KV } from "@opencode/core/kv"
-import { Location } from "@opencode/core/location"
-import { Model } from "@opencode/core/model"
-import { ModelResolver } from "@opencode/core/model-resolver"
-import { Plugin } from "@opencode/core/plugin"
-import { PluginHost } from "@opencode/core/plugin/host"
-import { PluginHooks } from "@opencode/core/plugin/hooks"
-import { GithubCopilotPlugin } from "@opencode/core/plugin/provider/github-copilot"
-import { ChatGPTPlugin, fetchModels, verifyIDToken } from "@opencode/core/plugin/provider/chatgpt"
-import { OpenAIPlugin } from "@opencode/core/plugin/provider/openai"
-import { Project } from "@opencode/core/project"
-import { Provider } from "@opencode/core/provider"
-import { AbsolutePath } from "@opencode/core/schema"
-import { SessionModelRequest } from "@opencode/core/session/model-request"
-import { SessionModelTransport } from "@opencode/core/session/model-transport"
-import { SessionRunnerModel } from "@opencode/core/session/runner/model"
-import { SessionRunnerRetry } from "@opencode/core/session/runner/retry"
-import { toSessionError } from "@opencode/core/session/to-session-error"
+import { App } from "@bolt-ai/core/app"
+import { Credential } from "@bolt-ai/core/credential"
+import { Integration } from "@bolt-ai/core/integration"
+import { KV } from "@bolt-ai/core/kv"
+import { Location } from "@bolt-ai/core/location"
+import { Model } from "@bolt-ai/core/model"
+import { ModelResolver } from "@bolt-ai/core/model-resolver"
+import { Plugin } from "@bolt-ai/core/plugin"
+import { PluginHost } from "@bolt-ai/core/plugin/host"
+import { PluginHooks } from "@bolt-ai/core/plugin/hooks"
+import { GithubCopilotPlugin } from "@bolt-ai/core/plugin/provider/github-copilot"
+import { ChatGPTPlugin, fetchModels, verifyIDToken } from "@bolt-ai/core/plugin/provider/chatgpt"
+import { OpenAIPlugin } from "@bolt-ai/core/plugin/provider/openai"
+import { Project } from "@bolt-ai/core/project"
+import { Provider } from "@bolt-ai/core/provider"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { SessionModelRequest } from "@bolt-ai/core/session/model-request"
+import { SessionModelTransport } from "@bolt-ai/core/session/model-transport"
+import { SessionRunnerModel } from "@bolt-ai/core/session/runner/model"
+import { SessionRunnerRetry } from "@bolt-ai/core/session/runner/retry"
+import { toSessionError } from "@bolt-ai/core/session/to-session-error"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -554,7 +554,7 @@ describe("ChatGPTPlugin", () => {
   //     const kv = yield* KV.Service
   //     yield* catalog.transform((editor) => {
   //       editor.update(Provider.ID.openai, (provider) => {
-  //         provider.package = "@opencode/ai/providers/openai"
+  //         provider.package = "@bolt-ai/ai/providers/openai"
   //       })
   //       editor.models.update(Provider.ID.openai, Model.ID.make("gpt-5.6-sol"), (model) => {
   //         model.limit = { context: 1_050_000, input: 922_000, output: 128_000 }
@@ -616,7 +616,7 @@ describe("ChatGPTPlugin", () => {
   //     expect(sol.settings?.compaction).toEqual({ type: "summary" })
   //     const future = required(available.find((model) => model.id === "gpt-6-future"))
   //     expect(future.name).toBe("GPT-6-Future")
-  //     expect(future.package).toBe("@opencode/ai/providers/openai")
+  //     expect(future.package).toBe("@bolt-ai/ai/providers/openai")
   //     expect(future.limit).toEqual({ context: 272_000, output: 32_000 })
   //   }),
   // )
@@ -629,7 +629,7 @@ describe("ChatGPTPlugin", () => {
   //     const kv = yield* KV.Service
   //     yield* catalog.transform((editor) => {
   //       editor.update(Provider.ID.openai, (provider) => {
-  //         provider.package = "@opencode/ai/providers/openai"
+  //         provider.package = "@bolt-ai/ai/providers/openai"
   //       })
   //       for (const id of ["gpt-5.5", "gpt-6-astra", "gpt-6-sol"])
   //         editor.models.update(Provider.ID.openai, Model.ID.make(id), () => {})
@@ -697,7 +697,7 @@ describe("ChatGPTPlugin", () => {
       const credentials = yield* Credential.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.openai, (draft) => {
-          draft.package = "@opencode/ai/providers/openai"
+          draft.package = "@bolt-ai/ai/providers/openai"
           draft.settings = { transport: "websocket" }
         })
         catalog.models.update(Provider.ID.openai, Model.ID.make("gpt-5.5"), (model) => {
@@ -767,7 +767,7 @@ describe("ChatGPTPlugin", () => {
       const direct = yield* request(Provider.ID.openai, "https://api.openai.com/v1")
 
       const provider = required(yield* catalog.get(Provider.ID.openai))
-      expect(provider.package).toBe("@opencode/ai/providers/openai")
+      expect(provider.package).toBe("@bolt-ai/ai/providers/openai")
       expect(provider.settings?.transport).toBe("http")
       expect(provider.settings?.baseURL).toBe("https://api.openai.com/v1")
       expect(provider.headers).not.toHaveProperty("x-openai-chatpass-test")
@@ -788,7 +788,7 @@ describe("ChatGPTPlugin", () => {
         "x-client-request-id": child.id,
       })
       const eligible = required(yield* models.get(Provider.ID.openai, Model.ID.make("gpt-5.5")))
-      expect(eligible.package).toBe("@opencode/ai/providers/openai")
+      expect(eligible.package).toBe("@bolt-ai/ai/providers/openai")
       expect(eligible.headers).not.toHaveProperty("x-openai-chatpass-test")
       expect(eligible.cost).toEqual([])
       expect(eligible.limit).toEqual({ context: 1_050_000, input: 922_000, output: 128_000 })
@@ -839,7 +839,7 @@ describe("ChatGPTPlugin", () => {
       const credentials = yield* Credential.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.openai, (draft) => {
-          draft.package = "@opencode/ai/providers/openai"
+          draft.package = "@bolt-ai/ai/providers/openai"
         })
         catalog.models.update(Provider.ID.openai, Model.ID.make("gpt-5.5"), (model) => {
           model.limit = { context: 1_050_000, input: 922_000, output: 128_000 }
@@ -857,7 +857,7 @@ describe("ChatGPTPlugin", () => {
 
       const provider = required(yield* catalog.get(Provider.ID.openai))
       const model = required(yield* models.get(Provider.ID.openai, Model.ID.make("gpt-5.5")))
-      expect(model.package).toBe("@opencode/ai/providers/openai")
+      expect(model.package).toBe("@bolt-ai/ai/providers/openai")
       expect(model.enabled).toBe(true)
       expect(model.limit).toEqual({ context: 1_050_000, input: 922_000, output: 128_000 })
       expect(provider.settings?.transport).toBe("websocket")
@@ -877,7 +877,7 @@ describe("ChatGPTPlugin", () => {
       const kv = yield* KV.Service
       yield* catalog.transform((editor) => {
         editor.update(Provider.ID.openai, (provider) => {
-          provider.package = "@opencode/ai/providers/openai"
+          provider.package = "@bolt-ai/ai/providers/openai"
         })
         editor.models.update(Provider.ID.openai, Model.ID.make("gpt-5.5"), () => {})
       })
@@ -979,7 +979,7 @@ describe("ChatGPTPlugin", () => {
         // const kv = yield* KV.Service
         yield* catalog.transform((editor) => {
           editor.update(providerID, (provider) => {
-            provider.package = "@opencode/ai/providers/openai/responses"
+            provider.package = "@bolt-ai/ai/providers/openai/responses"
           })
           for (const id of [baseID, modelID, variantID])
             editor.models.update(providerID, id, (model) => {
@@ -1064,7 +1064,7 @@ describe("ChatGPTPlugin", () => {
         const modelID = Model.ID.make("gpt-6.1-sol")
         yield* catalog.transform((editor) => {
           editor.update(Provider.ID.openai, (provider) => {
-            provider.package = "@opencode/ai/providers/openai"
+            provider.package = "@bolt-ai/ai/providers/openai"
           })
           editor.models.update(Provider.ID.openai, modelID, (model) => {
             model.variants = ["high", "max"].map((effort) => ({

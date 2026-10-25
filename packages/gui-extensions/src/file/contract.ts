@@ -1,5 +1,5 @@
 import type { Component, JSX } from "solid-js"
-import type { ArtifactKind } from "@opencode/util/artifact"
+import type { ArtifactKind } from "@bolt-ai/util/artifact"
 import type { ChangeKind } from "../review/contract"
 import { Contract, Registry, type MountedSession, type SessionScreen } from "../sdk"
 

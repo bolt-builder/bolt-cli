@@ -1,6 +1,6 @@
 import { NodeFileSystem } from "@effect/platform-node"
-import { Flock } from "@opencode/util/flock"
-import { Global } from "@opencode/util/global"
+import { Flock } from "@bolt-ai/util/flock"
+import { Global } from "@bolt-ai/util/global"
 import { Effect, FileSystem, Option, Schema } from "effect"
 import { expect, test } from "bun:test"
 import { parse } from "jsonc-parser"

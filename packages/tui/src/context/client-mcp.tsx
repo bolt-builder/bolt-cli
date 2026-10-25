@@ -1,4 +1,4 @@
-import { connectClientMcp, type ClientMcpConnection } from "@opencode/client/mcp"
+import { connectClientMcp, type ClientMcpConnection } from "@bolt-ai/client/mcp"
 import { createEffect, onCleanup, untrack } from "solid-js"
 import { useClientMcpExperiment } from "../config"
 import { useClient } from "./client"

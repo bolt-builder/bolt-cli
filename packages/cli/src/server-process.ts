@@ -1,14 +1,14 @@
 export * as ServerProcess from "./server-process"
 
 import { NodeServices } from "@effect/platform-node"
-import { Service } from "@opencode/client/effect/service"
-import { LayerNode } from "@opencode/util/effect/layer-node"
-import { Global } from "@opencode/util/global"
-import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_VERSION } from "./version"
-import { AppProcess } from "@opencode/util/process"
+import { Service } from "@bolt-ai/client/effect/service"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Global } from "@bolt-ai/util/global"
+import { BOLT_ARTIFACT, BOLT_CHANNEL, BOLT_VERSION } from "./version"
+import { AppProcess } from "@bolt-ai/util/process"
 import { randomBytes, randomUUID } from "node:crypto"
 import { Effect, Option, Redacted, Schema } from "effect"
-import { PersistentPty } from "@opencode/schema/persistent-pty"
+import { PersistentPty } from "@bolt-ai/schema/persistent-pty"
 import { HttpServer } from "effect/http"
 import { NetAddress } from "effect/net"
 import { Env } from "./env"
@@ -81,7 +81,7 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
       // Keep a package-manager or curl install replaceable while the service runs; Desktop updates its own copy.
       if (options.mode === "service" && process.platform === "win32" && RetainedImage.installed(global.home))
         yield* RetainedImage.retain(global.cache, "service")
-      const { start } = yield* Effect.promise(() => import("@opencode/server/process"))
+      const { start } = yield* Effect.promise(() => import("@bolt-ai/server/process"))
       const environmentPassword = yield* Env.password
       // Keep the lease credential out of the environment inherited by tools.
       if (options.mode === "stdio") {
@@ -101,9 +101,9 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
       const launch = start(
         {
           app: {
-            name: process.env.OPENCODE_CLIENT ?? OPENCODE_ARTIFACT,
-            version: OPENCODE_VERSION,
-            channel: OPENCODE_CHANNEL,
+            name: process.env.OPENCODE_CLIENT ?? BOLT_ARTIFACT,
+            version: BOLT_VERSION,
+            channel: BOLT_CHANNEL,
           },
           hostname,
           port,

@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
-import type { SessionMessageAssistant, SessionMessageInfo, ShellInfo } from "@opencode/client/promise"
-import { timelinePresets } from "@opencode/session-ui/timeline/detail"
+import type { SessionMessageAssistant, SessionMessageInfo, ShellInfo } from "@bolt-ai/client/promise"
+import { timelinePresets } from "@bolt-ai/session-ui/timeline/detail"
 import { createTwoFilesPatch } from "diff"
 import {
   assistantID,

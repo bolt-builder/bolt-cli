@@ -1,5 +1,5 @@
 import { Effect, Option, Schema } from "effect"
-import { Instructions } from "@opencode/core/instructions/index"
+import { Instructions } from "@bolt-ai/core/instructions/index"
 
 export interface State {
   readonly values: Readonly<Record<string, Schema.Json>>

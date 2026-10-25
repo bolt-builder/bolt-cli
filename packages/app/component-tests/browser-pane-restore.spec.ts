@@ -1,6 +1,6 @@
 import { expect, sourceURL, story } from "../../storybook/playwright/story"
 import type { ParentProps } from "solid-js"
-import type { Command } from "@opencode/gui-extensions/sdk"
+import type { Command } from "@bolt-ai/gui-extensions/sdk"
 import type { Item } from "../src/runtime/extension/host"
 
 const source = (path: string) => sourceURL(new URL(path, import.meta.url))

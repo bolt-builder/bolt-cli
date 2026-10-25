@@ -1,9 +1,9 @@
 export * as Generate from "./generate.js"
 
-import { LLM, LLMClient, AIError } from "@opencode/ai/effect"
-import { SessionID } from "@opencode/schema/session-id"
+import { LLM, LLMClient, AIError } from "@bolt-ai/ai/effect"
+import { SessionID } from "@bolt-ai/schema/session-id"
 import { Context, Effect, Layer, Schema } from "effect"
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { llmClient } from "./effect/app-node-platform.js"
 import { ModelResolver } from "./model-resolver.js"
 import { Model } from "./model.js"
@@ -29,7 +29,7 @@ export interface Interface {
   readonly text: (input: TextInput) => Effect.Effect<string, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Generate") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Generate") {}
 
 export const layer = Layer.effect(
   Service,

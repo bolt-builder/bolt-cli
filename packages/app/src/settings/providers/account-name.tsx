@@ -1,4 +1,4 @@
-import { InlineInput } from "@opencode/ui/inline-input"
+import { InlineInput } from "@bolt-ai/ui/inline-input"
 import { onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useLanguage } from "@/runtime/i18n/language"

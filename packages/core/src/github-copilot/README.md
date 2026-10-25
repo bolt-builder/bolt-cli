@@ -22,7 +22,7 @@ Responses requests with encrypted reasoning, rotating response item IDs, and
 explicit function-tool strictness taking precedence over the global fallback.
 
 `copilot-provider.ts` is the local adapter assembly entrypoint used by
-`plugin/provider/github-copilot.ts`. `models.ts` is OpenCode-owned catalog
+`plugin/provider/github-copilot.ts`. `models.ts` is Bolt-owned catalog
 reconciliation, not vendored SDK code. Authentication, request headers, model
 routing, and integration lifecycle are also owned by the provider plugin.
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import path from "path"
-import { darwinDeveloperDirs, resolveGitExecutable } from "@opencode/core/util/git-executable"
+import { darwinDeveloperDirs, resolveGitExecutable } from "@bolt-ai/core/util/git-executable"
 
 describe("Git executable", () => {
   test("uses an absolute executable on Windows", () => {

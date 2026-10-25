@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/solid */
 import { describe, expect, test } from "bun:test"
-import type { OpenCodeClient, OpenCodeEvent } from "@opencode/client"
+import type { OpenCodeClient, OpenCodeEvent } from "@bolt-ai/client"
 import { testRender } from "@opentui/solid"
 import type { Event, GlobalEvent } from "@bolt-ai/sdk/v2"
 import { onMount } from "solid-js"

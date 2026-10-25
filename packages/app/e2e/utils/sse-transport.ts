@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test"
-import type { OpenCodeEvent } from "@opencode/client/promise"
+import type { OpenCodeEvent } from "@bolt-ai/client/promise"
 
 export type SseConnectionRecord = {
   id: number

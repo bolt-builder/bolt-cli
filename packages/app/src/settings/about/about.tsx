@@ -1,5 +1,5 @@
 import { createResource } from "solid-js"
-import { useDialog } from "@opencode/ui/context/dialog"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { useLanguage } from "@/runtime/i18n/language"
 import { usePlatform } from "@/runtime/platform/platform"
 import { ExternalLink } from "@/runtime/platform/external-link"

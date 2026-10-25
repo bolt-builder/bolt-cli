@@ -4,10 +4,10 @@ import { Context, Effect, Layer, Schema } from "effect"
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm"
 import path from "path"
 import { AbsolutePath } from "./schema.js"
-import { FSUtil } from "@opencode/util/fs-util"
+import { FSUtil } from "@bolt-ai/util/fs-util"
 import { Git } from "./git.js"
-import { Node } from "@opencode/util/effect/app-node"
-import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Node } from "@bolt-ai/util/effect/app-node"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
 import { Slug } from "./util/slug.js"
 import { Bus } from "./bus.js"
 import { Database } from "./database/database.js"
@@ -15,19 +15,19 @@ import { Location } from "./location.js"
 import type { FileSystem } from "./filesystem.js"
 import { LocationServiceMap } from "./location-service-map.js"
 import { Project } from "./project.js"
-import { Worktree } from "@opencode/schema/worktree"
+import { Worktree } from "@bolt-ai/schema/worktree"
 import { WorktreeTable } from "./worktree/sql.js"
 import { canonical, DirectoryUnavailableError } from "./worktree/directory.js"
 import type { EffectDrizzleSqlite } from "./database/drizzle.js"
 import { ProjectTable } from "./project/sql.js"
-import { AppProcess } from "@opencode/util/process"
+import { AppProcess } from "@bolt-ai/util/process"
 import { ChildProcess } from "effect/process"
 import { WorktreeStrategies } from "./worktree/strategies.js"
 
 export type { Strategy, Editor } from "./worktree/strategies.js"
 
 export { DirectoryUnavailableError } from "./worktree/directory.js"
-export { OperationError } from "@opencode/schema/worktree"
+export { OperationError } from "@bolt-ai/schema/worktree"
 
 export const StrategyID = Worktree.StrategyID
 export type StrategyID = typeof StrategyID.Type
@@ -101,7 +101,7 @@ export interface Interface {
   ) => Effect.Effect<void, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Worktree") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Worktree") {}
 
 const layer = Layer.effect(
   Service,

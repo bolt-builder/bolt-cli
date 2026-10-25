@@ -27,7 +27,7 @@ describe("NvidiaPlugin", () => {
       const catalog = yield* Provider.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.make("nvidia"), (provider) => {
-          provider.package = "@opencode/ai/providers/openai-compatible"
+          provider.package = "@bolt-ai/ai/providers/openai-compatible"
           provider.settings = { baseURL: "https://integrate.api.nvidia.com/v1" }
           provider.headers = { Existing: "value" }
         })
@@ -49,7 +49,7 @@ describe("NvidiaPlugin", () => {
       const catalog = yield* Provider.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.make("nvidia"), (provider) => {
-          provider.package = "@opencode/ai/providers/openai-compatible"
+          provider.package = "@bolt-ai/ai/providers/openai-compatible"
           provider.settings = { baseURL: "https://integrate.api.nvidia.com/v1" }
         })
       })
@@ -68,7 +68,7 @@ describe("NvidiaPlugin", () => {
       const catalog = yield* Provider.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.make("nvidia"), (provider) => {
-          provider.package = "@opencode/ai/providers/openai-compatible"
+          provider.package = "@bolt-ai/ai/providers/openai-compatible"
           provider.settings = { baseURL: "https://integrate.api.nvidia.com/v1" }
           provider.headers = { "X-BILLING-INVOKE-ORIGIN": "CustomOrigin" }
         })

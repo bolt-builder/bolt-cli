@@ -1,6 +1,6 @@
 export * as ReferenceInstructions from "./instructions.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
 import { Reference } from "../reference.js"
 import { Instructions } from "../instructions/index.js"
@@ -63,7 +63,7 @@ export interface Interface {
   readonly load: () => Effect.Effect<Instructions.List>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ReferenceInstructions") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/ReferenceInstructions") {}
 
 const layer = Layer.effect(
   Service,

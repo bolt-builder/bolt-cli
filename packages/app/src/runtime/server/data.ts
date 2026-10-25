@@ -1,5 +1,5 @@
-import type { Data } from "@opencode/client/solid"
-import type { SessionInfo } from "@opencode/client/promise"
+import type { Data } from "@bolt-ai/client/solid"
+import type { SessionInfo } from "@bolt-ai/client/promise"
 import { onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
 import { uuid } from "@/runtime/persistence/uuid"

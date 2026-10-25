@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { measureEditText } from "@opentui/core"
-import type { PromptInput } from "@opencode/schema"
+import type { PromptInput } from "@bolt-ai/schema"
 import {
   expandPromptInputPastedText,
   realignPromptInputMentions,

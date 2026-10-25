@@ -6,11 +6,11 @@ import type {
   SessionMessageAssistantTool,
   SessionMessageInfo,
   ToolContent,
-} from "@opencode/client/promise"
-import { SessionMessage } from "@opencode/schema/session-message"
+} from "@bolt-ai/client/promise"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
 import { EOL } from "node:os"
 import { readFile } from "node:fs/promises"
-import { nonEmptyToolContent, toolOutputText, type MiniToolPart } from "@opencode/tui/mini/tool"
+import { nonEmptyToolContent, toolOutputText, type MiniToolPart } from "@bolt-ai/tui/mini/tool"
 import { UI } from "./ui"
 
 type Model = {

@@ -1,4 +1,4 @@
-import { base64Encode, checksum } from "@opencode/util/encode"
+import { base64Encode, checksum } from "@bolt-ai/util/encode"
 import { expect, test } from "@playwright/test"
 import { sessionHref } from "../utils/app"
 import { mockWorkspace, openSession, type WorkspaceInput } from "../utils/workspace"

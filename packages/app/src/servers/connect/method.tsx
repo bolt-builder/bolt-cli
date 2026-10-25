@@ -1,4 +1,4 @@
-import { Button } from "@opencode/ui/button"
+import { Button } from "@bolt-ai/ui/button"
 import { useLanguage } from "@/runtime/i18n/language"
 
 export type ConnectMethod = "link" | "password"

@@ -1,5 +1,5 @@
-import type { OpenCodeClient, OpenCodeEvent } from "@opencode/client"
-import { createClientConnection, createPersistentPtyClient } from "@opencode/client/solid"
+import type { OpenCodeClient, OpenCodeEvent } from "@bolt-ai/client"
+import { createClientConnection, createPersistentPtyClient } from "@bolt-ai/client/solid"
 import { createGlobalEmitter } from "@solid-primitives/event-bus"
 import { onCleanup } from "solid-js"
 import { createSimpleContext } from "./helper"

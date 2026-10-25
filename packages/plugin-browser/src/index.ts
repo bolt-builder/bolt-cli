@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode/plugin/effect"
+import { Plugin } from "@bolt-ai/plugin/effect"
 import { Effect } from "effect"
 import { BrowserConnection } from "./connection.js"
 import { BrowserTools } from "./tools.js"

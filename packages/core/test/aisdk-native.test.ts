@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { AISDKNative } from "@opencode/core/aisdk-native"
-import { Provider } from "@opencode/core/provider"
+import { AISDKNative } from "@bolt-ai/core/aisdk-native"
+import { Provider } from "@bolt-ai/core/provider"
 
 function map(
   packageName: string,
@@ -30,7 +30,7 @@ describe("AISDKNative", () => {
       "@ai-sdk/openai-compatible",
     ]) {
       expect(map(packageName, {}, "openai/gpt-5.4", "cloudflare-ai-gateway")?.package).toBe(
-        "@opencode/ai/providers/cloudflare-ai-gateway",
+        "@bolt-ai/ai/providers/cloudflare-ai-gateway",
       )
     }
   })
@@ -50,7 +50,7 @@ describe("AISDKNative", () => {
         "vercel",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/vercel-ai-gateway",
+      package: "@bolt-ai/ai/providers/vercel-ai-gateway",
       settings: {
         apiKey: "secret",
         gateway: { order: ["anthropic"] },
@@ -73,7 +73,7 @@ describe("AISDKNative", () => {
         truncation: "auto",
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/openai",
+      package: "@bolt-ai/ai/providers/openai",
       settings: {
         apiKey: "secret",
         baseURL: "https://api.meta.ai/v1",
@@ -85,7 +85,7 @@ describe("AISDKNative", () => {
       },
     })
     expect(map("@ai-sdk/openai-compatible", { baseURL: "https://example.com/v1", reasoningEffort: "high" })).toEqual({
-      package: "@opencode/ai/providers/openai-compatible",
+      package: "@bolt-ai/ai/providers/openai-compatible",
       settings: {
         baseURL: "https://example.com/v1",
         provider: "test-provider",
@@ -103,7 +103,7 @@ describe("AISDKNative", () => {
         effort: "high",
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/anthropic",
+      package: "@bolt-ai/ai/providers/anthropic",
       settings: {
         authToken: "token",
         baseURL: "https://anthropic.example/v1",
@@ -124,7 +124,7 @@ describe("AISDKNative", () => {
           customOption: { enabled: true },
         }),
       ).toEqual({
-        package: `@opencode/ai/providers/${name}`,
+        package: `@bolt-ai/ai/providers/${name}`,
         settings: {
           apiKey: "secret",
           baseURL: `https://${name}.example/v1`,
@@ -134,7 +134,7 @@ describe("AISDKNative", () => {
         headers: { "x-provider": name },
       })
       expect(map(`@ai-sdk/${name}`, {})).toEqual({
-        package: `@opencode/ai/providers/${name}`,
+        package: `@bolt-ai/ai/providers/${name}`,
         settings: {},
       })
     }
@@ -149,7 +149,7 @@ describe("AISDKNative", () => {
         thinkingConfig: { thinkingLevel: "high" },
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/google-vertex",
+      package: "@bolt-ai/ai/providers/google-vertex",
       settings: {
         project: "project",
         location: "us-central1",
@@ -175,7 +175,7 @@ describe("AISDKNative", () => {
         promptMode: "reasoning",
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/mistral",
+      package: "@bolt-ai/ai/providers/mistral",
       settings: {
         apiKey: "secret",
         baseURL: "https://mistral.example/v1",
@@ -201,7 +201,7 @@ describe("AISDKNative", () => {
         "cohere",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/cohere",
+      package: "@bolt-ai/ai/providers/cohere",
       settings: { apiKey: "secret", thinking: { type: "enabled", tokenBudget: 1024 } },
     })
     expect(
@@ -212,24 +212,24 @@ describe("AISDKNative", () => {
         "cohere",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/cohere/chat",
+      package: "@bolt-ai/ai/providers/cohere/chat",
       settings: { baseURL: "https://api.cohere.ai/compatibility/v1", reasoningEffort: "high" },
     })
   })
 
   test("maps both models.dev Bedrock packages to native providers", () => {
     expect(map("@ai-sdk/amazon-bedrock", { region: "us-east-1" })).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock",
+      package: "@bolt-ai/ai/providers/amazon-bedrock",
       settings: { region: "us-east-1" },
     })
     expect(map("@ai-sdk/amazon-bedrock/mantle", { region: "us-east-1" }, "openai.gpt-oss-120b")).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock/mantle/chat",
+      package: "@bolt-ai/ai/providers/amazon-bedrock/mantle/chat",
       settings: { region: "us-east-1" },
     })
     expect(
       map("@ai-sdk/amazon-bedrock/mantle", { region: "us-east-1", profile: "sso" }, "anthropic.claude-opus-4-8"),
     ).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock/mantle/messages",
+      package: "@bolt-ai/ai/providers/amazon-bedrock/mantle/messages",
       settings: { region: "us-east-1", profile: "sso" },
     })
   })
@@ -247,13 +247,13 @@ describe("AISDKNative", () => {
     for (const specifier of Provider.builtinPackages)
       expect(rewrite(specifier, { headers: { "x-test": "value" } }).headers).toEqual({ "x-test": "value" })
     expect(
-      rewrite("@opencode/ai/providers/amazon-bedrock/mantle", { bearerToken: "token" }, "anthropic.claude-opus-4-8"),
+      rewrite("@bolt-ai/ai/providers/amazon-bedrock/mantle", { bearerToken: "token" }, "anthropic.claude-opus-4-8"),
     ).toMatchObject({
-      package: "@opencode/ai/providers/amazon-bedrock/mantle/messages",
+      package: "@bolt-ai/ai/providers/amazon-bedrock/mantle/messages",
       settings: { apiKey: "token" },
     })
-    expect(rewrite("@opencode/ai/providers/azure", { useCompletionUrls: true }).package).toBe(
-      "@opencode/ai/providers/azure/chat",
+    expect(rewrite("@bolt-ai/ai/providers/azure", { useCompletionUrls: true }).package).toBe(
+      "@bolt-ai/ai/providers/azure/chat",
     )
   })
 
@@ -267,7 +267,7 @@ describe("AISDKNative", () => {
       reasoningEffort: "high",
     }
     expect(map("@ai-sdk/azure", settings, "deployment")).toEqual({
-      package: "@opencode/ai/providers/azure/responses",
+      package: "@bolt-ai/ai/providers/azure/responses",
       settings: {
         apiKey: "secret",
         resourceName: "resource",
@@ -278,10 +278,10 @@ describe("AISDKNative", () => {
       },
     })
     const chat = map("@ai-sdk/azure", { ...settings, useCompletionUrls: true }, "custom-deployment")
-    expect(chat?.package).toBe("@opencode/ai/providers/azure/chat")
+    expect(chat?.package).toBe("@bolt-ai/ai/providers/azure/chat")
     expect(chat?.settings).not.toHaveProperty("useCompletionUrls")
     expect(AISDKNative.native("@ai-sdk/azure", { providerID: "azure", shape: "completions" })).toBe(
-      "@opencode/ai/providers/azure/chat",
+      "@bolt-ai/ai/providers/azure/chat",
     )
   })
 
@@ -305,7 +305,7 @@ describe("AISDKNative", () => {
         "anthropic.claude-sonnet-4-6-v1",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock",
+      package: "@bolt-ai/ai/providers/amazon-bedrock",
       settings: { region: "us-east-1", topP: 0.8 },
       headers: { "x-test": "value" },
       body: {
@@ -338,7 +338,7 @@ describe("AISDKNative", () => {
         "anthropic.claude-sonnet-4-5-20250929-v1:0",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock",
+      package: "@bolt-ai/ai/providers/amazon-bedrock",
       settings: { thinking: { type: "enabled", budgetTokens: 12_000 } },
     })
 
@@ -378,7 +378,7 @@ describe("AISDKNative", () => {
     }
 
     expect(map("@ai-sdk/amazon-bedrock/mantle", settings, "openai.gpt-oss-120b")).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock/mantle/chat",
+      package: "@bolt-ai/ai/providers/amazon-bedrock/mantle/chat",
       settings: {
         apiKey: "token",
         baseURL: "https://mantle.test/v1",
@@ -391,7 +391,7 @@ describe("AISDKNative", () => {
     })
     for (const modelID of ["openai.gpt-oss-safeguard-20b", "openai.gpt-oss-safeguard-120b"]) {
       expect(map("@ai-sdk/amazon-bedrock/mantle", settings, modelID)?.package).toBe(
-        "@opencode/ai/providers/amazon-bedrock/mantle/chat",
+        "@bolt-ai/ai/providers/amazon-bedrock/mantle/chat",
       )
     }
     expect(
@@ -424,7 +424,7 @@ describe("AISDKNative", () => {
         "openai.gpt-oss-120b",
       ),
     ).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock/mantle/chat",
+      package: "@bolt-ai/ai/providers/amazon-bedrock/mantle/chat",
       settings: {
         credentials: {
           accessKeyId: "key",
@@ -442,11 +442,11 @@ describe("AISDKNative", () => {
     expect(
       map("@ai-sdk/amazon-bedrock", { profile: "work", auth: "sigv4", region: "eu-west-1" }, "anthropic.claude"),
     ).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock",
+      package: "@bolt-ai/ai/providers/amazon-bedrock",
       settings: { profile: "work", auth: "sigv4", region: "eu-west-1" },
     })
     expect(map("@ai-sdk/amazon-bedrock", { auth: "bogus" }, "anthropic.claude")).toEqual({
-      package: "@opencode/ai/providers/amazon-bedrock",
+      package: "@bolt-ai/ai/providers/amazon-bedrock",
       settings: {},
     })
   })
@@ -475,7 +475,7 @@ describe("AISDKNative", () => {
         future_option: { enabled: true },
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/openrouter",
+      package: "@bolt-ai/ai/providers/openrouter",
       settings: {
         models: ["anthropic/claude-sonnet-4.6"],
         provider: { only: ["anthropic"], require_parameters: true },
@@ -504,7 +504,7 @@ describe("AISDKNative", () => {
         },
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/google",
+      package: "@bolt-ai/ai/providers/google",
       settings: {
         cachedContent: "cachedContents/example",
         safetySettings: [{ category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }],
@@ -554,7 +554,7 @@ describe("AISDKNative", () => {
         thinkingConfig: { thinkingLevel: "high" },
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/google-vertex",
+      package: "@bolt-ai/ai/providers/google-vertex",
       settings: {
         accessToken: "vertex-token",
         baseURL: "https://vertex.example/v1",
@@ -579,7 +579,7 @@ describe("AISDKNative", () => {
         effort: "high",
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/google-vertex/messages",
+      package: "@bolt-ai/ai/providers/google-vertex/messages",
       settings: {
         accessToken: "vertex-token",
         baseURL: "https://vertex.example/v1",
@@ -601,7 +601,7 @@ describe("AISDKNative", () => {
         store: true,
       }),
     ).toEqual({
-      package: "@opencode/ai/providers/xai",
+      package: "@bolt-ai/ai/providers/xai",
       settings: {
         apiKey: "secret",
         baseURL: "https://xai.example/v1",

@@ -1,6 +1,6 @@
-import type { VcsApi } from "@opencode/client/promise/api"
-import type { FileDiff } from "@opencode/schema/file-diff"
-import type { Vcs } from "@opencode/schema/vcs"
+import type { VcsApi } from "@bolt-ai/client/promise/api"
+import type { FileDiff } from "@bolt-ai/schema/file-diff"
+import type { Vcs } from "@bolt-ai/schema/vcs"
 import type { Transform } from "./registration.js"
 
 export interface VcsScope {

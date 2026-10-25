@@ -1,4 +1,4 @@
-import type { FileDiffInfo } from "@opencode/client/promise"
+import type { FileDiffInfo } from "@bolt-ai/client/promise"
 import { Contract, type SessionRef, type SessionScreen } from "../sdk"
 
 export type ChangeKind = "add" | "del" | "mix"

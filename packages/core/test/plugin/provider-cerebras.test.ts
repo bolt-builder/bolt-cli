@@ -24,7 +24,7 @@ describe("CerebrasPlugin", () => {
       const catalog = yield* Provider.Service
       yield* catalog.transform((catalog) => {
         catalog.update(Provider.ID.make("cerebras"), (item) => {
-          item.package = "@opencode/ai/providers/cerebras"
+          item.package = "@bolt-ai/ai/providers/cerebras"
           item.headers = { ...item.headers, Existing: "1" }
         })
       })
@@ -51,7 +51,7 @@ describe("CerebrasPlugin", () => {
       const providerID = Provider.ID.make("custom-cerebras")
       yield* catalog.transform((catalog) => {
         catalog.update(providerID, (item) => {
-          item.package = "@opencode/ai/providers/cerebras"
+          item.package = "@bolt-ai/ai/providers/cerebras"
           item.headers = { Existing: "1" }
         })
       })

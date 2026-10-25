@@ -3,7 +3,7 @@ title: "Harnesses"
 description: "Use Console and Go models from other coding agents and AI apps."
 ---
 
-Console works with coding agents other than OpenCode. Point a harness at the Console gateway with an API key, and usage
+Console works with coding agents other than Bolt. Point a harness at the Console gateway with an API key, and usage
 is billed to your workspace like any other request.
 
 | Harness                                       | Pay-as-you-go | Go        | Models                    | MCP |
@@ -14,7 +14,7 @@ is billed to your workspace like any other request.
 | [Pi](/console/harnesses/pi)                   | Built in      | Built in  | Paid and Go models        | Yes |
 | [Raycast](/console/harnesses/raycast)         | Extension     | Extension | Paid and Go models        | Yes |
 
-Free-tier chat models are only available from within OpenCode. Other harnesses receive HTTP `403` for those models,
+Free-tier chat models are only available from within Bolt. Other harnesses receive HTTP `403` for those models,
 even with a Console API key. Use paid models or a Go subscription.
 
 ## Get an API key
@@ -96,5 +96,5 @@ registration, so you sign in from the browser instead of pasting a key.
 https://opencode.ai/console/mcp
 ```
 
-Each harness page shows how to add it. OpenCode adds the server automatically as `opencode_console` when your workspace
+Each harness page shows how to add it. Bolt adds the server automatically as `opencode_console` when your workspace
 enables it, and asks you to sign in from the browser the first time it uses it.

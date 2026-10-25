@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import type { SessionMessageAssistant, SessionMessageAssistantTool, SessionMessageInfo } from "@opencode/client"
+import type { SessionMessageAssistant, SessionMessageAssistantTool, SessionMessageInfo } from "@bolt-ai/client"
 import { activitySummary, busyLabel, summarizeActivity } from "../../../src/routes/session/activity-summary"
 import {
   append,

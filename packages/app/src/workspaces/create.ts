@@ -1,5 +1,5 @@
-import type { LocationGetOutput, OpenCodeClient } from "@opencode/client/promise"
-import type { Data } from "@opencode/client/solid"
+import type { LocationGetOutput, OpenCodeClient } from "@bolt-ai/client/promise"
+import type { Data } from "@bolt-ai/client/solid"
 
 export async function createWorktree(input: {
   api: Pick<OpenCodeClient, "location" | "worktree">

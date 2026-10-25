@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode/plugin/tui"
+import { Plugin } from "@bolt-ai/plugin/tui"
 import { SyntaxStyle, Yoga, type BoxRenderable } from "@opentui/core"
 import { createSignal, onMount } from "solid-js"
 

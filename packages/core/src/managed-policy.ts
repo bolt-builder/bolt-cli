@@ -1,12 +1,12 @@
 export * as ManagedPolicy from "./managed-policy.js"
 
-import { Document, type Entry } from "@opencode/schema/config"
+import { Document, type Entry } from "@bolt-ai/schema/config"
 import { isDeepStrictEqual } from "node:util"
 import { ConfigIntegration } from "./config/integration.js"
 import { Wildcard } from "./util/wildcard.js"
-import { ConfigPolicy } from "@opencode/schema/config/policy"
+import { ConfigPolicy } from "@bolt-ai/schema/config/policy"
 import { Context, Effect, Layer, PubSub, Stream } from "effect"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 
 /** Policy statements the connected OpenCode Console compiled for whoever it authenticated. */
 export interface State {
@@ -23,7 +23,7 @@ export interface Interface {
   readonly set: (state: State) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/ManagedPolicy") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/ManagedPolicy") {}
 
 export const layer = Layer.effect(
   Service,

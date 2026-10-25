@@ -1,5 +1,5 @@
 import { createResource, onCleanup, type JSX } from "solid-js"
-import { pluralCategory } from "@opencode/ui/context/i18n"
+import { pluralCategory } from "@bolt-ai/ui/context/i18n"
 import { useLanguage } from "@/runtime/i18n/language"
 import {
   ExtensionContext,

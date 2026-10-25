@@ -1,4 +1,4 @@
-import { ClientError, OpenCode } from "@opencode/client/promise"
+import { ClientError, OpenCode } from "@bolt-ai/client/promise"
 import { Predicate } from "effect"
 import path from "node:path"
 import type { ServerEndpoint } from "../sdk/main"

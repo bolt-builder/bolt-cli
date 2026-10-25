@@ -1,4 +1,4 @@
-import { HttpRecorder } from "@opencode/http-recorder"
+import { HttpRecorder } from "@bolt-ai/http-recorder"
 import { NodeSocket } from "@effect/platform-node"
 import { Effect, Layer } from "effect"
 import { Socket } from "effect/socket"

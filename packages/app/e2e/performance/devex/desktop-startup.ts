@@ -1,4 +1,4 @@
-import { Service } from "@opencode/client/service"
+import { Service } from "@bolt-ai/client/service"
 import { chromium, expect, type Browser, type Page, type TestInfo } from "@playwright/test"
 import { Schema } from "effect"
 import { spawn, spawnSync, type ChildProcess } from "node:child_process"

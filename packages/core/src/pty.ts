@@ -1,6 +1,6 @@
 export * as Pty from "./pty.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import type { Disp, Proc } from "#pty"
 import { Context, Effect, Layer, Schema, Types } from "effect"
 import { Pty } from "@bolt-ai/schema/pty"
@@ -50,7 +50,7 @@ export const UpdateInput = Pty.UpdateInput
 
 export type UpdateInput = typeof UpdateInput.Type
 
-export { Event } from "@opencode/schema/pty"
+export { Event } from "@bolt-ai/schema/pty"
 
 export type AttachInput = {
   // Absolute output cursor to replay from. -1 tails from the current end; omitted replays the full retained buffer.

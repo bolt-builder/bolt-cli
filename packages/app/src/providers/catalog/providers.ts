@@ -82,7 +82,7 @@ export function useProviders(directory: Accessor<string | undefined>) {
         (v) => Array.from(v),
       )
     },
-    // Any stored or detected connection, or a provider with models beyond the keyless OpenCode catalog.
+    // Any stored or detected connection, or a provider with models beyond the keyless Bolt catalog.
     // Undefined until both catalogs load, so callers never mistake loading for a first run.
     anyConnection: () => {
       if (!integrations.ready() || !ready()) return undefined

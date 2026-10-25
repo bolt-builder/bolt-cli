@@ -171,7 +171,7 @@ const seedProvider = (settings?: Provider.Settings) =>
     const catalog = yield* Provider.Service
     yield* catalog.transform((editor) => {
       editor.update(Provider.ID.azure, (provider) => {
-        provider.package = "@opencode/ai/providers/azure/responses"
+        provider.package = "@bolt-ai/ai/providers/azure/responses"
         if (settings) provider.settings = settings
       })
     })
@@ -192,7 +192,7 @@ const seedCatalog = Effect.gen(function* () {
     })
     editor.models.update(Provider.ID.azure, Model.ID.make("deepseek-v4-flash"), (model) => {
       model.name = "DeepSeek-V4-Flash"
-      model.package = "@opencode/ai/providers/openai-compatible"
+      model.package = "@bolt-ai/ai/providers/openai-compatible"
       model.settings = { baseURL: "https://${AZURE_RESOURCE_NAME}.services.ai.azure.com/models" }
     })
   })
@@ -665,7 +665,7 @@ describe("AzurePlugin resource name", () => {
       const models = yield* Model.Service
       yield* providers.transform((editor) => {
         editor.update(Provider.ID.azure, (provider) => {
-          provider.package = "@opencode/ai/providers/openai-compatible"
+          provider.package = "@bolt-ai/ai/providers/openai-compatible"
           provider.activation = "enabled"
           provider.settings = {
             baseURL: "https://${AZURE_COGNITIVE_SERVICES_RESOURCE_NAME}.cognitiveservices.azure.com/openai",
@@ -673,7 +673,7 @@ describe("AzurePlugin resource name", () => {
         })
         editor.models.update(Provider.ID.azure, Model.ID.make("gpt-5-mini"), () => {})
         editor.models.update(Provider.ID.azure, Model.ID.make("anthropic"), (model) => {
-          model.package = "@opencode/ai/providers/anthropic"
+          model.package = "@bolt-ai/ai/providers/anthropic"
           model.settings = {
             resourceName: "model-resource",
             baseURL: "https://${AZURE_RESOURCE_NAME}.services.ai.azure.com/anthropic/v1",
@@ -706,7 +706,7 @@ describe("AzurePlugin transport", () => {
       const variants: Record<string, (model: Model.MutableInfo) => void> = {
         responses: () => {},
         chat: (model) => {
-          model.package = "@opencode/ai/providers/azure/chat"
+          model.package = "@bolt-ai/ai/providers/azure/chat"
         },
         preview: (model) => {
           model.settings = { apiVersion: "2025-04-01-preview" }
@@ -718,12 +718,12 @@ describe("AzurePlugin transport", () => {
           model.settings = { baseURL: "https://gateway.example/azure" }
         },
         "non-azure": (model) => {
-          model.package = "@opencode/ai/providers/anthropic"
+          model.package = "@bolt-ai/ai/providers/anthropic"
         },
       }
       yield* providers.transform((editor) => {
         editor.update(Provider.ID.azure, (provider) => {
-          provider.package = "@opencode/ai/providers/azure/responses"
+          provider.package = "@bolt-ai/ai/providers/azure/responses"
           provider.activation = "enabled"
         })
         Object.entries(variants).forEach(([id, update]) =>

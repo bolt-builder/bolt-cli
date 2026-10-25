@@ -1,5 +1,5 @@
 import { afterEach, expect, jest, test } from "bun:test"
-import { Browser } from "@opencode/plugin-browser/rpc"
+import { Browser } from "@bolt-ai/plugin-browser/rpc"
 import type { IpcClient } from "../sdk"
 import { createConnection } from "./connection"
 import type { BrowserPane, PaneEvent } from "./ipc"

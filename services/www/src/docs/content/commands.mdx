@@ -14,7 +14,7 @@ Run it from the TUI with a target:
 /review src/auth.ts
 ```
 
-OpenCode submits `Review src/auth.ts for bugs and missing tests.` as a user prompt.
+Bolt submits `Review src/auth.ts for bugs and missing tests.` as a user prompt.
 
 ## Markdown
 
@@ -48,7 +48,7 @@ Review $ARGUMENTS. Report bugs first.
 
 ## JSON
 
-Define commands under `commands` in any OpenCode JSON or JSONC [configuration file](/config). Each command requires a
+Define commands under `commands` in any Bolt JSON or JSONC [configuration file](/config). Each command requires a
 `template`.
 
 ```jsonc title="opencode.jsonc"
@@ -120,11 +120,11 @@ The highest-numbered placeholder consumes its argument and everything after it. 
 Compare $1 with $2.
 ```
 
-For `/compare api stable branch`, OpenCode submits `Compare api with stable branch.`
+For `/compare api stable branch`, Bolt submits `Compare api with stable branch.`
 
 ## Fallback
 
-When a template has no `$ARGUMENTS` or positional placeholder, OpenCode appends non-empty arguments after a blank line.
+When a template has no `$ARGUMENTS` or positional placeholder, Bolt appends non-empty arguments after a blank line.
 
 ```md title=".opencode/commands/explain.md"
 Explain this code clearly.
@@ -148,7 +148,7 @@ Review this diff:
 !`git diff --stat && git diff`
 ```
 
-OpenCode runs each block with the configured shell in the active project location and inserts its combined output.
+Bolt runs each block with the configured shell in the active project location and inserts its combined output.
 Argument placeholders are expanded first:
 
 ```md title=".opencode/commands/history.md"
@@ -160,7 +160,7 @@ Summarize these commits:
 For `/history 5`, the shell receives `git log --oneline -5`. Do not place untrusted arguments inside shell blocks.
 
 <Callout type="warning">
-  Shell blocks run when OpenCode evaluates the command, outside the agent's tool permission flow. Only use commands from
+  Shell blocks run when Bolt evaluates the command, outside the agent's tool permission flow. Only use commands from
   sources you trust.
 </Callout>
 
@@ -172,7 +172,7 @@ Stored templates do not expand `@path`; it remains ordinary prompt text.
 Review @README.md.
 ```
 
-To attach a file, add it through the composer when invoking the command. OpenCode preserves those composer attachments
+To attach a file, add it through the composer when invoking the command. Bolt preserves those composer attachments
 when it submits the expanded prompt.
 
 ## Execution
@@ -221,7 +221,7 @@ subagent: true
 Audit $ARGUMENTS for bugs and missing tests.
 ```
 
-The parent stays available and keeps its agent and model. OpenCode sends the child's result or failure back to the parent
+The parent stays available and keeps its agent and model. Bolt sends the child's result or failure back to the parent
 when the child finishes.
 
 | Value | Behavior |
@@ -250,11 +250,11 @@ Markdown and JSON commands share one registry. Later sources replace earlier com
 ```
 
 Project sources take precedence over global sources, and nearer project sources take precedence over ancestor sources.
-A custom definition can also replace an earlier built-in command. OpenCode reloads command files and configuration changes
+A custom definition can also replace an earlier built-in command. Bolt reloads command files and configuration changes
 automatically.
 
 ```md title=".opencode/commands/review.md"
 Review only the staged changes: !`git diff --cached`
 ```
 
-Saving this file updates `/review` without restarting OpenCode.
+Saving this file updates `/review` without restarting Bolt.

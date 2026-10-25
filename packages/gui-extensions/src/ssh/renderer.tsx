@@ -1,4 +1,4 @@
-import { showToast } from "@opencode/ui/toast"
+import { showToast } from "@bolt-ai/ui/toast"
 import { createMemo, createRoot, lazy, onCleanup, Suspense, type JSX } from "solid-js"
 import { Command, createKeyed, MenuItem, onIdle, Server, Style, type ServerEntry, type Setup } from "../sdk"
 import type { SshConfig, SshItem } from "./contract"

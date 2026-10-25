@@ -95,7 +95,7 @@ const Name = Schema.Struct({ name: Schema.NonEmptyString })
 
 const Id = Schema.Struct({ id: Schema.NonEmptyString })
 
-/** WSL runtime, distros, and the OpenCode servers the main process runs inside them. */
+/** WSL runtime, distros, and the Bolt servers the main process runs inside them. */
 export const Wsl = Ipc.define({
   id: "wsl",
   state: WslServersState,

@@ -6,10 +6,10 @@ import {
   themeModes,
   type HueScale,
   type ResolvedTheme,
-} from "@opencode/theme/tui"
+} from "@bolt-ai/theme/tui"
 import { DEFAULT_THEMES, getOpenCodeTheme, resolveTheme as resolveV1 } from "../../../src/theme"
 import opencodeSource from "../../../src/theme/assets/opencode.json" with { type: "json" }
-import type { ThemeV1Json } from "@opencode/theme/tui/v1"
+import type { ThemeV1Json } from "@bolt-ai/theme/tui/v1"
 
 const opencodeV1 = opencodeSource as ThemeV1Json
 const opencodeLight = resolveThemeDocument(getOpenCodeTheme(), "light")

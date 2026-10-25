@@ -1,4 +1,4 @@
-import { showToast } from "@opencode/ui/toast"
+import { showToast } from "@bolt-ai/ui/toast"
 import { lazy, onCleanup, Suspense } from "solid-js"
 import { createKeyed, onIdle, Command, SettingsPage, TitlebarItem, type Setup, type SetupContext } from "../sdk"
 import { updaterAction } from "./action"

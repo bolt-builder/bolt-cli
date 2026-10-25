@@ -20,11 +20,11 @@ import type {
   PermissionRequest,
   ReferenceListOutput,
   SessionMessageAssistantTool,
-} from "@opencode/client/promise"
+} from "@bolt-ai/client/promise"
 import type { Config } from "../config"
 import type { Todo } from "../util/todo"
 import type { CliRenderer } from "@opentui/core"
-import type { SessionInbox } from "@opencode/schema/session-inbox"
+import type { SessionInbox } from "@bolt-ai/schema/session-inbox"
 
 export type RunFilePart = {
   type: "file"

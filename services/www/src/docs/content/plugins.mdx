@@ -30,7 +30,7 @@ Add published packages, versioned packages, scoped packages, or local plugin dir
 
 Relative paths resolve from the config file containing the entry.
 
-Configured local paths must be directories. OpenCode loads the directory's `server` or `index` module, such as
+Configured local paths must be directories. Bolt loads the directory's `server` or `index` module, such as
 `index.ts`. A path to a single file is skipped.
 
 Plugin arrays from applicable config files are applied from lowest to highest precedence instead of replacing one another.
@@ -43,7 +43,7 @@ Plugin arrays from applicable config files are applied from lowest to highest pr
 
 ## Discover
 
-OpenCode also loads direct `.ts` and `.js` files and immediate plugin package directories from every discovered
+Bolt also loads direct `.ts` and `.js` files and immediate plugin package directories from every discovered
 `.opencode/plugins/` directory.
 
 ```text
@@ -54,7 +54,7 @@ OpenCode also loads direct `.ts` and `.js` files and immediate plugin package di
     └── acme-package/
 ```
 
-Global plugins use the same discovery layout under the OpenCode config directory.
+Global plugins use the same discovery layout under the Bolt config directory.
 
 ```text
 ~/.config/opencode/plugins/
@@ -121,7 +121,7 @@ local paths directly; tarball and npm alias targets are not accepted by `plugin 
 Changes under watched config directories reload automatically. Server startup loads cached package plugins immediately,
 installs missing packages in the background, and checks unpinned npm and Git plugins for updates without changing the
 installed package. Exact npm versions and full Git commit hashes stay pinned. Changes to unwatched local dependencies may
-still require restarting OpenCode.
+still require restarting Bolt.
 
 ```sh
 touch .opencode/plugins/concise/index.ts

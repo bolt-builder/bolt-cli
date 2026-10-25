@@ -2,7 +2,7 @@
 title: "Migrate from V1"
 ---
 
-OpenCode 1 and OpenCode 2 both use the `opencode` command and are no longer installed side by side by default. Remove a
+Bolt 1 and Bolt 2 both use the `opencode` command and are no longer installed side by side by default. Remove a
 package-managed V1 installation before installing V2; the V2 curl installer replaces the V1 binary.
 
 ## Breaking changes
@@ -71,23 +71,23 @@ global and project files. Their [policies](/policies#precedence), including migr
 providers, MCP servers, agents, or plugins, so express admin-enforced restrictions as `policies` rather
 than ordinary settings such as `permissions`.
 
-### Ask OpenCode to migrate
+### Ask Bolt to migrate
 
 The V1 config format remains supported. The native V2 format is optional and makes several settings more explicit and
 ergonomic.
 
-The recommended migration path is to ask OpenCode to update the configuration for you:
+The recommended migration path is to ask Bolt to update the configuration for you:
 
 ```text
 Migrate my OpenCode configuration, including file-based definitions, from the V1 format to the native V2 format.
 Preserve its behavior and all unrelated settings.
 ```
 
-OpenCode can inspect the complete file, apply the relevant changes below, and avoid rewriting settings that do not need to
+Bolt can inspect the complete file, apply the relevant changes below, and avoid rewriting settings that do not need to
 change. Conversion does not need to happen all at once: supported V1 and native V2 fields may coexist at the top level.
 When both forms set the same canonical value, a valid native V2 value takes precedence regardless of JSON key order.
 
-Nested mixing is intentionally bounded. OpenCode recognizes mixed V1 and V2 members within `mcp`, `compaction`, and
+Nested mixing is intentionally bounded. Bolt recognizes mixed V1 and V2 members within `mcp`, `compaction`, and
 `experimental`, but it does not recursively infer formats inside individual agents, providers, commands, or models. Keep
 each of those nested entries entirely in one format. Supported V1 syntax remains quiet by itself; malformed values,
 unsupported legacy fields, and conflicting V1/V2 values produce warnings while unrelated valid settings continue to load.
@@ -460,14 +460,14 @@ The V1 provider filters do not have one-to-one native V2 config fields, but thei
 - `small_model` becomes the `model` selection for the built-in `title` agent. Native V2 configuration should use
   `agents.title.model` instead.
 
-You may keep these fields in V1 syntax. OpenCode normalizes them without warning.
+You may keep these fields in V1 syntax. Bolt normalizes them without warning.
 
 ### Accepted but unsupported fields
 
 The V1 schema also accepted fields that have no supported V2 behavior. V2 ignores these values and emits a warning so
 they are not mistaken for active configuration:
 
-- `logLevel`: use `OPENCODE_LOG_LEVEL` when starting OpenCode.
+- `logLevel`: use `OPENCODE_LOG_LEVEL` when starting Bolt.
 - `server`: use the V2 service and explicit server options; the server API is an intentional breaking change.
 - Top-level `subagent_depth`: use `experimental.subagent_depth` instead.
 - `compaction.tail_turns` and `compaction.prune`: V2 uses `compaction.keep.tokens` and checkpoint-based compaction instead.
@@ -600,10 +600,10 @@ Port entrypoints, hooks, tools, events, and package exports with the dedicated
 
 ## Server API and clients
 
-OpenCode 2 has a revised, more ergonomic server API and a new set of clients. Integrations that call the V1 server API
+Bolt 2 has a revised, more ergonomic server API and a new set of clients. Integrations that call the V1 server API
 must migrate to the V2 API.
 
-Use the `@opencode/client` package to access the released V2 API. See the generated [API reference](/api) for its
+Use the `@bolt-ai/client` package to access the released V2 API. See the generated [API reference](/api) for its
 endpoints, request types, and responses.
 
 ## Verify your setup

@@ -1,5 +1,5 @@
 import { sendEmail } from "~/lib/aws"
-import { Resource } from "@opencode/console-resource"
+import { Resource } from "@bolt-ai/console-resource"
 import { i18n } from "~/i18n"
 import { localeFromRequest } from "~/lib/language"
 import { createLead } from "~/lib/salesforce"

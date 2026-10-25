@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@opencode/util",
+  "name": "@bolt-ai/util",
   "version": "2.1.4",
   "type": "module",
   "license": "MIT",

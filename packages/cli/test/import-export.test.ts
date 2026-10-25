@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { OPENCODE_VERSION } from "../src/version"
+import { BOLT_VERSION } from "../src/version"
 
 const info = {
   id: "ses_export_test",
@@ -43,7 +43,7 @@ const sanitizedTransfer = {
 }
 
 const status = () =>
-  Response.json({ version: OPENCODE_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } })
+  Response.json({ version: BOLT_VERSION, pid: process.pid, urls: [], paths: { tmp: "/tmp/opencode" } })
 
 function run(args: string[], stdin?: string) {
   const child = Bun.spawn([process.execPath, "run", "src/index.ts", ...args], {

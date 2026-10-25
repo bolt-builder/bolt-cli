@@ -1,6 +1,6 @@
 import { batch, onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
-import { showToast } from "@opencode/ui/toast"
+import { showToast } from "@bolt-ai/ui/toast"
 import type { MountedSession, SetupContext } from "../sdk"
 import type Btw from "./index"
 

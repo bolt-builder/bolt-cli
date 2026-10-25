@@ -3,7 +3,7 @@ import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
 import { response } from "../location"
-import { AgentNotFoundError } from "@opencode/protocol/errors"
+import { AgentNotFoundError } from "@bolt-ai/protocol/errors"
 
 export const AgentHandler = HttpApiBuilder.group(Api, "server.agent", (handlers) =>
   handlers

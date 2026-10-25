@@ -1,6 +1,6 @@
 # Timeline Text Projection Benchmark
 
-Run from `packages/app`, against a production bundle. No OpenCode server is needed.
+Run from `packages/app`, against a production bundle. No Bolt server is needed.
 The fixture owns its HTTP event source and mocks all other API responses.
 
 ```sh

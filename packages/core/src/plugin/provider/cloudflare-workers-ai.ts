@@ -1,6 +1,6 @@
 import { Effect } from "effect"
-import { define } from "@opencode/plugin/effect/plugin"
-import { Form } from "@opencode/schema/form"
+import { define } from "@bolt-ai/plugin/effect/plugin"
+import { Form } from "@bolt-ai/schema/form"
 import { Provider } from "../../provider.js"
 import { configuredSettings } from "./configured.js"
 
@@ -44,7 +44,7 @@ export const CloudflareWorkersAIPlugin = define({
         const accountId = resolveAccountId(provider.settings ?? {})
         if (!accountId) return
         provider.settings =
-          provider.package === "@opencode/ai/providers/cloudflare-workers-ai"
+          provider.package === "@bolt-ai/ai/providers/cloudflare-workers-ai"
             ? { ...provider.settings, accountId }
             : { ...provider.settings, baseURL: workersEndpoint(accountId) }
       })

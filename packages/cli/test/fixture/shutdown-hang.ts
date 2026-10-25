@@ -1,6 +1,6 @@
 import { NodeRuntime } from "@effect/platform-node"
-import { CrossSpawnSpawner } from "@opencode/util/cross-spawn-spawner"
-import { LayerNode } from "@opencode/util/effect/layer-node"
+import { CrossSpawnSpawner } from "@bolt-ai/util/cross-spawn-spawner"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
 import { Context, Effect, Layer } from "effect"
 import { ChildProcess } from "effect/process"
 import { ShutdownDeadline } from "../../src/shutdown-deadline"

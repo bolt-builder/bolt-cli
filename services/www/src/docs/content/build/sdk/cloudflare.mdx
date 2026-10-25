@@ -2,17 +2,17 @@
 title: "Cloudflare"
 ---
 
-Use `@opencode/sdk/workerd` inside a Cloudflare Durable Object. This profile uses the object's SQLite storage,
+Use `@bolt-ai/sdk-v2/workerd` inside a Cloudflare Durable Object. This profile uses the object's SQLite storage,
 persists durable events for eviction recovery, and replaces unavailable local filesystem and process services.
 
 ```sh
-bun add @opencode/sdk
+bun add @bolt-ai/sdk-v2
 ```
 
 Hold one host for the lifetime of the Durable Object instance instead of creating one for every request.
 
 ```ts
-import { OpenCodeWorkerd } from "@opencode/sdk/workerd"
+import { OpenCodeWorkerd } from "@bolt-ai/sdk-v2/workerd"
 import myPlugin from "./my-plugin"
 
 export class OpenCodeDO {
@@ -46,7 +46,7 @@ constructor(state: DurableObjectState) {
 }
 ```
 
-Wrangler selects OpenCode's Workerd-safe implementations through the `workerd` package condition. Cloudflare may evict
+Wrangler selects Bolt's Workerd-safe implementations through the `workerd` package condition. Cloudflare may evict
 a Durable Object without running cleanup, so correctness does not depend on `close()` being called.
 
 ```jsonc title="wrangler.jsonc"
@@ -57,13 +57,13 @@ a Durable Object without running cleanup, so correctness does not depend on `clo
 
 ## Customize
 
-Customize your OpenCode instance by registering plugins bundled with your
+Customize your Bolt instance by registering plugins bundled with your
 Worker. Pass plugins to `OpenCodeWorkerd.create()` to customize agents, models,
 tools, and other behavior:
 
 ```ts
-import { Plugin } from "@opencode/plugin"
-import { OpenCodeWorkerd } from "@opencode/sdk/workerd"
+import { Plugin } from "@bolt-ai/plugin"
+import { OpenCodeWorkerd } from "@bolt-ai/sdk-v2/workerd"
 
 const plugin = Plugin.define({
   id: "customize-agent",

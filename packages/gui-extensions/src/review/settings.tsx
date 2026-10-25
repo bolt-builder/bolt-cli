@@ -1,4 +1,4 @@
-import { Switch } from "@opencode/ui/switch"
+import { Switch } from "@bolt-ai/ui/switch"
 import { useExtension } from "../sdk"
 import type Review from "./index"
 

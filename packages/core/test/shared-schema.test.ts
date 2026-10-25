@@ -32,8 +32,8 @@ import { ProviderV2 } from "@bolt-ai/core/provider"
 import { PluginV2 } from "@bolt-ai/core/plugin"
 
 test("Core reuses the canonical shared schemas", async () => {
-  const schemaAgent = await import("@opencode/schema/agent")
-  const schemaSession = await import("@opencode/schema/session")
+  const schemaAgent = await import("@bolt-ai/schema/agent")
+  const schemaSession = await import("@bolt-ai/schema/session")
   const [
     coreCommand,
     coreConnection,

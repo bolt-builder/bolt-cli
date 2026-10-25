@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import { define } from "@opencode/plugin/effect/plugin"
+import { define } from "@bolt-ai/plugin/effect/plugin"
 
 export const NeonPlugin = define({
   id: "opencode.provider.neon",

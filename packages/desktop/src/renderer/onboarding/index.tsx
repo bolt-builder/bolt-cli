@@ -1,4 +1,4 @@
-import { ServerConnection, useCurrentRoute, useGlobal, useServers, useTabs } from "@opencode/app/desktop"
+import { ServerConnection, useCurrentRoute, useGlobal, useServers, useTabs } from "@bolt-ai/app/desktop"
 import { createResource } from "solid-js"
 import type { ElectronAPI } from "../api-types"
 

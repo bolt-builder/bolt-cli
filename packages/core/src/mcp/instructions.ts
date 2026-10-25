@@ -1,6 +1,6 @@
 export * as McpInstructions from "./instructions.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
 import { Permission } from "../permission.js"
 import { McpTool } from "../tool/mcp.js"
@@ -64,7 +64,7 @@ export interface Interface {
   readonly load: (permissions: Permission.Ruleset) => Effect.Effect<Instructions.List>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/McpInstructions") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/McpInstructions") {}
 
 export const layer = Layer.effect(
   Service,

@@ -1,4 +1,4 @@
-import { Browser } from "@opencode/plugin-browser/rpc"
+import { Browser } from "@bolt-ai/plugin-browser/rpc"
 import { Schema } from "effect"
 import type { MainStoreFrom, Storage } from "../sdk/main"
 

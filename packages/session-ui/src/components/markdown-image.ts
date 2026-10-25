@@ -1,4 +1,4 @@
-import { isLineRangeHash, parsePathLineSuffix } from "@opencode/util/path"
+import { isLineRangeHash, parsePathLineSuffix } from "@bolt-ai/util/path"
 import type { ReadMarkdownImage } from "../context/markdown"
 
 export function localImagePath(source: string) {

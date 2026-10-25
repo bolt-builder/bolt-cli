@@ -1,4 +1,4 @@
-import { DialogProvider } from "@opencode/ui/context/dialog"
+import { DialogProvider } from "@bolt-ai/ui/context/dialog"
 import {
   Panel,
   type Appearance,
@@ -15,7 +15,7 @@ import {
   type Storage,
   type StoreOptions,
   type Workspaces,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import {
   createComponent,
   createMemo,
@@ -35,14 +35,14 @@ import { ServerScope } from "@/runtime/server/scope"
 import { ExtensionHostProvider, useExtensionHost, type HostApiFactories } from "../src/runtime/extension/host"
 import { createHostApis } from "../src/runtime/extension/host-apis"
 import { createInstalled } from "../src/runtime/extension/installed"
-import { extensionEnabled } from "@opencode/gui-extensions/sdk/bridge"
+import { extensionEnabled } from "@bolt-ai/gui-extensions/sdk/bridge"
 import { createRegion, RegionContent } from "../src/runtime/extension/panels"
 import { ExtensionSlot } from "../src/runtime/extension/render"
 import { persistedHandle } from "../src/runtime/extension/stores"
 import { LanguageProvider } from "../src/runtime/i18n/language"
 import { GuiExtensionsSettings } from "../src/runtime/extension/settings-page-dev"
 
-export { bindExtension, useExtension, Contract, createKeyed, Panel, Slot, Store } from "@opencode/gui-extensions/sdk"
+export { bindExtension, useExtension, Contract, createKeyed, Panel, Slot, Store } from "@bolt-ai/gui-extensions/sdk"
 
 export { Schema }
 

@@ -1,4 +1,4 @@
-import type { ModelRef, SessionMessageUser } from "@opencode/client/promise"
+import type { ModelRef, SessionMessageUser } from "@bolt-ai/client/promise"
 import { createStore } from "solid-js/store"
 import type { ServerSDK } from "@/runtime/server/client"
 

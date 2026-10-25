@@ -130,12 +130,12 @@ export interface Definition {
    * state, always loaded. See `Store`. Keys known only at runtime go through `ctx.storage.store`.
    */
   readonly stores?: Readonly<Record<string, StoreDeclaration | MainStoreDeclaration>>
-  /** The window entry; its default export is a `Setup<typeof Definition>` (`@opencode/gui-extensions/sdk`). */
+  /** The window entry; its default export is a `Setup<typeof Definition>` (`@bolt-ai/gui-extensions/sdk`). */
   readonly renderer?: () => Promise<{
     /** The window setup. */
     readonly default: (ctx: never) => void
   }>
-  /** The main entry; its default export is a `MainSetup` (`@opencode/gui-extensions/sdk/main`). */
+  /** The main entry; its default export is a `MainSetup` (`@bolt-ai/gui-extensions/sdk/main`). */
   readonly main?: () => Promise<{
     /** The main setup. */
     readonly default: (ctx: never) => Result

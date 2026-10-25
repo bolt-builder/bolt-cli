@@ -1,10 +1,10 @@
 export * as SessionStored from "./stored.js"
 
 import { Schema } from "effect"
-import { FileAttachment } from "@opencode/schema/prompt"
-import { optional } from "@opencode/schema/schema"
-import { UserPayload as InboxUserPayload } from "@opencode/schema/session-inbox"
-import { Tool } from "@opencode/schema/tool"
+import { FileAttachment } from "@bolt-ai/schema/prompt"
+import { optional } from "@bolt-ai/schema/schema"
+import { UserPayload as InboxUserPayload } from "@bolt-ai/schema/session-inbox"
+import { Tool } from "@bolt-ai/schema/tool"
 import { SessionMessage } from "./message.js"
 
 /**

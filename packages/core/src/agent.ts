@@ -1,6 +1,6 @@
 export * as Agent from "./agent.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Array, Context, Effect, Layer, Types } from "effect"
 import { Agent } from "@bolt-ai/schema/agent"
 import { State } from "./state"
@@ -16,7 +16,7 @@ export const Color = Agent.Color
 export const Info = Agent.Info
 export type Info = Agent.Info
 
-export { Event } from "@opencode/schema/agent"
+export { Event } from "@bolt-ai/schema/agent"
 
 export interface Selection {
   readonly id: ID

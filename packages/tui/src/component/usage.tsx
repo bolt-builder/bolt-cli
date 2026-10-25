@@ -1,4 +1,4 @@
-import type { ModelInfo, SessionMessageAssistant } from "@opencode/client"
+import type { ModelInfo, SessionMessageAssistant } from "@bolt-ai/client"
 import { TextAttributes } from "@opentui/core"
 import { createEffect, createMemo, createSignal, For, Match, onCleanup, onMount, Show, Switch } from "solid-js"
 import { useData } from "../context/data"
@@ -200,7 +200,7 @@ export function DialogUsageModel(props: { model: ModelInfo }) {
   )
 }
 
-// Each warning shows once per model while OpenCode runs, however many sessions use the model.
+// Each warning shows once per model while Bolt runs, however many sessions use the model.
 const warned = new Set<string>()
 
 /** Reloads limits as the session's turns end, and warns once as the selected model runs low and once at its limit. */

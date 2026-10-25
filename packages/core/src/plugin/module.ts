@@ -1,9 +1,9 @@
 export * as PluginModule from "./module.js"
 
-import type { Plugin } from "@opencode/plugin/effect/plugin"
-import { Host } from "@opencode/plugin/host"
-import { createPluginSources } from "@opencode/plugin/source"
-import { Npm } from "@opencode/util/npm"
+import type { Plugin } from "@bolt-ai/plugin/effect/plugin"
+import { Host } from "@bolt-ai/plugin/host"
+import { createPluginSources } from "@bolt-ai/plugin/source"
+import { Npm } from "@bolt-ai/util/npm"
 import { Deferred, Effect, FiberSet, PubSub, Schema, Stream } from "effect"
 import path from "path"
 import { stat } from "node:fs/promises"

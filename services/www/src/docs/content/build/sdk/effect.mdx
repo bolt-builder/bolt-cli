@@ -2,11 +2,11 @@
 title: "Effect"
 ---
 
-`@opencode/sdk/effect` is the Effect-native embedded SDK. Operations return typed Effects and Streams, and closing
+`@bolt-ai/sdk-v2/effect` is the Effect-native embedded SDK. Operations return typed Effects and Streams, and closing
 the owning Scope releases the router, Location services, fibers, and plugin registrations.
 
 ```sh
-bun add @opencode/sdk effect@4.0.1
+bun add @bolt-ai/sdk-v2 effect@4.0.1
 ```
 
 ## Create a host
@@ -14,7 +14,7 @@ bun add @opencode/sdk effect@4.0.1
 Create the host inside `Effect.scoped`, then use its generated API groups or the `sessions` alias.
 
 ```ts
-import { AbsolutePath, Location, OpenCode } from "@opencode/sdk/effect"
+import { AbsolutePath, Location, OpenCode } from "@bolt-ai/sdk-v2/effect"
 import { Effect } from "effect"
 
 const program = Effect.scoped(
@@ -35,7 +35,7 @@ const session = await Effect.runPromise(program)
 ```
 
 The embedded host uses the same schema values, declared errors, request options, and Streams as
-`@opencode/client/effect`.
+`@bolt-ai/client/effect`.
 
 ```ts
 const info = yield* opencode.server.info()
@@ -58,11 +58,11 @@ yield* opencode.events.subscribe().pipe(
 
 ## Customize
 
-Customize your OpenCode instance by registering Effect plugins. Use the embedded
+Customize your Bolt instance by registering Effect plugins. Use the embedded
 host to customize agents, models, tools, and other behavior:
 
 ```ts
-import { Plugin } from "@opencode/plugin/effect"
+import { Plugin } from "@bolt-ai/plugin/effect"
 import { Effect } from "effect"
 
 const plugin = Plugin.define({
@@ -89,7 +89,7 @@ hooks, transforms, tools, and the complete plugin context.
 Use `OpenCode.layer()` when the embedded host should be an application service.
 
 ```ts
-import { OpenCode } from "@opencode/sdk/effect"
+import { OpenCode } from "@bolt-ai/sdk-v2/effect"
 import { Effect } from "effect"
 
 const program = Effect.gen(function* () {

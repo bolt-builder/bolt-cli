@@ -1,6 +1,6 @@
 import type { SessionUpdate } from "@agentclientprotocol/sdk"
-import type { OpenCodeClient } from "@opencode/client/effect"
-import type { SessionMessage } from "@opencode/schema/session-message"
+import type { OpenCodeClient } from "@bolt-ai/client/effect"
+import type { SessionMessage } from "@bolt-ai/schema/session-message"
 import { Effect, Option, Stream } from "effect"
 import type { Capabilities } from "./capabilities"
 import { ACPClient } from "./client"

@@ -1,7 +1,7 @@
 import { createMemo, ErrorBoundary, For, onMount, Show, untrack, type JSX, type ParentProps } from "solid-js"
 import { Portal } from "solid-js/web"
-import { MarkdownProvider, useMarkdown } from "@opencode/session-ui/context/markdown"
-import { ExtensionContext, Slot, Style, type MountedSession, type SlotMap } from "@opencode/gui-extensions/sdk"
+import { MarkdownProvider, useMarkdown } from "@bolt-ai/session-ui/context/markdown"
+import { ExtensionContext, Slot, Style, type MountedSession, type SlotMap } from "@bolt-ai/gui-extensions/sdk"
 import { useExtensionHost } from "./host"
 
 /**

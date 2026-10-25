@@ -75,7 +75,7 @@ The `deploy` GitHub Actions workflow uses SST to deploy the web app to `beta.ope
 `beta` branch in `anomalyco/opencode`. The `dev` and `production` stages do not deploy the web app.
 
 `beta` is the team's dogfooding branch: `dev` merged in by hand, plus commits pushed directly to it. Do not rebase or
-force-push it. Each push also runs the `publish` workflow, which ships the same commit as the OpenCode Beta desktop app
+force-push it. Each push also runs the `publish` workflow, which ships the same commit as the Bolt Beta desktop app
 (see `packages/desktop/README.md`).
 
 The beta SST stage deploys only the web app, using the `WebApp` StaticSite definition in `infra/webapp.ts`. It sets
@@ -107,7 +107,7 @@ opencode pair --url https://opencode.example.com
 ```
 
 This replaces the addresses in the printed links and QR code.
-The proxy URL must reach the OpenCode API, not just the frontend. For separate frontend and API processes,
+The proxy URL must reach the Bolt API, not just the frontend. For separate frontend and API processes,
 route `/api` to the service while preserving the `/api` prefix. No machine-specific app or CLI build is required.
 
 When an HTTPS page fails to connect to a non-loopback HTTP server, the connection forms show a specific

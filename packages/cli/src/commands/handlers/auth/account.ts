@@ -1,6 +1,6 @@
 import { autocomplete } from "@clack/prompts"
 import { Effect } from "effect"
-import type { IntegrationInfo } from "@opencode/client"
+import type { IntegrationInfo } from "@bolt-ai/client"
 import { prompt } from "../../../ui/prompt"
 import { resolveIntegration } from "./shared"
 

@@ -1,3 +1,3 @@
-// These @opencode/ui exports resolve to CSS files, but their specifiers lack a .css suffix for vite/client to match.
-declare module "@opencode/ui/styles"
-declare module "@opencode/ui/styles/tokens"
+// These @bolt-ai/ui exports resolve to CSS files, but their specifiers lack a .css suffix for vite/client to match.
+declare module "@bolt-ai/ui/styles"
+declare module "@bolt-ai/ui/styles/tokens"

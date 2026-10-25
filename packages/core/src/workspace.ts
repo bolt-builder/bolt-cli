@@ -45,7 +45,7 @@ export interface Options {
   readonly pollInterval?: Duration.Input
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Workspace") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Workspace") {}
 
 interface Connection {
   readonly driver: WorkspaceDriver.Interface

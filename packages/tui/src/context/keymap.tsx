@@ -1,4 +1,4 @@
-import type { KeymapActive, KeymapCommand, KeymapLayer, KeymapPending } from "@opencode/plugin/tui/context"
+import type { KeymapActive, KeymapCommand, KeymapLayer, KeymapPending } from "@bolt-ai/plugin/tui/context"
 import { InputRenderable, TextareaRenderable, type KeyEvent, type Renderable } from "@opentui/core"
 import { stringifyKeyStroke, type Binding, type CommandContext } from "@opentui/keymap"
 import {
@@ -165,12 +165,12 @@ function Provider(props: ParentProps<{ config?: KeymapConfig }>) {
   )
 }
 
-export type { KeymapCommand, KeymapLayer } from "@opencode/plugin/tui/context"
+export type { KeymapCommand, KeymapLayer } from "@bolt-ai/plugin/tui/context"
 
 export interface Keymap {
   /** Dispatches a reachable command by ID. */
   dispatch(id: string, input?: string): void
-  /** Controls mutually exclusive OpenCode input modes. */
+  /** Controls mutually exclusive Bolt input modes. */
   readonly mode: {
     /** Returns the active mode. */
     current(): string

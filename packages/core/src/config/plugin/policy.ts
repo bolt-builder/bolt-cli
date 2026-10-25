@@ -1,6 +1,6 @@
 export * as ConfigPolicyPlugin from "./policy.js"
 
-import { define } from "@opencode/plugin/effect/plugin"
+import { define } from "@bolt-ai/plugin/effect/plugin"
 import { Effect, Stream } from "effect"
 import { Config } from "../../config.js"
 import { ManagedPolicy } from "../../managed-policy.js"

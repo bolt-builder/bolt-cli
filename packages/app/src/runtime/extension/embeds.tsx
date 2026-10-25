@@ -2,8 +2,8 @@ import { createEffect, on, onCleanup, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createEventListener } from "@solid-primitives/event-listener"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
-import type { EmbedProps, Embeds } from "@opencode/gui-extensions/sdk"
-import type { Bridge } from "@opencode/gui-extensions/sdk/bridge"
+import type { EmbedProps, Embeds } from "@bolt-ai/gui-extensions/sdk"
+import type { Bridge } from "@bolt-ai/gui-extensions/sdk/bridge"
 
 const geometry =
   /^(inset|left|right|top|bottom|translate|transform|scale|rotate|margin|padding|flex|grid|gap|row-gap|column-gap)|(^|-)(width|height)$/

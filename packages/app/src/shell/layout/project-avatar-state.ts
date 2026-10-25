@@ -1,5 +1,5 @@
 import { createMemo, type Accessor } from "solid-js"
-import type { SessionInfo } from "@opencode/client/promise"
+import type { SessionInfo } from "@bolt-ai/client/promise"
 import { useGlobal, useServerCtx } from "@/runtime/server/runtime"
 import { sessionPermissionRequest, sessionFormRequest } from "@/session/requests/session-request-tree"
 import { ServerConnection } from "@/runtime/server/registry"

@@ -12,8 +12,8 @@ import {
 } from "solid-js"
 import { createStore, produce, type Store } from "solid-js/store"
 import type { Schema } from "effect"
-import { useDialog } from "@opencode/ui/context/dialog"
-import { base64Encode } from "@opencode/util/encode"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
+import { base64Encode } from "@bolt-ai/util/encode"
 import {
   Panel,
   type Build,
@@ -29,7 +29,7 @@ import {
   type StorageScope,
   type StoreFrom,
   type StoreOptions,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import { usePlatform } from "@/runtime/platform/platform"
 import { same } from "@/runtime/persistence/equality"
 import { Persist, persisted, removePersisted } from "@/runtime/persistence/storage"

@@ -1,6 +1,6 @@
 export * as CodeModeTool from "./tool.js"
 
-import { CodeMode, Namespace, Tool } from "@opencode/codemode"
+import { CodeMode, Namespace, Tool } from "@bolt-ai/codemode"
 import type {
   Content,
   Context as ToolContext,
@@ -9,7 +9,7 @@ import type {
   Metadata,
   Namespace as ToolNamespace,
   Result,
-} from "@opencode/schema/tool"
+} from "@bolt-ai/schema/tool"
 import { Context, Effect, Ref, Schema, Semaphore } from "effect"
 import { definition, normalizedName } from "../tool/runtime.js"
 import { CodeModeCatalog } from "./catalog.js"
@@ -60,7 +60,7 @@ class Run extends Context.Service<
     readonly executeTool: (name: string, tool: Info, input: unknown) => Effect.Effect<unknown, unknown>
     readonly hooks: CodeMode.Hooks
   }
->()("@opencode/CodeModeTool/Run") {}
+>()("@bolt-ai/CodeModeTool/Run") {}
 
 export type Inventory = {
   readonly tools: ReadonlyMap<string, Info>

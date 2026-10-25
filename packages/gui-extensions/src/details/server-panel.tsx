@@ -1,10 +1,10 @@
 import { Popover } from "@kobalte/core/popover"
-import type { PluginInfo } from "@opencode/client"
-import { Icon } from "@opencode/ui/icon"
-import { Switch } from "@opencode/ui/switch"
-import { showToast } from "@opencode/ui/toast"
-import { Tooltip } from "@opencode/ui/tooltip"
-import { getDirectory } from "@opencode/util/path"
+import type { PluginInfo } from "@bolt-ai/client"
+import { Icon } from "@bolt-ai/ui/icon"
+import { Switch } from "@bolt-ai/ui/switch"
+import { showToast } from "@bolt-ai/ui/toast"
+import { Tooltip } from "@bolt-ai/ui/tooltip"
+import { getDirectory } from "@bolt-ai/util/path"
 import { useMutation } from "@tanstack/solid-query"
 import {
   children,

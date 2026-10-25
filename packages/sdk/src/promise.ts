@@ -1,8 +1,8 @@
 export * as PromiseSdk from "./promise"
 
-import { OpenCode, type OpenCodeClient } from "@opencode/client"
-import type { Plugin } from "@opencode/plugin"
-import { Session } from "@opencode/schema/session"
+import { OpenCode, type OpenCodeClient } from "@bolt-ai/client"
+import type { Plugin } from "@bolt-ai/plugin"
+import { Session } from "@bolt-ai/schema/session"
 import { Effect, Schema } from "effect"
 import { EmbeddedHost } from "./internal/host"
 
@@ -43,7 +43,7 @@ export async function create(options: CreateOptions = {}, embed: EmbeddedHost.Em
               key: (session) => instances.key(Schema.encodeSync(Session.Info)(session)),
               configure: (key) =>
                 Effect.gen(function* () {
-                  const { PluginPromise } = yield* Effect.promise(() => import("@opencode/core/plugin/promise"))
+                  const { PluginPromise } = yield* Effect.promise(() => import("@bolt-ai/core/plugin/promise"))
                   const configuration = yield* Effect.tryPromise(async () => instances.configure(key))
                   return { plugins: configuration.plugins.map(PluginPromise.fromPromise) }
                 }),
@@ -55,7 +55,7 @@ export async function create(options: CreateOptions = {}, embed: EmbeddedHost.Em
   )
   const client = OpenCode.make({ baseUrl: "http://opencode.local", fetch: host.fetch })
   const register = async (plugin: Plugin.Plugin) => {
-    const { PluginPromise } = await import("@opencode/core/plugin/promise")
+    const { PluginPromise } = await import("@bolt-ai/core/plugin/promise")
     return host.runtime.runPromise(host.plugins.register(PluginPromise.fromPromise(plugin)))
   }
   return {
@@ -70,6 +70,6 @@ export async function create(options: CreateOptions = {}, embed: EmbeddedHost.Em
 
 async function adaptPlugins(plugins: ReadonlyArray<Plugin.Plugin> | undefined) {
   if (!plugins?.length) return undefined
-  const { PluginPromise } = await import("@opencode/core/plugin/promise")
+  const { PluginPromise } = await import("@bolt-ai/core/plugin/promise")
   return plugins.map(PluginPromise.fromPromise)
 }

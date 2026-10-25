@@ -1,5 +1,5 @@
-import type { SessionInfo } from "@opencode/client/promise"
-import { displayName } from "@opencode/ui/project-avatar"
+import type { SessionInfo } from "@bolt-ai/client/promise"
+import { displayName } from "@bolt-ai/ui/project-avatar"
 import { pathKey } from "@/workspaces/path-key"
 import { isProjectDirectory } from "@/workspaces/paths"
 import type { ServerConnection } from "@/runtime/server/registry"

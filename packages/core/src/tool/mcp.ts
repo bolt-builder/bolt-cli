@@ -1,9 +1,9 @@
 export * as McpTool from "./mcp.js"
 
-import { ToolFailure } from "@opencode/ai/effect"
-import { McpEvent } from "@opencode/schema/mcp-event"
+import { ToolFailure } from "@bolt-ai/ai/effect"
+import { McpEvent } from "@bolt-ai/schema/mcp-event"
 import { Context, Effect, Fiber, type JsonSchema, Layer, Option, PubSub, Schema, Semaphore, Stream } from "effect"
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { extension } from "mime-types"
 import { Bus } from "../bus.js"
 
@@ -27,7 +27,7 @@ export interface Interface {
   readonly flush: Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/McpTool") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/McpTool") {}
 
 export const layer = Layer.effect(
   Service,

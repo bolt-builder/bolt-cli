@@ -1,8 +1,8 @@
-import { useDialog } from "@opencode/ui/context/dialog"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { ServerConnection } from "@/runtime/server/registry"
 import { usePlatform } from "@/runtime/platform/platform"
 import { lazy, Suspense } from "solid-js"
-import type { LocationRef } from "@opencode/client/promise"
+import type { LocationRef } from "@bolt-ai/client/promise"
 import { directoryPickerKind } from "./policy"
 
 const DirectoryPickerDialog = lazy(() =>

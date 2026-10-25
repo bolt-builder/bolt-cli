@@ -9,9 +9,9 @@ import {
   type ScrollBoxRenderable,
   type TextareaRenderable,
 } from "@opentui/core"
-import { openUrl } from "@opencode/util/open"
+import { openUrl } from "@bolt-ai/util/open"
 import { useTheme } from "../../context/theme"
-import type { FormAnswer, FormField, FormValue } from "@opencode/client"
+import type { FormAnswer, FormField, FormValue } from "@bolt-ai/client"
 import { useData, type FormWithLocation } from "../../context/data"
 import { useClipboard } from "../../context/clipboard"
 import { SplitBorder } from "../../ui/border"

@@ -1,4 +1,4 @@
-import { Resource } from "@opencode/console-resource"
+import { Resource } from "@bolt-ai/console-resource"
 
 export const ENTERPRISE_SPAM_URL = "https://opencode.ai/inference/systemone/v1/systemone"
 export const ENTERPRISE_SPAM_MODEL = "jev-1.13"

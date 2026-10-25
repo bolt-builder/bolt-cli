@@ -1,13 +1,13 @@
 export * as SessionTransfer from "./transfer.js"
 
-import { SessionTransfer } from "@opencode/schema/session-transfer"
-import { Tool } from "@opencode/schema/tool"
-import { Skill } from "@opencode/schema/skill"
+import { SessionTransfer } from "@bolt-ai/schema/session-transfer"
+import { Tool } from "@bolt-ai/schema/tool"
+import { Skill } from "@bolt-ai/schema/skill"
 import { eq } from "drizzle-orm"
 import { Clock, Context, DateTime, Effect, Layer, Schema } from "effect"
 import { map } from "effect/Array"
 import path from "path"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 import { App } from "../app.js"
 import { Bus } from "../bus.js"
 import { Database } from "../database/database.js"
@@ -41,7 +41,7 @@ export interface Interface {
   }) => Effect.Effect<Session.Info, ImportConflictError | Session.NotFoundError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionTransfer") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionTransfer") {}
 
 const layer = Layer.effect(
   Service,

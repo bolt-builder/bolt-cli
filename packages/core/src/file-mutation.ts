@@ -1,10 +1,10 @@
 export * as FileMutation from "./file-mutation.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer } from "effect"
 import { KeyedMutex } from "./effect/keyed-mutex.js"
-import { FSUtil } from "@opencode/util/fs-util"
-import { Bom } from "@opencode/util/bom"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Bom } from "@bolt-ai/util/bom"
 import { Environment } from "./environment/index.js"
 import type { Files } from "./environment/index.js"
 import type { FileAccess } from "./file-access.js"

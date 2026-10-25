@@ -48,9 +48,9 @@ HttpRecorder.layerSocket("consumer/socket", { match: () => true })
     )
     await writeFile(
       path.join(directory, "exports.mjs"),
-      `import { HttpRecorder } from "@opencode/http-recorder"
+      `import { HttpRecorder } from "@bolt-ai/http-recorder"
 
-const root = Object.keys(await import("@opencode/http-recorder")).sort()
+const root = Object.keys(await import("@bolt-ai/http-recorder")).sort()
 if (JSON.stringify(root) !== JSON.stringify(["HttpRecorder"])) {
   throw new Error(\`Unexpected root exports: \${root}\`)
 }
@@ -63,7 +63,7 @@ if (JSON.stringify(namespace) !== JSON.stringify(["hasCassetteSync", "layer", "l
     )
     await writeFile(
       path.join(directory, "deep-import.mjs"),
-      `import "@opencode/http-recorder/internal"
+      `import "@bolt-ai/http-recorder/internal"
 `,
     )
     await writeFile(

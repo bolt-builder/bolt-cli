@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode/plugin/tui"
+import { Plugin } from "@bolt-ai/plugin/tui"
 import { createMemo, Show } from "solid-js"
 import { useUsageLimits } from "../../component/usage"
 import { useLocal } from "../../context/local"

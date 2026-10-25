@@ -1,6 +1,6 @@
 export * as AISDK from "./aisdk.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { APICallError } from "@ai-sdk/provider"
 import type {
   JSONSchema7,
@@ -29,10 +29,10 @@ import {
   type Media,
   type ToolDefinition,
   type UsageInput,
-} from "@opencode/ai/effect"
-import { Auth, Endpoint, RequestExecutor, type AnyRoute, type HttpMiddleware } from "@opencode/ai/route"
-import { ProviderShared } from "@opencode/ai/protocols/shared"
-import { isRecord } from "@opencode/ai/utils/record"
+} from "@bolt-ai/ai/effect"
+import { Auth, Endpoint, RequestExecutor, type AnyRoute, type HttpMiddleware } from "@bolt-ai/ai/route"
+import { ProviderShared } from "@bolt-ai/ai/protocols/shared"
+import { isRecord } from "@bolt-ai/ai/utils/record"
 import { Cause, Context, Effect, Layer, Option, Schema, Scope, Stream } from "effect"
 import { makeParser } from "effect/encoding/Sse"
 import { HttpClientRequest, HttpClientResponse } from "effect/http"

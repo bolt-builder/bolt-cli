@@ -1,8 +1,8 @@
-# OpenCode
+# Bolt
 
-Use this guide as the starting point for work involving OpenCode itself. It
-covers the core concepts needed to configure and customize OpenCode, extend it
-with plugins, and build integrations with the OpenCode SDK, clients, and API.
+Use this guide as the starting point for work involving Bolt itself. It
+covers the core concepts needed to configure and customize Bolt, extend it
+with plugins, and build integrations with the Bolt SDK, clients, and API.
 
 Full documentation is available at <https://opencode.ai/v2/docs/>. This overview is
 only an index of core concepts. Before answering a question about a topic below,
@@ -16,8 +16,8 @@ A machine-readable documentation index is available at
 
 ## Version policy
 
-Always answer for OpenCode V2 unless the user explicitly asks about V1,
-legacy OpenCode, or migrating from V1.
+Always answer for Bolt V2 unless the user explicitly asks about V1,
+legacy Bolt, or migrating from V1.
 
 Use only <https://opencode.ai/v2/docs/> documentation as the source of truth for V2.
 Do not use <https://opencode.ai/docs/>, which documents V1, and do not use
@@ -38,7 +38,7 @@ For questions about the terminal interface, command-line invocation, `run`,
 [CLI guide](https://opencode.ai/v2/docs/cli) and the relevant page linked from
 that section.
 
-CLI and TUI preferences are separate from OpenCode's server and project
+CLI and TUI preferences are separate from Bolt's server and project
 configuration. They live in the global `~/.config/opencode/cli.json`, or
 `$XDG_CONFIG_HOME/opencode/cli.json` when `XDG_CONFIG_HOME` is set. There is no
 project-local CLI configuration. Set `OPENCODE_CLI_CONFIG_CONTENT` to merge
@@ -65,9 +65,9 @@ Never guess a command ID, default binding, or accepted key syntax. Fetch the
 full [keybind reference](https://opencode.ai/v2/docs/cli/keybinds), which lists
 the current IDs and defaults, before answering or editing a binding.
 
-## [OpenCode configuration](https://opencode.ai/v2/docs/config)
+## [Bolt configuration](https://opencode.ai/v2/docs/config)
 
-OpenCode's server and project configuration uses JSON or JSONC. Include the
+Bolt's server and project configuration uses JSON or JSONC. Include the
 published schema so the user's editor can validate fields and provide
 autocomplete:
 
@@ -82,7 +82,7 @@ to every project for that user. Project configuration can live in any directory
 as `opencode.json(c)` or `.opencode/opencode.json(c)`, including nested packages
 in a monorepo.
 
-During ordinary project discovery, OpenCode searches the current Location
+During ordinary project discovery, Bolt searches the current Location
 directory and every ancestor through the filesystem root, including directories
 above the detected project or repository root. It merges direct
 `opencode.json(c)` files from the farthest ancestor to the current directory,
@@ -98,10 +98,10 @@ This configuration is distinct from `cli.json`. Use the
 [CLI settings reference](https://opencode.ai/v2/docs/cli/config) for terminal
 preferences, especially themes and keybindings.
 
-Config changes apply without a restart. OpenCode watches config files and
+Config changes apply without a restart. Bolt watches config files and
 reloads agents, commands, skills, MCP servers, and plugins after a save. The TUI
 does the same for `cli.json`. To force a full reload, use `/reload`. Don't tell
-the user to restart OpenCode after editing config.
+the user to restart Bolt after editing config.
 
 Do not guess field names or shapes. Fetch the V2 configuration guide and its
 linked topic guide as the source of truth, and preserve unrelated settings when
@@ -132,7 +132,7 @@ Use the user-facing MCP interface instead.
 Report the server as configured but awaiting sign-in until its connection
 status confirms it is connected.
 
-OAuth credentials are stored outside the OpenCode configuration. Do not ask for or
+OAuth credentials are stored outside the Bolt configuration. Do not ask for or
 store an API key when the server supports OAuth. Use header-based credentials
 only when OAuth is unavailable or the user explicitly requires them, and use an
 environment substitution such as `{env:MCP_API_KEY}` instead of writing a
@@ -140,7 +140,7 @@ secret into configuration.
 
 ## [V1 to V2 migration](https://opencode.ai/v2/docs/migrate-v1)
 
-For any request to migrate OpenCode configuration, agents, commands, skills,
+For any request to migrate Bolt configuration, agents, commands, skills,
 plugins, integrations, or other behavior from V1 to V2, read the full
 [migration guide](https://opencode.ai/v2/docs/migrate-v1) before acting. In
 the repository, its source is `services/www/src/docs/content/migrate-v1.mdx`.
@@ -168,11 +168,11 @@ For custom methods and events shared with other plugins or clients, fetch the
 
 ## [Service](https://opencode.ai/v2/docs/troubleshooting#check-the-background-service)
 
-OpenCode uses a client-server architecture. Interfaces such as the TUI connect
-to a background OpenCode service, which owns sessions, configuration, plugins,
+Bolt uses a client-server architecture. Interfaces such as the TUI connect
+to a background Bolt service, which owns sessions, configuration, plugins,
 permissions, and tool execution.
 
-OpenCode normally discovers or starts the shared background service
+Bolt normally discovers or starts the shared background service
 automatically. Restart it only if it is stuck or unhealthy, not to apply
 configuration changes:
 
@@ -188,10 +188,10 @@ opencode service status
 
 ## [API](https://opencode.ai/v2/docs/api)
 
-OpenCode exposes an HTTP API from its server. The API is described by an
+Bolt exposes an HTTP API from its server. The API is described by an
 OpenAPI document available from the running server at `/openapi.json`.
 
-Use OpenCode's built-in `api` command for local requests. It uses the same
+Use Bolt's built-in `api` command for local requests. It uses the same
 discovery and authentication flow as the TUI and may start the background
 service when no compatible healthy service is available. It accepts either an
 HTTP method and path or an OpenAPI operation ID.
@@ -210,7 +210,7 @@ opencode api post /api/example --data '{"key":"value"}'
 opencode api get /api/example --header 'X-Example:value'
 ```
 
-Request bodies default to `Content-Type: application/json`. When OpenCode is
+Request bodies default to `Content-Type: application/json`. When Bolt is
 connected to an explicit server instead of its managed background service, use
 the same configured server and authentication context rather than constructing
 an unauthenticated request separately.
@@ -222,23 +222,23 @@ available for code generation and other tooling.
 
 ## [Client](https://opencode.ai/v2/docs/build/client)
 
-For questions about connecting an application to OpenCode over the network,
+For questions about connecting an application to Bolt over the network,
 fetch the full [client guide](https://opencode.ai/v2/docs/build/client) before
 answering.
 
-`@opencode/client` is the generated TypeScript client for the OpenCode HTTP
+`@bolt-ai/client` is the generated TypeScript client for the Bolt HTTP
 API. Its methods and types come from the same contract as the API reference.
 The default entrypoint exposes Promise-based resource clients and async
-iterables for streaming endpoints. The `@opencode/client/effect` entrypoint
-exposes typed Effects, Streams, and decoded OpenCode schema values. Its
+iterables for streaming endpoints. The `@bolt-ai/client/effect` entrypoint
+exposes typed Effects, Streams, and decoded Bolt schema values. Its
 `Service` API can discover, start, stop, and authenticate with the local
 background service from a Node application.
 
 ## [SDK](https://opencode.ai/v2/docs/build/sdk)
 
-For questions about embedding OpenCode directly in an application, fetch the
+For questions about embedding Bolt directly in an application, fetch the
 full [SDK guide](https://opencode.ai/v2/docs/build/sdk) before answering. The SDK
-hosts OpenCode in the application without opening an HTTP listener.
+hosts Bolt in the application without opening an HTTP listener.
 
 Use the [Effect SDK guide](https://opencode.ai/v2/docs/build/sdk/effect) for
 Effect applications. For Cloudflare Durable Objects, use the
@@ -246,7 +246,7 @@ Effect applications. For Cloudflare Durable Objects, use the
 
 ## [Troubleshooting](https://opencode.ai/v2/docs/troubleshooting)
 
-OpenCode runs a client and a background server. Start by determining whether a
+Bolt runs a client and a background server. Start by determining whether a
 problem belongs to the client, the shared server, or one project.
 
 - Check the service with `opencode service status` and verify the API with

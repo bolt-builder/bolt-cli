@@ -1,6 +1,6 @@
 import { expect } from "bun:test"
-import { PermissionSaved } from "@opencode/schema/permission-saved"
-import { Session } from "@opencode/schema/session"
+import { PermissionSaved } from "@bolt-ai/schema/permission-saved"
+import { Session } from "@bolt-ai/schema/session"
 import { Effect, Schema } from "effect"
 import { it } from "../../core/test/lib/effect"
 import { ServerFetch } from "../src/fetch"

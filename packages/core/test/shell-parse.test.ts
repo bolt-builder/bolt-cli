@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
 import os from "os"
 import path from "path"
-import { ShellParse } from "@opencode/core/shell/parse"
+import { ShellParse } from "@bolt-ai/core/shell/parse"
 import { shellParserWasm } from "../src/shell/parser-wasm.workerd"
 
 describe("ShellParse", () => {

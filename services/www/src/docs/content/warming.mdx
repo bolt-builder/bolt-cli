@@ -6,7 +6,7 @@ Session warming sends periodic model requests to preserve provider-side prompt
 caches or other short-lived state while you pause between prompts. It is
 disabled by default.
 
-Enable warming in any [OpenCode configuration file](/config):
+Enable warming in any [Bolt configuration file](/config):
 
 ```jsonc title="opencode.jsonc"
 {
@@ -15,7 +15,7 @@ Enable warming in any [OpenCode configuration file](/config):
 }
 ```
 
-With this configuration, OpenCode warms a recently active session after four
+With this configuration, Bolt warms a recently active session after four
 minutes without a model request. It continues every four minutes until 30
 minutes have passed since the latest non-warming request.
 
@@ -55,7 +55,7 @@ interval:
 ## Durations
 
 `interval` and `duration` accept duration strings. Both must resolve to finite
-values greater than zero; otherwise OpenCode skips warming and logs a warning.
+values greater than zero; otherwise Bolt skips warming and logs a warning.
 
 ```jsonc title="opencode.jsonc"
 {
@@ -92,7 +92,7 @@ request is sent.
 ## Requests
 
 A warming request uses the session's current model, agent, instructions, and
-conversation context. OpenCode appends the configured prompt transiently,
+conversation context. Bolt appends the configured prompt transiently,
 makes one model call, and discards the response.
 
 ```text
@@ -102,12 +102,12 @@ makes one model call, and discards the response.
 ```
 
 The request does not admit input, add messages to history, or mutate durable
-session state. OpenCode does not dispatch local tool calls or continue a tool
+session state. Bolt does not dispatch local tool calls or continue a tool
 loop; the default prompt also tells the model not to use tools.
 
 ## Failures
 
-Warming failures are logged without failing or changing the session. OpenCode
+Warming failures are logged without failing or changing the session. Bolt
 waits until the next interval before trying again, while the original active
 window continues to count down.
 

@@ -1,4 +1,4 @@
-import { base64ToBytes } from "@opencode/util/base64"
+import { base64ToBytes } from "@bolt-ai/util/base64"
 import type { FileContent } from "../sdk"
 
 /** Approximate on-disk size of loaded content. */

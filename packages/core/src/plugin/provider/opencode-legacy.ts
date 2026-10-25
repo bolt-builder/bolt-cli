@@ -1,15 +1,15 @@
 export * as OpencodeLegacy from "./opencode-legacy.js"
 
 // The OpenCode Console's original `/api/v2/config` response, which it serves without `$schema`. Unlike a regular
-// OpenCode config, the plugin applies it itself: providers, organization policy, web search, and MCP servers.
-// Delete this module and its uses in opencode.ts once every Console serves a regular OpenCode config.
+// Bolt config, the plugin applies it itself: providers, organization policy, web search, and MCP servers.
+// Delete this module and its uses in opencode.ts once every Console serves a regular Bolt config.
 
 import { Effect, Schema } from "effect"
-import type { Context } from "@opencode/plugin/effect/plugin"
-import type { WebSearchDefinition } from "@opencode/plugin/effect/websearch"
-import { ConfigProvider } from "@opencode/schema/config/provider"
-import { Mcp } from "@opencode/schema/mcp"
-import { Money } from "@opencode/schema/money"
+import type { Context } from "@bolt-ai/plugin/effect/plugin"
+import type { WebSearchDefinition } from "@bolt-ai/plugin/effect/websearch"
+import { ConfigProvider } from "@bolt-ai/schema/config/provider"
+import { Mcp } from "@bolt-ai/schema/mcp"
+import { Money } from "@bolt-ai/schema/money"
 import { ConfigIntegration } from "../../config/integration.js"
 import { Integration } from "../../integration.js"
 import { Model } from "../../model.js"

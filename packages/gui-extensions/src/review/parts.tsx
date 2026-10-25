@@ -1,7 +1,7 @@
 import { Match, Show, Switch } from "solid-js"
-import { SessionReviewEmptyChangesV2 } from "@opencode/session-ui/v2/session-review-empty-changes-v2"
-import { SessionReviewEmptyNoGitV2 } from "@opencode/session-ui/v2/session-review-empty-no-git-v2"
-import { Select } from "@opencode/ui/select"
+import { SessionReviewEmptyChangesV2 } from "@bolt-ai/session-ui/v2/session-review-empty-changes-v2"
+import { SessionReviewEmptyNoGitV2 } from "@bolt-ai/session-ui/v2/session-review-empty-no-git-v2"
+import { Select } from "@bolt-ai/ui/select"
 import { useExtension } from "../sdk"
 import type { ChangeMode, ReviewModel } from "./model"
 

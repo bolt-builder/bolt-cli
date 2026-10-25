@@ -3,8 +3,8 @@ export * as ConfigDiscovery from "./discovery.js"
 import os from "os"
 import path from "path"
 import { Effect } from "effect"
-import { FSUtil } from "@opencode/util/fs-util"
-import { Global } from "@opencode/util/global"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Global } from "@bolt-ai/util/global"
 import { Location } from "../location.js"
 import { AbsolutePath } from "../schema.js"
 import type { Options } from "../config.js"
@@ -39,7 +39,7 @@ export function preferencePaths(user: string) {
   ]
 }
 
-// Keys macOS and MDM profiles inject into managed preferences that are not OpenCode config.
+// Keys macOS and MDM profiles inject into managed preferences that are not Bolt config.
 const preferenceMetadata = new Set([
   "PayloadDisplayName",
   "PayloadIdentifier",

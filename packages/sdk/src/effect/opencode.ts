@@ -1,8 +1,8 @@
 export * as OpenCode from "./opencode"
 
-import { OpenCode, type OpenCodeClient } from "@opencode/client/effect"
-import type { Session } from "@opencode/core/session"
-import type { Workspace } from "@opencode/core/workspace"
+import { OpenCode, type OpenCodeClient } from "@bolt-ai/client/effect"
+import type { Session } from "@bolt-ai/core/session"
+import type { Workspace } from "@bolt-ai/core/workspace"
 import { Context, Effect, Layer } from "effect"
 import type { Config, Scope } from "effect"
 import { FetchHttpClient, HttpClient } from "effect/http"
@@ -67,7 +67,7 @@ export const create: <R = never>(
   }
 })
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/sdk/OpenCode") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/sdk-v2/OpenCode") {}
 
 export const layer = <R = never>(
   options: CreateOptions<R> = {},

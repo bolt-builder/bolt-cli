@@ -125,7 +125,7 @@ export function toRequestError(error: Error): RequestError {
         error.safeMessage,
       )
     case "ACPServerUnavailableError":
-      return RequestError.internalError({ errorName: "ServerUnavailable" }, "OpenCode server is unavailable")
+      return RequestError.internalError({ errorName: "ServerUnavailable" }, "Bolt server is unavailable")
   }
   const exhaustive: never = error
   return exhaustive

@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test"
-import type { JsonValue, SessionMessageAssistant, SessionMessageInfo } from "@opencode/client/promise"
-import { base64Encode } from "@opencode/util/encode"
+import type { JsonValue, SessionMessageAssistant, SessionMessageInfo } from "@bolt-ai/client/promise"
+import { base64Encode } from "@bolt-ai/util/encode"
 import { createTwoFilesPatch } from "diff"
 import { SERVER, pageMessagesFrom } from "./app"
 import { mockOpenCodeServer, type MockServerConfig } from "./mock-server"

@@ -6,7 +6,7 @@ type Provider = {
 
 export function consoleProviderGroup<T extends Provider>(providers: readonly T[]) {
   const root = providers.find((provider) => provider.id === "opencode" && provider.integrationID === "opencode")
-  const suffix = " / OpenCode"
+  const suffix = " / Bolt"
 
   if (!root?.name.endsWith(suffix)) return
   const workspace = root.name.slice(0, -suffix.length).trim()

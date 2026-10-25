@@ -10,7 +10,7 @@ import {
 export type Interface = MediaClient.Interface<TranscriptionRequestFor, TranscriptionEvent, TranscriptionResponse>
 
 export class TranscriptionClientService extends Context.Service<TranscriptionClientService, Interface>()(
-  "@opencode/TranscriptionClient",
+  "@bolt-ai/TranscriptionClient",
 ) {}
 export const Service = TranscriptionClientService
 export type Service = TranscriptionClientService

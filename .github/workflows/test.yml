@@ -52,7 +52,7 @@ jobs:
             exit 0
           fi
           # Storybook hosts the component tests, but no app package depends on it.
-          bun x turbo@2.10.2 ls --affected --filter=@opencode/app --filter=@opencode/storybook --output=json > affected.json
+          bun x turbo@2.10.2 ls --affected --filter=@bolt-ai/app --filter=@bolt-ai/storybook --output=json > affected.json
           bun -e 'const result = await Bun.file("affected.json").json(); console.log(`app=${result.packages.count > 0}`)' >> "$GITHUB_OUTPUT"
 
   unit:
@@ -164,10 +164,10 @@ jobs:
         timeout-minutes: 10
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            bun turbo build --concurrency=3 --filter='@opencode/cli^...' --filter='@opencode/app^...'
+            bun turbo build --concurrency=3 --filter='@bolt-ai/cli^...' --filter='@bolt-ai/app^...'
             exit 0
           fi
-          bun turbo build --affected --concurrency=3 --filter='@opencode/cli^...' --filter='@opencode/app^...'
+          bun turbo build --affected --concurrency=3 --filter='@bolt-ai/cli^...' --filter='@bolt-ai/app^...'
         env:
           TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && format('{0}^1', github.sha) || github.event.before }}
           TURBO_SCM_HEAD: ${{ github.sha }}

@@ -1,9 +1,9 @@
 export * as SessionMove from "./move.js"
 
-import type { Session } from "@opencode/schema/session"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
-import { FSUtil } from "@opencode/util/fs-util"
-import { Global } from "@opencode/util/global"
+import type { Session } from "@bolt-ai/schema/session"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Global } from "@bolt-ai/util/global"
 import { Cause, Context, Effect, Layer, Schema } from "effect"
 import path from "path"
 import { Bus } from "../bus.js"
@@ -49,7 +49,7 @@ export interface Interface {
   >
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionMove") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionMove") {}
 
 const layer = Layer.effect(
   Service,

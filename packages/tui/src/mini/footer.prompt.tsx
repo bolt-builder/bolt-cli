@@ -5,10 +5,23 @@
 // It produces a PromptState that RunPromptBody renders as a slim single-line
 // composer while the footer view renders any active menus below it.
 /** @jsxImportSource @opentui/solid */
-import { pathToFileURL } from "bun"
-import { StyledText, fg, type ColorInput, type KeyEvent, type TextareaRenderable } from "@opentui/core"
-import { useRenderer } from "@opentui/solid"
-import { normalizePromptContent } from "@bolt-ai/tui/editor"
+import {
+  StyledText,
+  decodePasteBytes,
+  fg,
+  measureEditText,
+  stripAnsiSequences,
+  type ColorInput,
+  type KeyEvent,
+  type PasteEvent,
+  type TextareaRenderable,
+} from "@opentui/core"
+import { useRenderer, useTerminalDimensions } from "@opentui/solid"
+import { normalizePromptContent } from "../prompt/content"
+import { deduplicatePromptImages, promptAttachmentLabel } from "../prompt/attachment"
+import { resolvePastedAttachments } from "../component/prompt/local-attachment"
+import { createTuiClipboard, type OwnedClipboardService } from "../clipboard"
+import type { ClipboardService } from "../context/clipboard"
 import fuzzysort from "fuzzysort"
 import path from "path"
 import { pathToFileURL } from "node:url"
@@ -37,7 +50,8 @@ import {
   promptCopy,
   pushPromptHistory,
 } from "./prompt.shared"
-import { BOLT_BASE_MODE, useBindings } from "@bolt-ai/tui/keymap"
+import { parseFileLineRange, parseSlashHead, stripFileLineRange } from "../prompt/parse"
+import { Keymap } from "../context/keymap"
 import { realignEditorPromptParts, resolveEditorSlashValue } from "./prompt.editor"
 import { FOOTER_COMPACT_WIDTH, FOOTER_MENU_ROWS, createFooterMenuState, type RunFooterMenuItem } from "./footer.menu"
 import type { RunFooterTheme } from "./theme"
@@ -507,7 +521,15 @@ export function createPromptState(input: PromptInput): PromptState {
         description: "configure Mini transcript output",
       } satisfies SlashOption,
       { kind: "slash", name: "new", display: "/new", description: "start a new session" } satisfies SlashOption,
-      { kind: "slash", name: "exit", display: "/exit", description: "close Bolt" } satisfies SlashOption,
+      {
+        kind: "slash",
+        name: "compact",
+        display: "/compact",
+        description: "compact older session context to free space",
+      } satisfies SlashOption,
+      ...EXIT_COMMANDS.map(
+        (name) => ({ kind: "slash", name, display: `/${name}`, description: "close Bolt" }) satisfies SlashOption,
+      ),
     ]
     const hidden = new Set(builtins.map((item) => item.name))
     return [
@@ -1137,8 +1159,7 @@ export function createPromptState(input: PromptInput): PromptState {
     return true
   }
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
     enabled: baseBindingsEnabled(),
     commands: [
       {
@@ -1153,8 +1174,7 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
     enabled: input.prompt(),
     commands: [
       {
@@ -1175,8 +1195,24 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
+    priority: 1,
+    enabled: input.prompt() && (!visible() || mode() === "slash"),
+    commands: [
+      {
+        id: "prompt.queue",
+        title: "Queue prompt",
+        group: "Prompt",
+        palette: true,
+        run() {
+          onSubmit("queue")
+        },
+      },
+    ],
+  }))
+
+  Keymap.createLayer(() => ({
+    priority: 1,
     enabled: input.prompt() && !visible(),
     commands: [
       {
@@ -1190,8 +1226,8 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
+    priority: 1,
     enabled: input.prompt() && !visible(),
     commands: [
       {
@@ -1215,8 +1251,7 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
     enabled: input.prompt() && !visible(),
     commands: [
       {
@@ -1233,8 +1268,7 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
     enabled: input.prompt() && shell() && !visible(),
     commands: [
       {
@@ -1256,8 +1290,7 @@ export function createPromptState(input: PromptInput): PromptState {
     ],
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
     enabled: input.prompt() && visible(),
     commands: [
       {

@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import { define } from "@opencode/plugin/effect/plugin"
+import { define } from "@bolt-ai/plugin/effect/plugin"
 import { Integration } from "../../integration.js"
 
 export const LLMGatewayPlugin = define({

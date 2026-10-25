@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js"
 import { createMediaQuery } from "@solid-primitives/media"
-import { SettingsPage } from "@opencode/gui-extensions/sdk"
+import { SettingsPage } from "@bolt-ai/gui-extensions/sdk"
 import { usePlatform } from "@/runtime/platform/platform"
 import { useExtensionHost } from "./host"
 

@@ -7,7 +7,7 @@ or backups for anything important.
 
 ## Workflow
 
-Run `/undo` after a response you want to revise. OpenCode stages the rollback, restores the affected files, and puts the
+Run `/undo` after a response you want to revise. Bolt stages the rollback, restores the affected files, and puts the
 removed prompt back in the composer so you can edit it.
 
 ```text
@@ -35,7 +35,7 @@ You can also select an earlier message and choose **Revert** to stage a rollback
 
 ## Capture
 
-For each model step, OpenCode attempts a snapshot immediately before the model call and another when the step reaches a
+For each model step, Bolt attempts a snapshot immediately before the model call and another when the step reaches a
 recorded success or failure. The assistant message records which paths changed between those snapshots.
 
 ```text
@@ -85,7 +85,7 @@ git diff
 
 ## Storage
 
-OpenCode stores snapshots locally in a separate internal Git object database under its data directory. Snapshot capture
+Bolt stores snapshots locally in a separate internal Git object database under its data directory. Snapshot capture
 does not create commits, move branches, or intentionally change your repository's index.
 
 ```sh
@@ -93,7 +93,7 @@ does not create commits, move branches, or intentionally change your repository'
 git status --short
 ```
 
-Snapshot objects can contain the complete contents of tracked and eligible untracked files. Treat the OpenCode data
+Snapshot objects can contain the complete contents of tracked and eligible untracked files. Treat the Bolt data
 directory as sensitive local data.
 
 ## Settings
@@ -119,7 +119,7 @@ Snapshots are a convenience, not a transaction or backup:
   the active directory. Restoring a snapshot does not reverse those effects.
 - Interrupted or failed work can leave changes when capture fails or no usable snapshot pair exists.
 - Restoring affected paths overwrites their current contents. Cancelling a staged rollback can also overwrite later edits.
-- OpenCode rejects rollback operations while the session is running, but external editors and commands can still change
+- Bolt rejects rollback operations while the session is running, but external editors and commands can still change
   the worktree between capture and restoration.
 - Committing a rollback removes messages from the active conversation view, not from durable session history or existing
   snapshot storage. It is not secure erasure.

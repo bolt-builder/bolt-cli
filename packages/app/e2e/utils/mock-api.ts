@@ -1,7 +1,7 @@
 import { Predicate, Schema, SchemaGetter } from "effect"
 import { HttpApi, HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
-import { Pty } from "@opencode/schema/pty"
-import { Worktree } from "@opencode/schema/worktree"
+import { Pty } from "@bolt-ai/schema/pty"
+import { Worktree } from "@bolt-ai/schema/worktree"
 
 // Handlers answer plain fixture data: undefined properties are dropped, and other non-JSON values become null.
 const Json = Schema.Json.pipe(

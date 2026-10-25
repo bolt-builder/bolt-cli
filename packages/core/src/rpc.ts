@@ -1,13 +1,13 @@
 export * as Rpc from "./rpc.js"
-export { define } from "@opencode/schema/rpc"
-export type { Definition, EventPayload, Failure } from "@opencode/schema/rpc"
+export { define } from "@bolt-ai/schema/rpc"
+export type { Definition, EventPayload, Failure } from "@bolt-ai/schema/rpc"
 
-import type { RpcClient, RpcDomain, RpcHandlers } from "@opencode/plugin/effect/rpc"
-import type { Rpc } from "@opencode/schema/rpc"
-import { Event } from "@opencode/schema/event"
-import type { Tool } from "@opencode/schema/tool"
+import type { RpcClient, RpcDomain, RpcHandlers } from "@bolt-ai/plugin/effect/rpc"
+import type { Rpc } from "@bolt-ai/schema/rpc"
+import { Event } from "@bolt-ai/schema/event"
+import type { Tool } from "@bolt-ai/schema/tool"
 import type { StandardSchemaV1 } from "@standard-schema/spec"
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Deferred, Effect, JsonSchema, Layer, Schema, SchemaRepresentation, Stream } from "effect"
 import { Bus } from "./bus.js"
 import { Location } from "./location.js"
@@ -20,7 +20,7 @@ export interface Interface {
   readonly close: Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Rpc") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Rpc") {}
 
 class DeclaredError extends Error {
   constructor(

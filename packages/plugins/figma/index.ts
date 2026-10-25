@@ -1,4 +1,4 @@
-import { Plugin, Skill } from "@opencode/plugin"
+import { Plugin, Skill } from "@bolt-ai/plugin"
 import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import matter from "gray-matter"

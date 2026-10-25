@@ -1,4 +1,4 @@
-import { AppProcess } from "@opencode/util/process"
+import { AppProcess } from "@bolt-ai/util/process"
 import { Effect } from "effect"
 import { ChildProcess } from "effect/process"
 import net from "node:net"

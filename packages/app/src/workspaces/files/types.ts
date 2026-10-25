@@ -1,4 +1,4 @@
-import type { FileContent } from "@opencode/gui-extensions/sdk"
+import type { FileContent } from "@bolt-ai/gui-extensions/sdk"
 import { Schema } from "effect"
 import { Persistence } from "@/runtime/persistence/schema"
 

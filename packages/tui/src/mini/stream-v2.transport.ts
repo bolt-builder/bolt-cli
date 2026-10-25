@@ -8,10 +8,10 @@ import type {
   SessionMessageInfo,
   SessionMessageUser,
   SessionInboxInfo,
-} from "@opencode/client/promise"
-import { ClientError } from "@opencode/client/promise"
-import { Event } from "@opencode/schema/event"
-import { SessionMessage } from "@opencode/schema/session-message"
+} from "@bolt-ai/client/promise"
+import { ClientError } from "@bolt-ai/client/promise"
+import { Event } from "@bolt-ai/schema/event"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
 import { blockerStatus, pickBlockerView } from "./session-data"
 import { writeSessionOutput } from "./stream"
 import { createFragmentReconciler, fragmentRef, type FragmentReconciler } from "./stream-v2.fragment"

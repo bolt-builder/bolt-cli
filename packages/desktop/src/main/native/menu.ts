@@ -8,7 +8,7 @@ import {
   type DesktopMenu,
   type DesktopMenuEntry,
   type DesktopMenuRole,
-} from "@opencode/app/desktop-menu"
+} from "@bolt-ai/app/desktop-menu"
 import { MenuCommandTriggered } from "../../shared/ipc-rpc/events"
 import { emitIpcEvent } from "../ipc-events"
 

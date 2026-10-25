@@ -1,5 +1,5 @@
-import type { Data } from "@opencode/client/solid"
-import type { LocationRef, OpenCodeClient, ProjectListOutput, WorktreeDirectory } from "@opencode/client/promise"
+import type { Data } from "@bolt-ai/client/solid"
+import type { LocationRef, OpenCodeClient, ProjectListOutput, WorktreeDirectory } from "@bolt-ai/client/promise"
 import type { Schema } from "effect"
 import type { JSX } from "solid-js"
 import type { Store } from "solid-js/store"

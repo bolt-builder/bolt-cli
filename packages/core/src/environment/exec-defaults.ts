@@ -1,7 +1,7 @@
 import { Effect, Stream } from "effect"
 import { ChildProcess } from "effect/process"
 import type { ChildProcessSpawner } from "effect/process/ChildProcessSpawner"
-import { collectStream } from "@opencode/util/process"
+import { collectStream } from "@bolt-ai/util/process"
 import { Failed, NotFound, WrongKind, type FileInfo, type FileType, type FilesImpl } from "./files.js"
 
 /**

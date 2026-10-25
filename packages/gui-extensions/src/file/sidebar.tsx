@@ -1,5 +1,5 @@
 import { createMemo, Match, onCleanup, Show, Switch } from "solid-js"
-import { Tabs } from "@opencode/ui/tabs"
+import { Tabs } from "@bolt-ai/ui/tabs"
 import type { ChangeKind } from "../review/contract"
 import { createKeyed, useExtension, type MountedSession, type SessionScreen } from "../sdk"
 import { current, useShared } from "./context"

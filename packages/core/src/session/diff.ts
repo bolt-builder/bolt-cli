@@ -2,7 +2,7 @@ export * as SessionDiff from "./diff.js"
 
 import { and, asc, eq, gt, inArray, lt, or, sql } from "drizzle-orm"
 import { Context, Effect, Schema } from "effect"
-import { Location } from "@opencode/schema/location"
+import { Location } from "@bolt-ai/schema/location"
 import { Database } from "../database/database.js"
 import { LocationServiceMap } from "../location-service-map.js"
 import { Snapshot } from "../snapshot.js"

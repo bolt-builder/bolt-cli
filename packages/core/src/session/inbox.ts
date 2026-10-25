@@ -2,7 +2,7 @@ export * as SessionInbox from "./inbox.js"
 
 import { and, asc, eq, or } from "drizzle-orm"
 import { Context, DateTime, Effect, Layer, Schema } from "effect"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 import {
   Compaction,
   CompactionPayload,
@@ -15,7 +15,7 @@ import {
   SyntheticPayload,
   User,
   UserPayload,
-} from "@opencode/schema/session-inbox"
+} from "@bolt-ai/schema/session-inbox"
 import { Database } from "../database/database.js"
 import { Bus } from "../bus.js"
 import { KeyedMutex } from "../effect/keyed-mutex.js"
@@ -159,7 +159,7 @@ const promotedFromMessage = Effect.fn("SessionInbox.promotedFromMessage")(functi
 
 export type Interface = Effect.Success<ReturnType<typeof make>>
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/SessionInbox") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionInbox") {}
 
 export const make = Effect.fn("SessionInbox.make")(function* () {
   const database = yield* Database.Service

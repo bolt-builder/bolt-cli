@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@opencode/files",
+  "name": "@bolt-ai/files",
   "private": true,
   "type": "module",
   "scripts": {

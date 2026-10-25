@@ -26,8 +26,8 @@ bun run test:components -- component-tests/composer.spec.ts
 Both suites are separately filterable Turbo tasks:
 
 ```sh
-bun turbo test:components --filter=@opencode/session-ui
-bun turbo test:components --filter=@opencode/app
+bun turbo test:components --filter=@bolt-ai/session-ui
+bun turbo test:components --filter=@bolt-ai/app
 ```
 
 Component browser coverage deliberately remains separate from each package's default `test` script and from `packages/app`'s `test:e2e`, so expensive Storybook checks can be scheduled independently from required unit and full-app journey CI. CI runs each suite in its own leg of the `e2e` job in `.github/workflows/test.yml` (`session-ui-components` and `app-components`). Set `PLAYWRIGHT_STORYBOOK_URL` to reuse an existing Storybook instance or `PLAYWRIGHT_STORYBOOK_PORT` to choose its port.

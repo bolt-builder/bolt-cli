@@ -1,7 +1,7 @@
 import { homedir } from "node:os"
 import { isAbsolute, join } from "node:path"
 import { Config, Effect, FileSystem, Schema } from "effect"
-import { PositiveInt } from "@opencode/core/schema"
+import { PositiveInt } from "@bolt-ai/core/schema"
 
 const InstanceName = Schema.String.check(
   Schema.makeFilter((value) =>

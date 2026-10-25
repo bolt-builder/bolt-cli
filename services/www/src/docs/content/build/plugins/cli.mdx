@@ -5,7 +5,7 @@ title: "CLI"
 CLI plugins extend the terminal with commands, routes, slots, Markdown renderers, notifications, and local state.
 
 ```ts title="src/tui.ts"
-import { Plugin } from "@opencode/plugin/tui"
+import { Plugin } from "@bolt-ai/plugin/tui"
 
 export default Plugin.define({
   id: "acme.cli",
@@ -15,12 +15,12 @@ export default Plugin.define({
 })
 ```
 
-Import `@opencode/plugin/tui` directly. OpenCode resolves this import at runtime, so local CLI plugins do not need an
-absolute path to an OpenCode checkout.
+Import `@bolt-ai/plugin/tui` directly. Bolt resolves this import at runtime, so local CLI plugins do not need an
+absolute path to an Bolt checkout.
 
 ## Context
 
-`setup` receives configuration, app metadata, the current location, the OpenCode client, cached data, theme tokens, the
+`setup` receives configuration, app metadata, the current location, the Bolt client, cached data, theme tokens, the
 OpenTUI renderer, and the UI APIs documented below.
 
 ```ts
@@ -46,7 +46,7 @@ setup(context) {
 
 ## Client
 
-`context.client` is the generated OpenCode client and can call the connected server, including a remote server.
+`context.client` is the generated Bolt client and can call the connected server, including a remote server.
 
 ```ts
 const response = await context.client.plugin.list({
@@ -110,7 +110,7 @@ context.data.session.permission.invalidate(sessionID)
 Forms can be listed, refreshed, replied to, or cancelled at a location.
 
 ```ts
-import type { SessionFormCancelInput, SessionFormReplyInput } from "@opencode/client"
+import type { SessionFormCancelInput, SessionFormReplyInput } from "@bolt-ai/client"
 
 async function handleForm(reply: SessionFormReplyInput, cancel: SessionFormCancelInput) {
   const location = context.location
@@ -235,14 +235,14 @@ structure and styles can change in any release.
 
 ### Plugins built for OpenTUI 0.5
 
-OpenCode runs plugins with its own OpenTUI. Since OpenTUI 0.6:
+Bolt runs plugins with its own OpenTUI. Since OpenTUI 0.6:
 
 - `SyntaxStyle.create()`, `SyntaxStyle.fromStyles()`, `SyntaxStyle.fromTheme()`, `TextBuffer.create()`, and
   `EditBuffer.create()` take an owner as their last argument. `OptimizedBuffer.create()` takes it in the `owner` option.
   Pass `context.renderer.nativeScene`. OpenTUI 0.5 ignores the extra argument, so the plugin still runs on older
-  OpenCode releases.
-- `generateSyntax()` from `@opencode/theme/tui` takes the owner as its second argument:
-  `generateSyntax(context.theme, context.renderer.nativeScene)`. Older `@opencode/theme` versions build the style
+  Bolt releases.
+- `generateSyntax()` from `@bolt-ai/theme/tui` takes the owner as its second argument:
+  `generateSyntax(context.theme, context.renderer.nativeScene)`. Older `@bolt-ai/theme` versions build the style
   without an owner, so update the package too.
 - `getLayoutNode()` is removed. Replace `getLayoutNode().getMaxWidth()` and the other style getters with the
   renderable method of the same name, on OpenTUI 0.6.5 or later. Replace `getComputedLayout()` and the other computed
@@ -258,7 +258,7 @@ The [OpenTUI 0.6.0 release notes](https://opentui.com/docs/releases/0.6.0) list 
 Use `usePlugin` to access the current context inside JSX rendered by a route, dialog, or slot.
 
 ```tsx
-import { usePlugin } from "@opencode/plugin/tui"
+import { usePlugin } from "@bolt-ai/plugin/tui"
 
 function Status() {
   const context = usePlugin()
@@ -305,7 +305,7 @@ Call `layer` from `setup`, including after an `await`, or from a component. Each
 - The plugin is disabled, reloaded, or fails setup.
 - The component or reactive computation that created it, such as a slot, route, or dialog, is disposed.
 
-The layer factory must be pure. OpenCode evaluates it once without dependency tracking to validate the initial command shape, then reactively. Initial command-shape errors, such as a palette command without an ID, throw from `layer()`. OpenTUI handles binding-parse errors. Errors from later reactive updates follow Solid's error handling.
+The layer factory must be pure. Bolt evaluates it once without dependency tracking to validate the initial command shape, then reactively. Initial command-shape errors, such as a palette command without an ID, throw from `layer()`. OpenTUI handles binding-parse errors. Errors from later reactive updates follow Solid's error handling.
 
 ```ts
 async setup(context) {
@@ -535,7 +535,7 @@ context.ui.slot({ replace: "home.footer", render: () => <text>New footer</text> 
 ```
 
 Use `home.footer.status` to add content to the built-in footer row without replacing it. Status contributions appear
-after OpenCode's health indicators and before the version.
+after Bolt's health indicators and before the version.
 
 ```tsx
 context.ui.slot({ append: "home.footer.status", render: () => <text>SYNCED</text> })
@@ -592,8 +592,8 @@ The slot receives reactive `name`, `sessionID`, `width`, `presentation`, and `fo
 until there is enough room for a side panel.
 
 ```tsx
-import type { PanelInput } from "@opencode/plugin/tui/context"
-import { usePlugin } from "@opencode/plugin/tui"
+import type { PanelInput } from "@bolt-ai/plugin/tui/context"
+import { usePlugin } from "@bolt-ai/plugin/tui"
 
 function ReviewPanel(props: { panel: PanelInput }) {
   const context = usePlugin()
@@ -640,7 +640,7 @@ Expose the CLI plugin through `./tui`; add OpenTUI peers when the plugin renders
     "./tui": "./src/tui.tsx"
   },
   "dependencies": {
-    "@opencode/plugin": "latest"
+    "@bolt-ai/plugin": "latest"
   },
   "peerDependencies": {
     "@opentui/core": ">=0.6.6",
@@ -653,7 +653,7 @@ Expose the CLI plugin through `./tui`; add OpenTUI peers when the plugin renders
 Export `./tui` beside the [main plugin](/build/plugins) for automatic loading.
 
 ```ts title="src/index.ts"
-import { Plugin } from "@opencode/plugin"
+import { Plugin } from "@bolt-ai/plugin"
 
 export default Plugin.define({
   id: "acme.server",

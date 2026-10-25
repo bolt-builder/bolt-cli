@@ -111,76 +111,16 @@ export const additionalIcons = {
   "arrow-undo-down": `<path d="M4.08333 11.0859L1.75 8.7526L4.08333 6.41927M2.33333 8.7526L12.5417 8.7526L12.5417 3.21094L7 3.21094" stroke="currentColor" stroke-width="1" stroke-linecap="square"/>`,
 }
 
-const spriteID = "bolt-icon-sprite"
-const symbol = (name: keyof typeof icons) => `bolt-icon-${name}`
-let spriteInserted = false
-
-function viewBox(name: keyof typeof icons) {
-  return name === "magnifying-glass" || name === "arrow-undo-down" || name === "subagent" ? "0 0 16 16" : "0 0 20 20"
-}
-
-function ensureSprite() {
-  if (spriteInserted) return
-  if (typeof document === "undefined") return
-  if (document.getElementById(spriteID)) {
-    spriteInserted = true
-    return
-  }
-  const body = document.body as HTMLElement | null
-  if (!body) return
-
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-  svg.id = spriteID
-  svg.setAttribute("aria-hidden", "true")
-  svg.setAttribute("width", "0")
-  svg.setAttribute("height", "0")
-  svg.style.position = "absolute"
-  svg.style.overflow = "hidden"
-  svg.innerHTML = Object.entries(icons)
-    .map(([name, path]) => {
-      const key = name as keyof typeof icons
-      return `<symbol id="${symbol(key)}" viewBox="${viewBox(key)}">${path}</symbol>`
-    })
-    .join("")
-  body.insertBefore(svg, body.firstChild)
-  spriteInserted = true
-}
-
-export interface IconProps extends ComponentProps<"svg"> {
-  name: keyof typeof icons
-  size?: "small" | "normal" | "medium" | "large"
-}
-
-export function Icon(props: IconProps) {
-  const [local, others] = splitProps(props, ["name", "size", "class", "classList"])
-  onMount(ensureSprite)
-
-  return (
-    <div
-      data-component="icon"
-      data-size={local.size || "normal"}
-      data-directional={
-        local.name === "arrow-left" ||
-        local.name === "arrow-right" ||
-        local.name === "chevron-left" ||
-        local.name === "chevron-right"
-          ? true
-          : undefined
-      }
-    >
-      <svg
-        data-slot="icon-svg"
-        classList={{
-          ...local.classList,
-          [local.class ?? ""]: !!local.class,
-        }}
-        fill="none"
-        viewBox={viewBox(local.name)}
-        aria-hidden="true"
-        {...others}
-      >
-        <use href={`#${symbol(local.name)}`} />
-      </svg>
-    </div>
-  )
+export function additionalIconViewBox(name: keyof typeof additionalIcons) {
+  return name === "magnifying-glass" ||
+    name === "arrow-undo-down" ||
+    name === "subagent" ||
+    name === "notifications" ||
+    name === "appearance" ||
+    name === "extensions" ||
+    name === "sliders" ||
+    name === "providers" ||
+    name === "models"
+    ? "0 0 16 16"
+    : "0 0 20 20"
 }

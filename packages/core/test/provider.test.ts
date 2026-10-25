@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import path from "node:path"
 import { Effect } from "effect"
-import { Provider } from "@opencode/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 
 describe("Provider", () => {
   test("bundles every native provider entrypoint that exports model()", async () => {
@@ -9,7 +9,7 @@ describe("Provider", () => {
     const entrypoints = await Promise.all(
       Array.from(new Bun.Glob("**/*.ts").scanSync(providers)).map(async (file) => {
         // Bun.Glob yields native separators, and package specifiers always use "/".
-        const specifier = `@opencode/ai/providers/${file.replace(/\.ts$/, "").replaceAll(path.sep, "/")}`
+        const specifier = `@bolt-ai/ai/providers/${file.replace(/\.ts$/, "").replaceAll(path.sep, "/")}`
         const module = await import(specifier)
         return typeof module.model === "function" ? specifier : undefined
       }),

@@ -1,4 +1,4 @@
-import { Button } from "@opencode/ui/button"
+import { Button } from "@bolt-ai/ui/button"
 import { createSignal } from "solid-js"
 import type { ModelSelection } from "./selection"
 import { ModelSelectorPopoverView } from "./select-dialog"
@@ -6,7 +6,7 @@ import { ModelSelectorPopoverView } from "./select-dialog"
 const chatgpt = {
   id: "gpt-5.6-sol",
   providerID: "openai",
-  api: { id: "gpt-5.6-sol", url: "https://api.openai.com/v1", npm: "@opencode/ai/providers/openai" },
+  api: { id: "gpt-5.6-sol", url: "https://api.openai.com/v1", npm: "@bolt-ai/ai/providers/openai" },
   name: "GPT-5.6 Sol",
   family: "gpt",
   capabilities: {

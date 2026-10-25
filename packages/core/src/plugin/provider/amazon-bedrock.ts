@@ -1,8 +1,8 @@
 import { Effect } from "effect"
 import path from "node:path"
-import { define } from "@opencode/plugin/effect/plugin"
-import { FSUtil } from "@opencode/util/fs-util"
-import { Global } from "@opencode/util/global"
+import { define } from "@bolt-ai/plugin/effect/plugin"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Global } from "@bolt-ai/util/global"
 import { Provider } from "../../provider.js"
 
 // Ambient inputs the AWS default credential chain can turn into credentials
@@ -17,7 +17,7 @@ const CHAIN_ENV = [
 ]
 
 const isBedrock = (item: { readonly package: string }) =>
-  item.package.startsWith("@opencode/ai/providers/amazon-bedrock")
+  item.package.startsWith("@bolt-ai/ai/providers/amazon-bedrock")
 
 export const AmazonBedrockPlugin = define({
   id: "opencode.provider.amazon.bedrock",

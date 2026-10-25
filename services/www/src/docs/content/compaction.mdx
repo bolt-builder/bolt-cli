@@ -7,7 +7,7 @@ summary, so the session can keep going past the model's context limit.
 
 ## How it works
 
-When a session approaches the model's context limit, OpenCode summarizes the
+When a session approaches the model's context limit, Bolt summarizes the
 entire current conversation. It also keeps the most recent conversation, about
 15,000 tokens by default, beside the summary so exact recent details remain
 available.
@@ -67,7 +67,7 @@ opencode api post /api/session/ses_example/compact --data '{"id":"msg_compact_on
 
 ## Settings
 
-Add `compaction` to any [OpenCode configuration file](/config):
+Add `compaction` to any [Bolt configuration file](/config):
 
 ```jsonc title="opencode.jsonc"
 {
@@ -90,7 +90,7 @@ Add `compaction` to any [OpenCode configuration file](/config):
 
 ## Model
 
-By default OpenCode writes the summary itself, using the session's model. Set
+By default Bolt writes the summary itself, using the session's model. Set
 `agents.compaction.model` to use another model for summaries:
 
 ```jsonc title="opencode.jsonc"
@@ -102,7 +102,7 @@ By default OpenCode writes the summary itself, using the session's model. Set
 }
 ```
 
-If that model cannot be resolved, OpenCode falls back to the session's model.
+If that model cannot be resolved, Bolt falls back to the session's model.
 
 ## Background compaction
 
@@ -110,7 +110,7 @@ If that model cannot be resolved, OpenCode falls back to the session's model.
   Experimental. This may change, break, or be removed in any release without notice.
 </Callout>
 
-Automatic compaction normally pauses the session while the summary is written. With background compaction, OpenCode
+Automatic compaction normally pauses the session while the summary is written. With background compaction, Bolt
 writes the summary ahead of time and swaps it in when compaction is due:
 
 ```jsonc title="opencode.jsonc"
@@ -155,9 +155,9 @@ provider or model with `settings.compaction`:
 ```
 
 A model setting overrides the provider setting. `native` uses the provider's
-compaction; `summary` uses OpenCode's own.
+compaction; `summary` uses Bolt's own.
 
-With native compaction, OpenCode sends the conversation to the provider's
+With native compaction, Bolt sends the conversation to the provider's
 compaction endpoint. The provider returns an opaque, encrypted item that stands
 in for the older conversation. Your recent messages and attachments, up to
 `keep.tokens`, are kept alongside it:
@@ -172,7 +172,7 @@ after    [ encrypted checkpoint + recent user messages ]
 | Support | OpenAI Responses models. Support varies by deployment and model. |
 | Threshold | Same `auto` and `buffer` settings as summary compaction. Manual requests work too. |
 | Portability | An encrypted checkpoint only works with the same provider and model. If you switch models, the session continues from the original conversation instead. |
-| Too long | If the provider rejects a compaction as too long, OpenCode retries it with a smaller request. It does not switch to a summary. |
+| Too long | If the provider rejects a compaction as too long, Bolt retries it with a smaller request. It does not switch to a summary. |
 
 ## Summaries
 
@@ -201,7 +201,7 @@ session's baseline; see [Instructions](/instructions).
 | --- | --- |
 | Model | Summary compaction honors `agents.compaction.model`; otherwise it uses the session's model. Native compaction always uses the session's model. |
 | History | Compaction needs older conversation to replace. It cannot create room when a request is mostly fixed instructions and tool schemas. |
-| Size | If the conversation to compact is itself too long, OpenCode sends a shortened text version and may leave out the oldest exchanges. |
+| Size | If the conversation to compact is itself too long, Bolt sends a shortened text version and may leave out the oldest exchanges. |
 | Recovery | A request rejected as too long is compacted and retried once. A second rejection is returned as an error. |
 | Storage | Earlier messages remain stored even when they are no longer sent to the model. |
 

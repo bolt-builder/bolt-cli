@@ -40,7 +40,7 @@ describe("Provider and Model", () => {
         yield* providers.transform((editor) => editor.update(providerID, () => {}))
         yield* models.transform((editor) =>
           editor.update(providerID, modelID, (model) => {
-            model.package = path === "aisdk" ? Provider.aisdk("@ai-sdk/fixture") : "@opencode/ai/providers/openai"
+            model.package = path === "aisdk" ? Provider.aisdk("@ai-sdk/fixture") : "@bolt-ai/ai/providers/openai"
             model.settings = {
               apiKey: path === "empty-key" ? "" : "fixture-key",
               baseURL: "https://fixture.example/v1",
@@ -486,12 +486,12 @@ describe("Provider and Model", () => {
       })
 
       expect(required(yield* providers.get(providerID))).toMatchObject({
-        package: "@opencode/ai/providers/amazon-bedrock",
+        package: "@bolt-ai/ai/providers/amazon-bedrock",
         settings: { region: "us-east-1" },
         body: { tag: "provider" },
       })
       const model = required(yield* models.get(providerID, modelID))
-      expect(model.package).toBe("@opencode/ai/providers/amazon-bedrock")
+      expect(model.package).toBe("@bolt-ai/ai/providers/amazon-bedrock")
       expect(model.settings).not.toHaveProperty("reasoningConfig")
       expect(model.body).toMatchObject({
         additionalModelRequestFields: { thinking: { type: "adaptive" }, output_config: { effort: "high" } },

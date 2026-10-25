@@ -1,4 +1,4 @@
-// The Go upsell hero: the OpenCode GO letters on a dot grid. Lightspeed brings GO in from far away, and the
+// The Go upsell hero: the Bolt GO letters on a dot grid. Lightspeed brings GO in from far away, and the
 // warp's brake settles into a ring that the Ripple loop then continues. Every frame is a pure function of art
 // time `t` (ms since the dialog opened), so the reduced-motion still is just one chosen frame.
 
@@ -20,7 +20,7 @@ const PITCH = 8
 // How much light the letters' counters (shadow cells, holes, the gap) take, as a fraction of the strokes'.
 const COUNTER = 0.15
 
-// The OpenCode pixel letters (packages/tui/src/logo.ts `go`): 4×5 units per letter, s = shadow.
+// The Bolt pixel letters (packages/tui/src/logo.ts `go`): 4×5 units per letter, s = shadow.
 const GO = ["GGGG.OOOO", "G....O..O", "GsGG.OssO", "GssG.OssO", "GGGG.OOOO"]
 
 const LOGO_COLS = 18

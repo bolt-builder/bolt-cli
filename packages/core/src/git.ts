@@ -5,10 +5,10 @@ import path from "path"
 import { Cause, Context, Effect, Exit, Layer, Option, Schedule, Schema } from "effect"
 import { ChildProcess } from "effect/process"
 import { AbsolutePath, RelativePath } from "./schema.js"
-import { FSUtil } from "@opencode/util/fs-util"
-import { AppProcess } from "@opencode/util/process"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
-import { FileDiff } from "@opencode/schema/file-diff"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { AppProcess } from "@bolt-ai/util/process"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { FileDiff } from "@bolt-ai/schema/file-diff"
 import { KeyedMutex } from "./effect/keyed-mutex.js"
 import { VcsPatch } from "./vcs/patch.js"
 import { gitExecutable } from "./util/git-executable.js"
@@ -19,7 +19,7 @@ export class Repository extends Schema.Class<Repository>("Git.Repository")({
   commonDirectory: AbsolutePath,
 }) {}
 
-// Included from $GIT_DIR/config via include.path (git >= 1.7.10); OpenCode owns
+// Included from $GIT_DIR/config via include.path (git >= 1.7.10); Bolt owns
 // this file entirely, so updates are plain rewrites with no config parsing.
 const snapshotConfigFile = "opencode.gitconfig"
 const snapshotConfigInclude = `[include]
@@ -836,7 +836,7 @@ const layer = Layer.effect(
       ).pipe(Effect.ignore, Effect.ensuring(fs.remove(temporary, { force: true }).pipe(Effect.ignore)))
     })
 
-    // Stores created by earlier releases would otherwise keep their original settings; only OpenCode's include file is rewritten, never `config`.
+    // Stores created by earlier releases would otherwise keep their original settings; only Bolt's include file is rewritten, never `config`.
     const ensureSnapshotConfig = Effect.fnUntraced(function* (repository: Repository) {
       const file = path.join(repository.gitDirectory, snapshotConfigFile)
       const current = yield* fs.readFileStringSafe(file).pipe(Effect.orElseSucceed(() => undefined))

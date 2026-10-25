@@ -1,7 +1,7 @@
-import type { PermissionApi } from "@opencode/client/promise/api"
-import type { Agent } from "@opencode/schema/agent"
-import type { Permission } from "@opencode/schema/permission"
-import type { Session } from "@opencode/schema/session"
+import type { PermissionApi } from "@bolt-ai/client/promise/api"
+import type { Agent } from "@bolt-ai/schema/agent"
+import type { Permission } from "@bolt-ai/schema/permission"
+import type { Session } from "@bolt-ai/schema/session"
 import type { AssertInput } from "../permission.js"
 import type { Hooks } from "./registration.js"
 

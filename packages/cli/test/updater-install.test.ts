@@ -1,8 +1,8 @@
 import { NodeServices } from "@effect/platform-node"
-import { EffectFlock } from "@opencode/util/effect-flock"
-import { LayerNode } from "@opencode/util/effect/layer-node"
-import { Global } from "@opencode/util/global"
-import { AppProcess } from "@opencode/util/process"
+import { EffectFlock } from "@bolt-ai/util/effect-flock"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Global } from "@bolt-ai/util/global"
+import { AppProcess } from "@bolt-ai/util/process"
 import { expect, spyOn, test } from "bun:test"
 import { Effect, FileSystem, Layer, PlatformError, Stream } from "effect"
 import { ChildProcess, ChildProcessSpawner } from "effect/process"
@@ -13,13 +13,13 @@ import { testEffect } from "../../core/test/lib/effect"
 
 const it = testEffect(NodeServices.layer)
 
-declare const OPENCODE_CLI_NAME: string | undefined
+declare const BOLT_CLI_NAME: string | undefined
 
 function fixture(
   respond: (command: ChildProcess.StandardCommand) => Partial<AppProcess.RunResult> & {
     error?: AppProcess.AppProcessError
   } = () => ({}),
-  name = "@opencode/cli",
+  name = "@bolt-ai/cli",
   failCleanup = false,
   releasePackage = name,
   formula?: string,
@@ -138,13 +138,13 @@ const windows = process.platform === "win32" ? it.live : it.live.skip
 const unix = process.platform === "win32" ? it.live.skip : it.live
 
 const installs = [
-  { method: "npm", command: ["npm", "install", "--global", "--force", "@opencode/cli@2.3.4-beta.1"] },
+  { method: "npm", command: ["npm", "install", "--global", "--force", "@bolt-ai/cli@2.3.4-beta.1"] },
   {
     method: "pnpm",
-    command: ["pnpm", "add", "--global", "--allow-build=@opencode/cli", "@opencode/cli@2.3.4-beta.1"],
+    command: ["pnpm", "add", "--global", "--allow-build=@bolt-ai/cli", "@bolt-ai/cli@2.3.4-beta.1"],
   },
-  { method: "yarn", command: ["yarn", "global", "add", "@opencode/cli@2.3.4-beta.1"] },
-  { method: "vp", command: ["vp", "update", "-g", "@opencode/cli@2.3.4-beta.1"] },
+  { method: "yarn", command: ["yarn", "global", "add", "@bolt-ai/cli@2.3.4-beta.1"] },
+  { method: "vp", command: ["vp", "update", "-g", "@bolt-ai/cli@2.3.4-beta.1"] },
 ] as const
 
 installs.forEach(({ method, command }) => {
@@ -159,9 +159,9 @@ installs.forEach(({ method, command }) => {
 
 it.live("vp force-installs a renamed V2 package that replaces the existing binary owner", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", false, "@opencode/cli-node")
+    const test = yield* fixture(() => ({}), "@bolt-ai/cli", false, "@bolt-ai/cli-node")
     yield* test.updater.upgrade("vp", "v2.3.4-beta.1")
-    expect(test.commands).toEqual([["vp", "install", "-g", "--force", "@opencode/cli-node@2.3.4-beta.1"]])
+    expect(test.commands).toEqual([["vp", "install", "-g", "--force", "@bolt-ai/cli-node@2.3.4-beta.1"]])
   }),
 )
 
@@ -170,9 +170,9 @@ it.live("vp removes the package from its managed global store", () =>
     const test = yield* fixture()
     const removal = test.updater.removal("vp")
     if (!removal) return yield* Effect.die("Expected vp removal command")
-    expect(removal.command).toEqual(["vp", "uninstall", "-g", "@opencode/cli"])
+    expect(removal.command).toEqual(["vp", "uninstall", "-g", "@bolt-ai/cli"])
     yield* removal.run
-    expect(test.commands).toEqual([["vp", "uninstall", "-g", "@opencode/cli"]])
+    expect(test.commands).toEqual([["vp", "uninstall", "-g", "@bolt-ai/cli"]])
   }),
 )
 ;[0, 1].forEach((exitCode) => {
@@ -187,7 +187,7 @@ it.live("vp removes the package from its managed global store", () =>
       const cache = test.commands[0]?.[5]
       expect(cache).toStartWith(path.join(test.global.cache, "update-"))
       expect(test.commands).toEqual([
-        ["bun", "install", "--global", "--trust", "--cache-dir", cache, "@opencode/cli@2.3.4-beta.1"],
+        ["bun", "install", "--global", "--trust", "--cache-dir", cache, "@bolt-ai/cli@2.3.4-beta.1"],
       ])
       expect(yield* test.fs.readDirectory(test.global.cache)).toEqual([])
       expect(result._tag).toBe(exitCode === 0 ? "None" : "Some")
@@ -198,7 +198,7 @@ it.live("vp removes the package from its managed global store", () =>
 
 it.live("bun ignores install cache cleanup failures", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", true)
+    const test = yield* fixture(() => ({}), "@bolt-ai/cli", true)
     yield* test.updater.upgrade("bun", "v2.3.4-beta.1")
     expect(test.commands).toHaveLength(1)
   }),
@@ -269,8 +269,8 @@ it.live("install failures expose stderr and process errors do not report success
         stdout: Buffer.from(
           command.command === method
             ? method === "vp"
-              ? JSON.stringify([{ name: "@opencode/cli", version: "2.3.4" }])
-              : "@opencode/cli@2.3.4"
+              ? JSON.stringify([{ name: "@bolt-ai/cli", version: "2.3.4" }])
+              : "@bolt-ai/cli@2.3.4"
             : command.command === "vp"
               ? "[]"
               : "opencode-ai@1.0.0",
@@ -278,11 +278,11 @@ it.live("install failures expose stderr and process errors do not report success
       }))
       expect(yield* test.updater.method()).toBe(method)
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli"],
-        ["pnpm", "list", "-g", "--depth=0", "@opencode/cli"],
+        ["npm", "list", "-g", "--depth=0", "@bolt-ai/cli"],
+        ["pnpm", "list", "-g", "--depth=0", "@bolt-ai/cli"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
-        ["vp", "list", "-g", "--json", "@opencode/cli"],
+        ["vp", "list", "-g", "--json", "@bolt-ai/cli"],
       ])
     }),
   )
@@ -292,7 +292,7 @@ it.live("method detection tolerates unavailable package managers", () =>
   Effect.gen(function* () {
     const test = yield* fixture((command) =>
       command.command === "yarn"
-        ? { stdout: Buffer.from("@opencode/cli@2.3.4") }
+        ? { stdout: Buffer.from("@bolt-ai/cli@2.3.4") }
         : { error: new AppProcess.AppProcessError({ command: command.command }) },
     )
     expect(yield* test.updater.method()).toBe("yarn")
@@ -303,7 +303,7 @@ it.live("method detection tolerates unavailable package managers", () =>
 it.live("vp detection ignores no-match output that repeats the package name", () =>
   Effect.gen(function* () {
     const test = yield* fixture((command) => ({
-      stdout: Buffer.from(command.command === "vp" ? "No global packages matching '@opencode/cli'." : ""),
+      stdout: Buffer.from(command.command === "vp" ? "No global packages matching '@bolt-ai/cli'." : ""),
     }))
     expect(yield* test.updater.method()).toBeUndefined()
   }),
@@ -311,7 +311,7 @@ it.live("vp detection ignores no-match output that repeats the package name", ()
 
 it.live("Homebrew Core installs check and upgrade the Core formula", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", false, "anomalyco/tap/opencode-v2", "opencode")
+    const test = yield* fixture(() => ({}), "@bolt-ai/cli", false, "anomalyco/tap/opencode-v2", "opencode")
     expect(yield* test.updater.method()).toBe("brew")
     expect(yield* test.updater.latest()).toBe("2.0.21")
     yield* test.updater.upgrade("brew", "2.0.21")
@@ -327,7 +327,7 @@ it.live("Homebrew Core installs check and upgrade the Core formula", () =>
 ;["opencode-v2", "opencode-beta"].forEach((formula) => {
   it.live(`Homebrew tap installs of ${formula} use the published tap formula`, () =>
     Effect.gen(function* () {
-      const test = yield* fixture(() => ({}), "@opencode/cli", false, `anomalyco/tap/${formula}`, formula)
+      const test = yield* fixture(() => ({}), "@bolt-ai/cli", false, `anomalyco/tap/${formula}`, formula)
       expect(yield* test.updater.method()).toBe("brew")
       expect(yield* test.updater.latest()).toBe("2.3.4")
       yield* test.updater.upgrade("brew", "2.3.4")
@@ -343,9 +343,9 @@ it.live("Homebrew Core installs check and upgrade the Core formula", () =>
 const winget = (search: Partial<AppProcess.RunResult>) =>
   fixture(
     (command) => (command.args[0] === "search" ? search : {}),
-    "@opencode/cli",
+    "@bolt-ai/cli",
     false,
-    "@opencode/cli",
+    "@bolt-ai/cli",
     undefined,
     (root) =>
       Effect.succeed(
@@ -462,7 +462,7 @@ windows("windows keeps the uninstall link in the temporary directory, not the re
     const removal = test.updater.removal("bun")
     if (!removal) return yield* Effect.die("Expected bun removal command")
     yield* removal.run
-    expect(test.commands).toEqual([["bun", "remove", "--global", "@opencode/cli"]])
+    expect(test.commands).toEqual([["bun", "remove", "--global", "@bolt-ai/cli"]])
     expect(links(test.global.cache)).toEqual([])
     expect(links(test.global.tmp)).toEqual([])
   }),
@@ -479,9 +479,9 @@ windows("windows links the curl binary before the installer replaces it", () =>
         }
         return {}
       },
-      "@opencode/cli",
+      "@bolt-ai/cli",
       false,
-      "@opencode/cli",
+      "@bolt-ai/cli",
       undefined,
       (_root, home) => Effect.succeed(path.join(home, ".opencode", "bin", "opencode.exe")),
     )
@@ -502,9 +502,9 @@ unix("curl method detection resolves symlinked home directories", () =>
   Effect.gen(function* () {
     const test = yield* fixture(
       () => ({}),
-      "@opencode/cli",
+      "@bolt-ai/cli",
       false,
-      "@opencode/cli",
+      "@bolt-ai/cli",
       undefined,
       (root, home) =>
         Effect.gen(function* () {
@@ -576,23 +576,23 @@ if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "opencode2-no
     Effect.gen(function* () {
       const test = yield* fixture(
         (command) => ({
-          stdout: Buffer.from(command.command === "npm" ? "@opencode/cli-node@2.3.4" : ""),
+          stdout: Buffer.from(command.command === "npm" ? "@bolt-ai/cli-node@2.3.4" : ""),
         }),
-        "@opencode/cli-node",
+        "@bolt-ai/cli-node",
       )
       expect(yield* test.updater.method()).toBe("npm")
       yield* test.updater.upgrade("npm", "v2.3.4")
       yield* test.updater.upgrade("pnpm", "v2.3.4")
       yield* test.updater.upgrade("vp", "v2.3.4")
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli-node"],
-        ["pnpm", "list", "-g", "--depth=0", "@opencode/cli-node"],
+        ["npm", "list", "-g", "--depth=0", "@bolt-ai/cli-node"],
+        ["pnpm", "list", "-g", "--depth=0", "@bolt-ai/cli-node"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
-        ["vp", "list", "-g", "--json", "@opencode/cli-node"],
-        ["npm", "install", "--global", "@opencode/cli-node@2.3.4"],
-        ["pnpm", "add", "--global", "--allow-build=@opencode/cli-node", "@opencode/cli-node@2.3.4"],
-        ["vp", "update", "-g", "@opencode/cli-node@2.3.4"],
+        ["vp", "list", "-g", "--json", "@bolt-ai/cli-node"],
+        ["npm", "install", "--global", "@bolt-ai/cli-node@2.3.4"],
+        ["pnpm", "add", "--global", "--allow-build=@bolt-ai/cli-node", "@bolt-ai/cli-node@2.3.4"],
+        ["vp", "update", "-g", "@bolt-ai/cli-node@2.3.4"],
       ])
     }),
   )

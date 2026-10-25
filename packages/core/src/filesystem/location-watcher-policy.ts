@@ -1,6 +1,6 @@
 export * as LocationWatcherPolicy from "./location-watcher-policy.js"
 
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer, Scope } from "effect"
 import { State } from "../state.js"
 
@@ -20,7 +20,7 @@ export interface Interface extends State.Transformable<Editor> {
   ) => Effect.Effect<State.Registration, never, Scope.Scope>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/LocationWatcherPolicy") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/LocationWatcherPolicy") {}
 
 const layer = Layer.effect(
   Service,

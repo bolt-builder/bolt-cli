@@ -1,6 +1,6 @@
-import { useDialog } from "@opencode/ui/context/dialog"
-import { useI18n } from "@opencode/ui/context/i18n"
-import { ImagePreview } from "@opencode/ui/image-preview"
+import { useDialog } from "@bolt-ai/ui/context/dialog"
+import { useI18n } from "@bolt-ai/ui/context/i18n"
+import { ImagePreview } from "@bolt-ai/ui/image-preview"
 
 export function createImagePreview() {
   const dialog = useDialog()

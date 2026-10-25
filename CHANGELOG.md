@@ -619,7 +619,7 @@ The transitional `session.compacted` event is removed from the public event surf
 #### Improvements
 
 - Added startup plugin seeding to Effect embedded hosts and workerd through `OpenCode.create({ plugins })` and `OpenCodeWorkerd.create({ plugins })`.
-- Re-exported `WorkspaceDriver`, `EnvironmentDriver`, and `EnvironmentFiles` from `@opencode/sdk/effect`.
+- Re-exported `WorkspaceDriver`, `EnvironmentDriver`, and `EnvironmentFiles` from `@bolt-ai/sdk-v2/effect`.
 
 #### Bug fixes
 

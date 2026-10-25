@@ -20,7 +20,7 @@ import type {
   ServerRef,
   MountedSession,
   SessionScreen,
-} from "@opencode/gui-extensions/sdk"
+} from "@bolt-ai/gui-extensions/sdk"
 import { useComments } from "@/composer/comments"
 import { useComposerState } from "@/composer/persistence"
 import { useServer } from "@/runtime/server/current"

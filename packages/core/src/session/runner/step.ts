@@ -8,10 +8,10 @@ import {
   isContextOverflowFailure,
   type ProviderErrorEvent,
   type ToolCall,
-} from "@opencode/ai/effect"
-import type { Agent } from "@opencode/schema/agent"
+} from "@bolt-ai/ai/effect"
+import type { Agent } from "@bolt-ai/schema/agent"
 import { Cause, Clock, Data, Effect, Exit, Fiber, Option, Stream } from "effect"
-import { SessionError } from "@opencode/schema/session-error"
+import { SessionError } from "@bolt-ai/schema/session-error"
 import { Bus } from "../../bus.js"
 import { Permission } from "../../permission.js"
 import { Snapshot } from "../../snapshot.js"

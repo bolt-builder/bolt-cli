@@ -1,5 +1,5 @@
 import { NodeFileSystem } from "@effect/platform-node"
-import { Global } from "@opencode/util/global"
+import { Global } from "@bolt-ai/util/global"
 import { Effect, Option } from "effect"
 import { expect, mock, test } from "bun:test"
 import { mkdir, rm } from "node:fs/promises"
@@ -7,7 +7,7 @@ import path from "node:path"
 import { Config } from "../src/config"
 import { Server } from "../src/commands/commands"
 import type { MiniCommandInput } from "../src/mini"
-import { OPENCODE_VERSION } from "../src/version"
+import { BOLT_VERSION } from "../src/version"
 
 test("mini handler passes resolved CLI keybinds to the runtime", async () => {
   const root = await Bun.$`mktemp -d`.text().then((value) => value.trim())
@@ -34,7 +34,7 @@ test("mini handler passes resolved CLI keybinds to the runtime", async () => {
   const handler = (await import("../src/commands/handlers/mini")).default
   const server = Bun.serve({
     port: 0,
-    fetch: () => Response.json({ version: OPENCODE_VERSION, pid: process.pid, urls: [] }),
+    fetch: () => Response.json({ version: BOLT_VERSION, pid: process.pid, urls: [] }),
   })
 
   try {

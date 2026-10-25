@@ -1,14 +1,14 @@
 export * as ConfigReferencePlugin from "./reference.js"
 
-import { define } from "@opencode/plugin/effect/plugin"
-import { Document } from "@opencode/schema/config"
-import { ConfigReference } from "@opencode/schema/config/reference"
+import { define } from "@bolt-ai/plugin/effect/plugin"
+import { Document } from "@bolt-ai/schema/config"
+import { ConfigReference } from "@bolt-ai/schema/config/reference"
 import path from "path"
 import { Effect } from "effect"
 import { Config } from "../../config.js"
 import { Reference } from "../../reference.js"
 import { AbsolutePath } from "../../schema.js"
-import { Global } from "@opencode/util/global"
+import { Global } from "@bolt-ai/util/global"
 import { Location } from "../../location.js"
 import { ConfigEntryObserver } from "./entry-observer.js"
 

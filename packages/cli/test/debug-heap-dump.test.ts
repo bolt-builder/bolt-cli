@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import fs from "node:fs/promises"
 import path from "node:path"
 import { ServiceConfig } from "../src/services/service-config"
-import { OPENCODE_VERSION } from "../src/version"
+import { BOLT_VERSION } from "../src/version"
 import { isolatedEnv } from "./fixture/environment"
 import { tmpdir } from "./fixture/tmpdir"
 
@@ -93,14 +93,14 @@ function fake(handle: (request: Request) => Response) {
     port: 0,
     fetch: (request) =>
       new URL(request.url).pathname === "/api/info"
-        ? Response.json({ version: OPENCODE_VERSION, pid: process.pid, urls: [] })
+        ? Response.json({ version: BOLT_VERSION, pid: process.pid, urls: [] })
         : handle(request),
   })
 }
 
 async function register(root: string, url: string) {
   const file = path.join(root, "state", "opencode", ServiceConfig.filename())
-  const info = { version: OPENCODE_VERSION, url, pid: process.pid, password: "secret" }
+  const info = { version: BOLT_VERSION, url, pid: process.pid, password: "secret" }
   await fs.mkdir(path.dirname(file), { recursive: true })
   await fs.writeFile(file, JSON.stringify(info))
   return { file, info }

@@ -1,7 +1,7 @@
 import { expect } from "bun:test"
 import fs from "node:fs/promises"
 import path from "node:path"
-import { Global } from "@opencode/util/global"
+import { Global } from "@bolt-ai/util/global"
 import { Effect } from "effect"
 import { tmpdir } from "../../core/test/fixture/tmpdir"
 import { it } from "../../core/test/lib/effect"

@@ -1,8 +1,8 @@
 export * as InstancePlugins from "./instance.js"
 
-import type { Plugin } from "@opencode/plugin/effect/plugin"
+import type { Plugin } from "@bolt-ai/plugin/effect/plugin"
 import { Context, Layer } from "effect"
-import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import type { Generation } from "../plugin.js"
 
 /**
@@ -22,7 +22,7 @@ export interface Interface {
   readonly all: () => readonly Generation[]
 }
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/InstancePlugins") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/InstancePlugins") {}
 
 export const node = makeLocationNode({
   service: Service,

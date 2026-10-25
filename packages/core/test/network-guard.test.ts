@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { Effect, Layer } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientResponse } from "effect/http"
-import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
-import { LayerNodePlatform } from "@opencode/util/effect/app-node-platform"
+import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
+import { LayerNodePlatform } from "@bolt-ai/util/effect/app-node-platform"
 import { it, refuseNetwork } from "./lib/effect"
 
 describe("test harness network guard", () => {

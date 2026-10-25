@@ -11,7 +11,7 @@ import Shell from "@/shell/shell"
 import { requireServerKey } from "./session"
 import { ExtensionAttachment } from "@/runtime/extension/root"
 
-export const File = lazy(() => import("@opencode/session-ui/file").then((module) => ({ default: module.File })))
+export const File = lazy(() => import("@bolt-ai/session-ui/file").then((module) => ({ default: module.File })))
 
 const loadSessionRoute = () => Promise.all([import("@/session/route"), File.preload()]).then(([module]) => module)
 

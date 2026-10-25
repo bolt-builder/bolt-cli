@@ -1,4 +1,4 @@
-import { Tool } from "@opencode/schema/tool"
+import { Tool } from "@bolt-ai/schema/tool"
 import { Effect, Option, Predicate, Schema, SchemaGetter, SchemaTransformation } from "effect"
 import { Headers, HttpClientRequest } from "effect/http"
 import { Media } from "../media.js"

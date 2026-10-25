@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 
 import { $ } from "bun"
-import { OpenCode } from "@opencode/client"
-import { Service } from "@opencode/client/service"
-import { parse } from "@opencode/script/highlights"
+import { OpenCode } from "@bolt-ai/client"
+import { Service } from "@bolt-ai/client/service"
+import { parse } from "@bolt-ai/script/highlights"
 import { rm } from "fs/promises"
 import path from "path"
 import { parseArgs } from "util"

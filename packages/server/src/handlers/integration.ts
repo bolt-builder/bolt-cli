@@ -4,7 +4,7 @@ import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Api } from "../api"
 import { InvalidRequestError } from "@bolt-ai/protocol/errors"
 import { response } from "../location"
-import { WellKnown } from "@opencode/core/wellknown"
+import { WellKnown } from "@bolt-ai/core/wellknown"
 
 const authorize = <A, R>(effect: Effect.Effect<A, Integration.AuthorizationError, R>) =>
   effect.pipe(

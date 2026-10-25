@@ -1,5 +1,5 @@
-import type { McpApi } from "@opencode/client/promise/api"
-import type { Mcp } from "@opencode/schema/mcp"
+import type { McpApi } from "@bolt-ai/client/promise/api"
+import type { Mcp } from "@bolt-ai/schema/mcp"
 import type { Types } from "effect"
 import type { Transform } from "./registration.js"
 

@@ -2,7 +2,7 @@
 title: "Theme"
 ---
 
-OpenCode comes with many built-in themes for light and dark modes. Choose one in settings, or mix your own colors.
+Bolt comes with many built-in themes for light and dark modes. Choose one in settings, or mix your own colors.
 
 ## Choose a theme
 
@@ -24,7 +24,7 @@ Run `/themes` to change themes without opening settings.
 
 ## System colors
 
-When OpenCode can read your terminal palette, the theme picker includes the `system` theme. It derives colors from your terminal's foreground, background, and ANSI palette.
+When Bolt can read your terminal palette, the theme picker includes the `system` theme. It derives colors from your terminal's foreground, background, and ANSI palette.
 
 The theme name `system` selects terminal-derived colors. The mode `system` follows the terminal's light or dark appearance.
 
@@ -38,7 +38,7 @@ Use `system` to follow your terminal's appearance, or lock the theme to light or
 | `dark` | Always use the theme's dark colors. |
 | `light` | Always use the theme's light colors. |
 
-This maps to the `mode` field inside `theme` in your CLI config. If a custom theme provides only one mode, OpenCode uses that mode when the other is requested.
+This maps to the `mode` field inside `theme` in your CLI config. If a custom theme provides only one mode, Bolt uses that mode when the other is requested.
 
 ## Adding a Theme
 
@@ -50,16 +50,16 @@ cp theme.json ~/.config/opencode/themes/
 
 You can also put the theme in a project's `.opencode/themes` directory to make it available only in that project.
 
-The filename becomes the theme name. For example, `my-theme.json` appears as `my-theme`. Restart OpenCode after adding the file, then run `/themes` to select it.
+The filename becomes the theme name. For example, `my-theme.json` appears as `my-theme`. Restart Bolt after adding the file, then run `/themes` to select it.
 
-OpenCode reads `.json` files only. A theme closer to the current directory replaces a global or parent theme with the same name.
+Bolt reads `.json` files only. A theme closer to the current directory replaces a global or parent theme with the same name.
 
 ## Using Themes in Plugins
 
 [CLI plugins](/build/plugins/cli) read resolved colors through `context.theme` and the active mode through `context.themeMode`. Use semantic tokens so your plugin follows the selected theme:
 
 ```tsx title="Inside a CLI plugin component"
-import { usePlugin } from "@opencode/plugin/tui"
+import { usePlugin } from "@bolt-ai/plugin/tui"
 
 function Status() {
   const context = usePlugin()
@@ -80,7 +80,7 @@ A theme separates shared semantic tokens from mode-specific palettes:
 | `base` | The complete token tree shared by every mode. |
 | `light`, `dark` | A complete hue palette and optional token overrides for that mode. |
 
-Every theme provides a complete `base` and defines at least one of `light` or `dark`. Modes inherit from the file's `base`; they do not inherit from the built-in OpenCode theme or from each other.
+Every theme provides a complete `base` and defines at least one of `light` or `dark`. Modes inherit from the file's `base`; they do not inherit from the built-in Bolt theme or from each other.
 
 The examples below show only the sections relevant to each concept. Use the theme editor to generate a complete file before customizing it.
 

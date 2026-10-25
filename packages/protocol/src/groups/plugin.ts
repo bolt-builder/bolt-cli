@@ -1,5 +1,5 @@
-import { Location } from "@opencode/schema/location"
-import { Plugin } from "@opencode/schema/plugin"
+import { Location } from "@bolt-ai/schema/location"
+import { Plugin } from "@bolt-ai/schema/plugin"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/http-api"
 import { InvalidRequestError, ServiceUnavailableError } from "../errors.js"

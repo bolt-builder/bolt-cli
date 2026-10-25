@@ -4,7 +4,7 @@ title: "Attachments"
 
 ## Attach
 
-Attach a local file, then ask OpenCode to use it in your prompt. In the desktop
+Attach a local file, then ask Bolt to use it in your prompt. In the desktop
 or web client, choose **Attach file**, paste a file, or drag it into the prompt.
 
 ```text
@@ -15,7 +15,7 @@ Desktop file-picker selections can total up to 20 MiB. Other interfaces may
 apply lower client-side limits.
 
 <Callout type="warning">
-  Choose a model with image input before attaching an image. OpenCode can pass supported images to the provider, but the
+  Choose a model with image input before attaching an image. Bolt can pass supported images to the provider, but the
   provider and model still enforce their own formats, dimensions, file counts, and sizes. A text-only model may reject the
   request.
 </Callout>
@@ -65,14 +65,14 @@ Current V2 sessions make these attachment types visible to the model:
 | PDF                     | Document media                                           | `report.pdf`       |
 
 PDFs need a model with PDF input. If the model does not support an attachment's
-type, OpenCode sends a short note in its place.
+type, Bolt sends a short note in its place.
 
 SVG is treated as text. AVIF, BMP, audio, video, and other binary prompt
 attachments are not included in the model request. Convert an unsupported
 binary to text or a supported image first; for example, convert a BMP image to
 PNG before attaching it.
 
-OpenCode reads each attachment before admitting the prompt. It rejects invalid
+Bolt reads each attachment before admitting the prompt. It rejects invalid
 URLs, unreadable paths, paths other than files or directories, and decoded
 attachments over 20 MiB. Media type is detected from the bytes, so changing a
 filename or `data:` URL media type does not make an unsupported binary visible.
@@ -126,7 +126,7 @@ The `read` tool recognizes PNG, JPEG, GIF, and WebP by their contents and reads
 up to 20 MiB of source image data. It checks width, height, and Base64 length
 against the configured image limits.
 
-With `auto_resize: true`, OpenCode preserves the aspect ratio and scales down
+With `auto_resize: true`, Bolt preserves the aspect ratio and scales down
 to the dimension limits. It then tries progressively smaller PNG and JPEG
 encodings until the Base64 limit is met, so the output media type can change.
 
@@ -146,7 +146,7 @@ Limit:  max_width = 2000, auto_resize = false
 Result: Image processing fails
 ```
 
-If the image resizer is unavailable, OpenCode passes the original image through
+If the image resizer is unavailable, Bolt passes the original image through
 unchanged. Image settings are therefore processing limits, not an upload or
 security boundary.
 
@@ -157,10 +157,10 @@ security boundary.
 | Direct attachment             | 20 MiB decoded per item; clients may impose lower limits      | Two 12 MiB files pass the per-item limit     |
 | Desktop picker selection      | 20 MiB total                                                  | Two 12 MiB files exceed the selection limit  |
 | `max_base64_bytes`            | Encoded Base64 only, excluding the complete `data:` URL       | `SGVsbG8=` counts as 8 bytes                 |
-| Provider image limits         | Apply after OpenCode processing                               | A provider may reject an accepted image      |
+| Provider image limits         | Apply after Bolt processing                               | A provider may reject an accepted image      |
 | Text attachment model support | Does not require a multimodal model                           | `notes.txt` is inserted as prompt text       |
 | `read` text limits            | Uses separate paging and truncation limits                    | Read a large log in pages                    |
 
 A client accepting a file does not guarantee that its contents reach the
-model. The attachment must use a model-visible format and satisfy both OpenCode
+model. The attachment must use a model-visible format and satisfy both Bolt
 and provider limits.

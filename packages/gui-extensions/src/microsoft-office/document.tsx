@@ -1,6 +1,6 @@
 import { createSignal, For, onCleanup, Show, type Accessor } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Loader } from "@opencode/ui/loader"
+import { Loader } from "@bolt-ai/ui/loader"
 import { createKeyed, createLatest, useExtension } from "../sdk"
 import { OfficePages, type PaintPage, type ScrollToPage } from "./pages"
 import {

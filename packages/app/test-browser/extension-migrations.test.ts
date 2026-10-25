@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { createRoot } from "solid-js"
-import { Panel, type StoreDeclaration } from "@opencode/gui-extensions/sdk"
+import { Panel, type StoreDeclaration } from "@bolt-ai/gui-extensions/sdk"
 import type { Platform } from "@/runtime/platform/platform"
 import { persisted, removePersisted } from "@/runtime/persistence/storage"
 import { legacyKeys } from "@/runtime/extension/panel-keys"

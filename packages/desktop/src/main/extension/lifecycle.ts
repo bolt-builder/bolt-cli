@@ -1,4 +1,4 @@
-import { Scope, type Cleanup } from "@opencode/gui-extensions/sdk/main"
+import { Scope, type Cleanup } from "@bolt-ai/gui-extensions/sdk/main"
 
 /** How long disposal waits for an instance's finalizers and a setup still running. */
 const CLEANUP_TIMEOUT_MS = 3_000

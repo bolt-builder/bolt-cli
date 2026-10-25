@@ -15,20 +15,20 @@
     "typecheck:tsc": {
       "dependsOn": ["transit"]
     },
-    "@opencode/cli#typecheck:tsc": {
-      "dependsOn": ["transit", "@opencode/core#typecheck:tsc"]
+    "@bolt-ai/cli#typecheck:tsc": {
+      "dependsOn": ["transit", "@bolt-ai/core#typecheck:tsc"]
     },
-    "@opencode/sdk#typecheck:tsc": {
-      "dependsOn": ["transit", "@opencode/core#typecheck:tsc"]
+    "@bolt-ai/sdk-v2#typecheck:tsc": {
+      "dependsOn": ["transit", "@bolt-ai/core#typecheck:tsc"]
     },
-    "@opencode/server#typecheck:tsc": {
-      "dependsOn": ["transit", "@opencode/core#typecheck:tsc"]
+    "@bolt-ai/server#typecheck:tsc": {
+      "dependsOn": ["transit", "@bolt-ai/core#typecheck:tsc"]
     },
-    "@opencode/simulation#typecheck:tsc": {
-      "dependsOn": ["transit", "@opencode/core#typecheck:tsc"]
+    "@bolt-ai/simulation#typecheck:tsc": {
+      "dependsOn": ["transit", "@bolt-ai/core#typecheck:tsc"]
     },
-    "@opencode/tui#typecheck:tsc": {
-      "dependsOn": ["transit", "@opencode/core#typecheck:tsc"]
+    "@bolt-ai/tui#typecheck:tsc": {
+      "dependsOn": ["transit", "@bolt-ai/core#typecheck:tsc"]
     },
     "test:components": {
       "outputs": [],

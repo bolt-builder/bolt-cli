@@ -1,5 +1,5 @@
 import { Effect, Option, Schema, Stream } from "effect"
-import { Tool } from "@opencode/schema/tool"
+import { Tool } from "@bolt-ai/schema/tool"
 import { Route } from "../route/client.js"
 import { Auth } from "../route/auth.js"
 import { Endpoint } from "../route/endpoint.js"
@@ -39,7 +39,7 @@ const MIN_THINKING_BUDGET = 512
 export const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
 // Gemini 3 rejects replayed function calls without a thought signature. Google's SDKs avoid that in normal chats by
-// retaining complete model responses, but OpenCode reconstructs durable history and may encounter an unsigned call
+// retaining complete model responses, but Bolt reconstructs durable history and may encounter an unsigned call
 // from an older or external session. Model IDs are open-ended, so unknown Gemini aliases inherit current behavior.
 const requiresThoughtSignatureFallback = (modelID: string) => {
   if (!/(^|\/)gemini-/i.test(modelID)) return false

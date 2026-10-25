@@ -1,6 +1,6 @@
 import { Option, Schema } from "effect"
 
-// The OpenCode iOS app sends each request from a voice call as plain prompt text: a header line, then a JSON
+// The Bolt iOS app sends each request from a voice call as plain prompt text: a header line, then a JSON
 // body. Nothing else marks the message, so this mirrors the app's `VoiceHandoff.parse`. The header's wording
 // has changed between releases; its opening and the body's shape have not.
 const decodeBody = Schema.decodeUnknownOption(

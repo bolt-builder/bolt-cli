@@ -1,4 +1,4 @@
-import { isShellNotFoundError, type ShellOutputInput, type ShellOutputOutput } from "@opencode/client/promise"
+import { isShellNotFoundError, type ShellOutputInput, type ShellOutputOutput } from "@bolt-ai/client/promise"
 
 // Same page size as the TUI shell output viewer; only this much recent output is retained and rendered.
 export const SHELL_OUTPUT_TAIL_BYTES = 64 * 1024

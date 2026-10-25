@@ -1,9 +1,9 @@
 ---
 title: "Policies"
-description: "Allow or deny OpenCode actions on named resources, with managed and organization policy outranking user and project configuration."
+description: "Allow or deny Bolt actions on named resources, with managed and organization policy outranking user and project configuration."
 ---
 
-Policies decide whether OpenCode may perform an action on a named resource. They are
+Policies decide whether Bolt may perform an action on a named resource. They are
 authored under `policies` and can also be delivered by a connected
 [OpenCode Console](/console) workspace.
 
@@ -90,7 +90,7 @@ provider ID: `anthropic`, `openai`, `opencode`, or a custom ID from
 {
   "providers": {
     "company-ai": {
-      "package": "@opencode/ai/providers/openai-compatible",
+      "package": "@bolt-ai/ai/providers/openai-compatible",
       "settings": { "baseURL": "https://ai.company.example/v1" },
     },
   },
@@ -102,7 +102,7 @@ provider ID: `anthropic`, `openai`, `opencode`, or a custom ID from
 ```
 
 The `providers` entry configures the endpoint; the statements make it the only
-provider OpenCode will use. Policy applies however a provider became known: catalog
+provider Bolt will use. Policy applies however a provider became known: catalog
 data, environment variables, saved accounts, built-in plugins, or configuration.
 
 Use `provider.use` instead of the V1 `enabled_providers` and `disabled_providers`
@@ -209,7 +209,7 @@ A repository cannot re-enable a provider you deny globally:
 ## Console
 
 A workspace on the [OpenCode Console](/console) compiles its Providers and Tools
-policies into regular `policies` statements in the workspace configuration. OpenCode
+policies into regular `policies` statements in the workspace configuration. Bolt
 merges that configuration like a configuration file that ranks right below managed
 preferences and the system file, so an organization `deny` cannot be lifted by a
 repository or user `allow`, and an organization `allow` lifts a lower-authority `deny`.

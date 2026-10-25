@@ -1,4 +1,4 @@
-import type { Plugin } from "@opencode/plugin/tui"
+import type { Plugin } from "@bolt-ai/plugin/tui"
 import { useTerminalDimensions } from "@opentui/solid"
 import { onMount } from "solid-js"
 import { DialogHighlights } from "../../../component/dialog-highlights"
@@ -9,7 +9,7 @@ import { StoryFooter } from "./footer"
 const items = [
   {
     title: "Built-In Worktree Tools",
-    body: "Ask OpenCode to use `worktree_create`, `worktree_list`, and `worktree_remove` in Code Mode. You can create isolated worktrees, move sessions into them, and remove them with normal edit approval.",
+    body: "Ask Bolt to use `worktree_create`, `worktree_list`, and `worktree_remove` in Code Mode. You can create isolated worktrees, move sessions into them, and remove them with normal edit approval.",
   },
   {
     title: "Safer Remote Pairing",
@@ -17,7 +17,7 @@ const items = [
   },
   {
     title: "Installable Web App",
-    body: "Use Chrome or Edge’s Install button to install the OpenCode web app, including when it runs behind an authenticating proxy.",
+    body: "Use Chrome or Edge’s Install button to install the Bolt web app, including when it runs behind an authenticating proxy.",
   },
   {
     title: "Clear Session Failures",

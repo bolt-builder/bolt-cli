@@ -2,7 +2,7 @@
 title: "References"
 ---
 
-References give OpenCode named access to directories outside the current
+References give Bolt named access to directories outside the current
 project. Add one in `opencode.json` or `opencode.jsonc`, then attach its alias in
 your client when you need it.
 
@@ -103,7 +103,7 @@ Use the string shorthand to follow the remote's default branch:
 }
 ```
 
-Without `branch`, OpenCode checks out and refreshes the remote's default branch.
+Without `branch`, Bolt checks out and refreshes the remote's default branch.
 Branch names may contain letters, numbers, `/`, `_`, `.`, and `-`, but cannot
 start with `-` or contain `..`.
 
@@ -120,7 +120,7 @@ start with `-` or contain `..`.
 
 ## Storage
 
-OpenCode normalizes each remote and stores one checkout per remote and branch
+Bolt normalizes each remote and stores one checkout per remote and branch
 under its global data directory. Without an explicit branch, the path uses this
 shape:
 

@@ -1,5 +1,5 @@
-import { artifactKind, artifactMime, type ArtifactKind } from "@opencode/util/artifact"
-import type { FileContent } from "@opencode/gui-extensions/sdk"
+import { artifactKind, artifactMime, type ArtifactKind } from "@bolt-ai/util/artifact"
+import type { FileContent } from "@bolt-ai/gui-extensions/sdk"
 
 /** Kinds whose raw bytes are kept so media elements and binary viewers can read them without a text round trip. */
 const binaryKinds = new Set<ArtifactKind>([

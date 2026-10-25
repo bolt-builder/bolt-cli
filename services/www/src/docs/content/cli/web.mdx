@@ -1,9 +1,9 @@
 ---
 title: "Web"
-description: "Run OpenCode in the browser."
+description: "Run Bolt in the browser."
 ---
 
-OpenCode ships with a web UI that is served from the same server that powers the
+Bolt ships with a web UI that is served from the same server that powers the
 TUI. It's available by default and password protected.
 
 ## Access
@@ -19,7 +19,7 @@ $ opencode pair
 ```
 
 Opening a link in a browser signs it in with a session cookie and loads the web
-UI. Scanning the QR code from the OpenCode app, or pasting the link into its
+UI. Scanning the QR code from the Bolt app, or pasting the link into its
 server address field, connects the app the same way. Sessions last 30 days;
 changing the server password signs every session out.
 
@@ -115,7 +115,7 @@ server password <password>
 
 Use it when you want to:
 
-- Run OpenCode on a shared, always-on, or remote host, then connect clients with
+- Run Bolt on a shared, always-on, or remote host, then connect clients with
   `opencode --server <url>`.
 - Control the hostname, port, and CORS origins for a single process.
 - Run under a supervisor like systemd, Docker, or another environment that expects

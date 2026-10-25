@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { FormAnswer, FormCreated, SessionFormReplyInput, OpenCodeEvent } from "@opencode/client/promise"
+import type { FormAnswer, FormCreated, SessionFormReplyInput, OpenCodeEvent } from "@bolt-ai/client/promise"
 import { replyWebSearch } from "./websearch"
 
 const consent: FormCreated["data"]["form"] = {

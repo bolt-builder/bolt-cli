@@ -1,6 +1,6 @@
 import { Effect, Layer, PlatformError } from "effect"
 import { ChildProcessSpawner } from "effect/process"
-import { CrossSpawnSpawner } from "@opencode/util/cross-spawn-spawner"
+import { CrossSpawnSpawner } from "@bolt-ai/util/cross-spawn-spawner"
 
 /** Counts process spawns; `fail` rejects matching spawns with a transient error. */
 export function countingSpawner(fail?: (args: readonly string[]) => boolean) {

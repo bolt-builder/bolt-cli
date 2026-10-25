@@ -1,6 +1,6 @@
 export * as ToolInputRepairPlugin from "./tool-input-repair.js"
 
-import { define } from "@opencode/plugin/effect/plugin"
+import { define } from "@bolt-ai/plugin/effect/plugin"
 import { Effect, JsonSchema, Option, Predicate, Schema } from "effect"
 import { definition } from "../tool/runtime.js"
 

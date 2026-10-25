@@ -1,3 +1,3 @@
-# @opencode/core
+# @bolt-ai/core
 
-Core runtime services for OpenCode.
+Core runtime services for Bolt.

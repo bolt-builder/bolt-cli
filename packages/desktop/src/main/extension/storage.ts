@@ -1,4 +1,4 @@
-import type { MainStoreFrom, Mutable, Storage } from "@opencode/gui-extensions/sdk/main"
+import type { MainStoreFrom, Mutable, Storage } from "@bolt-ai/gui-extensions/sdk/main"
 import { Option, Schema } from "effect"
 import type { StateStore } from "../storage/state"
 import type { SettingsStore } from "../storage/store"

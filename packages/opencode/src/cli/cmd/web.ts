@@ -3,7 +3,8 @@ import { UI } from "../ui"
 import { effectCmd, fail } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions, enforceLoopbackWithoutAuth } from "../network"
 import { Flag } from "@bolt-ai/core/flag/flag"
-import { openUrl } from "@bolt-ai/core/open"import { networkInterfaces } from "os"
+import { openUrl } from "@bolt-ai/core/open"
+import { networkInterfaces } from "os"
 
 function getNetworkIPs() {
   const nets = networkInterfaces()

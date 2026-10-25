@@ -1,7 +1,7 @@
 export * as WorkspaceDriver from "./driver.js"
 
-import { Workspace } from "@opencode/schema/workspace"
-import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { Workspace } from "@bolt-ai/schema/workspace"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
 import { Context, Effect, Layer, Schema } from "effect"
 import type { Scope } from "effect"
 import type { EnvironmentDriver } from "../environment/driver.js"
@@ -68,7 +68,7 @@ export interface Registry {
 }
 
 export class RegistryService extends Context.Service<RegistryService, Registry>()(
-  "@opencode/WorkspaceDriverRegistry",
+  "@bolt-ai/WorkspaceDriverRegistry",
 ) {}
 
 export const registry = (drivers: Readonly<Record<string, Interface>>): Registry => ({

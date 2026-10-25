@@ -220,12 +220,12 @@ export const GithubCopilotPlugin = define({
       // else goes through the bundled Copilot SDK's model ID fallback.
       for (const id of item.models.keys()) {
         evt.models.update(item.provider.id, id, (model) => {
-          if (model.package === "@opencode/ai/providers/anthropic") {
+          if (model.package === "@bolt-ai/ai/providers/anthropic") {
             if (loaded.baseURL)
               model.settings = Provider.mergeOverlay(model.settings, { baseURL: `${loaded.baseURL}/v1` })
             return
           }
-          const responses = model.package === "@opencode/ai/providers/openai"
+          const responses = model.package === "@bolt-ai/ai/providers/openai"
           model.package = Provider.aisdk("@ai-sdk/github-copilot")
           model.settings = Provider.mergeOverlay(model.settings, {
             ...(loaded.baseURL ? { baseURL: loaded.baseURL } : {}),

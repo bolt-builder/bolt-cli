@@ -7,7 +7,7 @@ import {
   ScrollBoxRenderable,
   TextareaRenderable,
 } from "@opentui/core"
-import type { FileDiffInfo, FormInfo, PermissionRequest, SessionInfo } from "@opencode/client"
+import type { FileDiffInfo, FormInfo, PermissionRequest, SessionInfo } from "@bolt-ai/client"
 import type { Config } from "../src/config"
 import { createAppFixture } from "./fixture/app"
 import { directory, json } from "./fixture/tui-client"

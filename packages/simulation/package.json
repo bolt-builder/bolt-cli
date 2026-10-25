@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@opencode/simulation",
+  "name": "@bolt-ai/simulation",
   "version": "2.1.4",
   "type": "module",
   "license": "MIT",
@@ -30,11 +30,11 @@
     "typecheck:tsc": "tsc -b"
   },
   "dependencies": {
-    "@opencode/core": "workspace:*",
-    "@opencode/ai": "workspace:*",
-    "@opencode/plugin": "workspace:*",
-    "@opencode/protocol": "workspace:*",
-    "@opencode/util": "workspace:*",
+    "@bolt-ai/core": "workspace:*",
+    "@bolt-ai/ai": "workspace:*",
+    "@bolt-ai/plugin": "workspace:*",
+    "@bolt-ai/protocol": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
     "@opentui/core": "catalog:",
     "effect": "catalog:",
     "ws": "8.21.0"

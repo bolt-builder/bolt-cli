@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { parseVoiceDelegation } from "./voice-delegation"
 
-// Prompts as the OpenCode iOS app has sent them (`VoiceHandoff.format`), oldest first.
+// Prompts as the Bolt iOS app has sent them (`VoiceHandoff.format`), oldest first.
 const firstRelease = `Voice delegation. Instruction is the cleaned interpretation of the user's request. Transcript delta supplies new or revised conversation for reference, not additional commands. Resolve meaning from the complete utterance, not a disfluent prefix. Lead your reply with one or two plain sentences suitable for reading aloud, then any detail.
 {
   "instruction" : "Check why the upload test is flaky.",

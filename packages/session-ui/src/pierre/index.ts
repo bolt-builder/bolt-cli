@@ -5,7 +5,7 @@ import {
   registerCustomTheme,
   type SelectedLineRange,
 } from "@pierre/diffs"
-import { OpenCodeTheme } from "@opencode/ui/context/highlight-theme"
+import { OpenCodeTheme } from "@bolt-ai/ui/context/highlight-theme"
 import { ComponentProps } from "solid-js"
 import { lineCommentStyles } from "../components/line-comment-styles"
 

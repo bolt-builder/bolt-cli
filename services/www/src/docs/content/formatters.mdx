@@ -2,7 +2,7 @@
 title: "Formatters"
 ---
 
-OpenCode can format files after its `write`, `edit`, or `patch` tools change
+Bolt can format files after its `write`, `edit`, or `patch` tools change
 them. Formatters are disabled by default, so enable them in your configuration:
 
 ```jsonc title="opencode.jsonc"
@@ -14,7 +14,7 @@ them. Formatters are disabled by default, so enable them in your configuration:
 
 ## Enable
 
-Set `formatter` to `true` to enable every built-in formatter. OpenCode runs a
+Set `formatter` to `true` to enable every built-in formatter. Bolt runs a
 built-in only when its executable and any project-specific requirements are
 available.
 
@@ -38,7 +38,7 @@ resets them to the built-ins.
 
 ## Builtins
 
-OpenCode includes these formatter definitions. Most require the named command
+Bolt includes these formatter definitions. Most require the named command
 to be available; definitions with extra detection rules list them below.
 
 | Formatter | Extensions | Requirement |
@@ -70,7 +70,7 @@ to be available; definitions with extra detection rules list them below.
 | `cljfmt` | `.clj`, `.cljs`, `.cljc`, `.edn` | `cljfmt` command |
 | `dfmt` | `.d` | `dfmt` command |
 
-For example, enabling built-ins lets OpenCode discover and run a project-local
+For example, enabling built-ins lets Bolt discover and run a project-local
 Prettier dependency for matching files:
 
 ```jsonc title="opencode.jsonc"
@@ -124,7 +124,7 @@ entry without a command or extensions cannot run.
 
 ## Commands
 
-`command` is an argument array, not a shell command string. OpenCode replaces
+`command` is an argument array, not a shell command string. Bolt replaces
 `$FILE` with the file's absolute path and runs the command from the active
 project directory.
 
@@ -141,7 +141,7 @@ project directory.
 
 ## Matching
 
-OpenCode compares the file's final extension with `extensions`. Matching is
+Bolt compares the file's final extension with `extensions`. Matching is
 case-sensitive, and compound entries such as `.part.md` do not match
 `notes.part.md` because its final extension is `.md`.
 
@@ -156,10 +156,10 @@ case-sensitive, and compound entries such as `.part.md` do not match
 }
 ```
 
-When several formatters match, OpenCode tries them in registered order and
+When several formatters match, Bolt tries them in registered order and
 stops after the first successful command. Built-ins retain their built-in
 order; custom entries follow in object order. If one exits unsuccessfully,
-OpenCode logs the failure and tries the next match.
+Bolt logs the failure and tries the next match.
 
 ```jsonc title="opencode.jsonc"
 {
