@@ -5,9 +5,9 @@ import { realpathSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { Effect, Exit, Fiber, Stream } from "effect"
-import { ChildProcess } from "effect/unstable/process"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { AppProcess } from "@bolt-ai/core/process"
+import { ChildProcess } from "effect/process"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { AppProcess } from "@bolt-ai/util/process"
 import { testEffect } from "../lib/effect"
 
 // Every test spawns a real child, so all of them use the live clock. The spawner's 1s post-exit capture deadline
@@ -163,7 +163,7 @@ describe("AppProcess", () => {
       it.live(
         "timeout cleans up the scoped child process",
         Effect.acquireUseRelease(
-          Effect.promise(() => fs.mkdtemp(path.join(tmpdir(), "bolt-process-timeout-"))),
+          Effect.promise(() => fs.mkdtemp(path.join(tmpdir(), "opencode-process-timeout-"))),
           (directory) => {
             const ready = path.join(directory, "ready")
             const settled = path.join(directory, "settled")
@@ -184,7 +184,7 @@ describe("AppProcess", () => {
       it.live(
         "fiber interruption cleans up the scoped child process after readiness",
         Effect.acquireUseRelease(
-          Effect.promise(() => fs.mkdtemp(path.join(tmpdir(), "bolt-process-interrupt-"))),
+          Effect.promise(() => fs.mkdtemp(path.join(tmpdir(), "opencode-process-interrupt-"))),
           (directory) => {
             const ready = path.join(directory, "ready")
             const settled = path.join(directory, "settled")

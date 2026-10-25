@@ -2,9 +2,14 @@ import { batch, createMemo, createSignal, onCleanup, onMount, Show } from "solid
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { Tooltip } from "@bolt-ai/ui/tooltip"
-import { TooltipV2 } from "@bolt-ai/ui/v2/tooltip-v2"
-import { useLanguage } from "@/context/language"
-import { usePlatform } from "@/context/platform"
+import { createKeyed, useExtension } from "../sdk"
+import {
+  applyProviderMetricEvent,
+  isProviderMetricEvent,
+  projectedProviderMetrics,
+  type ProviderMetrics,
+  type ProviderMetricState,
+} from "./metrics"
 
 type Mem = Performance & {
   memory?: {

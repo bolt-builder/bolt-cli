@@ -263,7 +263,7 @@ ${lineCommentStyles}
 
 export function createDefaultOptions<T>(style: FileDiffOptions<T, undefined>["diffStyle"]) {
   return {
-    theme: "Bolt",
+    ...highlightOptions,
     themeType: "system",
     disableLineNumbers: false,
     overflow: "wrap",

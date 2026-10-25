@@ -1,9 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import os from "os"
-import { Flock } from "@bolt-ai/core/util/flock"
-import { Hash } from "@bolt-ai/core/util/hash"
+import { Flock } from "@bolt-ai/util/flock"
+import { Hash } from "@bolt-ai/util/hash"
+import { runLockWorker, spawnLockWorker, stopLockWorker, waitForFile } from "../fixture/lock-worker"
+import { tmpdir } from "../fixture/tmpdir"
 
 type Msg = {
   key: string

@@ -96,8 +96,8 @@ jobs:
 
       - name: Configure git identity
         run: |
-          git config --global user.email "bolt@bolt-builder.ai"
-          git config --global user.name "bolt"
+          git config --global user.email "bot@opencode.ai"
+          git config --global user.name "opencode"
 
       - name: Run unit tests
         timeout-minutes: 20
@@ -109,7 +109,27 @@ jobs:
           fi
           GITHUB_ACTIONS=false bun turbo test --affected --concurrency=3
         env:
-          BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER: ${{ runner.os == 'Windows' && 'true' || 'false' }}
+          OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER: ${{ runner.os == 'Windows' && 'true' || 'false' }}
+          TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && format('{0}^1', github.sha) || github.event.before }}
+          TURBO_SCM_HEAD: ${{ github.sha }}
+
+      - name: Verify published codemode package
+        if: runner.os == 'Linux'
+        working-directory: packages/codemode
+        run: bun run script/publish.ts --dry-run
+
+      - name: Verify packed workerd SDK
+        if: runner.os == 'Linux'
+        timeout-minutes: 15
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            bun turbo verify:package --filter=@bolt-ai/sdk-v2
+            exit 0
+          fi
+          bun turbo verify:package --affected --filter=@bolt-ai/sdk-v2
+        env:
+          TURBO_SCM_BASE: ${{ github.event_name == 'pull_request' && format('{0}^1', github.sha) || github.event.before }}
+          TURBO_SCM_HEAD: ${{ github.sha }}
 
       - name: Check generated client
         if: runner.os == 'Linux'

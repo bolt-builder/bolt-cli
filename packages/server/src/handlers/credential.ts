@@ -1,4 +1,5 @@
-import { Integration } from "@bolt-ai/core/integration"
+import { Credential } from "@bolt-ai/core/credential"
+import { ConflictError } from "@bolt-ai/protocol/errors"
 import { Effect } from "effect"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Api } from "../api"

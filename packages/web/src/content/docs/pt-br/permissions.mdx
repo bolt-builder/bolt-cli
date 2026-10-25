@@ -23,9 +23,9 @@ Cada regra de permissão se resolve em uma das seguintes opções:
 
 Você pode definir permissões globalmente (com `*`), e substituir ferramentas específicas.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "*": "ask",
     "bash": "allow",
@@ -36,9 +36,9 @@ Você pode definir permissões globalmente (com `*`), e substituir ferramentas e
 
 Você também pode definir todas as permissões de uma vez:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": "allow"
 }
 ```
@@ -49,9 +49,9 @@ Você também pode definir todas as permissões de uma vez:
 
 Para a maioria das permissões, você pode usar um objeto para aplicar diferentes ações com base na entrada da ferramenta.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",
@@ -94,9 +94,9 @@ A expansão do home (como `~/...`) afeta apenas como um padrão é escrito. Não
 
 Por exemplo, isso permite acesso a tudo sob `~/projects/personal/`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -107,9 +107,9 @@ Por exemplo, isso permite acesso a tudo sob `~/projects/personal/`:
 
 Qualquer diretório permitido aqui herda os mesmos padrões do espaço de trabalho atual. Como [`read` padrão é `allow`](#defaults), leituras também são permitidas para entradas sob `external_directory`, a menos que sejam substituídas. Adicione regras explícitas quando uma ferramenta deve ser restrita nesses caminhos, como bloquear edições enquanto mantém leituras:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -152,7 +152,7 @@ Se você não especificar nada, o opencode começa com padrões permissivos:
 - `doom_loop` e `external_directory` padrão é `"ask"`.
 - `read` é `"allow"`, mas arquivos `.env` são negados por padrão:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
   "permission": {
     "read": {
@@ -187,9 +187,9 @@ Você pode substituir permissões por agente. As permissões do agente são mesc
 Consulte a seção [Regras Granulares (Sintaxe de Objeto)](#granular-rules-object-syntax) acima para exemplos mais detalhados de correspondência de padrões.
 :::
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",

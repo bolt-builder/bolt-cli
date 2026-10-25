@@ -1,14 +1,14 @@
 import "@pierre/trees/web-components"
 import { FileTree } from "@pierre/trees"
-import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@bolt-ai/ui/v2/dialog-v2"
-import { ButtonV2 } from "@bolt-ai/ui/v2/button-v2"
-import { TextInputV2 } from "@bolt-ai/ui/v2/text-input-v2"
+import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from "@bolt-ai/ui/dialog"
+import { Button } from "@bolt-ai/ui/button"
+import { TextInput } from "@bolt-ai/ui/text-input"
 import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { createEffect, createMemo, createResource, createSignal, For, onCleanup, onMount, Show } from "solid-js"
-import { useGlobal } from "@/context/global"
-import { useLanguage } from "@/context/language"
-import { ServerConnection } from "@/context/server"
-import type { Path } from "@bolt-ai/sdk/v2/client"
+import { useGlobal } from "@/runtime/server/runtime"
+import { useLanguage } from "@/runtime/i18n/language"
+import { ServerConnection } from "@/runtime/server/registry"
+import type { LocationRef } from "@bolt-ai/client/promise"
 import {
   absoluteTreePath,
   activeTreeNavigation,
@@ -26,10 +26,12 @@ import {
   displayPickerPath,
   pickerParent,
   pickerRoot,
-} from "./directory-picker-domain"
-import "./dialog-select-directory-v2.css"
-import { DividerV2 } from "@bolt-ai/ui/v2/divider-v2"
-import { getFilename } from "@bolt-ai/core/util/path"
+  listPickerDirectory,
+  pickerRelativePath,
+  pickerAbsolutePath,
+} from "./domain"
+import "./dialog.css"
+import { Divider } from "@bolt-ai/ui/divider"
 
 interface DirectoryPickerDialogProps {
   title?: string

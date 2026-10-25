@@ -1,50 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import type { SessionApi, SessionInfo, SessionListInput } from "@bolt-ai/client/promise"
-import { listAllSessions, normalizeSessionInfo } from "./session"
-
-describe("normalizeSessionInfo", () => {
-  test("adapts a current session to the app session shape", () => {
-    const result = normalizeSessionInfo({
-      id: "session-1",
-      projectID: "project-1",
-      agent: "build",
-      model: { id: "gpt-5", providerID: "openai", variant: "high" },
-      cost: 0,
-      tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
-      time: { created: 1, updated: 1 },
-      title: "New session",
-      location: { directory: "/repo/worktree", workspaceID: "workspace-1" },
-      subpath: "worktree",
-      revert: { messageID: "message-1", partID: "part-1", snapshot: "snapshot", files: [] },
-    } as SessionInfo)
-
-    expect(result).toEqual({
-      id: "session-1",
-      slug: "session-1",
-      projectID: "project-1",
-      workspaceID: "workspace-1",
-      directory: "/repo/worktree",
-      path: "worktree",
-      parentID: undefined,
-      cost: 0,
-      tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
-      title: "New session",
-      agent: "build",
-      model: { id: "gpt-5", providerID: "openai", variant: "high" },
-      version: "",
-      time: { created: 1, updated: 1 },
-      revert: { messageID: "message-1", partID: "part-1", snapshot: "snapshot" },
-    })
-  })
-
-  test("supplies timestamped titles for untitled current sessions", () => {
-    const root = currentSession("session-1")
-    const child = currentSession("session-2", "session-1")
-
-    expect(normalizeSessionInfo(root).title).toBe("New session - 1970-01-01T00:00:00.000Z")
-    expect(normalizeSessionInfo(child).title).toBe("Child session - 1970-01-01T00:00:00.000Z")
-  })
-})
+import { listAllSessions } from "./list"
 
 describe("listAllSessions", () => {
   test("loads every page in server order and retains the query", async () => {

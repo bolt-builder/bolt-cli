@@ -3,7 +3,7 @@ title: トラブルシューティング
 description: よくある問題とその解決方法。
 ---
 
-Bolt の問題をデバッグするには、まず、ディスク上に保存されているログとローカルデータを確認します。
+OpenCode の問題をデバッグするには、まず、ディスク上に保存されているログとローカルデータを確認します。
 
 ---
 
@@ -22,7 +22,7 @@ Bolt の問題をデバッグするには、まず、ディスク上に保存さ
 
 ## ストレージ
 
-Bolt は、セッションデータとその他のアプリケーションデータをディスク上の次の場所に保存します。
+OpenCode は、セッションデータとその他のアプリケーションデータをディスク上の次の場所に保存します。
 
 - **macOS/Linux**: `~/.local/share/opencode/`
 - **Windows**: `WIN+R` を押して `%USERPROFILE%\.local\share\opencode` を貼り付けます
@@ -39,13 +39,13 @@ Bolt は、セッションデータとその他のアプリケーションデー
 
 ## デスクトップアプリ
 
-Bolt Desktop は、ローカル Bolt サーバー (`opencode-cli` サイドカー) をバックグラウンドで実行します。ほとんどの問題は、誤動作しているプラグイン、破損したキャッシュ、または不正なサーバー設定によって発生します。
+OpenCode Desktop は、ローカル OpenCode サーバー (`opencode-cli` サイドカー) をバックグラウンドで実行します。ほとんどの問題は、誤動作しているプラグイン、破損したキャッシュ、または不正なサーバー設定によって発生します。
 
 ### クイックチェック
 
 - アプリを完全に終了して再起動します。
 - アプリにエラー画面が表示された場合は、**再起動** をクリックしてエラーの詳細をコピーします。
-- macOS のみ: `Bolt` メニュー -> **Webview をリロード** (UI が空白またはフリーズしている場合に役立ちます)。
+- macOS のみ: `OpenCode` メニュー -> **Webview をリロード** (UI が空白またはフリーズしている場合に役立ちます)。
 
 ---
 
@@ -57,28 +57,28 @@ Bolt Desktop は、ローカル Bolt サーバー (`opencode-cli` サイドカ�
 
 グローバル設定ファイルを開き、`plugin` キーを探します。
 
-- **macOS/Linux**: `~/.config/opencode/bolt.jsonc` (または `~/.config/opencode/bolt.json`)
-- **macOS/Linux** (古いインストール): `~/.local/share/opencode/bolt.jsonc`
-- **Windows**: `WIN+R` を押して `%USERPROFILE%\.config\opencode\bolt.jsonc` を貼り付けます
+- **macOS/Linux**: `~/.config/opencode/opencode.jsonc` (または `~/.config/opencode/opencode.json`)
+- **macOS/Linux** (古いインストール): `~/.local/share/opencode/opencode.jsonc`
+- **Windows**: `WIN+R` を押して `%USERPROFILE%\.config\opencode\opencode.jsonc` を貼り付けます
 
 プラグインを構成している場合は、キーを削除するか空の配列に設定して、プラグインを一時的に無効にします。
 
 ```jsonc
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
 
 #### プラグインディレクトリの確認
 
-Bolt はディスクからローカルプラグインをロードすることもできます。これらを一時的に邪魔にならない場所に移動し (またはフォルダーの名前を変更し)、デスクトップアプリを再起動します。
+OpenCode はディスクからローカルプラグインをロードすることもできます。これらを一時的に邪魔にならない場所に移動し (またはフォルダーの名前を変更し)、デスクトップアプリを再起動します。
 
 - **グローバルプラグイン**
   - **macOS/Linux**: `~/.config/opencode/plugins/`
   - **Windows**: `WIN+R` を押して `%USERPROFILE%\.config\opencode\plugins` を貼り付けます
 - **プロジェクトプラグイン** (プロジェクトごとの構成を使用する場合のみ)
-  - `<your-project>/.bolt/plugins/`
+  - `<your-project>/.opencode/plugins/`
 
 アプリが再び動作し始めた場合は、プラグインを 1 つずつ再度有効にして、問題の原因となっているプラ​​グインを特定します。
 
@@ -86,22 +86,22 @@ Bolt はディスクからローカルプラグインをロードすることも
 
 ### キャッシュをクリアする
 
-プラグインを無効にしても解決しない場合 (またはプラグインのインストールが停止した場合)、Bolt がキャッシュを再構築できるようにキャッシュをクリアします。
+プラグインを無効にしても解決しない場合 (またはプラグインのインストールが停止した場合)、OpenCode がキャッシュを再構築できるようにキャッシュをクリアします。
 
-1. Bolt Desktop を完全に終了します。
+1. OpenCode Desktop を完全に終了します。
 2. キャッシュディレクトリを削除します。
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> `~/.cache/opencode` を貼り付け
 - **Linux**: `~/.cache/opencode` を削除します (または `rm -rf ~/.cache/opencode` を実行します)。
 - **Windows**: `WIN+R` を押して `%USERPROFILE%\.cache\opencode` を貼り付けます
 
-3. Bolt デスクトップを再起動します。
+3. OpenCode デスクトップを再起動します。
 
 ---
 
 ### サーバー接続の問題の修正
 
-Bolt Desktop は、独自のローカルサーバー (デフォルト) を起動することも、構成したサーバー URL に接続することもできます。
+OpenCode Desktop は、独自のローカルサーバー (デフォルト) を起動することも、構成したサーバー URL に接続することもできます。
 
 **「接続に失敗しました」** ダイアログが表示された場合 (またはアプリがスプラッシュ画面を通過できない場合)、カスタムサーバー URL を確認してください。
 
@@ -111,13 +111,13 @@ Bolt Desktop は、独自のローカルサーバー (デフォルト) を起動
 
 #### 設定から `server.port` / `server.hostname` を削除します
 
-`bolt.json(c)` に `server` セクションが含まれている場合は、それを一時的に削除し、デスクトップアプリを再起動します。
+`opencode.json(c)` に `server` セクションが含まれている場合は、それを一時的に削除し、デスクトップアプリを再起動します。
 
 #### 環境変数を確認する
 
-環境に `BOLT_PORT` が設定されている場合、デスクトップアプリはローカルサーバーにそのポートを使用しようとします。
+環境に `OPENCODE_PORT` が設定されている場合、デスクトップアプリはローカルサーバーにそのポートを使用しようとします。
 
-- `BOLT_PORT` の設定を解除して (または空きポートを選択して)、再起動します。
+- `OPENCODE_PORT` の設定を解除して (または空きポートを選択して)、再起動します。
 
 ---
 
@@ -132,21 +132,21 @@ Linux では、一部の Wayland セットアップにより、空白のウィ�
 
 ### Windows: WebView2 ランタイム
 
-Windows では、Bolt Desktop には Microsoft Edge **WebView2 ランタイム**が必要です。アプリが空白のウィンドウで開くか、起動しない場合は、WebView2 をインストールまたは更新して、もう一度試してください。
+Windows では、OpenCode Desktop には Microsoft Edge **WebView2 ランタイム**が必要です。アプリが空白のウィンドウで開くか、起動しない場合は、WebView2 をインストールまたは更新して、もう一度試してください。
 
 ---
 
 ### Windows: 一般的なパフォーマンスの問題
 
-Windows でパフォーマンスの低下、ファイルアクセスの問題、またはターミナルの問題が発生している場合は、[WSL (Windows Subsystem for Linux)](/docs/windows-wsl) を使用してみてください。 WSL は、Bolt の機能とよりシームレスに連携する Linux 環境を提供します。
+Windows でパフォーマンスの低下、ファイルアクセスの問題、またはターミナルの問題が発生している場合は、[WSL (Windows Subsystem for Linux)](/docs/windows-wsl) を使用してみてください。 WSL は、OpenCode の機能とよりシームレスに連携する Linux 環境を提供します。
 
 ---
 
 ### 通知が表示されない
 
-Bolt Desktop では、次の場合にのみシステム通知が表示されます。
+OpenCode Desktop では、次の場合にのみシステム通知が表示されます。
 
-- OS 設定で Bolt の通知が有効になっており、
+- OS 設定で OpenCode の通知が有効になっており、
 - アプリウィンドウにフォーカスがありません。
 
 ---
@@ -155,11 +155,11 @@ Bolt Desktop では、次の場合にのみシステム通知が表示されま�
 
 アプリが起動せず、UI 内から設定をクリアできない場合は、デスクトップアプリの保存された状態をリセットします。
 
-1. Bolt デスクトップを終了します。
-2. これらのファイルを見つけて削除します (これらのファイルは Bolt デスクトップアプリのデータディレクトリにあります)。
+1. OpenCode デスクトップを終了します。
+2. これらのファイルを見つけて削除します (これらのファイルは OpenCode デスクトップアプリのデータディレクトリにあります)。
 
-- `bolt.settings.dat` (デスクトップのデフォルトサーバー URL)
-- `bolt.global.dat` および `bolt.workspace.*.dat` (最近のサーバー/プロジェクトなどの UI 状態)
+- `opencode.settings.dat` (デスクトップのデフォルトサーバー URL)
+- `opencode.global.dat` および `opencode.workspace.*.dat` (最近のサーバー/プロジェクトなどの UI 状態)
 
 ディレクトリをすばやく見つけるには:
 
@@ -171,13 +171,13 @@ Bolt Desktop では、次の場合にのみシステム通知が表示されま�
 
 ## ヘルプを求める
 
-Bolt で問題が発生している場合:
+OpenCode で問題が発生している場合:
 
 1. **GitHub で問題を報告してください**
 
 バグを報告したり、機能をリクエストしたりする最良の方法は、GitHub リポジトリを使用することです。
 
-[**https://github.com/Bolt-builder/bolt-cli/issues**](https://github.com/Bolt-builder/bolt-cli/issues)
+[**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
 新しい問題を作成する前に、既存の問題を検索して、問題がすでに報告されているかどうかを確認してください。
 
@@ -185,7 +185,7 @@ Bolt で問題が発生している場合:
 
 リアルタイムのヘルプやコミュニティのディスカッションについては、Discord サーバーに参加してください。
 
-[**bolt.ai/discord**](https://bolt.ai/discord)
+[**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 
@@ -195,7 +195,7 @@ Bolt で問題が発生している場合:
 
 ---
 
-### Bolt が起動しない
+### OpenCode が起動しない
 
 1. ログでエラーメッセージを確認する
 2. `--print-logs` で実行して、ターミナルに出力を確認してください。
@@ -252,7 +252,7 @@ ProviderInitError が発生した場合は、構成が無効または破損し�
 
 ### AI_APICallError とプロバイダーパッケージの問題
 
-API 呼び出しエラーが発生した場合は、プロバイダーパッケージが古いことが原因である可能性があります。 Bolt は、必要に応じてプロバイダーパッケージ (OpenAI、Anthropic、Google など) を動的にインストールし、ローカルにキャッシュします。
+API 呼び出しエラーが発生した場合は、プロバイダーパッケージが古いことが原因である可能性があります。 OpenCode は、必要に応じてプロバイダーパッケージ (OpenAI、Anthropic、Google など) を動的にインストールし、ローカルにキャッシュします。
 
 プロバイダーパッケージの問題を解決するには:
 
@@ -264,9 +264,9 @@ API 呼び出しエラーが発生した場合は、プロバイダーパッケ�
 
    Windows では、`WIN+R` を押して、`%USERPROFILE%\.cache\opencode` を削除します。
 
-2. Bolt を再起動して最新のプロバイダーパッケージを再インストールします
+2. OpenCode を再起動して最新のプロバイダーパッケージを再インストールします
 
-これにより、Bolt はプロバイダーパッケージの最新バージョンを強制的にダウンロードすることになり、多くの場合、モデルパラメーターや API の変更に関する互換性の問題が解決されます。
+これにより、OpenCode はプロバイダーパッケージの最新バージョンを強制的にダウンロードすることになり、多くの場合、モデルパラメーターや API の変更に関する互換性の問題が解決されます。
 
 ---
 
@@ -297,4 +297,4 @@ Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 export DISPLAY=:99.0
 ```
 
-Bolt は、Wayland を使用していて `wl-clipboard` を優先しているかどうかを検出します。そうでない場合は、`xclip` および `xsel` の順序でクリップボードツールを検索しようとします。
+OpenCode は、Wayland を使用していて `wl-clipboard` を優先しているかどうかを検出します。そうでない場合は、`xclip` および `xsel` の順序でクリップボードツールを検索しようとします。

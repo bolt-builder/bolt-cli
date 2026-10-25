@@ -3,7 +3,7 @@ title: Fehlerbehebung
 description: Haeufige Probleme und schnelle Loesungen.
 ---
 
-Wenn Bolt Probleme macht, starte mit Logs und lokal gespeicherten Daten auf der Festplatte.
+Wenn OpenCode Probleme macht, starte mit Logs und lokal gespeicherten Daten auf der Festplatte.
 
 ---
 
@@ -39,14 +39,14 @@ Dieses Verzeichnis enthaelt:
 
 ## Desktop-App
 
-Bolt Desktop startet im Hintergrund einen lokalen Bolt-Server (`opencode-cli`-Sidecar).
+OpenCode Desktop startet im Hintergrund einen lokalen OpenCode-Server (`opencode-cli`-Sidecar).
 Viele Probleme kommen von fehlerhaften Plugins, kaputtem Cache oder falschen Server-Einstellungen.
 
 ### Schnellchecks
 
 - App komplett beenden und neu starten
 - Bei Fehlerbildschirm **Restart** klicken und Details kopieren
-- Nur macOS: `Bolt`-Menue -> **Reload Webview** (hilft bei leerer/eingefrorener UI)
+- Nur macOS: `OpenCode`-Menue -> **Reload Webview** (hilft bei leerer/eingefrorener UI)
 
 ---
 
@@ -58,28 +58,28 @@ Wenn die Desktop-App beim Start abstuerzt, haengt oder sich seltsam verhaelt, de
 
 Oeffne deine globale Konfigurationsdatei und suche nach dem `plugin`-Schluessel.
 
-- **macOS/Linux**: `~/.config/opencode/bolt.jsonc` (oder `~/.config/opencode/bolt.json`)
-- **macOS/Linux** (aeltere Installationen): `~/.local/share/opencode/bolt.jsonc`
-- **Windows**: Druecke `WIN+R` und fuege ein: `%USERPROFILE%\.config\opencode\bolt.jsonc`
+- **macOS/Linux**: `~/.config/opencode/opencode.jsonc` (oder `~/.config/opencode/opencode.json`)
+- **macOS/Linux** (aeltere Installationen): `~/.local/share/opencode/opencode.jsonc`
+- **Windows**: Druecke `WIN+R` und fuege ein: `%USERPROFILE%\.config\opencode\opencode.jsonc`
 
 Wenn du Plugins konfiguriert hast, deaktiviere sie voruebergehend, indem du den Schluessel entfernst oder auf ein leeres Array setzt:
 
 ```jsonc
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
 
 #### Plugin-Verzeichnisse prüfen
 
-Bolt kann auch lokale Plugins von der Festplatte laden. Verschiebe diese voruebergehend (oder benenne den Ordner um) und starte die Desktop-App neu:
+OpenCode kann auch lokale Plugins von der Festplatte laden. Verschiebe diese voruebergehend (oder benenne den Ordner um) und starte die Desktop-App neu:
 
 - **Globale Plugins**
   - **macOS/Linux**: `~/.config/opencode/plugins/`
   - **Windows**: Druecke `WIN+R` und fuege ein: `%USERPROFILE%\.config\opencode\plugins`
 - **Projekt-Plugins** (nur bei projektspezifischer Konfig)
-  - `<your-project>/.bolt/plugins/`
+  - `<your-project>/.opencode/plugins/`
 
 Wenn die App wieder funktioniert, aktiviere Plugins nacheinander, um den Verursacher zu finden.
 
@@ -87,22 +87,22 @@ Wenn die App wieder funktioniert, aktiviere Plugins nacheinander, um den Verursa
 
 ### Cache leeren
 
-Wenn das Deaktivieren von Plugins nicht hilft (oder eine Plugin-Installation haengt), leere den Cache, damit Bolt ihn neu aufbauen kann.
+Wenn das Deaktivieren von Plugins nicht hilft (oder eine Plugin-Installation haengt), leere den Cache, damit OpenCode ihn neu aufbauen kann.
 
-1. Beende Bolt Desktop komplett.
+1. Beende OpenCode Desktop komplett.
 2. Loesche das Cache-Verzeichnis:
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> einfuegen: `~/.cache/opencode`
 - **Linux**: loesche `~/.cache/opencode` (oder fuehre aus: `rm -rf ~/.cache/opencode`)
 - **Windows**: Druecke `WIN+R` und fuege ein: `%USERPROFILE%\.cache\opencode`
 
-3. Starte Bolt Desktop neu.
+3. Starte OpenCode Desktop neu.
 
 ---
 
 ### Server-Verbindungsprobleme beheben
 
-Bolt Desktop kann entweder einen eigenen lokalen Server starten (Standard) oder sich mit einer konfigurierten Server-URL verbinden.
+OpenCode Desktop kann entweder einen eigenen lokalen Server starten (Standard) oder sich mit einer konfigurierten Server-URL verbinden.
 
 Wenn du einen **"Connection Failed"**-Dialog siehst (oder die App beim Splash-Screen haengen bleibt), pruefe auf eine benutzerdefinierte Server-URL.
 
@@ -112,13 +112,13 @@ Klicke im Startbildschirm auf den Servernamen (mit dem Statuspunkt), um die Serv
 
 #### `server.port` / `server.hostname` aus Konfiguration entfernen
 
-Wenn deine `bolt.json(c)` einen `server`-Abschnitt enthaelt, entferne ihn voruebergehend und starte die Desktop-App neu.
+Wenn deine `opencode.json(c)` einen `server`-Abschnitt enthaelt, entferne ihn voruebergehend und starte die Desktop-App neu.
 
 #### Umgebungsvariablen prüfen
 
-Wenn du `BOLT_PORT` in deiner Umgebung gesetzt hast, versucht die Desktop-App diesen Port fuer den lokalen Server zu nutzen.
+Wenn du `OPENCODE_PORT` in deiner Umgebung gesetzt hast, versucht die Desktop-App diesen Port fuer den lokalen Server zu nutzen.
 
-- Setze `BOLT_PORT` zurueck (oder waehle einen freien Port) und starte neu.
+- Setze `OPENCODE_PORT` zurueck (oder waehle einen freien Port) und starte neu.
 
 ---
 
@@ -133,21 +133,21 @@ Unter Linux koennen manche Wayland-Setups leere Fenster oder Compositor-Fehler v
 
 ### Windows: WebView2-Laufzeit
 
-Unter Windows benoetigt Bolt Desktop die Microsoft Edge **WebView2 Runtime**. Wenn die App ein leeres Fenster zeigt oder nicht startet, installiere/aktualisiere WebView2 und versuche es erneut.
+Unter Windows benoetigt OpenCode Desktop die Microsoft Edge **WebView2 Runtime**. Wenn die App ein leeres Fenster zeigt oder nicht startet, installiere/aktualisiere WebView2 und versuche es erneut.
 
 ---
 
 ### Windows: Allgemeine Performance-Probleme
 
-Wenn du langsame Performance, Dateizugriffsprobleme oder Terminal-Probleme unter Windows hast, versuche [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL bietet eine Linux-Umgebung, die nahtloser mit Bolt-Features funktioniert.
+Wenn du langsame Performance, Dateizugriffsprobleme oder Terminal-Probleme unter Windows hast, versuche [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL bietet eine Linux-Umgebung, die nahtloser mit OpenCode-Features funktioniert.
 
 ---
 
 ### Benachrichtigungen werden nicht angezeigt
 
-Bolt Desktop zeigt Systembenachrichtigungen nur wenn:
+OpenCode Desktop zeigt Systembenachrichtigungen nur wenn:
 
-- Benachrichtigungen fuer Bolt in den OS-Einstellungen aktiviert sind, und
+- Benachrichtigungen fuer OpenCode in den OS-Einstellungen aktiviert sind, und
 - das App-Fenster nicht fokussiert ist.
 
 ---
@@ -156,11 +156,11 @@ Bolt Desktop zeigt Systembenachrichtigungen nur wenn:
 
 Wenn die App nicht startet und du Einstellungen nicht in der UI loeschen kannst, setze den gespeicherten Zustand der Desktop-App zurueck.
 
-1. Beende Bolt Desktop.
-2. Finde und loesche diese Dateien (im App-Data-Verzeichnis von Bolt Desktop):
+1. Beende OpenCode Desktop.
+2. Finde und loesche diese Dateien (im App-Data-Verzeichnis von OpenCode Desktop):
 
-- `bolt.settings.dat` (desktop default server URL)
-- `bolt.global.dat` und `bolt.workspace.*.dat` (UI state like recent servers/projects)
+- `opencode.settings.dat` (desktop default server URL)
+- `opencode.global.dat` und `opencode.workspace.*.dat` (UI state like recent servers/projects)
 
 So findest du das Verzeichnis schnell:
 
@@ -172,13 +172,13 @@ So findest du das Verzeichnis schnell:
 
 ## Hilfe bekommen
 
-Wenn du Probleme mit Bolt hast:
+Wenn du Probleme mit OpenCode hast:
 
 1. **Probleme auf GitHub melden**
 
    Bugs und Feature-Wuensche meldest du am besten im GitHub-Repository:
 
-   [**https://github.com/Bolt-builder/bolt-cli/issues**](https://github.com/Bolt-builder/bolt-cli/issues)
+   [**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
    Suche vor dem Erstellen nach bestehenden Issues, damit Duplikate vermieden werden.
 
@@ -186,7 +186,7 @@ Wenn du Probleme mit Bolt hast:
 
    Fuer schnelle Hilfe und Austausch in der Community:
 
-   [**bolt.ai/discord**](https://bolt.ai/discord)
+   [**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 
@@ -196,7 +196,7 @@ Hier sind typische Fehlerbilder und wie du sie loest.
 
 ---
 
-### Bolt startet nicht
+### OpenCode startet nicht
 
 1. Pruefe die Logs auf Fehlermeldungen
 2. Versuche den Start mit `--print-logs`, um Ausgaben im Terminal zu sehen
@@ -266,7 +266,7 @@ Um Provider-Paket-Probleme zu loesen:
 
 2. Starte opencode neu, um die neuesten Provider-Pakete zu installieren
 
-Dies zwingt bolt, die neuesten Versionen der Provider-Pakete herunterzuladen, was oft Kompatibilitaetsprobleme mit Modellparametern und API-Aenderungen loest.
+Dies zwingt opencode, die neuesten Versionen der Provider-Pakete herunterzuladen, was oft Kompatibilitaetsprobleme mit Modellparametern und API-Aenderungen loest.
 
 ---
 

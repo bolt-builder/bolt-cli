@@ -5,11 +5,11 @@ export const config = {
   consoleMarketingEnabled: import.meta.env.VITE_CONSOLE_MARKETING_ENABLED === "true",
 
   // Base URL
-  baseUrl: "https://bolt.ai",
+  baseUrl: "https://opencode.ai",
 
   // GitHub
   github: {
-    repoUrl: "https://github.com/Bolt-builder/bolt-cli",
+    repoUrl: "https://github.com/anomalyco/opencode",
     starsFormatted: {
       compact: "220K",
       full: "220,000",

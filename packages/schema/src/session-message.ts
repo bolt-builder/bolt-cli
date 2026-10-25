@@ -1,12 +1,22 @@
 export * as SessionMessage from "./session-message.js"
 
 import { Schema } from "effect"
-import { ProviderMetadata, ToolContent } from "./llm"
-import { Model } from "./model"
-import { FileAttachment, Prompt } from "./prompt"
-import { DateTimeUtcFromMillis, RelativePath, optional, statics } from "./schema"
-import { SessionID } from "./session-id"
-import { ascending } from "./identifier"
+import { optional } from "./schema.js"
+import { Content } from "./tool.js"
+import { Location } from "./location.js"
+import { Model } from "./model.js"
+import { Project } from "./project.js"
+import { Prompt } from "./prompt.js"
+import { DateTimeUtcFromMillis, PositiveInt, RelativePath, statics } from "./schema.js"
+import { ascending } from "./identifier.js"
+import { Shell as ShellSchema } from "./shell.js"
+import { FinishReason } from "./llm.js"
+import { SessionError } from "./session-error.js"
+import { Agent } from "./agent.js"
+import { Skill as SkillSchema } from "./skill.js"
+import { Money } from "./money.js"
+import { Snapshot } from "./snapshot.js"
+import { TokenUsage } from "./token-usage.js"
 
 export const ID = Schema.String.check(Schema.isStartingWith("msg_")).pipe(
   Schema.brand("Session.Message.ID"),

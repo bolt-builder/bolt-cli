@@ -6,6 +6,7 @@ import {
   type MarketDay,
   type TokenCostEntry,
 } from "@bolt-ai/stats-core/domain/home"
+import { statModel } from "@bolt-ai/stats-core/domain/model-normalization"
 import { runStatsEffect } from "../stats-runtime"
 import {
   catalogSlug,

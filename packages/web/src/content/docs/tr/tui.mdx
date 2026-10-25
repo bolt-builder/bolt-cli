@@ -1,13 +1,13 @@
 ---
 title: TUI
-description: Bolt terminal kullanıcı arayüzünü kullanma.
+description: OpenCode terminal kullanıcı arayüzünü kullanma.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-Bolt, projelerinizde LLM ile çalışmak için etkileşimli bir terminal arayüzü (TUI) sunar.
+OpenCode, projelerinizde LLM ile çalışmak için etkileşimli bir terminal arayüzü (TUI) sunar.
 
-Bolt'u çalıştırdığınızda mevcut dizin için TUI başlar.
+OpenCode'u çalıştırdığınızda mevcut dizin için TUI başlar.
 
 ```bash
 opencode
@@ -57,7 +57,7 @@ Komut çıktısı bir araç sonucu olarak konuşmaya eklenir.
 
 ## Komutlar
 
-Bolt TUI kullanırken `/` ve ardından komut adını yazarak hızlı eylemler çalıştırabilirsiniz. Örneğin:
+OpenCode TUI kullanırken `/` ve ardından komut adını yazarak hızlı eylemler çalıştırabilirsiniz. Örneğin:
 
 ```bash frame="none"
 /help
@@ -71,7 +71,7 @@ Komutların çoğu, lider tuşu `ctrl+x` olan bir kısayola da sahiptir. [Daha f
 
 ### connect
 
-Bolt'a bir sağlayıcı ekler. Mevcut sağlayıcıları seçip API anahtarları eklemenizi sağlar.
+OpenCode'a bir sağlayıcı ekler. Mevcut sağlayıcıları seçip API anahtarları eklemenizi sağlar.
 
 ```bash frame="none"
 /connect
@@ -117,7 +117,7 @@ Mesaj yazmak için harici editör açar. `EDITOR` ortam değişkeninde ayarlı e
 
 ### exit
 
-Bolt'dan çıkar. _Takma adlar_: `/quit`, `/q`
+OpenCode'dan çıkar. _Takma adlar_: `/quit`, `/q`
 
 ```bash frame="none"
 /exit
@@ -335,8 +335,8 @@ TUI davranışını `tui.json` (veya `tui.jsonc`) aracılığıyla özelleştire
 
 ```json title="tui.json"
 {
-  "$schema": "https://bolt.ai/tui.json",
-  "theme": "bolt",
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "opencode",
   "leader_timeout": 2000,
   "keybinds": {
     "leader": "ctrl+x",
@@ -353,7 +353,7 @@ TUI davranışını `tui.json` (veya `tui.jsonc`) aracılığıyla özelleştire
     "notifications": true,
     "sound": true,
     "volume": 0.4,
-    "sound_pack": "bolt.default",
+    "sound_pack": "opencode.default",
     "sounds": {
       "error": "./sounds/error.mp3"
     }
@@ -361,7 +361,7 @@ TUI davranışını `tui.json` (veya `tui.jsonc`) aracılığıyla özelleştire
 }
 ```
 
-Bu, sunucu/çalışma zamanı davranışını yapılandıran `bolt.json` dosyasından ayrıdır.
+Bu, sunucu/çalışma zamanı davranışını yapılandıran `opencode.json` dosyasından ayrıdır.
 
 `keybinds` yerleşik varsayılanlarla birleştirilir; bu yüzden yalnızca değiştirmek istediğiniz kısayolları yapılandırmanız yeterlidir.
 
@@ -369,24 +369,24 @@ Bu, sunucu/çalışma zamanı davranışını yapılandıran `bolt.json` dosyas�
 
 - `theme` - UI temanızı ayarlar. [Daha fazla bilgi](/docs/themes).
 - `keybinds` - Klavye kısayollarını özelleştirir. [Daha fazla bilgi](/docs/keybinds).
-- `leader_timeout` - Bolt'un leader key sonrasında ne kadar bekleyeceğini kontrol eder. Varsayılan değer `2000`.
+- `leader_timeout` - OpenCode'un leader key sonrasında ne kadar bekleyeceğini kontrol eder. Varsayılan değer `2000`.
 - `scroll_acceleration.enabled` - Pürüzsüz, doğal kaydırma için macOS tarzı kaydırma ivmesini etkinleştirin. Etkinleştirildiğinde, kaydırma hızı hızlı kaydırma hareketleriyle artar ve daha yavaş hareketler için hassas kalır. **Bu ayar `scroll_speed` ayarından önceliklidir ve etkinleştirildiğinde onu geçersiz kılar.**
 - `scroll_speed` - Kaydırma komutlarını kullanırken TUI'nin ne kadar hızlı kaydırılacağını kontrol eder (minimum: `0.001`, ondalık değerleri destekler). Varsayılan değer `3`'tür. **Not: `scroll_acceleration.enabled` `true` olarak ayarlanmışsa bu yok sayılır.**
 - `diff_style` - Fark (diff) oluşturmayı kontrol eder. `"auto"` terminal genişliğine uyum sağlar, `"stacked"` her zaman tek sütunlu bir düzen gösterir.
 - `mouse` - TUI içinde fare yakalamayı etkinleştirir veya devre dışı bırakır (varsayılan: `true`). Devre dışı bırakıldığında terminalin yerel fareyle seçme ve kaydırma davranışı korunur.
 - `attention` - TUI masaüstü bildirimlerini ve seslerini yapılandırır. Varsayılan olarak devre dışıdır.
 
-Özel bir TUI yapılandırma yolu yüklemek için `BOLT_TUI_CONFIG` kullanın.
+Özel bir TUI yapılandırma yolu yüklemek için `OPENCODE_TUI_CONFIG` kullanın.
 
 ### Attention
 
-Attention, Bolt bir yanıt beklediğinde, izin onayı gerektiğinde, oturum hatası oluştuğunda veya oturum tamamlandığında TUI'nin sizi ses ve masaüstü bildirimiyle uyarmasını sağlar. `attention.enabled` ile etkinleştirin; yerleşik olaylar gerçekleştiğinde ses çalar. Masaüstü bildirimleri yalnızca terminal penceresi odakta değilken gönderilir ve subagent olayları için kullanılmaz.
+Attention, OpenCode bir yanıt beklediğinde, izin onayı gerektiğinde, oturum hatası oluştuğunda veya oturum tamamlandığında TUI'nin sizi ses ve masaüstü bildirimiyle uyarmasını sağlar. `attention.enabled` ile etkinleştirin; yerleşik olaylar gerçekleştiğinde ses çalar. Masaüstü bildirimleri yalnızca terminal penceresi odakta değilken gönderilir ve subagent olayları için kullanılmaz.
 
 - `enabled` - Attention için tüm bildirimleri ve sesleri etkinleştirir. Varsayılan değer `false`.
 - `notifications` - Attention etkin olduğunda TUI'nin terminal üzerinden masaüstü bildirimi göndermesine izin verir. Varsayılan değer `true`.
 - `sound` - Attention etkin olduğunda uyarı seslerinin çalmasına izin verir. Varsayılan değer `true`.
 - `volume` - Uyarı sesleri için varsayılan ses düzeyi, `0` ile `1` arasındadır. Varsayılan değer `0.4`.
-- `sound_pack` - Kullanılacak sound pack ID. Varsayılan değer `bolt.default`.
+- `sound_pack` - Kullanılacak sound pack ID. Varsayılan değer `opencode.default`.
 - `sounds` - `default`, `question`, `permission`, `error`, `done` veya `subagent_done` için özel ses dosyaları ayarlar. Yollar mutlak, `file://` URL'leri veya `tui.json` dosyasına göre göreli olabilir.
 
 ---

@@ -1,10 +1,11 @@
-import { useCommand, type CommandOption } from "@/context/command"
-import { useLanguage } from "@/context/language"
-import { useLocal, type ModelSelection } from "@/context/local"
+import { useCommand, type CommandOption } from "@/shell/commands/command"
+import { useLanguage } from "@/runtime/i18n/language"
+import { DialogSelectModel } from "@/providers/models/select-dialog"
+import { useLocal, type ModelSelection } from "@/providers/models/selection"
 import { useDialog } from "@bolt-ai/ui/context/dialog"
-import { getCursorPosition, setCursorPosition } from "@/components/prompt-input/editor-dom"
-import { useSessionLayout } from "./session-layout"
-import { createSessionOwnership } from "./session-ownership"
+import { useSessionLayout } from "@/session/session-layout"
+import { createSessionOwnership } from "@/session/session-ownership"
+import { useWorkspaceLocation } from "@/workspaces/location"
 
 const withCategory = (category: string) => {
   return (option: Omit<CommandOption, "category">): CommandOption => ({

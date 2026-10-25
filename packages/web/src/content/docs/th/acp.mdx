@@ -1,9 +1,9 @@
 ---
 title: การรองรับ ACP
-description: ใช้ Bolt ในโปรแกรมแก้ไขที่รองรับ ACP
+description: ใช้ OpenCode ในโปรแกรมแก้ไขที่รองรับ ACP
 ---
 
-Bolt รองรับ [Agent Client Protocol](https://agentclientprotocol.com) (ACP) ซึ่งช่วยให้สามารถทำงานร่วมกับ editor และ IDE ต่างๆ ได้โดยตรง
+OpenCode รองรับ [Agent Client Protocol](https://agentclientprotocol.com) (ACP) ซึ่งช่วยให้สามารถทำงานร่วมกับ editor และ IDE ต่างๆ ได้โดยตรง
 
 :::tip
 สำหรับรายชื่อเครื่องมือที่รองรับ ACP สามารถดูได้ที่ [ACP progress report](https://zed.dev/blog/acp-progress-report#available-now)
@@ -15,9 +15,9 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 
 ## การกำหนดค่า
 
-ในการใช้ Bolt ผ่าน ACP ให้กำหนดค่าโปรแกรมแก้ไขของคุณให้รันคำสั่ง `opencode acp`
+ในการใช้ OpenCode ผ่าน ACP ให้กำหนดค่าโปรแกรมแก้ไขของคุณให้รันคำสั่ง `opencode acp`
 
-คำสั่งนี้จะเริ่ม Bolt เป็น process ย่อยที่รองรับ ACP ซึ่งสื่อสารกับโปรแกรมแก้ไขของคุณผ่าน JSON-RPC ทาง stdio
+คำสั่งนี้จะเริ่ม OpenCode เป็น process ย่อยที่รองรับ ACP ซึ่งสื่อสารกับโปรแกรมแก้ไขของคุณผ่าน JSON-RPC ทาง stdio
 
 นี่คือตัวอย่างสำหรับโปรแกรมแก้ไขยอดนิยมที่รองรับ ACP
 
@@ -25,16 +25,16 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 
 ### Zed
 
-ติดตั้ง Bolt จาก [รีจิสทรี ACP ของ Zed](https://zed.dev/docs/ai/external-agents#registry) โดยเรียกใช้ `zed: acp registry` ใน Command Palette
+ติดตั้ง OpenCode จาก [รีจิสทรี ACP ของ Zed](https://zed.dev/docs/ai/external-agents#registry) โดยเรียกใช้ `zed: acp registry` ใน Command Palette
 
-หากต้องการใช้ไฟล์ปฏิบัติการ Bolt แบบกำหนดเอง ให้เพิ่มลงในการตั้งค่า [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+หากต้องการใช้ไฟล์ปฏิบัติการ OpenCode แบบกำหนดเอง ให้เพิ่มลงในการตั้งค่า [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "type": "custom",
-      "command": "bolt",
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -54,9 +54,9 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
         {
           "agent": {
             "custom": {
-              "name": "Bolt",
+              "name": "OpenCode",
               "command": {
-                "command": "bolt",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -77,7 +77,7 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -85,7 +85,7 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 }
 ```
 
-นี่เป็นการเปิดให้ตัวแทน 'Bolt' ในเนื้อหาของตัวแทน AI Chat
+นี่เป็นการเปิดให้ตัวแทน 'OpenCode' ในเนื้อหาของตัวแทน AI Chat
 
 ---
 
@@ -96,24 +96,24 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 ```lua
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
 }
 ```
 
-หากคุณต้องการส่งผ่าน environment variables (เช่น `BOLT_API_KEY`) คุณต้องระบุใน `env`:
+หากคุณต้องการส่งผ่าน environment variables (เช่น `OPENCODE_API_KEY`) คุณต้องระบุใน `env`:
 
 ```lua {6-8}
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        BOLT_API_KEY = os.getenv("BOLT_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -124,15 +124,15 @@ ACP เป็นมาตรฐานเปิดสำหรับการส�
 
 ### CodeCompanion.nvim
 
-ลองใช้ Bolt ACP ใน [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim) ให้เพิ่มสิ่งต่อไปนี้ใน Neovim ของคุณ:
+ลองใช้ OpenCode ACP ใน [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim) ให้เพิ่มสิ่งต่อไปนี้ใน Neovim ของคุณ:
 
 ```lua
 require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "bolt",
-        model = "claude-sonnet-4",
+        name = "opencode",
+        model = "claude-sonnet-5-5",
       },
     },
   },
@@ -141,7 +141,7 @@ require("codecompanion").setup({
 
 คุณสามารถใช้ CodeCompanion เพื่อใช้ opencode เป็น ACP agent สำหรับแชท
 
-หากคุณต้องส่ง environment variables (เช่น `BOLT_API_KEY`) โปรดดู [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) ในเอกสารของ CodeCompanion.nvim สำหรับรายละเอียดทั้งหมด
+หากคุณต้องส่ง environment variables (เช่น `OPENCODE_API_KEY`) โปรดดู [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) ในเอกสารของ CodeCompanion.nvim สำหรับรายละเอียดทั้งหมด
 
 ## การรองรับ
 
@@ -153,7 +153,7 @@ opencode ทำงานผ่าน ACP เหมือนกับใน termi
 
 - เครื่องมือใน (ไฟล์ไฟล์คำสั่งอื่นๆ)
 - คำอธิบายและคำสั่งสแลช
-- MCP แขกที่นี่คือข้อมูลเพิ่มเติมของ Bolt ของคุณ
+- MCP แขกที่นี่คือข้อมูลเพิ่มเติมของ OpenCode ของคุณ
 - กฎเฉพาะโครงการจาก `AGENTS.md`
 - คนจัดรูปแบบและ linters เวียนนา
 - ระบบตัวแทนและระบบ

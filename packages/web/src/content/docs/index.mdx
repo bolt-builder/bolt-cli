@@ -1,15 +1,20 @@
 ---
 title: Intro
-description: Get started with Bolt.
+description: Get started with OpenCode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 import config from "../../../config.mjs"
 export const console = config.console
 
-[**Bolt**](/) is an open source AI coding agent. It's available as a terminal-based interface, desktop app, or IDE extension.
+:::note
+OpenCode 1 and OpenCode 2 both use the `opencode` command and cannot be installed side by side under their default command.
+See the [OpenCode 2 docs](https://opencode.ai/v2/docs/) to migrate to V2.
+:::
 
-![Bolt TUI with the opencode theme](../../assets/lander/screenshot.png)
+[**OpenCode**](/) is an open source AI coding agent. It's available as a terminal-based interface, desktop app, or IDE extension.
+
+![OpenCode TUI with the opencode theme](../../assets/lander/screenshot.png)
 
 Let's get started.
 
@@ -17,7 +22,7 @@ Let's get started.
 
 #### Prerequisites
 
-To use Bolt in your terminal, you'll need:
+To use OpenCode in your terminal, you'll need:
 
 1. A modern terminal emulator like:
    - [WezTerm](https://wezterm.org), cross-platform
@@ -31,10 +36,11 @@ To use Bolt in your terminal, you'll need:
 
 ## Install
 
-The easiest way to install Bolt is through the install script.
+The easiest way to install OpenCode 1 is through the install script. These installation methods provide the `opencode`
+binary and can conflict with or replace an OpenCode 2 installation.
 
 ```bash
-curl -fsSL https://bolt.ai/install | bash
+curl -fsSL https://opencode.ai/install | bash
 ```
 
 You can also install it with the following commands:
@@ -45,28 +51,28 @@ You can also install it with the following commands:
 
       <TabItem label="npm">
       ```bash
-      npm install -g bolt-ai
+      npm install -g opencode-ai
       ```
 
           </TabItem>
 
         <TabItem label="Bun">
         ```bash
-        bun install -g bolt-ai
+        bun install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="pnpm">
         ```bash
-        pnpm install -g bolt-ai
+        pnpm install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="Yarn">
         ```bash
-        yarn global add bolt-ai
+        yarn global add opencode-ai
         ```
 
       </TabItem>
@@ -79,7 +85,7 @@ You can also install it with the following commands:
   brew install anomalyco/tap/opencode
   ```
 
-  > We recommend using the Bolt tap for the most up to date releases. The official `brew install opencode` formula is maintained by the Homebrew team and is updated less frequently.
+  > Use the OpenCode tap above for V1. Homebrew's `brew install opencode` formula currently installs V2. See the [V2 docs](https://opencode.ai/v2/docs/).
 
 - **Installing on Arch Linux**
 
@@ -93,7 +99,7 @@ You can also install it with the following commands:
 #### Windows
 
 :::tip[Recommended: Use WSL]
-For the best experience on Windows, we recommend using [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). It provides better performance and full compatibility with Bolt's features.
+For the best experience on Windows, we recommend using [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). It provides better performance and full compatibility with OpenCode's features.
 :::
 
 - **Using Chocolatey**
@@ -111,36 +117,36 @@ For the best experience on Windows, we recommend using [Windows Subsystem for Li
 - **Using NPM**
 
   ```bash
-  npm install -g bolt-ai
+  npm install -g opencode-ai
   ```
 
 - **Using Mise**
 
   ```bash
-  mise use -g github:bolt-builder/bolt-cli
+  mise use -g github:anomalyco/opencode
   ```
 
 - **Using Docker**
 
   ```bash
-  docker run -it --rm ghcr.io/bolt-builder/bolt-cli
+  docker run -it --rm ghcr.io/anomalyco/opencode
   ```
 
-Support for installing Bolt on Windows using Bun is currently in progress.
+Support for installing OpenCode on Windows using Bun is currently in progress.
 
-You can also grab the binary from the [Releases](https://github.com/Bolt-builder/bolt-cli/releases).
+You can also grab the binary from the [Releases](https://github.com/anomalyco/opencode/releases).
 
 ---
 
 ## Configure
 
-With Bolt you can use any LLM provider by configuring their API keys.
+With OpenCode you can use any LLM provider by configuring their API keys.
 
-If you are new to using LLM providers, we recommend using [Bolt Zen](/docs/zen).
-It's a curated list of models that have been tested and verified by the Bolt
+If you are new to using LLM providers, we recommend using [OpenCode Zen](https://opencode.ai/v2/docs/console/).
+It's a curated list of models that have been tested and verified by the OpenCode
 team.
 
-1. Run the `/connect` command in the TUI, select bolt, and head to [bolt.ai/auth](https://bolt.ai/auth).
+1. Run the `/connect` command in the TUI, select opencode, and head to [opencode.ai/auth](https://opencode.ai/auth).
 
    ```txt
    /connect
@@ -170,33 +176,33 @@ you want to work on.
 cd /path/to/project
 ```
 
-And run Bolt.
+And run OpenCode.
 
 ```bash
 opencode
 ```
 
-Next, initialize Bolt for the project by running the following command.
+Next, initialize OpenCode for the project by running the following command.
 
 ```bash frame="none"
 /init
 ```
 
-This will get Bolt to analyze your project and create an `AGENTS.md` file in
+This will get OpenCode to analyze your project and create an `AGENTS.md` file in
 the project root.
 
 :::tip
 You should commit your project's `AGENTS.md` file to Git.
 :::
 
-This helps Bolt understand the project structure and the coding patterns
+This helps OpenCode understand the project structure and the coding patterns
 used.
 
 ---
 
 ## Usage
 
-You are now ready to use Bolt to work on your project. Feel free to ask it
+You are now ready to use OpenCode to work on your project. Feel free to ask it
 anything!
 
 If you are new to using an AI coding agent, here are some examples that might
@@ -206,7 +212,7 @@ help.
 
 ### Ask questions
 
-You can ask Bolt to explain the codebase to you.
+You can ask OpenCode to explain the codebase to you.
 
 :::tip
 Use the `@` key to fuzzy search for files in the project.
@@ -222,11 +228,11 @@ This is helpful if there's a part of the codebase that you didn't work on.
 
 ### Add features
 
-You can ask Bolt to add new features to your project. Though we first recommend asking it to create a plan.
+You can ask OpenCode to add new features to your project. Though we first recommend asking it to create a plan.
 
 1. **Create a plan**
 
-   Bolt has a _Plan mode_ that disables its ability to make changes and
+   OpenCode has a _Plan mode_ that disables its ability to make changes and
    instead suggest _how_ it'll implement the feature.
 
    Switch to it using the **Tab** key. You'll see an indicator for this in the lower right corner.
@@ -243,11 +249,11 @@ You can ask Bolt to add new features to your project. Though we first recommend 
    From this screen, the user can undelete a note or permanently delete it.
    ```
 
-   You want to give Bolt enough details to understand what you want. It helps
+   You want to give OpenCode enough details to understand what you want. It helps
    to talk to it like you are talking to a junior developer on your team.
 
    :::tip
-   Give Bolt plenty of context and examples to help it understand what you
+   Give OpenCode plenty of context and examples to help it understand what you
    want.
    :::
 
@@ -264,7 +270,7 @@ You can ask Bolt to add new features to your project. Though we first recommend 
    Drag and drop images into the terminal to add them to the prompt.
    :::
 
-   Bolt can scan any images you give it and add them to the prompt. You can
+   OpenCode can scan any images you give it and add them to the prompt. You can
    do this by dragging and dropping an image into the terminal.
 
 3. **Build the feature**
@@ -286,7 +292,7 @@ You can ask Bolt to add new features to your project. Though we first recommend 
 
 ### Make changes
 
-For more straightforward changes, you can ask Bolt to directly build it
+For more straightforward changes, you can ask OpenCode to directly build it
 without having to review the plan first.
 
 ```txt frame="none" "@packages/functions/src/settings.ts" "@packages/functions/src/notes.ts"
@@ -295,14 +301,14 @@ handled in the /notes route in @packages/functions/src/notes.ts and implement
 the same logic in @packages/functions/src/settings.ts
 ```
 
-You want to make sure you provide a good amount of detail so Bolt makes the right
+You want to make sure you provide a good amount of detail so OpenCode makes the right
 changes.
 
 ---
 
 ### Undo changes
 
-Let's say you ask Bolt to make some changes.
+Let's say you ask OpenCode to make some changes.
 
 ```txt frame="none" "@packages/functions/src/api/index.ts"
 Can you refactor the function in @packages/functions/src/api/index.ts?
@@ -315,14 +321,14 @@ using the `/undo` command.
 /undo
 ```
 
-Bolt will now revert the changes you made and show your original message
+OpenCode will now revert the changes you made and show your original message
 again.
 
 ```txt frame="none" "@packages/functions/src/api/index.ts"
 Can you refactor the function in @packages/functions/src/api/index.ts?
 ```
 
-From here you can tweak the prompt and ask Bolt to try again.
+From here you can tweak the prompt and ask OpenCode to try again.
 
 :::tip
 You can run `/undo` multiple times to undo multiple changes.
@@ -336,27 +342,8 @@ Or you **can redo** the changes using the `/redo` command.
 
 ---
 
-## Share
-
-The conversations that you have with Bolt can be [shared with your
-team](/docs/share).
-
-```bash frame="none"
-/share
-```
-
-This will create a link to the current conversation and copy it to your clipboard.
-
-:::note
-Conversations are not shared by default.
-:::
-
-Here's an [example conversation](https://bolt.ai/s/4XP1fce5) with Bolt.
-
----
-
 ## Customize
 
-And that's it! You are now a pro at using Bolt.
+And that's it! You are now a pro at using OpenCode.
 
-To make it your own, we recommend [picking a theme](/docs/themes), [customizing the keybinds](/docs/keybinds), [configuring code formatters](/docs/formatters), [creating custom commands](/docs/commands), or playing around with the [Bolt config](/docs/config).
+To make it your own, we recommend [picking a theme](/docs/themes), [customizing the keybinds](/docs/keybinds), [configuring code formatters](/docs/formatters), [creating custom commands](/docs/commands), or playing around with the [OpenCode config](/docs/config).

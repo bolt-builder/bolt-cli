@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import path from "path"
-import { Shell } from "@bolt-ai/core/shell"
-import { FSUtil } from "@bolt-ai/core/fs-util"
+import { ShellSelect } from "@bolt-ai/core/shell/select"
+import { FSUtil } from "@bolt-ai/util/fs-util"
 import { which } from "@bolt-ai/core/util/which"
+import fs from "node:fs/promises"
+import { tmpdir } from "./fixture/tmpdir"
 
 const withShell = async (shell: string | undefined, fn: () => void | Promise<void>) => {
   const prev = process.env.SHELL
@@ -34,10 +36,10 @@ describe("shell", () => {
 
   test("falls back when configured shell cannot be resolved", async () => {
     await withShell(undefined, async () => {
-      const preferred = Shell.preferred()
-      const acceptable = Shell.acceptable()
-      expect(Shell.preferred("bolt-missing-shell")).toBe(preferred)
-      expect(Shell.acceptable("bolt-missing-shell")).toBe(acceptable)
+      const configured = ShellSelect.resolve({ priority: "config" })
+      const compatible = ShellSelect.resolve({ priority: "compat" })
+      expect(ShellSelect.resolve({ priority: "config" }, "opencode-missing-shell")).toBe(configured)
+      expect(ShellSelect.resolve({ priority: "compat" }, "opencode-missing-shell")).toBe(compatible)
     })
   })
 

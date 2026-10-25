@@ -1,27 +1,27 @@
 ---
 title: CLI
-description: Bolt CLI 選項和指令。
+description: OpenCode CLI 選項和指令。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-Bolt CLI 在不帶任何參數執行時，預設啟動 [TUI](/docs/tui)。
+OpenCode CLI 在不帶任何參數執行時，預設啟動 [TUI](/docs/tui)。
 
 ```bash
 opencode
 ```
 
-但它也接受本頁面中記錄的指令，使您可以透過程式方式與 Bolt 進行互動。
+但它也接受本頁面中記錄的指令，使您可以透過程式方式與 OpenCode 進行互動。
 
 ```bash
-bolt run "Explain how closures work in JavaScript"
+opencode run "Explain how closures work in JavaScript"
 ```
 
 ---
 
 ### tui
 
-啟動 Bolt 終端機使用者介面。
+啟動 OpenCode 終端機使用者介面。
 
 ```bash
 opencode [project]
@@ -44,29 +44,19 @@ opencode [project]
 
 ## 指令
 
-Bolt CLI 還提供以下指令。
-
----
-
-### agent
-
-管理 Bolt 的代理。
-
-```bash
-opencode agent [command]
-```
+OpenCode CLI 還提供以下指令。
 
 ---
 
 ### attach
 
-將終端機連接到已透過 `serve` 或 `web` 指令啟動的 Bolt 後端伺服器。
+將終端機連接到已透過 `serve` 或 `web` 指令啟動的 OpenCode 後端伺服器。
 
 ```bash
 opencode attach [url]
 ```
 
-這允許將 TUI 與遠端 Bolt 後端搭配使用。例如：
+這允許將 TUI 與遠端 OpenCode 後端搭配使用。例如：
 
 ```bash
 # Start the backend server for web/mobile access
@@ -78,14 +68,14 @@ opencode attach http://10.20.30.40:4096
 
 #### 旗標
 
-| 旗標                                     | 簡寫 | 說明                                                                |
-| ---------------------------------------- | ---- | ------------------------------------------------------------------- |
-| <nobr><code>{"--dir"}</code></nobr>      |      | 啟動 TUI 的工作目錄                                                 |
-| <nobr><code>{"--continue"}</code></nobr> | `-c` | 繼續上一個工作階段                                                  |
-| <nobr><code>{"--session"}</code></nobr>  | `-s` | 要繼續的工作階段 ID                                                 |
-| <nobr><code>{"--fork"}</code></nobr>     |      | 繼續時分支工作階段（與 `--continue` 或 `--session` 一起使用）       |
-| <nobr><code>{"--password"}</code></nobr> | `-p` | 基本驗證密碼（預設使用 `BOLT_SERVER_PASSWORD`）                     |
-| <nobr><code>{"--username"}</code></nobr> | `-u` | 基本驗證使用者名稱（預設使用 `BOLT_SERVER_USERNAME` 或 `opencode`） |
+| 旗標                                     | 簡寫 | 說明                                                                    |
+| ---------------------------------------- | ---- | ----------------------------------------------------------------------- |
+| <nobr><code>{"--dir"}</code></nobr>      |      | 啟動 TUI 的工作目錄                                                     |
+| <nobr><code>{"--continue"}</code></nobr> | `-c` | 繼續上一個工作階段                                                      |
+| <nobr><code>{"--session"}</code></nobr>  | `-s` | 要繼續的工作階段 ID                                                     |
+| <nobr><code>{"--fork"}</code></nobr>     |      | 繼續時分支工作階段（與 `--continue` 或 `--session` 一起使用）           |
+| <nobr><code>{"--password"}</code></nobr> | `-p` | 基本驗證密碼（預設使用 `OPENCODE_SERVER_PASSWORD`）                     |
+| <nobr><code>{"--username"}</code></nobr> | `-u` | 基本驗證使用者名稱（預設使用 `OPENCODE_SERVER_USERNAME` 或 `opencode`） |
 
 ---
 
@@ -101,13 +91,13 @@ opencode auth [command]
 
 #### login
 
-Bolt 基於 [Models.dev](https://models.dev) 的供應商列表運作，因此您可以使用 `opencode auth login` 為任何想要使用的供應商設定 API 金鑰。金鑰儲存在 `~/.local/share/opencode/auth.json` 中。
+OpenCode 基於 [Models.dev](https://models.dev) 的供應商列表運作，因此您可以使用 `opencode auth login` 為任何想要使用的供應商設定 API 金鑰。金鑰儲存在 `~/.local/share/opencode/auth.json` 中。
 
 ```bash
 opencode auth login
 ```
 
-Bolt 啟動時會從憑證檔案載入供應商資訊，同時也會載入環境變數或專案中 `.env` 檔案中定義的金鑰。
+OpenCode 啟動時會從憑證檔案載入供應商資訊，同時也會載入環境變數或專案中 `.env` 檔案中定義的金鑰。
 
 ---
 
@@ -283,7 +273,7 @@ opencode models anthropic
 | <nobr><code>{"--refresh"}</code></nobr> | 從 models.dev 重新整理模型快取             |
 | <nobr><code>{"--verbose"}</code></nobr> | 使用更詳細的模型輸出（包含費用等中繼資料） |
 
-使用 `--refresh` 旗標可以更新快取的模型列表。當供應商新增了模型並且您希望在 Bolt 中看到它們時，此功能非常有用。
+使用 `--refresh` 旗標可以更新快取的模型列表。當供應商新增了模型並且您希望在 OpenCode 中看到它們時，此功能非常有用。
 
 ```bash
 opencode models --refresh
@@ -293,16 +283,16 @@ opencode models --refresh
 
 ### run
 
-以非互動模式執行 Bolt，直接傳入提示詞。
+以非互動模式執行 OpenCode，直接傳入提示詞。
 
 ```bash
-bolt run [message..]
+opencode run [message..]
 ```
 
 這對於指令碼編寫、自動化或無需啟動完整 TUI 即可快速取得答案的情境非常有用。例如：
 
-```bash "bolt run"
-bolt run Explain the use of context in Go
+```bash "opencode run"
+opencode run Explain the use of context in Go
 ```
 
 您還可以連接到正在執行的 `opencode serve` 實例，以避免每次執行時 MCP 伺服器的冷啟動時間：
@@ -312,42 +302,41 @@ bolt run Explain the use of context in Go
 opencode serve
 
 # In another terminal, run commands that attach to it
-bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### 旗標
 
-| 旗標                                     | 簡寫 | 說明                                                                |
-| ---------------------------------------- | ---- | ------------------------------------------------------------------- |
-| <nobr><code>{"--command"}</code></nobr>  |      | 要執行的指令，使用 message 作為參數                                 |
-| <nobr><code>{"--continue"}</code></nobr> | `-c` | 繼續上一個工作階段                                                  |
-| <nobr><code>{"--session"}</code></nobr>  | `-s` | 要繼續的工作階段 ID                                                 |
-| <nobr><code>{"--fork"}</code></nobr>     |      | 繼續時分岔工作階段（與 `--continue` 或 `--session` 搭配使用）       |
-| <nobr><code>{"--share"}</code></nobr>    |      | 分享工作階段                                                        |
-| <nobr><code>{"--model"}</code></nobr>    | `-m` | 要使用的模型，格式為 provider/model                                 |
-| <nobr><code>{"--agent"}</code></nobr>    |      | 要使用的代理                                                        |
-| <nobr><code>{"--file"}</code></nobr>     | `-f` | 附加到訊息的檔案                                                    |
-| <nobr><code>{"--format"}</code></nobr>   |      | 格式：default（格式化輸出）或 json（原始 JSON 事件）                |
-| <nobr><code>{"--title"}</code></nobr>    |      | 工作階段標題（未提供值時使用截斷的提示詞）                          |
-| <nobr><code>{"--attach"}</code></nobr>   |      | 連接到正在執行的 opencode 伺服器（例如 http://localhost:4096）      |
-| <nobr><code>{"--password"}</code></nobr> | `-p` | 基本驗證密碼（預設使用 `BOLT_SERVER_PASSWORD`）                     |
-| <nobr><code>{"--username"}</code></nobr> | `-u` | 基本驗證使用者名稱（預設使用 `BOLT_SERVER_USERNAME` 或 `opencode`） |
-| <nobr><code>{"--dir"}</code></nobr>      |      | 執行目錄，或附加時遠端伺服器上的路徑                                |
-| <nobr><code>{"--variant"}</code></nobr>  |      | 模型變體（特定於提供者的推理級別）                                  |
-| <nobr><code>{"--thinking"}</code></nobr> |      | 顯示思考區塊                                                        |
-| <nobr><code>{"--port"}</code></nobr>     |      | 本地伺服器連接埠（預設為隨機連接埠）                                |
+| 旗標                                     | 簡寫 | 說明                                                                    |
+| ---------------------------------------- | ---- | ----------------------------------------------------------------------- |
+| <nobr><code>{"--command"}</code></nobr>  |      | 要執行的指令，使用 message 作為參數                                     |
+| <nobr><code>{"--continue"}</code></nobr> | `-c` | 繼續上一個工作階段                                                      |
+| <nobr><code>{"--session"}</code></nobr>  | `-s` | 要繼續的工作階段 ID                                                     |
+| <nobr><code>{"--fork"}</code></nobr>     |      | 繼續時分岔工作階段（與 `--continue` 或 `--session` 搭配使用）           |
+| <nobr><code>{"--model"}</code></nobr>    | `-m` | 要使用的模型，格式為 provider/model                                     |
+| <nobr><code>{"--agent"}</code></nobr>    |      | 要使用的代理                                                            |
+| <nobr><code>{"--file"}</code></nobr>     | `-f` | 附加到訊息的檔案                                                        |
+| <nobr><code>{"--format"}</code></nobr>   |      | 格式：default（格式化輸出）或 json（原始 JSON 事件）                    |
+| <nobr><code>{"--title"}</code></nobr>    |      | 工作階段標題（未提供值時使用截斷的提示詞）                              |
+| <nobr><code>{"--attach"}</code></nobr>   |      | 連接到正在執行的 opencode 伺服器（例如 http://localhost:4096）          |
+| <nobr><code>{"--password"}</code></nobr> | `-p` | 基本驗證密碼（預設使用 `OPENCODE_SERVER_PASSWORD`）                     |
+| <nobr><code>{"--username"}</code></nobr> | `-u` | 基本驗證使用者名稱（預設使用 `OPENCODE_SERVER_USERNAME` 或 `opencode`） |
+| <nobr><code>{"--dir"}</code></nobr>      |      | 執行目錄，或附加時遠端伺服器上的路徑                                    |
+| <nobr><code>{"--variant"}</code></nobr>  |      | 模型變體（特定於提供者的推理級別）                                      |
+| <nobr><code>{"--thinking"}</code></nobr> |      | 顯示思考區塊                                                            |
+| <nobr><code>{"--port"}</code></nobr>     |      | 本地伺服器連接埠（預設為隨機連接埠）                                    |
 
 ---
 
 ### serve
 
-啟動無介面的 Bolt 伺服器以提供 API 存取。查看[伺服器文件](/docs/server)了解完整的 HTTP 介面。
+啟動無介面的 OpenCode 伺服器以提供 API 存取。查看[伺服器文件](/docs/server)了解完整的 HTTP 介面。
 
 ```bash
 opencode serve
 ```
 
-此指令啟動一個 HTTP 伺服器，提供對 Bolt 功能的 API 存取，無需 TUI 介面。設定 `BOLT_SERVER_PASSWORD` 可啟用 HTTP 基本認證（使用者名稱預設為 `opencode`）。
+此指令啟動一個 HTTP 伺服器，提供對 OpenCode 功能的 API 存取，無需 TUI 介面。設定 `OPENCODE_SERVER_PASSWORD` 可啟用 HTTP 基本認證（使用者名稱預設為 `opencode`）。
 
 #### 旗標
 
@@ -362,7 +351,7 @@ opencode serve
 
 ### session
 
-管理 Bolt 工作階段。
+管理 OpenCode 工作階段。
 
 ```bash
 opencode session [command]
@@ -372,7 +361,7 @@ opencode session [command]
 
 #### list
 
-列出所有 Bolt 工作階段。
+列出所有 OpenCode 工作階段。
 
 ```bash
 opencode session list
@@ -389,7 +378,7 @@ opencode session list
 
 ### stats
 
-顯示 Bolt 工作階段的 Token 用量和費用統計資訊。
+顯示 OpenCode 工作階段的 Token 用量和費用統計資訊。
 
 ```bash
 opencode stats
@@ -420,13 +409,11 @@ opencode export [sessionID]
 
 ### import
 
-從 JSON 檔案或 Bolt 分享連結匯入工作階段資料。
+從 JSON 檔案匯入工作階段資料。
 
 ```bash
 opencode import <file>
 ```
-
-您可以從本地檔案或 Bolt 分享連結匯入。
 
 ```bash
 opencode import session.json
@@ -436,13 +423,13 @@ opencode import session.json
 
 ### web
 
-啟動帶有 Web 介面的無介面 Bolt 伺服器。
+啟動帶有 Web 介面的無介面 OpenCode 伺服器。
 
 ```bash
 opencode web
 ```
 
-此指令啟動一個 HTTP 伺服器並開啟瀏覽器，透過 Web 介面存取 Bolt。設定 `BOLT_SERVER_PASSWORD` 可啟用 HTTP 基本認證（使用者名稱預設為 `opencode`）。
+此指令啟動一個 HTTP 伺服器並開啟瀏覽器，透過 Web 介面存取 OpenCode。設定 `OPENCODE_SERVER_PASSWORD` 可啟用 HTTP 基本認證（使用者名稱預設為 `opencode`）。
 
 #### 旗標
 
@@ -477,7 +464,7 @@ opencode acp
 
 ### uninstall
 
-解除安裝 Bolt 並刪除所有相關檔案。
+解除安裝 OpenCode 並刪除所有相關檔案。
 
 ```bash
 opencode uninstall
@@ -496,7 +483,7 @@ opencode uninstall
 
 ### upgrade
 
-將 Bolt 更新到最新版本或指定版本。
+將 OpenCode 更新到最新版本或指定版本。
 
 ```bash
 opencode upgrade [target]
@@ -524,7 +511,7 @@ opencode upgrade v0.1.48
 
 ## 全域旗標
 
-Bolt CLI 接受以下全域旗標。
+OpenCode CLI 接受以下全域旗標。
 
 | 旗標                                       | 簡寫 | 說明                                 |
 | ------------------------------------------ | ---- | ------------------------------------ |
@@ -537,34 +524,33 @@ Bolt CLI 接受以下全域旗標。
 
 ## 環境變數
 
-Bolt 可以透過環境變數進行設定。
+OpenCode 可以透過環境變數進行設定。
 
-| 變數                              | 類型    | 說明                                        |
-| --------------------------------- | ------- | ------------------------------------------- |
-| `BOLT_AUTO_SHARE`                 | boolean | 自動分享工作階段                            |
-| `BOLT_GIT_BASH_PATH`              | string  | Windows 上 Git Bash 可執行檔的路徑          |
-| `BOLT_CONFIG`                     | string  | 設定檔路徑                                  |
-| `BOLT_TUI_CONFIG`                 | string  | TUI 設定檔路徑                              |
-| `BOLT_CONFIG_DIR`                 | string  | 設定目錄路徑                                |
-| `BOLT_CONFIG_CONTENT`             | string  | 內嵌 JSON 設定內容                          |
-| `BOLT_DISABLE_AUTOUPDATE`         | boolean | 停用自動更新檢查                            |
-| `BOLT_DISABLE_PRUNE`              | boolean | 停用舊資料清理                              |
-| `BOLT_DISABLE_TERMINAL_TITLE`     | boolean | 停用自動終端機標題更新                      |
-| `BOLT_PERMISSION`                 | string  | 內嵌 JSON 權限設定                          |
-| `BOLT_DISABLE_DEFAULT_PLUGINS`    | boolean | 停用預設外掛程式                            |
-| `BOLT_DISABLE_LSP_DOWNLOAD`       | boolean | 停用 LSP 伺服器自動下載                     |
-| `BOLT_ENABLE_EXPERIMENTAL_MODELS` | boolean | 啟用實驗性模型                              |
-| `BOLT_DISABLE_AUTOCOMPACT`        | boolean | 停用自動上下文壓縮                          |
-| `BOLT_DISABLE_CLAUDE_CODE`        | boolean | 停用讀取 `.claude`（提示詞 + 技能）         |
-| `BOLT_DISABLE_CLAUDE_CODE_PROMPT` | boolean | 停用讀取 `~/.claude/CLAUDE.md`              |
-| `BOLT_DISABLE_CLAUDE_CODE_SKILLS` | boolean | 停用載入 `.claude/skills`                   |
-| `BOLT_DISABLE_MODELS_FETCH`       | boolean | 停用從遠端來源擷取模型                      |
-| `BOLT_FAKE_VCS`                   | string  | 用於測試目的的模擬 VCS 供應商               |
-| `BOLT_CLIENT`                     | string  | 用戶端識別碼（預設為 `cli`）                |
-| `BOLT_ENABLE_EXA`                 | boolean | 啟用 Exa 網路搜尋工具                       |
-| `BOLT_SERVER_PASSWORD`            | string  | 為 `serve`/`web` 啟用基本認證               |
-| `BOLT_SERVER_USERNAME`            | string  | 覆寫基本認證使用者名稱（預設為 `opencode`） |
-| `BOLT_MODELS_URL`                 | string  | 自訂模型設定擷取 URL                        |
+| 變數                                  | 類型    | 說明                                        |
+| ------------------------------------- | ------- | ------------------------------------------- |
+| `OPENCODE_GIT_BASH_PATH`              | string  | Windows 上 Git Bash 可執行檔的路徑          |
+| `OPENCODE_CONFIG`                     | string  | 設定檔路徑                                  |
+| `OPENCODE_TUI_CONFIG`                 | string  | TUI 設定檔路徑                              |
+| `OPENCODE_CONFIG_DIR`                 | string  | 設定目錄路徑                                |
+| `OPENCODE_CONFIG_CONTENT`             | string  | 內嵌 JSON 設定內容                          |
+| `OPENCODE_DISABLE_AUTOUPDATE`         | boolean | 停用自動更新檢查                            |
+| `OPENCODE_DISABLE_PRUNE`              | boolean | 停用舊資料清理                              |
+| `OPENCODE_DISABLE_TERMINAL_TITLE`     | boolean | 停用自動終端機標題更新                      |
+| `OPENCODE_PERMISSION`                 | string  | 內嵌 JSON 權限設定                          |
+| `OPENCODE_DISABLE_DEFAULT_PLUGINS`    | boolean | 停用預設外掛程式                            |
+| `OPENCODE_DISABLE_LSP_DOWNLOAD`       | boolean | 停用 LSP 伺服器自動下載                     |
+| `OPENCODE_ENABLE_EXPERIMENTAL_MODELS` | boolean | 啟用實驗性模型                              |
+| `OPENCODE_DISABLE_AUTOCOMPACT`        | boolean | 停用自動上下文壓縮                          |
+| `OPENCODE_DISABLE_CLAUDE_CODE`        | boolean | 停用讀取 `.claude`（提示詞 + 技能）         |
+| `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` | boolean | 停用讀取 `~/.claude/CLAUDE.md`              |
+| `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS` | boolean | 停用載入 `.claude/skills`                   |
+| `OPENCODE_DISABLE_MODELS_FETCH`       | boolean | 停用從遠端來源擷取模型                      |
+| `OPENCODE_FAKE_VCS`                   | string  | 用於測試目的的模擬 VCS 供應商               |
+| `OPENCODE_CLIENT`                     | string  | 用戶端識別碼（預設為 `cli`）                |
+| `OPENCODE_ENABLE_EXA`                 | boolean | 啟用 Exa 網路搜尋工具                       |
+| `OPENCODE_SERVER_PASSWORD`            | string  | 為 `serve`/`web` 啟用基本認證               |
+| `OPENCODE_SERVER_USERNAME`            | string  | 覆寫基本認證使用者名稱（預設為 `opencode`） |
+| `OPENCODE_MODELS_URL`                 | string  | 自訂模型設定擷取 URL                        |
 
 ---
 
@@ -572,23 +558,22 @@ Bolt 可以透過環境變數進行設定。
 
 這些環境變數用於啟用可能會變更或移除的實驗性功能。
 
-| 變數                                        | 類型    | 說明                            |
-| ------------------------------------------- | ------- | ------------------------------- |
-| `BOLT_EXPERIMENTAL`                         | boolean | 啟用受總開關控制的實驗性功能    |
-| `BOLT_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | 啟用圖示探索                    |
-| `BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | 停用 TUI 中的選取即複製         |
-| `BOLT_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | bash 指令的預設逾時時間（毫秒） |
-| `BOLT_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | LLM 回應的最大輸出 Token 數     |
-| `BOLT_EXPERIMENTAL_FILEWATCHER`             | boolean | 啟用整個目錄的檔案監看器        |
-| `BOLT_EXPERIMENTAL_OXFMT`                   | boolean | 啟用 oxfmt 格式化器             |
-| `BOLT_EXPERIMENTAL_LSP_TOOL`                | boolean | 啟用實驗性 LSP 工具             |
-| `BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | 停用檔案監看器                  |
-| `BOLT_EXPERIMENTAL_EXA`                     | boolean | 啟用實驗性 Exa 功能             |
-| `BOLT_EXPERIMENTAL_LSP_TY`                  | boolean | 為 python 檔案啟用 TY LSP       |
-| `BOLT_EXPERIMENTAL_PLAN_MODE`               | boolean | 啟用計畫模式                    |
-| `BOLT_EXPERIMENTAL_BACKGROUND_SUBAGENTS`    | boolean | 啟用背景子代理任務              |
-| `BOLT_EXPERIMENTAL_EVENT_SYSTEM`            | boolean | 啟用實驗性事件系統              |
-| `BOLT_EXPERIMENTAL_NATIVE_LLM`              | boolean | 啟用原生 LLM 請求路徑           |
-| `BOLT_EXPERIMENTAL_PARALLEL`                | boolean | 啟用平行 Web 搜尋執行           |
-| `BOLT_EXPERIMENTAL_SCOUT`                   | boolean | 啟用 Scout 子代理               |
-| `BOLT_EXPERIMENTAL_WORKSPACES`              | boolean | 啟用工作區支援                  |
+| 變數                                            | 類型    | 說明                            |
+| ----------------------------------------------- | ------- | ------------------------------- |
+| `OPENCODE_EXPERIMENTAL`                         | boolean | 啟用受總開關控制的實驗性功能    |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | 啟用圖示探索                    |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | 停用 TUI 中的選取即複製         |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | bash 指令的預設逾時時間（毫秒） |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | LLM 回應的最大輸出 Token 數     |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | boolean | 啟用整個目錄的檔案監看器        |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | boolean | 啟用 oxfmt 格式化器             |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | boolean | 啟用實驗性 LSP 工具             |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | 停用檔案監看器                  |
+| `OPENCODE_EXPERIMENTAL_EXA`                     | boolean | 啟用實驗性 Exa 功能             |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | boolean | 為 python 檔案啟用 TY LSP       |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | boolean | 啟用計畫模式                    |
+| `OPENCODE_EXPERIMENTAL_EVENT_SYSTEM`            | boolean | 啟用實驗性事件系統              |
+| `OPENCODE_EXPERIMENTAL_NATIVE_LLM`              | boolean | 啟用原生 LLM 請求路徑           |
+| `OPENCODE_EXPERIMENTAL_PARALLEL`                | boolean | 啟用平行 Web 搜尋執行           |
+| `OPENCODE_EXPERIMENTAL_SCOUT`                   | boolean | 啟用 Scout 子代理               |
+| `OPENCODE_EXPERIMENTAL_WORKSPACES`              | boolean | 啟用工作區支援                  |

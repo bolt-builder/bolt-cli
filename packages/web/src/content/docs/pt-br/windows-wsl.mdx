@@ -5,7 +5,7 @@ description: Execute o opencode no Windows com WSL para melhor experiência.
 
 import { Steps } from "@astrojs/starlight/components"
 
-Embora o opencode possa rodar direto no Windows, recomendamos usar [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) para a melhor experiência. O WSL oferece um ambiente Linux que funciona de forma integrada com os recursos do bolt.
+Embora o opencode possa rodar direto no Windows, recomendamos usar [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install) para a melhor experiência. O WSL oferece um ambiente Linux que funciona de forma integrada com os recursos do opencode.
 
 :::tip[Por que WSL?]
 O WSL oferece melhor desempenho de sistema de arquivos, suporte completo a terminal e compatibilidade com as ferramentas de desenvolvimento das quais o opencode depende.
@@ -26,12 +26,12 @@ O WSL oferece melhor desempenho de sistema de arquivos, suporte completo a termi
    Depois de configurar o WSL, abra o terminal do WSL e instale o opencode usando um dos [métodos de instalação](/docs/).
 
    ```bash
-   curl -fsSL https://bolt.ai/install | bash
+   curl -fsSL https://opencode.ai/install | bash
    ```
 
 3. **Use o opencode pelo WSL**
 
-   Vá para o diretório do seu projeto (acesse arquivos do Windows via `/mnt/c/`, `/mnt/d/` etc.) e execute o bolt.
+   Vá para o diretório do seu projeto (acesse arquivos do Windows via `/mnt/c/`, `/mnt/d/` etc.) e execute o opencode.
 
    ```bash
    cd /mnt/c/Users/YourName/project
@@ -44,7 +44,7 @@ O WSL oferece melhor desempenho de sistema de arquivos, suporte completo a termi
 
 ## App desktop + servidor WSL
 
-Se você prefere usar o app desktop do bolt, mas quer rodar o servidor no WSL:
+Se você prefere usar o app desktop do opencode, mas quer rodar o servidor no WSL:
 
 1. **Inicie o servidor no WSL** com `--hostname 0.0.0.0` para permitir conexões externas:
 
@@ -59,10 +59,10 @@ Se `localhost` não funcionar no seu ambiente, conecte usando o IP do WSL (no WS
 :::
 
 :::caution
-Ao usar `--hostname 0.0.0.0`, defina `BOLT_SERVER_PASSWORD` para proteger o servidor.
+Ao usar `--hostname 0.0.0.0`, defina `OPENCODE_SERVER_PASSWORD` para proteger o servidor.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
+OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
 ```
 
 :::

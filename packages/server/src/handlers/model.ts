@@ -1,4 +1,4 @@
-import { Catalog } from "@bolt-ai/core/catalog"
+import { Model } from "@bolt-ai/core/model"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"

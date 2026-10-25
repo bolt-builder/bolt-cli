@@ -1,9 +1,13 @@
 export * as Command from "./command.js"
 
-import { makeLocationNode } from "./effect/app-node"
-import { Context, Effect, Layer, Types } from "effect"
 import { Command } from "@bolt-ai/schema/command"
-import { State } from "./state"
+import type { PromptInput } from "@bolt-ai/schema/prompt-input"
+import type { Session } from "@bolt-ai/schema/session"
+import type { SessionInbox } from "@bolt-ai/schema/session-inbox"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { Context, Effect, Layer, Schema } from "effect"
+import { Bus } from "./bus.js"
+import { State } from "./state.js"
 
 export const Info = Command.Info
 export type Info = Command.Info
@@ -44,7 +48,7 @@ export interface Interface extends State.Transformable<Editor> {
   }) => Effect.Effect<void, NotFoundError | ExecutionError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Command") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Command") {}
 
 export const layer = Layer.effect(
   Service,

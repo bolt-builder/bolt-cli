@@ -3,13 +3,13 @@ title: Biçimlendiriciler
 description: opencode dile özgü biçimlendiriciler kullanır.
 ---
 
-bolt, dosyaları dile özgü formatlayıcılar kullanılarak yazıldıktan veya düzenlendikten sonra otomatik olarak formatlar. Bu, oluşturulan kodun projenizin kod stillerine uymasını sağlar.
+opencode, dosyaları dile özgü formatlayıcılar kullanılarak yazıldıktan veya düzenlendikten sonra otomatik olarak formatlar. Bu, oluşturulan kodun projenizin kod stillerine uymasını sağlar.
 
 ---
 
 ## Yerleşik
 
-bolt, popüler diller ve çerçeveler için çeşitli yerleşik biçimlendiricilerle birlikte gelir. Aşağıda ihtiyaç duyduğu biçimlendiricilerin, desteklenen dosya uzantılarının ve komutların veya yapılandırma seçeneklerinin bir listesi bulunmaktadır.
+opencode, popüler diller ve çerçeveler için çeşitli yerleşik biçimlendiricilerle birlikte gelir. Aşağıda ihtiyaç duyduğu biçimlendiricilerin, desteklenen dosya uzantılarının ve komutların veya yapılandırma seçeneklerinin bir listesi bulunmaktadır.
 
 | Biçimlendirici   | Uzantılar                                                                                                    | Gereksinimler                                                                                          |
 | ---------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
@@ -59,9 +59,9 @@ Bu işlem arka planda gerçekleşir ve kod stillerinizin herhangi bir manuel ad�
 
 Biçimlendiricileri opencode yapılandırmanızdaki `formatter` bölümü aracılığıyla özelleştirebilirsiniz.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {}
 }
 ```
@@ -83,18 +83,18 @@ Bazı örneklere bakalım.
 
 **tüm** biçimlendiricileri genel olarak devre dışı bırakmak için `formatter` değerini `false` olarak ayarlayın:
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": false
 }
 ```
 
 **Belirli** bir biçimlendiriciyi devre dışı bırakmak için `disabled` değerini `true` olarak ayarlayın:
 
-```json title="bolt.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -109,9 +109,9 @@ Bazı örneklere bakalım.
 
 Komutu, ortam değişkenlerini ve dosya uzantılarını belirterek yerleşik biçimlendiricileri geçersiz kılabilir veya yenilerini ekleyebilirsiniz:
 
-```json title="bolt.json" {4-14}
+```json title="opencode.json" {4-14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "prettier": {
       "command": ["npx", "prettier", "--write", "$FILE"],

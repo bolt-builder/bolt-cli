@@ -40,12 +40,28 @@ export interface Interface {
   ) => Effect.Effect<WriteResult, Environment.WrongKind | Environment.Failed>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/FileMutation") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/FileMutation") {}
+
+export const readText = Effect.fn("FileMutation.readText")(function* (files: Files, target: string) {
+  return Bom.decodeBytes((yield* files.read(target)).bytes)
+})
+
+export const syncTextBom = Effect.fn("FileMutation.syncTextBom")(function* (
+  files: Files,
+  target: string,
+  bom: boolean,
+) {
+  const synced = Bom.syncBytes((yield* files.read(target)).bytes, bom)
+  if (synced.bytes) yield* files.write(target, synced.bytes)
+  return synced.text
+})
+
+/** Share transaction locks across Location graphs that address the same file. */
+const transactionLocks = KeyedMutex.makeUnsafe<string>()
 
 /**
- * Serialize file changes by canonical target. Conditional writes compare and
- * write under the same process-local lock so cooperating Bolt mutations do
- * not overwrite changes made from the same stale content.
+ * Mutation locking is process-local and serializes cooperating Bolt
+ * changes; external writes can still race.
  */
 const layer = Layer.effect(
   Service,

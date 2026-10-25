@@ -1,15 +1,15 @@
 ---
 title: Правила
-description: Установите пользовательские инструкции для bolt.
+description: Установите пользовательские инструкции для opencode.
 ---
 
-Вы можете предоставить собственные инструкции для bolt, создав файл `AGENTS.md`. Это похоже на правила Cursor. Он содержит инструкции, которые будут включены в контекст LLM для настройки его поведения для вашего конкретного проекта.
+Вы можете предоставить собственные инструкции для opencode, создав файл `AGENTS.md`. Это похоже на правила Cursor. Он содержит инструкции, которые будут включены в контекст LLM для настройки его поведения для вашего конкретного проекта.
 
 ---
 
 ## Инициализировать
 
-Чтобы создать новый файл `AGENTS.md`, вы можете запустить команду `/init` в bolt.
+Чтобы создать новый файл `AGENTS.md`, вы можете запустить команду `/init` в opencode.
 
 :::tip
 Вам следует закоммитить файл `AGENTS.md` вашего проекта в Git.
@@ -62,7 +62,7 @@ opencode также поддерживает чтение файла `AGENTS.md`
 
 ### Глобальный
 
-Вы также можете иметь глобальные правила в файле `~/.config/opencode/AGENTS.md`. Это применяется ко всем сеансам bolt.
+Вы также можете иметь глобальные правила в файле `~/.config/opencode/AGENTS.md`. Это применяется ко всем сеансам opencode.
 
 Поскольку это не коммитится в Git и не передается вашей команде, мы рекомендуем использовать его для указания любых личных правил, которым должен следовать LLM.
 
@@ -77,9 +77,9 @@ opencode также поддерживает чтение файла `AGENTS.md`
 Чтобы отключить совместимость Claude Code, установите одну из этих переменных среды:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -98,22 +98,22 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 ## Пользовательские инструкции
 
-Вы можете указать собственные файлы инструкций в `bolt.json` или в глобальном `~/.config/opencode/bolt.json`. Это позволит вам и вашей команде повторно использовать существующие правила вместо того, чтобы дублировать их на AGENTS.md.
+Вы можете указать собственные файлы инструкций в `opencode.json` или в глобальном `~/.config/opencode/opencode.json`. Это позволит вам и вашей команде повторно использовать существующие правила вместо того, чтобы дублировать их на AGENTS.md.
 
 Пример:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 Вы также можете использовать удаленные URL-адреса для загрузки инструкций из Интернета.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -128,13 +128,13 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 Хотя opencode не анализирует автоматически ссылки на файлы в `AGENTS.md`, аналогичной функциональности можно добиться двумя способами:
 
-### Использование bolt.json
+### Использование opencode.json
 
-Рекомендуемый подход — использовать поле `instructions` в `bolt.json`:
+Рекомендуемый подход — использовать поле `instructions` в `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -176,5 +176,5 @@ Read the following file immediately as it's relevant to all workflows: @rules/ge
 - Убедитесь, что opencode загружает файлы только тогда, когда это необходимо для конкретной задачи.
 
 :::tip
-Для монорепозиториев или проектов с общими стандартами использование `bolt.json` с шаблонами glob (например, `packages/*/AGENTS.md`) более удобно в обслуживании, чем инструкции вручную.
+Для монорепозиториев или проектов с общими стандартами использование `opencode.json` с шаблонами glob (например, `packages/*/AGENTS.md`) более удобно в обслуживании, чем инструкции вручную.
 :::

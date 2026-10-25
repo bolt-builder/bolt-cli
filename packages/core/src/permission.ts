@@ -1,17 +1,21 @@
 export * as Permission from "./permission.js"
 
-import { makeLocationNode } from "./effect/app-node"
-import { Context, Deferred, Effect as EffectRuntime, Layer, Schema } from "effect"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { Context, Deferred, Effect, Layer, Schema } from "effect"
 import { Permission } from "@bolt-ai/schema/permission"
-import { EventV2 } from "./event"
-import { Location } from "./location"
-import { AgentV2 } from "./agent"
-import { SessionV2 } from "./session"
-import { SessionStore } from "./session/store"
-import { Wildcard } from "./util/wildcard"
-import { PermissionSaved } from "./permission/saved"
+import { Bus } from "./bus.js"
+import { Location } from "./location.js"
+import { Agent } from "./agent.js"
+import { SessionErrors } from "./session/error.js"
+import { SessionSchema } from "./session/schema.js"
+import { SessionStore } from "./session/store.js"
+import { Wildcard } from "./util/wildcard.js"
+import { PermissionSaved } from "./permission/saved.js"
+import { PluginHooks } from "./plugin/hooks.js"
 
-export { Effect, Rule, Ruleset } from "@bolt-ai/schema/permission"
+const PermissionEffect = Permission.Effect
+export { PermissionEffect as Effect }
+export { Rule, Ruleset } from "@bolt-ai/schema/permission"
 const missingAgentPermissions: Permission.Ruleset = [{ action: "*", resource: "*", effect: "deny" }]
 
 export const ID = Permission.ID
@@ -93,7 +97,7 @@ export interface Interface {
   readonly list: () => Effect.Effect<ReadonlyArray<Request>>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Permission") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Permission") {}
 
 interface Pending {
   readonly request: Request

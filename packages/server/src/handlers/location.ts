@@ -1,6 +1,8 @@
 import { Location } from "@bolt-ai/core/location"
-import { Effect } from "effect"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
+import { LocationServiceMap } from "@bolt-ai/core/location-service-map"
+import { ServiceUnavailableError } from "@bolt-ai/protocol/errors"
+import { Cause, Effect } from "effect"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
 
 export const LocationHandler = HttpApiBuilder.group(Api, "server.location", (handlers) =>

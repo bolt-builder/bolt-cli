@@ -1,8 +1,8 @@
 import { describe, test, expect } from "bun:test"
-import { Effect, FileSystem } from "effect"
-import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { FSUtil } from "@bolt-ai/core/fs-util"
+import { Effect, FileSystem, Layer } from "effect"
+import { LayerNodePlatform } from "@bolt-ai/util/effect/app-node-platform"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { FSUtil } from "@bolt-ai/util/fs-util"
 import { testEffect } from "../lib/effect"
 import path from "path"
 

@@ -21,7 +21,7 @@ export async function statsProxy(evt: APIEvent) {
 
   const targetUrl = new URL(req.url)
   targetUrl.protocol = "https:"
-  targetUrl.hostname = Resource.App.stage === "production" ? "stats.bolt.ai" : "stats.dev.bolt.ai"
+  targetUrl.hostname = Resource.App.stage === "production" ? "stats.opencode.ai" : "stats.dev.opencode.ai"
   targetUrl.port = ""
 
   if (
@@ -114,7 +114,7 @@ function isCloudflareCacheStorage(storage: CacheStorage): storage is CacheStorag
 
 function withStatsCacheStatus(response: Response, status: "HIT" | "MISS") {
   const headers = new Headers(response.headers)
-  headers.set("x-bolt-stats-cache", status)
+  headers.set("x-opencode-stats-cache", status)
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }
 

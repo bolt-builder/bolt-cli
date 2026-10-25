@@ -3,7 +3,7 @@ title: ACP-støtte
 description: Bruk opencode i en hvilken som helst ACP-kompatibel editor.
 ---
 
-Bolt støtter [Agent Client Protocol](https://agentclientprotocol.com) eller (ACP), slik at du kan bruke den direkte i kompatible editorer og IDE-er.
+OpenCode støtter [Agent Client Protocol](https://agentclientprotocol.com) eller (ACP), slik at du kan bruke den direkte i kompatible editorer og IDE-er.
 
 :::tip
 For en liste over editorer og verktøy som støtter ACP, sjekk ut [ACP fremdriftsrapport](https://zed.dev/blog/acp-progress-report#available-now).
@@ -15,9 +15,9 @@ ACP er en åpen protokoll som standardiserer kommunikasjon mellom kodeditorer og
 
 ## Konfigurasjon
 
-For å bruke Bolt via ACP, konfigurer redigeringsprogrammet til å kjøre kommandoen `opencode acp`.
+For å bruke OpenCode via ACP, konfigurer redigeringsprogrammet til å kjøre kommandoen `opencode acp`.
 
-Kommandoen starter Bolt som en ACP-kompatibel underprosess som kommuniserer med editoren din over JSON-RPC via stdio.
+Kommandoen starter OpenCode som en ACP-kompatibel underprosess som kommuniserer med editoren din over JSON-RPC via stdio.
 
 Nedenfor er eksempler på populære editorer som støtter ACP.
 
@@ -25,16 +25,16 @@ Nedenfor er eksempler på populære editorer som støtter ACP.
 
 ### Zed
 
-Installer Bolt fra [Zeds ACP-register](https://zed.dev/docs/ai/external-agents#registry) ved å kjøre `zed: acp registry` i kommandopaletten.
+Installer OpenCode fra [Zeds ACP-register](https://zed.dev/docs/ai/external-agents#registry) ved å kjøre `zed: acp registry` i kommandopaletten.
 
-Hvis du i stedet vil bruke en egendefinert Bolt-kjørbar fil, legger du den til i [Zed](https://zed.dev)-konfigurasjonen (`~/.config/zed/settings.json`):
+Hvis du i stedet vil bruke en egendefinert OpenCode-kjørbar fil, legger du den til i [Zed](https://zed.dev)-konfigurasjonen (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "type": "custom",
-      "command": "bolt",
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -54,9 +54,9 @@ Du kan også binde en hurtigtast ved å redigere `keymap.json`:
         {
           "agent": {
             "custom": {
-              "name": "Bolt",
+              "name": "OpenCode",
               "command": {
-                "command": "bolt",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -77,7 +77,7 @@ Legg til [JetBrains IDE](https://www.jetbrains.com/) acp.json i henhold til [dok
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -85,7 +85,7 @@ Legg til [JetBrains IDE](https://www.jetbrains.com/) acp.json i henhold til [dok
 }
 ```
 
-For å åpne den, bruk den nye 'Bolt'-agenten i AI Chat-agentvelgeren.
+For å åpne den, bruk den nye 'OpenCode'-agenten i AI Chat-agentvelgeren.
 
 ---
 
@@ -96,8 +96,8 @@ Legg til i [Avante.nvim](https://github.com/yetone/avante.nvim)-konfigurasjonen:
 ```lua
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
@@ -109,11 +109,11 @@ Hvis du trenger å sende miljøvariabler:
 ```lua {6-8}
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        BOLT_API_KEY = os.getenv("BOLT_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -124,28 +124,28 @@ Hvis du trenger å sende miljøvariabler:
 
 ### CodeCompanion.nvim
 
-For å bruke Bolt som en ACP-agent i [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), legg til følgende i Neovim-konfigurasjonen:
+For å bruke OpenCode som en ACP-agent i [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim), legg til følgende i Neovim-konfigurasjonen:
 
 ```lua
 require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "bolt",
-        model = "claude-sonnet-4",
+        name = "opencode",
+        model = "claude-sonnet-5-5",
       },
     },
   },
 })
 ```
 
-Denne konfigurasjonen setter opp CodeCompanion.nvim til å bruke Bolt som ACP-agent for chat.
+Denne konfigurasjonen setter opp CodeCompanion.nvim til å bruke OpenCode som ACP-agent for chat.
 
-Hvis du trenger å sende miljøvariabler (som `BOLT_API_KEY`), se [Konfigurere adaptere: miljøvariabler](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) i CodeCompanion.nvim-dokumentasjonen for fullstendige detaljer.
+Hvis du trenger å sende miljøvariabler (som `OPENCODE_API_KEY`), se [Konfigurere adaptere: miljøvariabler](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) i CodeCompanion.nvim-dokumentasjonen for fullstendige detaljer.
 
 ## Støtte
 
-Bolt fungerer på samme måte via ACP som i terminalen. Alle funksjoner støttes:
+OpenCode fungerer på samme måte via ACP som i terminalen. Alle funksjoner støttes:
 
 :::note
 Noen innebygde slash-kommandoer som `/undo` og `/redo` støttes for øyeblikket ikke.
@@ -153,7 +153,7 @@ Noen innebygde slash-kommandoer som `/undo` og `/redo` støttes for øyeblikket 
 
 - Innebygde verktøy (filoperasjoner, terminalkommandoer, etc.)
 - Egendefinerte verktøy og slash-kommandoer
-- MCP servere konfigurert i Bolt-konfigurasjonen
+- MCP servere konfigurert i OpenCode-konfigurasjonen
 - Prosjektspesifikke regler fra `AGENTS.md`
 - Tilpassede formatere og linters
 - Agenter og tillatelsessystem

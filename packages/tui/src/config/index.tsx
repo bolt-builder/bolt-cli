@@ -307,7 +307,7 @@ export function resolve(
       notifications: input.attention?.notifications ?? false,
       sound: input.attention?.sound ?? false,
       volume: input.attention?.volume ?? 0.4,
-      sound_pack: input.attention?.sound_pack ?? "bolt.default",
+      sound_pack: input.attention?.sound_pack ?? "opencode.default",
       sounds: input.attention?.sounds ?? {},
     },
     keybinds: createBindingLookup(TuiKeybind.toBindingConfig(TuiKeybind.parse(keybinds)), {

@@ -1,14 +1,14 @@
 import path from "path"
 import { Context, Effect, Layer, Stream } from "effect"
-import { HttpClient, HttpClientRequest } from "effect/unstable/http"
-import { ChildProcess } from "effect/unstable/process"
-import { ChildProcessSpawner } from "effect/unstable/process/ChildProcessSpawner"
-import { CrossSpawnSpawner } from "../cross-spawn-spawner"
-import { makeGlobalNode } from "../effect/app-node"
-import { httpClient } from "../effect/app-node-platform"
-import { FSUtil } from "../fs-util"
-import { Global } from "../global"
-import { which } from "../util/which"
+import { HttpClient, HttpClientRequest } from "effect/http"
+import { ChildProcess } from "effect/process"
+import { ChildProcessSpawner } from "effect/process/ChildProcessSpawner"
+import { CrossSpawnSpawner } from "@bolt-ai/util/cross-spawn-spawner"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { httpClient } from "@bolt-ai/util/effect/app-node-platform"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Global } from "@bolt-ai/util/global"
+import { which } from "../util/which.js"
 
 export namespace RipgrepBinary {
   const VERSION = "15.1.0"
@@ -26,7 +26,7 @@ export namespace RipgrepBinary {
     readonly filepath: Effect.Effect<string, Error>
   }
 
-  export class Service extends Context.Service<Service, Interface>()("@bolt/RipgrepBinary") {}
+  export class Service extends Context.Service<Service, Interface>()("@bolt-ai/RipgrepBinary") {}
 
   const layer = Layer.effect(
     Service,

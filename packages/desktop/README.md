@@ -1,6 +1,6 @@
-# Bolt Desktop
+# OpenCode Desktop
 
-The Bolt Desktop app, built with Electron.
+The OpenCode Desktop app, built with Electron.
 
 ## Development
 

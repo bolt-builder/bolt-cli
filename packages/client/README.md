@@ -1,6 +1,6 @@
 # @bolt-ai/client
 
-Private generation target for clients derived directly from Bolt's authoritative Effect `HttpApi`.
+Private generation target for clients derived directly from OpenCode's authoritative Effect `HttpApi`.
 
 ## Entrypoints
 
@@ -16,9 +16,9 @@ The Promise root remains structural and has no Core or Effect runtime dependency
 Effect consumers construct canonical decoded inputs:
 
 ```ts
-import { AbsolutePath, Location, Bolt, Prompt } from "@bolt-ai/client/effect"
+import { AbsolutePath, Location, OpenCode, Prompt } from "@bolt-ai/client/effect"
 
-const client = yield * Bolt.make({ baseUrl: "https://bolt.example" })
+const client = yield * OpenCode.make({ baseUrl: "https://opencode.example" })
 yield *
   client.sessions.create({
     location: Location.Ref.make({ directory: AbsolutePath.make("/workspace") }),

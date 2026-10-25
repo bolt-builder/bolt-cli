@@ -1,20 +1,35 @@
 import path from "path"
 import fs from "fs/promises"
-import { describe, expect } from "bun:test"
-import { Effect, Layer, Schema } from "effect"
-import { FastCheck } from "effect/testing"
+import { describe, expect, test } from "bun:test"
+import { Arbitrary, Effect, Fiber, Layer, Logger, Schema, Stream } from "effect"
 import { Config } from "@bolt-ai/core/config"
-import { ConfigProvider } from "@bolt-ai/core/config/provider"
+import { ConfigDiscovery } from "@bolt-ai/core/config/discovery"
+import { ConfigIntegration } from "@bolt-ai/core/config/integration"
+import { Directory, Document, type Entry, Event, Info } from "@bolt-ai/schema/config"
+import { ConfigModel } from "@bolt-ai/schema/config/model"
+import { ConfigProvider } from "@bolt-ai/schema/config/provider"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { ConfigMigrateV1 } from "@bolt-ai/core/v1/config/migrate"
-import { ConfigV1 } from "@bolt-ai/core/v1/config/config"
-import { FSUtil } from "@bolt-ai/core/fs-util"
-import { Global } from "@bolt-ai/core/global"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Credential } from "@bolt-ai/core/credential"
+import { ConfigV1 } from "../fixture/v1-config/config"
+import { ConfigPermissionV1 } from "@bolt-ai/core/v1/config/permission"
+import { ConfigNormalize } from "@bolt-ai/core/config/normalize"
+import { ConfigVariable } from "@bolt-ai/core/config/variable"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Watcher } from "@bolt-ai/core/filesystem/watcher"
+import { Bus } from "@bolt-ai/core/bus"
+import { Global } from "@bolt-ai/util/global"
 import { Location } from "@bolt-ai/core/location"
-import { Policy } from "@bolt-ai/core/policy"
 import { Project } from "@bolt-ai/core/project"
+import { Provider } from "@bolt-ai/core/provider"
 import { AbsolutePath } from "@bolt-ai/core/schema"
+import { WellKnown } from "@bolt-ai/core/wellknown"
+import { KV } from "@bolt-ai/core/kv"
+import { ManagedPolicy } from "@bolt-ai/core/managed-policy"
+import { Wildcard } from "@bolt-ai/core/util/wildcard"
+import { Integration } from "@bolt-ai/schema/integration"
+import { emptyCredentialNode, emptyWellknownNode } from "../fixture/config-nodes"
 import { location } from "../fixture/location"
 import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
@@ -1457,11 +1472,11 @@ describe("Config", () => {
           yield* Effect.promise(() =>
             Promise.all([
               fs.writeFile(
-                path.join(tmp.path, "bolt.json"),
+                path.join(tmp.path, "opencode.json"),
                 JSON.stringify({ $schema: "base", providers: { base: provider } }),
               ),
               fs.writeFile(
-                path.join(tmp.path, "bolt.jsonc"),
+                path.join(tmp.path, "opencode.jsonc"),
                 `{
                   // Later global files override scalar fields while retaining providers.
                   "$schema": "last",
@@ -1477,12 +1492,12 @@ describe("Config", () => {
             expect(documents).toHaveLength(2)
             expect(documents.map((document) => document.type)).toEqual(["document", "document"])
             expect(documents.map((document) => document.info.$schema)).toEqual(["base", "last"])
-            expect(documents[0]).toBeInstanceOf(Config.Document)
-            expect(documents[0]?.path).toBe(path.join(tmp.path, "bolt.json"))
+            expect(documents[0]).toBeInstanceOf(Document)
+            expect(documents[0]?.path).toBe(AbsolutePath.make(path.join(tmp.path, "opencode.json")))
             expect(documents[1]?.info.providers?.last).toBeInstanceOf(ConfigProvider.Info)
 
             yield* Effect.promise(() =>
-              fs.writeFile(path.join(tmp.path, "bolt.jsonc"), JSON.stringify({ $schema: "changed" })),
+              fs.writeFile(path.join(tmp.path, "opencode.jsonc"), JSON.stringify({ $schema: "changed" })),
             )
             expect(
               (yield* config.entries())
@@ -1607,7 +1622,7 @@ describe("Config", () => {
     Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) =>
         Effect.gen(function* () {
-          const file = path.join(tmp.path, "bolt.json")
+          const file = path.join(tmp.path, "opencode.json")
           const contents = JSON.stringify({
             shell: "/bin/zsh",
             providers: { local: provider },
@@ -1633,7 +1648,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 shell: "/bin/bash",
                 model: "anthropic/claude",
@@ -1711,10 +1726,6 @@ describe("Config", () => {
                   sdk: { repository: "github.com/example/sdk", branch: "main" },
                   shorthand: "github.com/example/docs",
                 },
-                plugins: [
-                  "bolt-helicone-session",
-                  { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-                ],
               }),
             ),
           )
@@ -1807,10 +1818,6 @@ describe("Config", () => {
               sdk: { repository: "github.com/example/sdk", branch: "main" },
               shorthand: "github.com/example/docs",
             })
-            expect(documents[0]?.info.plugins).toEqual([
-              "bolt-helicone-session",
-              { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-            ])
           }).pipe(Effect.provide(testLayer(tmp.path)))
         }),
       ),
@@ -1823,7 +1830,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 reference: {
                   local: { path: "../library" },
@@ -1856,7 +1863,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 shell: "/bin/zsh",
                 default_agent: "reviewer",
@@ -1877,7 +1884,6 @@ describe("Config", () => {
                     permission: { read: "allow" },
                   },
                 },
-                plugin: ["bolt-helicone-session", ["@my-org/audit-plugin", { endpoint: "https://audit.example.com" }]],
                 skills: { paths: ["./skills"], urls: ["https://example.com/.well-known/skills/"] },
                 references: {
                   docs: { path: "../docs", description: "Use for product documentation", hidden: true },
@@ -1966,10 +1972,6 @@ describe("Config", () => {
               request: { body: { temperature: 0.2 } },
               permissions: [{ action: "read", resource: "*", effect: "allow" }],
             })
-            expect(documents[0]?.info.plugins).toEqual([
-              "bolt-helicone-session",
-              { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-            ])
             expect(documents[0]?.info.skills).toEqual(["./skills", "https://example.com/.well-known/skills/"])
             expect(documents[0]?.info.references).toEqual({
               docs: { path: "../docs", description: "Use for product documentation", hidden: true },
@@ -2045,8 +2047,8 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Promise.all([
-              fs.writeFile(path.join(tmp.path, "bolt.json"), JSON.stringify({ $schema: "base" })),
-              fs.writeFile(path.join(tmp.path, "bolt.jsonc"), "{ invalid"),
+              fs.writeFile(path.join(tmp.path, "opencode.json"), JSON.stringify({ $schema: "base" })),
+              fs.writeFile(path.join(tmp.path, "opencode.jsonc"), "{ invalid"),
             ]),
           )
           return yield* Effect.gen(function* () {
@@ -2066,45 +2068,8 @@ describe("Config", () => {
     ),
   )
 
-  it.live("loads policy statements in reverse config order", () =>
-    Effect.acquireRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
-    ).pipe(
-      Effect.flatMap((tmp) => {
-        const global = path.join(tmp.path, "global")
-        return Effect.gen(function* () {
-          yield* Effect.promise(async () => {
-            await fs.mkdir(global, { recursive: true })
-            await fs.writeFile(
-              path.join(global, "bolt.json"),
-              JSON.stringify({
-                experimental: { policies: [{ effect: "deny", action: "provider.use", resource: "openai" }] },
-              }),
-            )
-            await fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
-              JSON.stringify({
-                experimental: { policies: [{ effect: "allow", action: "provider.use", resource: "openai" }] },
-              }),
-            )
-          })
-
-          return yield* Effect.gen(function* () {
-            const policy = yield* Policy.Service
-
-            expect(yield* policy.evaluate("provider.use", "openai", "allow")).toBe("deny")
-          }).pipe(Effect.provide(testLayer(tmp.path, global)))
-        })
-      }),
-    ),
-  )
-
-  it.live("loads global, ancestor, and .bolt configuration up to the project boundary", () =>
-    Effect.acquireRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
-    ).pipe(
+  it.live("loads global and ancestor configuration across the project boundary", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) => {
         const global = path.join(tmp.path, "global")
         const root = path.join(tmp.path, "repo")
@@ -2118,16 +2083,23 @@ describe("Config", () => {
             await fs.mkdir(globalAgents, { recursive: true })
             await fs.mkdir(globalClaude, { recursive: true })
             await fs.mkdir(directory, { recursive: true })
-            await fs.mkdir(path.join(root, ".bolt"), { recursive: true })
-            await fs.mkdir(path.join(directory, ".bolt"), { recursive: true })
+            await fs.mkdir(path.join(root, ".agents"), { recursive: true })
+            await fs.mkdir(path.join(root, ".claude"), { recursive: true })
+            await fs.mkdir(path.join(root, ".opencode"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".agents"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".claude"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".opencode"), { recursive: true })
             await Promise.all([
-              fs.writeFile(path.join(tmp.path, "bolt.json"), JSON.stringify({ $schema: "outside" })),
-              fs.writeFile(path.join(global, "bolt.json"), JSON.stringify({ $schema: "global" })),
-              fs.writeFile(path.join(root, "bolt.json"), JSON.stringify({ $schema: "root" })),
-              fs.writeFile(path.join(parent, "bolt.jsonc"), JSON.stringify({ $schema: "parent" })),
-              fs.writeFile(path.join(directory, "bolt.json"), JSON.stringify({ $schema: "directory" })),
-              fs.writeFile(path.join(root, ".bolt", "bolt.json"), JSON.stringify({ $schema: "root-dot" })),
-              fs.writeFile(path.join(directory, ".bolt", "bolt.jsonc"), JSON.stringify({ $schema: "directory-dot" })),
+              fs.writeFile(path.join(tmp.path, "opencode.json"), JSON.stringify({ $schema: "outside" })),
+              fs.writeFile(path.join(global, "opencode.json"), JSON.stringify({ $schema: "global" })),
+              fs.writeFile(path.join(root, "opencode.json"), JSON.stringify({ $schema: "root" })),
+              fs.writeFile(path.join(parent, "opencode.jsonc"), JSON.stringify({ $schema: "parent" })),
+              fs.writeFile(path.join(directory, "opencode.json"), JSON.stringify({ $schema: "directory" })),
+              fs.writeFile(path.join(root, ".opencode", "opencode.json"), JSON.stringify({ $schema: "root-dot" })),
+              fs.writeFile(
+                path.join(directory, ".opencode", "opencode.jsonc"),
+                JSON.stringify({ $schema: "directory-dot" }),
+              ),
             ])
           })
 
@@ -2139,8 +2111,8 @@ describe("Config", () => {
 
             expect(entries.filter((entry) => entry.type === "directory").map((entry) => entry.path)).toEqual([
               AbsolutePath.make(global),
-              AbsolutePath.make(path.join(root, ".bolt")),
-              AbsolutePath.make(path.join(directory, ".bolt")),
+              AbsolutePath.make(path.join(root, ".opencode")),
+              AbsolutePath.make(path.join(directory, ".opencode")),
             ])
             expect(compatibility.agents.filter((path) => inFixture(tmp.path, path))).toEqual([
               AbsolutePath.make(globalAgents),
@@ -2169,9 +2141,9 @@ describe("Config", () => {
               "parent",
               "directory",
               "root-dot",
-              AbsolutePath.make(path.join(root, ".bolt")),
+              AbsolutePath.make(path.join(root, ".opencode")),
               "directory-dot",
-              AbsolutePath.make(path.join(directory, ".bolt")),
+              AbsolutePath.make(path.join(directory, ".opencode")),
             ])
           }).pipe(
             Effect.provide(

@@ -61,6 +61,8 @@ export const makeEventGroup = <const Definitions extends ReadonlyArray<Definitio
 
 const event = make(EventManifest.ServerDefinitions)
 export const EventGroup = event.group
-export const BoltEvent = event.schema
-export type BoltEvent = typeof BoltEvent.Type
-export type BoltEventEncoded = typeof BoltEvent.Encoded
+export const OpenCodeEvent = event.schema
+export type OpenCodeEvent = typeof OpenCodeEvent.Type
+export type OpenCodeEventEncoded = typeof OpenCodeEvent.Encoded
+export const isOpenCodeEvent = (event: { readonly type: string }): event is OpenCodeEvent =>
+  event.type === "server.connected" || EventManifest.isServer(event) || event.type.startsWith("rpc.")

@@ -1,7 +1,7 @@
-import { parseDiffFromFile, parsePatchFiles, type FileDiffMetadata } from "@pierre/diffs"
-import { parsePatch } from "diff"
-import type { SnapshotFileDiff, VcsFileDiff } from "@bolt-ai/sdk/v2"
+import { parseDiffFromFile, parsePatchFiles, processFile, type FileDiffMetadata } from "@pierre/diffs"
+import { checksum } from "@bolt-ai/util/encode"
 import type { FileDiffInfo } from "@bolt-ai/client/promise"
+import type { PresentationFileDiff } from "../file-presentation"
 
 type LegacyDiff = {
   file: string

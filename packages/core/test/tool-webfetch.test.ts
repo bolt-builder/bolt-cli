@@ -1,15 +1,16 @@
 import { describe, expect, test } from "bun:test"
 import { Duration, Effect, Fiber, Layer, Schema } from "effect"
 import * as TestClock from "effect/testing/TestClock"
-import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
+import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { PermissionV2 } from "@bolt-ai/core/permission"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { WebFetchTool } from "@bolt-ai/core/tool/webfetch"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { LayerNodePlatform } from "@bolt-ai/util/effect/app-node-platform"
+import { Permission } from "@bolt-ai/core/permission"
+import { Session } from "@bolt-ai/core/session"
+import { Tool } from "@bolt-ai/core/tool"
+import { WebFetchTool } from "@bolt-ai/core/tool/plugin/webfetch"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { Image } from "@bolt-ai/core/image"
 import { testEffect } from "./lib/effect"
 import { imagePassthrough } from "./lib/image"
 import { permissionLayer } from "./lib/permission"
@@ -623,8 +624,8 @@ describe("WebFetchTool registration", () => {
         content: [{ type: "text", text: "ok" }],
       })
       expect(requests).toHaveLength(2)
-      expect(requests[0]?.headers["user-agent"]).toContain("Mozilla/5.0")
-      expect(requests[1]?.headers["user-agent"]).toBe("bolt")
+      expect(requests[0]?.headers["user-agent"]).toBe(webFetchUserAgent)
+      expect(requests[1]?.headers["user-agent"]).toBe("opencode")
     }),
   )
 

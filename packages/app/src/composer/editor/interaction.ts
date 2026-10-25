@@ -2,8 +2,9 @@ import { Predicate } from "effect"
 import { createEffect, type Accessor } from "solid-js"
 import { createStore, reconcile } from "solid-js/store"
 import { useFilteredList } from "@bolt-ai/ui/hooks"
-import { createPromptInputV2Attachments, type PromptInputV2AttachmentConfig } from "./attachments"
-import { createPromptInputV2Store, type PromptInputV2StoreInput } from "./store"
+import { createComposerAttachments, type ComposerAttachmentConfig } from "../attachments/attachments"
+import type { Upload } from "../attachments/uploads"
+import { createComposerEditorActions, type ComposerStateStoreInput } from "./actions"
 import type {
   ComposerAttachment,
   ComposerComment,

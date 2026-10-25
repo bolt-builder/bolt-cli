@@ -1,11 +1,13 @@
 export * as PermissionSaved from "./saved.js"
 
 import { eq } from "drizzle-orm"
-import { Context, Effect, Layer, Schema } from "effect"
-import { Database } from "../database/database"
-import { makeGlobalNode } from "../effect/app-node"
-import { ProjectV2 } from "../project"
-import { PermissionTable } from "./sql"
+import { Cause, Context, DateTime, Effect, Layer, Schema } from "effect"
+import { isSqlError } from "effect/sql/SqlError"
+import type { EffectDrizzleQueryError } from "drizzle-orm/effect-core/errors"
+import type { Project } from "@bolt-ai/schema/project"
+import { Database } from "../database/database.js"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { PermissionTable } from "./sql.js"
 import { PermissionSaved } from "@bolt-ai/schema/permission-saved"
 
 export const ID = PermissionSaved.ID
@@ -47,7 +49,7 @@ export interface Interface {
   readonly remove: (id: ID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/PermissionSaved") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/PermissionSaved") {}
 
 const layer = Layer.effect(
   Service,

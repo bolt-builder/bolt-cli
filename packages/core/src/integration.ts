@@ -19,10 +19,13 @@ import {
   Types,
 } from "effect"
 import { Integration } from "@bolt-ai/schema/integration"
-import { Credential } from "./credential"
-import { State } from "./state"
-import { EventV2 } from "./event"
-import { IntegrationConnection } from "./integration/connection"
+import { Credential } from "./credential.js"
+import { State } from "./state.js"
+import { Bus } from "./bus.js"
+import { IntegrationConnection } from "./integration/connection.js"
+import { AppProcess } from "@bolt-ai/util/process"
+import { ChildProcess } from "effect/process"
+import { Form } from "./form.js"
 
 export const ID = Integration.ID
 export type ID = Integration.ID
@@ -253,7 +256,7 @@ export interface Interface extends State.Transformable<Editor> {
   }
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Integration") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Integration") {}
 
 const attemptLifetime = Duration.toMillis(Duration.minutes(10))
 const terminalRetention = Duration.toMillis(Duration.minutes(1))

@@ -1,6 +1,6 @@
-import type { TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
-import { createMemo, For, Match, Show, Switch, createSignal } from "solid-js"
+import { Plugin } from "@bolt-ai/plugin/tui"
+import { createMemo, For, Match, Show, Switch } from "solid-js"
+import { DialogMcp } from "../../component/dialog-mcp"
 
 export function SidebarMcp(props: { context: Plugin.Context; sessionID: string }) {
   const [view, updateView] = props.context.storage.store("view", { initial: { open: true } })

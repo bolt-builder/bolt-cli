@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import type { FilePart } from "@bolt-ai/sdk/v2"
-import { attached, inline, kind, typeLabel } from "./message-file"
+import type { PromptFileAttachment } from "@bolt-ai/client/promise"
+import { attached, typeLabel } from "./message-file"
 
 function file(source: PromptFileAttachment["source"], mention = false): PromptFileAttachment {
   const item: PromptFileAttachment = {

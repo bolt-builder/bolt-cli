@@ -1,6 +1,6 @@
 {
-  "$schema": "https://bolt.ai/desktop-theme.json",
-  "name": "OC-2",
+  "$schema": "https://opencode.ai/desktop-theme.json",
+  "name": "OpenCode",
   "id": "oc-2",
   "light": {
     "palette": {

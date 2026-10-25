@@ -1,6 +1,6 @@
 import { FileSystem } from "@bolt-ai/schema/filesystem"
 import { Location } from "@bolt-ai/schema/location"
-import { PositiveInt, RelativePath } from "@bolt-ai/schema/schema"
+import { PositiveInt } from "@bolt-ai/schema/schema"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/http-api"
 import { FileNotFoundError } from "../errors.js"

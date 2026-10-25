@@ -3,7 +3,8 @@ export * as Agent from "./agent.js"
 import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { Array, Context, Effect, Layer, Types } from "effect"
 import { Agent } from "@bolt-ai/schema/agent"
-import { State } from "./state"
+import { Bus } from "./bus.js"
+import { State } from "./state.js"
 
 export const ID = Agent.ID
 export type ID = typeof ID.Type
@@ -43,7 +44,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly list: () => Effect.Effect<Info[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Agent") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Agent") {}
 
 const layer = Layer.effect(
   Service,

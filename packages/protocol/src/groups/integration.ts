@@ -1,5 +1,6 @@
 import { Integration } from "@bolt-ai/schema/integration"
 import { Location } from "@bolt-ai/schema/location"
+import { Form } from "@bolt-ai/schema/form"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/http-api"
 import {

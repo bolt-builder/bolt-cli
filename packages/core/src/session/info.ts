@@ -1,14 +1,13 @@
-import { DateTime } from "effect"
-import { AgentV2 } from "../agent"
-import { Location } from "../location"
-import { ModelV2 } from "../model"
-import { ProjectV2 } from "../project"
-import { ProviderV2 } from "../provider"
-import { AbsolutePath, RelativePath } from "../schema"
-import { WorkspaceV2 } from "../workspace"
-import { SessionSchema } from "./schema"
-import { SessionTable } from "./sql"
-import { SessionMessage } from "./message"
+import { DateTime, Schema } from "effect"
+import { Model } from "@bolt-ai/schema/model"
+import { Provider } from "@bolt-ai/schema/provider"
+import { AbsolutePath, RelativePath } from "../schema.js"
+import { SessionSchema } from "./schema.js"
+import type { SessionTable } from "./sql.js"
+import { PersistedRevert } from "@bolt-ai/schema/session-revert"
+import { Money } from "@bolt-ai/schema/money"
+
+const decodeRevert = Schema.decodeUnknownSync(PersistedRevert)
 
 export function fromRow(row: typeof SessionTable.$inferSelect): SessionSchema.Info {
   return SessionSchema.Info.make({

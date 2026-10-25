@@ -1,12 +1,11 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
 import { expect, test, type Page } from "@playwright/test"
-import { mockBoltServer } from "../utils/mock-server"
+import { SERVER, sessionHref } from "../utils/app"
 import { installSseTransport } from "../utils/sse-transport"
 import { expectSessionTitle } from "../utils/waits"
 import { mockWorkspace, type WorkspaceInput } from "../utils/workspace"
 
-const directory = "C:/Bolt/RequestDocks"
-const projectID = "proj_request_docks"
+const directory = "C:/OpenCode/RequestDocks"
+
 const sessionID = "ses_request_docks"
 
 const title = "Request dock regression"
@@ -281,57 +280,6 @@ test("restores the draft caret before typing after a request dock closes", async
   await expect(editor).toHaveText(`${draft.slice(0, cursor)}x${draft.slice(cursor)}`)
 })
 
-async function mockServer(
-  page: Page,
-  requests: {
-    permissions?: unknown[] | (() => unknown[])
-    questions?: unknown[] | (() => unknown[])
-  },
-) {
-  await mockBoltServer(page, {
-    protocol: "v2",
-    directory,
-    project: {
-      id: projectID,
-      worktree: directory,
-      vcs: "git",
-      name: "request-docks",
-      time: { created: 1700000000000, updated: 1700000000000 },
-      sandboxes: [],
-    },
-    provider: {
-      all: [
-        {
-          id: "bolt",
-          name: "Bolt",
-          models: {
-            "claude-opus-4-6": {
-              id: "claude-opus-4-6",
-              name: "Claude Opus 4.6",
-              limit: { context: 200_000 },
-            },
-          },
-        },
-      ],
-      connected: ["bolt"],
-      default: { providerID: "bolt", modelID: "claude-opus-4-6" },
-    },
-    sessions: [
-      {
-        id: sessionID,
-        slug: "request-docks",
-        projectID,
-        directory,
-        title,
-        version: "dev",
-        time: { created: 1700000000000, updated: 1700000000000 },
-      },
-    ],
-    pageMessages: () => ({ items: [] }),
-    permissions: requests.permissions,
-    questions: requests.questions,
-  })
-  await page.addInitScript(() => {
-    localStorage.setItem("settings.v3", JSON.stringify({ general: { newLayoutDesigns: true } }))
-  })
+function mockServer(page: Page, requests: Pick<WorkspaceInput, "sessionPermissions" | "onPermissionReply" | "forms">) {
+  return mockWorkspace(page, { name: "RequestDocks", directory, sessions: [{ id: sessionID, title }], ...requests })
 }

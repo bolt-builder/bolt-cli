@@ -9,12 +9,10 @@ describe("hasExistingAppState", () => {
   test("recognizes state from an earlier Bolt launch but not files Electron creates on a fresh install", () => {
     expect(hasExistingAppState([])).toBe(false)
     expect(hasExistingAppState([file("Local State"), directory("Crashpad")])).toBe(false)
-  })
-
-  test("recognizes state written by an earlier Bolt launch", () => {
-    expect(hasExistingAppState([file("bolt.settings")])).toBe(true)
-    expect(hasExistingAppState([file("bolt.global.dat")])).toBe(true)
+    expect(hasExistingAppState([file("opencode.settings")])).toBe(true)
+    expect(hasExistingAppState([file("opencode.global.dat")])).toBe(true)
+    expect(hasExistingAppState([file("drafts.sqlite")])).toBe(true)
     expect(hasExistingAppState([file("window-state-abc.json")])).toBe(true)
-    expect(hasExistingAppState([directory("bolt")])).toBe(true)
+    expect(hasExistingAppState([directory("opencode")])).toBe(true)
   })
 })

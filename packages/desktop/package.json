@@ -1,12 +1,13 @@
 {
   "name": "@bolt-ai/desktop",
   "private": true,
-  "version": "1.20.7",  "type": "module",
+  "version": "1.20.7",
+  "type": "module",
   "license": "MIT",
-  "homepage": "https://bolt.ai",
+  "homepage": "https://opencode.ai",
   "author": {
-    "name": "Bolt",
-    "email": "hello@bolt.ai"
+    "name": "OpenCode",
+    "email": "hello@opencode.ai"
   },
   "scripts": {
     "typecheck": "bun check --no-script -b",
@@ -36,6 +37,9 @@
     "@effect/platform-node": "catalog:",
     "@lydell/node-pty": "catalog:",
     "@bolt-ai/app": "workspace:*",
+    "@bolt-ai/gui-extensions": "workspace:*",
+    "@bolt-ai/client": "workspace:*",
+    "@bolt-ai/schema": "workspace:*",
     "@bolt-ai/ui": "workspace:*",
     "@sentry/solid": "catalog:",
     "@sentry/vite-plugin": "catalog:",

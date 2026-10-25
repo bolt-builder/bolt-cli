@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bolt-ai/console-resource",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "dependencies": {
     "@cloudflare/workers-types": "catalog:"
   },

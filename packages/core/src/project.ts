@@ -65,7 +65,49 @@ export interface ListInput {
   readonly archived?: boolean
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/ProjectV2") {}
+export interface ResolveOptions {
+  /** Discover ownership without persisting or announcing it. */
+  readonly persist?: boolean
+}
+
+export interface Interface {
+  readonly list: (input?: ListInput) => Effect.Effect<ReadonlyArray<Info>>
+  readonly update: (input: UpdateInput) => Effect.Effect<Info, NotFoundError>
+  /** Records Project activity for recency ordering, at most once per minute per Project. */
+  readonly activate: (projectID: ID) => Effect.Effect<void>
+  /** Resolves the owning Project, persisting it unless `persist` is false. */
+  readonly resolve: (input: AbsolutePath, options?: ResolveOptions) => Effect.Effect<Resolved>
+  /** Archives Projects whose known directories are all gone; resolving a Project unarchives it. */
+  readonly sweep: () => Effect.Effect<void>
+}
+
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Project") {}
+
+function fromRow(row: typeof ProjectTable.$inferSelect): Info {
+  const icon =
+    row.icon_url || row.icon_url_override || row.icon_color
+      ? {
+          url: row.icon_url ?? undefined,
+          override: row.icon_url_override ?? undefined,
+          color: row.icon_color ?? undefined,
+        }
+      : undefined
+  return {
+    id: row.id,
+    canonical: row.worktree,
+    vcs: row.vcs ?? undefined,
+    name: row.name ?? undefined,
+    icon,
+    commands: row.commands ?? undefined,
+    time: {
+      created: row.time_created,
+      updated: row.time_updated,
+      active: row.time_active,
+      archived: row.time_archived ?? undefined,
+    },
+    sandboxes: row.sandboxes,
+  }
+}
 
 const layer = Layer.effect(
   Service,
@@ -235,7 +277,7 @@ const layer = Layer.effect(
     })
 
     const cached = Effect.fnUntraced(function* (dir: string) {
-      return yield* fs.readFileString(path.join(dir, "bolt")).pipe(
+      return yield* fs.readFileString(path.join(dir, "opencode")).pipe(
         Effect.map((value) => value.trim()),
         Effect.map((value) => (value ? ID.make(value) : undefined)),
         Effect.orElseSucceed(() => undefined),
@@ -351,8 +393,39 @@ const layer = Layer.effect(
       }
     })
 
-    const commit = Effect.fn("Project.commit")(function* (input: { store: AbsolutePath; id: ID }) {
-      yield* fs.writeFileString(path.join(input.store, "bolt"), input.id).pipe(Effect.ignore)
+    const resolve = Effect.fn("Project.resolve")(function* (input: AbsolutePath, options?: ResolveOptions) {
+      const save = (project: Resolved) => (options?.persist === false ? Effect.succeed(project) : persist(project))
+      const directory = AbsolutePath.make(yield* fs.resolve(input))
+      const native = yield* fs.up({ targets: [".git", ".hg"], start: directory, mode: "first" }).pipe(
+        Effect.map((matches) => matches[0]),
+        Effect.orElseSucceed(() => undefined),
+      )
+      if (native && path.basename(native) === ".git") {
+        const dotGit = AbsolutePath.make(native)
+        const fingerprint = yield* git.repo.fingerprint(dotGit)
+        const key = `${dotGit}\u0000${fingerprint}`
+        const discovered = fingerprint
+          ? yield* Cache.get(gitCache, key).pipe(
+              Effect.tap((entry) => (entry.cacheable ? Effect.void : Cache.invalidate(gitCache, key))),
+            )
+          : yield* gitDiscover(dotGit)
+        if (discovered.resolved) return yield* save(discovered.resolved)
+      }
+
+      const hg = native && path.basename(native) === ".hg" ? yield* hgDiscover(AbsolutePath.make(native)) : undefined
+      if (hg) {
+        return yield* save({
+          ...hg,
+          canonical: hg.directory,
+        })
+      }
+
+      return yield* save({
+        id: ID.make(Hash.fast(`directory:${directory}`)),
+        directory,
+        canonical: directory,
+        vcs: undefined,
+      })
     })
 
     const sweep = Effect.fn("Project.sweep")(function* () {

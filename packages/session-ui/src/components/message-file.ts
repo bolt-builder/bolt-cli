@@ -1,6 +1,5 @@
-import { bundledLanguagesInfo } from "shiki"
-import { getFilename } from "@bolt-ai/core/util/path"
-import type { FilePart } from "@bolt-ai/sdk/v2"
+import { getFilename } from "@bolt-ai/util/path"
+import type { PromptFileAttachment } from "@bolt-ai/client/promise"
 
 export function attached(file: PromptFileAttachment) {
   if (file.mention) return false

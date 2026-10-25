@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For } from "solid-js"
-import { InstallationChannel, InstallationVersion } from "@bolt-ai/core/installation/version"
+import { Keymap } from "../context/keymap"
 import { useTheme } from "../context/theme"
 import { DialogHeader, DialogLayout, useDialog } from "../ui/dialog"
 import { useRoute } from "../context/route"

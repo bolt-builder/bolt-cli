@@ -1,6 +1,6 @@
 import type { JSX } from "solid-js"
-import type { RGBA } from "@opentui/core"
-import { openUrl } from "@bolt-ai/core/open"
+import type { CliRenderer, MouseEvent, RGBA } from "@opentui/core"
+import { openUrl } from "@bolt-ai/util/open"
 
 export interface LinkProps {
   href: string

@@ -1,6 +1,5 @@
-import type { TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
-import { createMemo, For, Show, createSignal } from "solid-js"
+import { Plugin } from "@bolt-ai/plugin/tui"
+import { createMemo, For, Show } from "solid-js"
 import { TodoItem } from "../../component/todo-item"
 import { sessionTodos } from "../../util/todo"
 

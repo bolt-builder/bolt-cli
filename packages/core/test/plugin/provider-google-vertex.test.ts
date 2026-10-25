@@ -1,13 +1,10 @@
-import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect, mock } from "bun:test"
+import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Model } from "@bolt-ai/core/model"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { GoogleVertexPlugin } from "@bolt-ai/core/plugin/provider/google-vertex"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import type { LanguageModelV3 } from "@ai-sdk/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -50,18 +47,15 @@ describe("GoogleVertexPlugin", () => {
     Effect.gen(function* () {
       const catalog = yield* Provider.Service
       yield* catalog.transform((catalog) =>
-        catalog.provider.update(ProviderV2.ID.bolt, (provider) => {
-          provider.api = {
-            type: "aisdk",
-            package: "@ai-sdk/openai-compatible",
-            url: "https://bolt.ai/zen/v1",
-          }
+        catalog.update(Provider.ID.opencode, (provider) => {
+          provider.package = "@bolt-ai/ai/providers/openai-compatible"
+          provider.settings = { ...provider.settings, baseURL: "https://opencode.ai/zen/v1" }
         }),
       )
       yield* addPlugin()
 
-      const provider = required(yield* catalog.provider.get(ProviderV2.ID.bolt))
-      expect(provider.request.body).toEqual({})
+      const provider = required(yield* catalog.get(Provider.ID.opencode))
+      expect(provider.settings).toEqual({ baseURL: "https://opencode.ai/zen/v1" })
     }),
   )
 

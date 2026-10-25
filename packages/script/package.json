@@ -1,7 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/package",
   "name": "@bolt-ai/script",
-  "license": "AGPL-3.0-only",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "bun test"
+  },
   "dependencies": {
     "semver": "^7.6.3"
   },

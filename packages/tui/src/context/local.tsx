@@ -97,12 +97,8 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
               : agentStore.current
           return agents().find((agent) => agent.id === selected) ?? agents().at(0)
         },
-        set(name: string) {
-          if (name === "auto") {
-            setAgentStore("current", undefined)
-            return
-          }
-          if (!agents().some((x) => x.name === name))
+        set(id: string) {
+          if (!agents().some((agent) => agent.id === id))
             return toast.show({
               variant: "warning",
               message: `Agent not found: ${id}`,
@@ -465,13 +461,6 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
               void repository.addRecent(model).catch(() => undefined)
             }
           })
-        },
-        clear() {
-          const a = agent.current()
-          if (!a) return
-          const currentModels = modelStore.model
-          delete currentModels[a.name]
-          setModelStore("model", currentModels)
         },
         toggleFavorite(model: { providerID: string; modelID: string }) {
           batch(() => {

@@ -1,9 +1,9 @@
 import { For, Show } from "solid-js"
-import type { PermissionRequest } from "@bolt-ai/sdk/v2"
+import type { PermissionRequest } from "@bolt-ai/client/promise"
 import { Button } from "@bolt-ai/ui/button"
 import { DockPrompt } from "@bolt-ai/session-ui/dock-prompt"
 import { Icon } from "@bolt-ai/ui/icon"
-import { useLanguage } from "@/context/language"
+import { useLanguage } from "@/runtime/i18n/language"
 
 export function SessionPermissionDock(props: {
   request: PermissionRequest

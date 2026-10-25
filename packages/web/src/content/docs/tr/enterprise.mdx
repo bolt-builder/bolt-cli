@@ -27,31 +27,10 @@ opencode açık kaynaktır ve herhangi bir kodunuzu veya içerik verilerinizi sa
 
 ### Veri işleme
 
-**bolt, kodunuzu veya içerik verilerinizi saklamaz.** Tüm işlemler yerel olarak veya AI sağlayıcınıza doğrudan API çağrıları yoluyla gerçekleştirilir.
+**opencode, kodunuzu veya içerik verilerinizi saklamaz.** Tüm işlemler yerel olarak veya AI sağlayıcınıza doğrudan API çağrıları yoluyla gerçekleştirilir.
 
 Bu, güvendiğiniz bir sağlayıcıyı veya dahili bir sağlayıcıyı kullandığınız sürece
 AI ağ geçidi, opencode'u güvenli bir şekilde kullanabilirsiniz.
-
-saklama alanının tek izolasyonuna bağlı `/share` özelliğidir.
-
----
-
-#### Konuşmaları paylaşma
-
-Bir kullanıcı `/share` özelliğini etkinleştirirse, görüşme ve onunla ilişkili veriler, bu paylaşım sayfalarını bolt.ai'de barındırmak için kullandığımız hizmete gönderilir.
-
-Veriler şu anda CDN uç ağımız üzerinden sunuluyor ve kullanıcılarınızın yakınındaki uçta önbelleğe alınıyor.
-
-Deneme süreniz için bunu devre dışı bırakmanızı öneririz.
-
-```json title="bolt.json"
-{
-  "$schema": "https://bolt.ai/config.json",
-  "share": "disabled"
-}
-```
-
-[Paylaşım hakkında daha fazla bilgi](/docs/share).
 
 ---
 
@@ -85,7 +64,7 @@ Bu merkezi yapılandırma, SSO sağlayıcınızla entegre olabilir ve tüm kulla
 
 ### SSO entegrasyonu
 
-Merkezi yapılandırma aracılığıyla bolt, kimlik doğrulama için kuruluşunuzun SSO sağlayıcısıyla entegre olabilir.
+Merkezi yapılandırma aracılığıyla opencode, kimlik doğrulama için kuruluşunuzun SSO sağlayıcısıyla entegre olabilir.
 
 Bu, opencode'un mevcut kimlik yönetimi sisteminiz aracılığıyla dahili AI ağ geçidiniz için kimlik bilgileri almasına olanak tanır.
 
@@ -143,7 +122,7 @@ Evet. opencode kodunuzu veya içerik verilerinizi saklamaz. Tüm işlemler yerel
 <details>
 <summary>Kendi özel NPM kayıt defterimizi kullanabilir miyiz?</summary>
 
-bolt, Bun'un yerel `.npmrc` dosya desteği aracılığıyla özel npm kayıtlarını destekler. Kuruluşunuz JFrog Artifactory, Nexus veya benzeri gibi özel bir kayıt defteri kullanıyorsa, opencode'u çalıştırmadan önce geliştiricilerin kimlik doğrulamasının yapıldığından emin olun.
+opencode, Bun'un yerel `.npmrc` dosya desteği aracılığıyla özel npm kayıtlarını destekler. Kuruluşunuz JFrog Artifactory, Nexus veya benzeri gibi özel bir kayıt defteri kullanıyorsa, opencode'u çalıştırmadan önce geliştiricilerin kimlik doğrulamasının yapıldığından emin olun.
 
 Özel kayıt defterinizle kimlik doğrulamayı ayarlamak için:
 

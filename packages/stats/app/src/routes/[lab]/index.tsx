@@ -122,7 +122,7 @@ export default function StatsLab() {
               <FormatLinks path={labPath()} />
               <LastModified value={stats()?.updatedAt} />
               <Meta property="og:type" content="website" />
-              <Meta property="og:site_name" content="Bolt" />
+              <Meta property="og:site_name" content="OpenCode" />
               <Meta property="og:title" content={labTitle()} />
               <Meta property="og:description" content={labDescription()} />
               <Meta property="og:url" content={labUrl()} />
@@ -705,7 +705,7 @@ function LabModelTooltip(props: { state: LabModelTooltipState }) {
           </span>
           <strong>{props.state.model.name}</strong>
         </div>
-        <p>{props.state.model.description ?? "Recent Bolt usage, share, context, and output limits."}</p>
+        <p>{props.state.model.description ?? "Recent OpenCode usage, share, context, and output limits."}</p>
       </div>
       <div data-slot="tooltip-divider" />
       <div data-slot="lab-model-tooltip-metrics">

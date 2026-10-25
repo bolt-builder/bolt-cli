@@ -1,10 +1,12 @@
 export * as DatabaseMigration from "./migration.js"
 
 import { sql } from "drizzle-orm"
-import { Effect, Semaphore } from "effect"
-import type { EffectDrizzleSqlite } from "@bolt-ai/effect-drizzle-sqlite"
-import { migrations } from "./migration.gen"
-import schema from "./schema.gen"
+import { Effect } from "effect"
+import { supportsForeignKeyToggle } from "#sqlite"
+import type { EffectDrizzleSqlite } from "./drizzle.js"
+import { migrations } from "./migration.gen.js"
+import schema from "./schema.gen.js"
+import { Global } from "@bolt-ai/util/global"
 
 type Database = EffectDrizzleSqlite.EffectSQLiteDatabase
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0]

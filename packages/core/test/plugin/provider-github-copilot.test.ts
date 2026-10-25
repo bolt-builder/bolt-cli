@@ -1,13 +1,27 @@
 import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect } from "bun:test"
+import { App } from "@bolt-ai/core/app"
+import { Agent } from "@bolt-ai/schema/agent"
+import { Session } from "@bolt-ai/core/session"
+import { Location } from "@bolt-ai/core/location"
+import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Model } from "@bolt-ai/core/model"
+import { ModelResolver } from "@bolt-ai/core/model-resolver"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
-import { GithubCopilotPlugin } from "@bolt-ai/core/plugin/provider/github-copilot"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import type { LanguageModelV3 } from "@ai-sdk/provider"
+import { PluginHooks } from "@bolt-ai/core/plugin/hooks"
+import {
+  copilotBaseURL,
+  copilotEntitlementError,
+  copilotFetch,
+  GithubCopilotPlugin,
+  utilityTitle,
+} from "@bolt-ai/core/plugin/provider/github-copilot"
+import { Message, SystemPart } from "@bolt-ai/ai/effect"
+import { Provider } from "@bolt-ai/core/provider"
+import { Integration } from "@bolt-ai/core/integration"
+import type { SessionRequestKind } from "@bolt-ai/plugin/effect/session"
+import { fakeSelectorSdk } from "../fixture/selector"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 

@@ -1,12 +1,15 @@
 export * as Credential from "./credential.js"
 
-import { asc, eq } from "drizzle-orm"
-import { Context, Effect, Layer, Schema } from "effect"
+import { asc, desc, eq } from "drizzle-orm"
+import { Cause, Context, Effect, Layer, Schema } from "effect"
 import { Credential } from "@bolt-ai/schema/credential"
+import { CredentialLegacy } from "@bolt-ai/schema/credential-legacy"
 import { Integration } from "@bolt-ai/schema/integration"
-import { Database } from "./database/database"
-import { makeGlobalNode } from "./effect/app-node"
-import { CredentialTable } from "./credential/sql"
+import { Database } from "./database/database.js"
+import { Bus } from "./bus.js"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { CredentialTable } from "./credential/sql.js"
+import { ErrorSummary } from "./util/error-summary.js"
 
 export const ID = Credential.ID
 export type ID = Credential.ID
@@ -58,7 +61,7 @@ export interface Interface {
   readonly remove: (id: ID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Credential") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Credential") {}
 
 const layer = Layer.effect(
   Service,

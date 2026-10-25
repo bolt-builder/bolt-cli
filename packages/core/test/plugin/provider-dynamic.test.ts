@@ -1,17 +1,16 @@
-import { Npm } from "@bolt-ai/core/npm"
+import { Npm } from "@bolt-ai/util/npm"
 import { describe, expect } from "bun:test"
 import { Cause, Effect, Layer } from "effect"
 import fs from "fs/promises"
 import os from "os"
 import path from "path"
-import { fileURLToPath } from "url"
 import { AISDK } from "@bolt-ai/core/aisdk"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Model } from "@bolt-ai/core/model"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { DynamicProviderPlugin } from "@bolt-ai/core/plugin/provider/dynamic"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -38,10 +37,13 @@ const addPlugin = Effect.fn(function* (npm?: Npm.Interface) {
 function tempPackage(source: string) {
   return Effect.acquireRelease(
     Effect.promise(async () => {
-      const directory = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-provider-dynamic-"))
-      const entrypoint = path.join(directory, "provider.mjs")
-      await Bun.write(entrypoint, source)
-      return { directory, entrypoint }
+      const directory = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-provider-dynamic-"))
+      await Bun.write(path.join(directory, "provider.mjs"), source)
+      await Bun.write(
+        path.join(directory, "package.json"),
+        JSON.stringify({ name: "fixture-provider", exports: "./provider.mjs" }),
+      )
+      return { directory }
     }),
     (tmp) => Effect.promise(() => fs.rm(tmp.directory, { recursive: true, force: true })),
   )

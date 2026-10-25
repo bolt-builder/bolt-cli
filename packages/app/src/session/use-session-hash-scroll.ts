@@ -1,4 +1,4 @@
-import type { UserMessage } from "@bolt-ai/sdk/v2"
+import type { SessionMessageUser } from "@bolt-ai/client/promise"
 import { useLocation, useNavigate } from "@solidjs/router"
 import { createEffect, createMemo, onCleanup, onMount } from "solid-js"
 import { messageIdFromHash } from "./message-id-from-hash"

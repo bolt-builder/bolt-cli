@@ -85,10 +85,16 @@ if (JSON.stringify(namespace) !== JSON.stringify(["hasCassetteSync", "layer", "l
 
     await run(
       [
-        "node",
-        "--input-type=module",
-        "-e",
-        'import("@bolt-ai/http-recorder").then((module) => { const root = Object.keys(module).sort(); const namespace = Object.keys(module.HttpRecorder).sort(); if (JSON.stringify(root) !== JSON.stringify(["HttpRecorder"])) throw new Error(`Unexpected root exports: ${root}`); if (JSON.stringify(namespace) !== JSON.stringify(["http", "socket"])) throw new Error(`Unexpected namespace exports: ${namespace}`) })',
+        "npm",
+        "install",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        archive,
+        "typescript@5.8.2",
+        "effect@4.0.0-beta.83",
+        "@effect/platform-node@4.0.0-beta.83",
       ],
       directory,
     )

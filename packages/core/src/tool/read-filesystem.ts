@@ -109,7 +109,7 @@ export interface Interface {
   ) => Effect.Effect<FileContent | TextPage | ListPage, ReadError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/ReadToolFileSystem") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/ReadToolFileSystem") {}
 
 const mimeType = (value: string) => lookup(value) || "application/octet-stream"
 

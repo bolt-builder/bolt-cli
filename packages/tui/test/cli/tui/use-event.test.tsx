@@ -2,7 +2,6 @@
 import { describe, expect, test } from "bun:test"
 import type { OpenCodeClient, OpenCodeEvent } from "@bolt-ai/client"
 import { testRender } from "@opentui/solid"
-import type { Event, GlobalEvent } from "@bolt-ai/sdk/v2"
 import { onMount } from "solid-js"
 import { ClientProvider, useClient } from "../../../src/context/client"
 import { useEvent } from "../../../src/context/event"

@@ -1,5 +1,6 @@
-import { define } from "./internal"
-import type { ModelV2Info } from "@bolt-ai/sdk/v2/types"
+import { define } from "@bolt-ai/plugin/effect/plugin"
+import { Integration } from "@bolt-ai/schema/integration"
+import { Provider } from "@bolt-ai/schema/provider"
 import { Effect, Stream } from "effect"
 import { Bus } from "../bus.js"
 import { Model } from "../model.js"

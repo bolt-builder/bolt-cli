@@ -1,23 +1,11 @@
-import { useFile } from "@/context/file"
-import { encodeFilePath } from "@/context/file/path"
+import { createMemo, For, Match, Show, splitProps, Switch, type ComponentProps, type ParentProps } from "solid-js"
+import { Dynamic } from "solid-js/web"
 import { Collapsible } from "@bolt-ai/ui/collapsible"
 import { FileIcon } from "@bolt-ai/ui/file-icon"
 import { Icon } from "@bolt-ai/ui/icon"
-import {
-  createEffect,
-  createMemo,
-  For,
-  Match,
-  on,
-  Show,
-  splitProps,
-  Switch,
-  untrack,
-  type ComponentProps,
-  type ParentProps,
-} from "solid-js"
-import { Dynamic } from "solid-js/web"
-import type { FileNode } from "@bolt-ai/sdk/v2"
+import type { ChangeKind } from "../review/contract"
+import { createKeyed, type FileNode, type MountedSession, type SessionScreen } from "../sdk"
+import { startFileDrag } from "./drag"
 
 const MAX_DEPTH = 128
 

@@ -9,7 +9,7 @@ opencode używa [AI SDK](https://ai-sdk.dev/) i [Models.dev](https://models.dev)
 
 ## Dostawcy
 
-Dostępna usługa dostawcy jest dostępna. Jeśli otrzymasz poświadczenie dostawcy za pomocą polecenia `/connect`, będzie on dostępny po uruchomieniu bolt.
+Dostępna usługa dostawcy jest dostępna. Jeśli otrzymasz poświadczenie dostawcy za pomocą polecenia `/connect`, będzie on dostępny po uruchomieniu opencode.
 
 Dowiedz się więcej o [dostawcach](/docs/providers).
 
@@ -35,7 +35,7 @@ Rozważ skorzystanie z jednego z rekomendowanych przez nas modeli.
 
 Jednak tylko kilka z nich jest dobrych przy generowaniu kodu, jak i wywołaniu narzędzia.
 
-Oto kilka modeli, które dobrze współpracują z bolt, w kolejności. (Nie jest to lista wyczerpująca i nie jest konieczna aktualna):
+Oto kilka modeli, które dobrze współpracują z opencode, w kolejności. (Nie jest to lista wyczerpująca i nie jest konieczna aktualna):
 
 - GPT 5.2
 - Kodeks GPT 5.1
@@ -51,14 +51,14 @@ Oto kilka modeli, które dobrze współpracują z bolt, w kolejności. (Nie jest
 Aby zainstalować jeden z nich jako model domyślny, możesz zainstalować klucz `model` w swoim
 opencode konfiguracja
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-Tutaj pełny identyfikator do `provider_id/model_id`. Na przykład, użycie [Bolt Zen](/docs/zen), przestrzeganie `opencode/gpt-5.1-codex` dla Kodeksu GPT 5.1.
+Tutaj pełny identyfikator do `provider_id/model_id`. Na przykład, użycie [OpenCode Zen](https://opencode.ai/v2/docs/console/), przestrzeganie `opencode/gpt-6.1-sol` dla GPT-6.1 Sol.
 
 Jeśli skonfigurowałeś [dostawcę zwykłegogo] (./providers#custom), `provider_id` jest kluczem z części `provider` twojej konfiguracji, a `model_id` jest kluczem z `provider.models`.
 
@@ -68,9 +68,9 @@ Jeśli skonfigurowałeś [dostawcę zwykłegogo] (./providers#custom), `provider
 
 Można globalnie skorzystać z opcji modelu poprzez plik config.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -107,11 +107,11 @@ Można także skorzystać z opcji dla dowolnych agentów, których używa się. 
 
 Można również zastosować alternatywne warianty, które wykluczają. Warianty konfiguracji ustawień konfiguracyjnych dla tego samego modelu bez tworzenia duplikatów wpisów:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -172,9 +172,9 @@ Lista ta nie jest kompletna. Wielu innych dostawców oferuje także opcję odchy
 
 Można uwzględnić warianty lub dodać własne:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -207,12 +207,12 @@ Po uruchomieniu opencode sprawdzanie modeli w następującej kolejności:
 
 1. Flaga wiersza autora `--model` lub `-m`. Format jest taki sam jak w pliku konfiguracyjnym: `provider_id/model_id`.
 
-2. Lista modeli w konstrukcji bolt.
+2. Lista modeli w konstrukcji opencode.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

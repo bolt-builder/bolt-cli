@@ -9,16 +9,18 @@ import {
   type ComponentProps,
 } from "solid-js"
 import { createStore } from "solid-js/store"
-import { DropdownMenu } from "@bolt-ai/ui/dropdown-menu"
+import { Menu } from "@bolt-ai/ui/menu"
 import { Icon } from "@bolt-ai/ui/icon"
-import { Icon as IconV2 } from "@bolt-ai/ui/v2/icon"
-import { ProjectAvatar } from "@bolt-ai/ui/v2/project-avatar-v2"
-import { getProjectAvatarVariant } from "@/context/layout"
-import { useLanguage } from "@/context/language"
-import { displayName, getProjectAvatarSource } from "@/pages/layout/helpers"
-import { pathKey } from "@/utils/path-key"
-import { handleDocumentSearchKeydown } from "@/utils/search-keydown"
-import { createMenuDismissController } from "@/utils/menu-dismiss-controller"
+import {
+  displayName,
+  getProjectAvatarSource,
+  getProjectAvatarVariant,
+  ProjectAvatar,
+} from "@bolt-ai/ui/project-avatar"
+import { useLanguage } from "@/runtime/i18n/language"
+import { pathKey } from "@/workspaces/path-key"
+import { handleDocumentSearchKeydown } from "@/shell/commands/search-keydown"
+import { createMenuDismissController } from "@/shell/commands/menu-dismiss"
 
 export type PromptProject = {
   name?: string

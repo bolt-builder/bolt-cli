@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-APP=Bolt
+APP=opencode
+SOURCE_APP=opencode
 
 MUTED='\033[0;2m'
 RED='\033[0;31m'
@@ -9,7 +10,7 @@ NC='\033[0m' # No Color
 
 usage() {
     cat <<EOF
-Bolt Installer
+OpenCode Installer
 
 Usage: install.sh [options]
 
@@ -18,22 +19,17 @@ Options:
     -v, --version <version> Install a specific version (e.g., 0.0.0-beta-17236)
     -b, --binary <path>     Install from a local binary instead of downloading
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
-        --no-voice          Skip /voice input setup (sox recorder plus whisper-cpp
-                            and a local model, ~0.6 GB, for offline transcription
-                            without an OpenAI key). Installed by default.
 
 Examples:
-    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
-    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --version 0.0.1
-    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash -s -- --no-voice
-    ./install --binary /path/to/bolt
+    curl -fsSL https://opencode.ai/v2/install | bash
+    curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 0.0.0-beta-17236
+    ./install --binary /path/to/opencode
 EOF
 }
 
 requested_version=${VERSION:-}
 no_modify_path=false
 binary_path=""
-install_voice=true
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -63,10 +59,6 @@ while [[ $# -gt 0 ]]; do
             no_modify_path=true
             shift
             ;;
-        --no-voice)
-            install_voice=false
-            shift
-            ;;
         *)
             echo -e "${ORANGE}Warning: Unknown option '$1'${NC}" >&2
             shift
@@ -74,7 +66,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-INSTALL_DIR=$HOME/.bolt/bin
+INSTALL_DIR=$HOME/.opencode/bin
 mkdir -p "$INSTALL_DIR"
 
 # If --binary is provided, skip all download/detection logic
@@ -177,26 +169,16 @@ else
       target="$target-musl"
     fi
 
-    # release assets are named bolt-cli-<os>-<arch>[...] by packages/opencode/script/build.ts
-    filename="bolt-cli-$target$archive_ext"
-
-
-    if [ "$os" = "linux" ]; then
-        if ! command -v tar >/dev/null 2>&1; then
-             echo -e "${RED}Error: 'tar' is required but not installed.${NC}"
-             exit 1
-        fi
-    else
-        if ! command -v unzip >/dev/null 2>&1; then
-            echo -e "${RED}Error: 'unzip' is required but not installed.${NC}"
-            exit 1
-        fi
+    if ! command -v tar >/dev/null 2>&1; then
+        echo -e "${RED}Error: 'tar' is required but not installed.${NC}"
+        exit 1
     fi
 
     package_scope="@opencode"
     if [ -z "$requested_version" ]; then
-        url="https://github.com/bolt-builder/bolt-cli/releases/latest/download/$filename"
-        specific_version=$(curl -s https://api.github.com/repos/bolt-builder/bolt-cli/releases/latest | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p')
+        metadata=$(curl -fsSL https://opencode.ai/update/api/latest/cli/npm || true)
+        specific_version=$(echo "$metadata" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+        package=$(echo "$metadata" | sed -n 's/.*"package":"\([^"]*\)".*/\1/p')
 
         if [ -z "$specific_version" ] || [ -z "$package" ]; then
             echo -e "${RED}Failed to fetch version information${NC}"
@@ -206,17 +188,31 @@ else
     else
         # Strip leading 'v' if present
         requested_version="${requested_version#v}"
-        url="https://github.com/bolt-builder/bolt-cli/releases/download/v${requested_version}/$filename"
         specific_version=$requested_version
     fi
 
-        # Verify the release exists before downloading
-        http_status=$(curl -sI -o /dev/null -w "%{http_code}" "https://github.com/bolt-builder/bolt-cli/releases/tag/v${requested_version}")
-        if [ "$http_status" = "404" ]; then
-            echo -e "${RED}Error: Release v${requested_version} not found${NC}"
-            echo -e "${MUTED}Available releases: https://github.com/bolt-builder/bolt-cli/releases${NC}"
-            exit 1
-        fi
+    package_name="$package_scope/cli-$target"
+    http_status=$(curl -s -o /dev/null -w "%{http_code}" "https://registry.npmjs.org/$package_scope%2fcli-$target/$specific_version" || true)
+    # Older clients install the minimum release before they can migrate package names.
+    if [ "$http_status" = "404" ] && [ -n "$requested_version" ]; then
+        package_name="@opencode-ai/cli-$target"
+        http_status=$(curl -s -o /dev/null -w "%{http_code}" "https://registry.npmjs.org/@opencode-ai%2fcli-$target/$specific_version" || true)
+    fi
+    if [ "$http_status" = "404" ]; then
+        echo -e "${RED}Error: Version ${specific_version} is not available for $target${NC}"
+        echo -e "${MUTED}Available versions: https://www.npmjs.com/package/$package_name?activeTab=versions${NC}"
+        exit 1
+    fi
+    if [ "$http_status" != "200" ]; then
+        echo -e "${RED}Failed to fetch package information${NC}"
+        exit 1
+    fi
+
+    filename="cli-$target-$specific_version.tgz"
+    url="https://registry.npmjs.org/$package_name/-/$filename"
+    binary_name="$SOURCE_APP"
+    if [ "$os" = "windows" ]; then
+        binary_name="$SOURCE_APP.exe"
     fi
 fi
 
@@ -235,11 +231,13 @@ print_message() {
 }
 
 check_version() {
-    if command -v bolt >/dev/null 2>&1; then
-        bolt_path=$(which bolt)
+    if command -v "$APP" >/dev/null 2>&1; then
+        opencode_path=$(which "$APP")
 
         ## Check the installed version
-        installed_version=$(bolt --version 2>/dev/null || echo "")
+        installed_version=$("$APP" --version 2>/dev/null || echo "")
+        installed_version="${installed_version##* }"
+        installed_version="${installed_version#v}"
 
         print_message info "${MUTED}Installed version: ${NC}$installed_version."
     fi
@@ -274,11 +272,7 @@ download_with_progress() {
         exec 4>/dev/null
     fi
 
-    # Use an unpredictable name so a local attacker on a shared host can't
-    # pre-create or race the FIFO path.
-    local tracefile
-    tracefile=$(mktemp -u "${TMPDIR:-/tmp}/bolt_install_trace.XXXXXX")
-    mkfifo "$tracefile"
+    local headers="${output}.headers"
 
     # Hide cursor
     printf "\033[?25l" >&4
@@ -311,11 +305,9 @@ download_with_progress() {
 }
 
 download_and_install() {
-    print_message info "\n${MUTED}Installing ${NC}Bolt ${MUTED}version: ${NC}$specific_version"
-    # mktemp creates a private (0700), unpredictable directory; a fixed
-    # PID-derived path under /tmp is guessable and racy on shared hosts.
-    local tmp_dir
-    tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/bolt_install.XXXXXX")
+    print_message info "\n${MUTED}Installing ${NC}$APP ${MUTED}version: ${NC}$specific_version"
+    local tmp_dir="${TMPDIR:-/tmp}/opencode_install_$$"
+    mkdir -p "$tmp_dir"
 
     if [[ "$os" == "windows" ]] || ! [ -t 2 ] || ! download_with_progress "$url" "$tmp_dir/$filename"; then
         # Fallback to standard curl on Windows, non-TTY environments, or if custom progress fails
@@ -327,20 +319,42 @@ download_and_install() {
     if [ "$os" = "windows" ]; then
         installed_binary="$APP.exe"
     fi
-
-    binary="bolt"
-    if [ "$os" = "windows" ]; then
-        binary="bolt.exe"
-    fi
-    mv "$tmp_dir/$binary" "$INSTALL_DIR"
-    chmod 755 "${INSTALL_DIR}/$binary"
+    mv "$tmp_dir/package/bin/$binary_name" "$INSTALL_DIR/$installed_binary"
+    chmod 755 "$INSTALL_DIR/$installed_binary"
     rm -rf "$tmp_dir"
 }
 
 install_from_binary() {
-    print_message info "\n${MUTED}Installing ${NC}Bolt ${MUTED}from: ${NC}$binary_path"
-    cp "$binary_path" "${INSTALL_DIR}/bolt"
-    chmod 755 "${INSTALL_DIR}/bolt"
+    print_message info "\n${MUTED}Installing ${NC}$APP ${MUTED}from: ${NC}$binary_path"
+    local installed_binary="$APP"
+    case "$(uname -s)" in
+        MINGW*|MSYS*|CYGWIN*) installed_binary="$APP.exe" ;;
+    esac
+    cp "$binary_path" "$INSTALL_DIR/$installed_binary"
+    chmod 755 "$INSTALL_DIR/$installed_binary"
+}
+
+install_legacy_shim() {
+    local shim_os="${os:-}"
+    if [[ -z "$shim_os" ]]; then
+        case "$(uname -s)" in
+            MINGW*|MSYS*|CYGWIN*) shim_os="windows" ;;
+        esac
+    fi
+    rm -f "$INSTALL_DIR/opencode2" "$INSTALL_DIR/opencode2.exe" "$INSTALL_DIR/opencode2.cmd"
+    if [[ "$shim_os" == "windows" ]]; then
+        cat > "$INSTALL_DIR/opencode2.cmd" <<'EOF'
+@echo off
+"%~dp0opencode.exe" %*
+exit /b %errorlevel%
+EOF
+        return
+    fi
+    cat > "$INSTALL_DIR/opencode2" <<'EOF'
+#!/bin/sh
+exec "$(dirname "$0")/opencode" "$@"
+EOF
+    chmod 755 "$INSTALL_DIR/opencode2"
 }
 
 if [ -n "$binary_path" ]; then
@@ -360,9 +374,10 @@ add_to_path() {
     if grep -Fxq "$command" "$config_file"; then
         print_message info "Command already exists in $config_file, skipping write."
     elif [[ -w $config_file ]]; then
-        echo -e "\n# bolt" >> "$config_file"
+        echo -e "\n# opencode" >> "$config_file"
         echo "$command" >> "$config_file"
-        print_message info "${MUTED}Successfully added ${NC}Bolt ${MUTED}to \$PATH in ${NC}$config_file"
+        path_added=true
+        print_message info "${MUTED}Successfully added ${NC}opencode ${MUTED}to \$PATH in ${NC}$config_file"
     else
         print_message warning "Manually add the directory to $config_file (or similar):"
         print_message info "  $command"
@@ -449,113 +464,21 @@ if [ -n "${GITHUB_ACTIONS-}" ] && [ "${GITHUB_ACTIONS}" == "true" ]; then
     print_message info "Added $INSTALL_DIR to \$GITHUB_PATH"
 fi
 
-pkg_install() {
-    local sudo_cmd=""
-    # sudo -n keeps a piped `curl | bash` install from hanging on a password prompt.
-    if [ "$(id -u)" != "0" ] && command -v sudo >/dev/null 2>&1; then
-        sudo_cmd="sudo -n"
-    fi
-    if command -v brew >/dev/null 2>&1; then
-        brew install "$1"
-    elif command -v apt-get >/dev/null 2>&1; then
-        $sudo_cmd apt-get install -y "$1"
-    elif command -v dnf >/dev/null 2>&1; then
-        $sudo_cmd dnf install -y "$1"
-    elif command -v pacman >/dev/null 2>&1; then
-        $sudo_cmd pacman -S --noconfirm "$1"
-    elif command -v apk >/dev/null 2>&1; then
-        $sudo_cmd apk add "$1"
-    else
-        return 1
-    fi
-}
-
-install_voice_deps() {
-    case "$(uname -s)" in
-        Darwin*|Linux*) ;;
-        *)
-            print_message warning "Voice setup is only supported on macOS and Linux, skipping."
-            return 0
-            ;;
-    esac
-
-    # Recorder binary for push-to-talk capture.
-    if command -v rec >/dev/null 2>&1 || command -v sox >/dev/null 2>&1 || command -v arecord >/dev/null 2>&1 || command -v ffmpeg >/dev/null 2>&1; then
-        print_message info "${MUTED}Audio recorder already installed${NC}"
-    else
-        print_message info "${MUTED}Installing ${NC}sox${MUTED} (audio recorder for /voice)${NC}"
-        if ! pkg_install sox; then
-            print_message warning "Could not install sox automatically. Install sox, arecord, or ffmpeg manually to use /voice."
-        fi
-    fi
-
-    # Local whisper.cpp so /voice works offline without an OpenAI key.
-    if ! command -v whisper-cli >/dev/null 2>&1 && ! command -v whisper-cpp >/dev/null 2>&1; then
-        print_message info "${MUTED}Installing ${NC}whisper-cpp${MUTED} (local transcription)${NC}"
-        if ! pkg_install whisper-cpp; then
-            print_message warning "Could not install whisper-cpp automatically. Build it from https://github.com/ggml-org/whisper.cpp or configure an OpenAI key; /voice will fall back to OpenAI."
-            return 0
-        fi
-    fi
-
-    # Model path must match the server default in packages/opencode/src/voice/transcription.ts.
-    local model_dir="${XDG_DATA_HOME:-$HOME/.local/share}/bolt/models"
-    local model="$model_dir/ggml-large-v3-turbo-q5_0.bin"
-    if [ -f "$model" ]; then
-        print_message info "${MUTED}Voice model already downloaded${NC}"
-        return 0
-    fi
-    mkdir -p "$model_dir"
-    print_message info "${MUTED}Downloading ${NC}whisper large-v3-turbo q5 (~0.6 GB)${MUTED} for offline voice input${NC}"
-    if ! curl -# -f -L -o "$model.part" "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin"; then
-        rm -f "$model.part"
-        print_message warning "Model download failed; /voice will fall back to OpenAI (requires an API key)."
-        return 0
-    fi
-    mv "$model.part" "$model"
-    print_message info "${MUTED}Voice model installed at ${NC}$model"
-}
-
-# Voice setup is on by default but skipped in CI, where a 0.6 GB model
-# download and system packages are wasted work.
-if [[ "$install_voice" == "true" && "${GITHUB_ACTIONS-}" != "true" && "${CI-}" != "true" ]]; then
-    install_voice_deps || true
-fi
-
 echo -e ""
-logo_left=(
-  ' /$$$$$$$   /$$$$$$  /$$    /$$$$$$'
-  '| $$__  $$ /$$__  $$| $$   |__  $$__/'
-  '| $$  \ $$| $$  \ $$| $$    | | $$   '
-  '| $$$$$$$ | $$  | $$| $$      | $$   '
-  '| $$__  $$| $$  | $$| $$      | $$   '
-  '| $$  \ $$| $$  | $$| $$      | $$   '
-  '| $$$$$$$/|  $$$$$$/| $$$$$$$$| $$   '
-  '|_______/  \______/ |________/|__/   '
-)
-logo_right=(
-  '      /$$$$$$  /$$       /$$$$$$'
-  '     /$$__  $$| $$      |_  $$_/'
-  '    | $$  \__/| $$        | $$  '
-  '    | $$      | $$        | $$  '
-  '    | $$      | $$        | $$  '
-  '    | $$    $$| $$        | $$  '
-  '    |  $$$$$$/| $$$$$$$$ /$$$$$$'
-  '     \______/ |________/|______/'
-)
-for i in "${!logo_left[@]}"; do
-  printf "${MUTED}  %s %s ${NC}\n" "${logo_left[i]}" "${logo_right[i]}"
-done
+echo -e "${MUTED}                    ${NC}             ▄     "
+echo -e "${MUTED}█▀▀█ █▀▀█ █▀▀█ █▀▀▄ ${NC}█▀▀▀ █▀▀█ █▀▀█ █▀▀█"
+echo -e "${MUTED}█░░█ █░░█ █▀▀▀ █░░█ ${NC}█░░░ █░░█ █░░█ █▀▀▀"
+echo -e "${MUTED}▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ${NC}▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"
 echo -e ""
 echo -e ""
-echo -e "${MUTED}Bolt CLI includes free models, to start:${NC}"
+echo -e "${MUTED}OpenCode includes free models, to start:${NC}"
 echo -e ""
 if [[ $path_added == "true" ]]; then
     echo -e "exec \$SHELL   ${MUTED}# Reload PATH (or open a new terminal)${NC}"
 fi
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
-echo -e "bolt          ${MUTED}# Run command${NC}"
+echo -e "opencode      ${MUTED}# Run command${NC}"
 echo -e ""
-echo -e "${MUTED}For more information visit ${NC}https://github.com/bolt-builder/bolt-cli"
+echo -e "${MUTED}For more information visit ${NC}https://opencode.ai/v2/docs"
 echo -e ""
 echo -e ""

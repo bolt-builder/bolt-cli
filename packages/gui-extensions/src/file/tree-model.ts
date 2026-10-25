@@ -1,4 +1,4 @@
-import type { FileNode } from "@bolt-ai/sdk/v2"
+import type { FileNode } from "../sdk"
 
 export type FileTreeV2Model = {
   children: ReadonlyMap<string, readonly FileTreeV2Node[]>

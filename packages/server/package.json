@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bolt-ai/server",
-  "version": "1.20.7",  "private": true,
+  "version": "1.20.7",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -26,9 +26,13 @@
     "probe:workerd": "bun run script/workerd-probe.ts"
   },
   "dependencies": {
+    "@effect/platform-node": "catalog:",
+    "@effect/platform-node-shared": "catalog:",
     "@bolt-ai/core": "workspace:*",
     "@bolt-ai/protocol": "workspace:*",
-    "drizzle-orm": "catalog:",
+    "@bolt-ai/schema": "workspace:*",
+    "@bolt-ai/simulation": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

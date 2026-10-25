@@ -1,14 +1,16 @@
 export * as Provider from "./provider.js"
 
-import { Schema } from "effect"
-import { Integration } from "./integration"
-import { optional, statics } from "./schema"
+import { Effect, Schema } from "effect"
+import { Integration } from "./integration.js"
+import { ProviderCompatibility } from "./model-compatibility.js"
+import { optional, statics } from "./schema.js"
+import { ephemeral, inventory } from "./event.js"
 
 export const ID = Schema.String.pipe(
   Schema.brand("Provider.ID"),
   Schema.annotate({ identifier: "Provider.ID" }),
   statics((schema) => ({
-    bolt: schema.make("bolt"),
+    opencode: schema.make("opencode"),
     anthropic: schema.make("anthropic"),
     openai: schema.make("openai"),
     google: schema.make("google"),

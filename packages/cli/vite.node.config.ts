@@ -280,7 +280,7 @@ export function mainConfig(input: NodeBuildInput): UserConfig {
       BOLT_CHANNEL: JSON.stringify(input.channel),
       BOLT_ARTIFACT: JSON.stringify("cli-node"),
       ...(input.highlights ? { BOLT_RELEASE_HIGHLIGHTS: JSON.stringify(input.highlights) } : {}),
-      OPENCODE_LIBC: input.target.platform === "linux" ? JSON.stringify("glibc") : "undefined",
+      BOLT_LIBC: input.target.platform === "linux" ? JSON.stringify("glibc") : "undefined",
       FFF_LIBC: input.target.platform === "linux" ? JSON.stringify("gnu") : "undefined",
       "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
     },
@@ -299,8 +299,8 @@ export function mainConfig(input: NodeBuildInput): UserConfig {
 }
 
 export default mainConfig({
-  version: process.env.BOLT_VERSION ?? "local",
-  channel: process.env.BOLT_CHANNEL ?? "local",
+  version: process.env.OPENCODE_VERSION ?? "local",
+  channel: process.env.OPENCODE_CHANNEL ?? "local",
   assetHash: "local",
   target: nodeTarget(process.platform, process.arch),
 })

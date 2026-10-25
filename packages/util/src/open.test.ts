@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { openUrl } from "@bolt-ai/core/open"
+import { openUrl } from "./open.js"
 
 describe("openUrl", () => {
   test("rejects values that are not URLs", async () => {

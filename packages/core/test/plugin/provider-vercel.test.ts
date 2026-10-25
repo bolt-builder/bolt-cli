@@ -1,12 +1,11 @@
 import { AISDK } from "@bolt-ai/core/aisdk"
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Model } from "@bolt-ai/core/model"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { VercelPlugin } from "@bolt-ai/core/plugin/provider/vercel"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -31,8 +30,8 @@ describe("VercelPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.get(Provider.ID.make("vercel")))?.headers).toEqual({
         Existing: "1",
-        "http-referer": "https://bolt.ai/",
-        "x-title": "bolt",
+        "http-referer": "https://opencode.ai/",
+        "x-title": "opencode",
       })
     }),
   )

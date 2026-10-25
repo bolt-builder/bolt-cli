@@ -1,9 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bolt-ai/client",
-  "private": true,
+  "version": "1.20.7",
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/client"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/promise/index.ts",
     "./promise": "./src/promise/index.ts",
@@ -41,9 +52,8 @@
   },
   "devDependencies": {
     "@effect/platform-node": "catalog:",
-    "@bolt-ai/core": "workspace:*",
+    "@modelcontextprotocol/client": "2.3.1",
     "@bolt-ai/httpapi-codegen": "workspace:*",
-    "@bolt-ai/server": "workspace:*",
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
     "@typescript/native": "catalog:",

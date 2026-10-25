@@ -1,6 +1,6 @@
 ---
 title: SDK
-description: Cliente JS con seguridad de tipos para el servidor bolt.
+description: Cliente JS con seguridad de tipos para el servidor opencode.
 ---
 
 import config from "../../../../config.mjs"
@@ -18,7 +18,7 @@ El SDK opencode JS/TS proporciona un cliente con seguridad de tipos para interac
 Instale el SDK desde npm:
 
 ```bash
-npm install @bolt-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
@@ -28,9 +28,9 @@ npm install @bolt-ai/sdk
 Cree una instancia de opencode:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createBolt()
+const { client } = await createOpencode()
 ```
 
 Esto inicia tanto un servidor como un cliente.
@@ -49,12 +49,12 @@ Esto inicia tanto un servidor como un cliente.
 
 ## Configuración
 
-Puede pasar un objeto de configuración para personalizar el comportamiento. La instancia aún recoge su `bolt.json`, pero puede anular o agregar configuración en línea:
+Puede pasar un objeto de configuración para personalizar el comportamiento. La instancia aún recoge su `opencode.json`, pero puede anular o agregar configuración en línea:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const bolt = await createBolt({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const bolt = await createBolt({
   },
 })
 
-console.log(`Server running at ${bolt.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-bolt.server.close()
+opencode.server.close()
 ```
 
 ## Solo cliente
 
-Si ya tiene una instancia en ejecución de bolt, puede crear una instancia de cliente para conectarse a ella:
+Si ya tiene una instancia en ejecución de opencode, puede crear una instancia de cliente para conectarse a ella:
 
 ```javascript
-import { createBoltClient } from "@bolt-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createBoltClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createBoltClient({
 El SDK incluye definiciones TypeScript para todos los tipos API. Importarlos directamente:
 
 ```typescript
-import type { Session, Message, Part } from "@bolt-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 Todos los tipos se generan a partir de la especificación OpenAPI del servidor y están disponibles en el <a href={typesUrl}>archivo de tipos</a>.

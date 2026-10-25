@@ -1,24 +1,7 @@
-import type {
-  AgentV2Info,
-  CommandV2Info,
-  IntegrationInfo,
-  LocationRef,
-  ModelV2Info,
-  PermissionSavedInfo,
-  PermissionV2Request,
-  ProviderV2Info,
-  QuestionV2Request,
-  ReferenceInfo,
-  SessionMessage,
-  SessionMessageAssistant,
-  SessionMessageAssistantReasoning,
-  SessionMessageAssistantText,
-  SessionMessageAssistantTool,
-  SessionV2Info,
-  SkillV2Info,
-  V2Event,
-} from "@bolt-ai/sdk/v2"
-import { createStore, produce } from "solid-js/store"
+import { createData } from "@bolt-ai/client/solid"
+import type { LocationRef } from "@bolt-ai/client"
+import type { Plugin } from "@bolt-ai/plugin/tui"
+import { createStore } from "solid-js/store"
 import { createSimpleContext } from "./helper"
 import { useClient } from "./client"
 

@@ -1,7 +1,7 @@
 import path from "path"
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { NpmConfig } from "@bolt-ai/core/npm-config"
+import { NpmConfig } from "@bolt-ai/util/npm-config"
 import { tmpdir } from "./fixture/tmpdir"
 
 describe("NpmConfig.load", () => {

@@ -1,12 +1,15 @@
-import type { PluginContext } from "@bolt-ai/plugin/v2/effect"
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { Catalog } from "@bolt-ai/core/catalog"
+import { Plugin } from "@bolt-ai/plugin/effect"
+import type { IntegrationMethod } from "@bolt-ai/plugin/effect/integration"
+import { Agent } from "@bolt-ai/core/agent"
 import { Credential } from "@bolt-ai/core/credential"
 import { Integration } from "@bolt-ai/core/integration"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import type { IntegrationEnvMethod, IntegrationKeyMethod, IntegrationOAuthMethod } from "@bolt-ai/sdk/v2/types"
-import { Effect } from "effect"
+import { Location } from "@bolt-ai/core/location"
+import { Model } from "@bolt-ai/core/model"
+import { Project } from "@bolt-ai/core/project"
+import { Provider } from "@bolt-ai/core/provider"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { WebSearch } from "@bolt-ai/core/websearch"
+import { Effect, Stream } from "effect"
 
 type Overrides = Partial<Omit<Plugin.Context, "options" | "session">> & {
   readonly session?: Partial<Plugin.Context["session"]>

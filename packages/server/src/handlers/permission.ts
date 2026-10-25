@@ -1,11 +1,14 @@
+import { Instance } from "@bolt-ai/core/instance/service"
 import { Location } from "@bolt-ai/core/location"
-import { PermissionV2 } from "@bolt-ai/core/permission"
+import { Permission } from "@bolt-ai/core/permission"
 import { PermissionSaved } from "@bolt-ai/core/permission/saved"
+import { Session } from "@bolt-ai/core/session"
 import { Effect } from "effect"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Api } from "../api"
-import { PermissionNotFoundError, SessionNotFoundError } from "@bolt-ai/protocol/errors"
-import { response } from "../location"
+import { ConflictError, PermissionNotFoundError, PermissionSavedNotFoundError } from "@bolt-ai/protocol/errors"
+import { locationErrors, response, sessionInfo } from "../location"
+import { missingSession } from "./session-error"
 
 function missingRequest(id: Permission.ID) {
   return new PermissionNotFoundError({ requestID: id, message: `Permission request not found: ${id}` })

@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bolt-ai/plugin",
-  "version": "1.20.7",  "type": "module",
+  "version": "1.20.7",
+  "type": "module",
   "license": "MIT",
   "scripts": {
     "test": "bun test --only-failures",
@@ -29,9 +30,12 @@
   ],
   "dependencies": {
     "@ai-sdk/provider": "3.0.8",
-    "@bolt-ai/sdk": "workspace:*",
-    "effect": "catalog:",
-    "zod": "catalog:"
+    "@bolt-ai/ai": "workspace:*",
+    "@bolt-ai/client": "workspace:*",
+    "@bolt-ai/protocol": "workspace:*",
+    "@bolt-ai/schema": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
+    "effect": "catalog:"
   },
   "peerDependencies": {
     "@bolt-ai/theme": "workspace:*",

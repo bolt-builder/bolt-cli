@@ -1,7 +1,13 @@
-import { AgentV2 } from "@bolt-ai/core/agent"
+import { Agent } from "@bolt-ai/core/agent"
+import { CodeModeCatalog } from "@bolt-ai/core/codemode/catalog"
+import type { Permission } from "@bolt-ai/core/permission"
 import { SessionMessage } from "@bolt-ai/core/session/message"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { Effect } from "effect"
+import { toSessionError } from "@bolt-ai/core/session/to-session-error"
+import type { SessionError } from "@bolt-ai/schema/session-error"
+import { Tool } from "@bolt-ai/core/tool"
+import type { Context } from "@bolt-ai/plugin/effect/plugin"
+import { Effect, type Scope } from "effect"
+import { host } from "../plugin/host"
 
 export const toolIdentity = {
   agent: Agent.ID.make("build"),

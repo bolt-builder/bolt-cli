@@ -5,60 +5,80 @@ import {
   CompactionCheckpointResponse,
   HttpContext,
   LLMEvent,
-  Model,
-  TransportReason,
-  InvalidRequestReason,
-  type LLMClientShape,
-  type LLMRequest,
-} from "@bolt-ai/llm"
-import * as OpenAIChat from "@bolt-ai/llm/protocols/openai-chat"
+  LLMRequest,
+  Message,
+  SystemPart,
+  LanguageModel,
+  ToolFailure,
+  TransportError,
+  InvalidProviderOutputError,
+  InvalidRequestError,
+  RateLimitError,
+  UnknownProviderError,
+} from "@bolt-ai/ai/effect"
+import { OpenAIChat } from "@bolt-ai/ai/protocols/openai-chat"
+import { AnthropicMessages, OpenAIResponses } from "@bolt-ai/ai/protocols"
+import { compileRequest } from "@bolt-ai/ai/route/client"
+import { TestLLM } from "@bolt-ai/ai/testing"
+import type { SessionHooks } from "@bolt-ai/plugin/effect/session"
 import { Database } from "@bolt-ai/core/database/database"
-import { makeLocationNode } from "@bolt-ai/core/effect/app-node"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
 import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { PermissionV2 } from "@bolt-ai/core/permission"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { Event } from "@bolt-ai/schema/event"
+import { App } from "@bolt-ai/core/app"
+import { Permission } from "@bolt-ai/core/permission"
 import { EventTable } from "@bolt-ai/core/event/sql"
 import { Project } from "@bolt-ai/core/project"
 import { ProjectTable } from "@bolt-ai/core/project/sql"
-import { QuestionV2 } from "@bolt-ai/core/question"
+import { Form } from "@bolt-ai/core/form"
 import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
+import { Session } from "@bolt-ai/core/session"
 import { Snapshot } from "@bolt-ai/core/snapshot"
-import { ContextSnapshotDecodeError } from "@bolt-ai/core/session/error"
 import { SessionEvent } from "@bolt-ai/core/session/event"
-import { SessionInput } from "@bolt-ai/core/session/input"
+import { SessionCompaction } from "@bolt-ai/core/session/compaction"
+import { SessionInbox } from "@bolt-ai/core/session/inbox"
 import { SessionMessage } from "@bolt-ai/core/session/message"
-import { Prompt } from "@bolt-ai/core/session/prompt"
+import { SessionModelTransport } from "@bolt-ai/core/session/model-transport"
+import { Money } from "@bolt-ai/schema/money"
 import { SessionProjector } from "@bolt-ai/core/session/projector"
 import { SessionExecution } from "@bolt-ai/core/session/execution"
 import { SessionRunCoordinator } from "@bolt-ai/core/session/run-coordinator"
-import { SessionRunner } from "@bolt-ai/core/session/runner"
-import * as SessionRunnerLLM from "@bolt-ai/core/session/runner/llm"
+import { SessionRunner } from "@bolt-ai/core/session/runner/index"
+import { SessionRunnerLLM } from "@bolt-ai/core/session/runner/llm"
 import { SessionRunnerModel } from "@bolt-ai/core/session/runner/model"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { ApplicationTools } from "@bolt-ai/core/tool/application-tools"
-import { AgentV2 } from "@bolt-ai/core/agent"
+import { SessionUsage } from "@bolt-ai/core/session/usage"
+import { PluginSupervisor } from "@bolt-ai/core/plugin/supervisor"
+import { Plugin } from "@bolt-ai/core/plugin"
+import { PluginHooks } from "@bolt-ai/core/plugin/hooks"
+import { PluginPromise } from "@bolt-ai/core/plugin/promise"
+import { OptimizePlugin } from "@bolt-ai/core/plugin/optimize"
+import { IdentityPlugin } from "@bolt-ai/core/plugin/identity"
+import { QuestionTool } from "@bolt-ai/core/tool/plugin/question"
+import { Agent } from "@bolt-ai/core/agent"
 import { Config } from "@bolt-ai/core/config"
-import { ConfigCompaction } from "@bolt-ai/core/config/compaction"
-import { Tool } from "@bolt-ai/core/tool/tool"
-import {
-  SessionContextEpochTable,
-  SessionInputTable,
-  SessionMessageTable,
-  SessionTable,
-} from "@bolt-ai/core/session/sql"
+import { Document, Info } from "@bolt-ai/schema/config"
+import { ConfigCompaction } from "@bolt-ai/schema/config/compaction"
+import { Tool } from "@bolt-ai/core/tool"
+import type { Info as ToolInfo } from "@bolt-ai/schema/tool"
+import { InstructionStateTable, SessionInboxTable, SessionMessageTable, SessionTable } from "@bolt-ai/core/session/sql"
+import { InstructionEntry } from "@bolt-ai/core/session/instruction-entry"
 import { SessionStore } from "@bolt-ai/core/session/store"
-import { SystemContext } from "@bolt-ai/core/system-context"
-import { SystemContextRegistry } from "@bolt-ai/core/system-context/registry"
-import { SkillGuidance } from "@bolt-ai/core/skill/guidance"
-import { ReferenceGuidance } from "@bolt-ai/core/reference/guidance"
-import { ModelV2 } from "@bolt-ai/core/model"
+import { Instructions } from "@bolt-ai/core/instructions/index"
+import { InstructionBuiltIns } from "@bolt-ai/core/instructions/builtins"
+import { InstructionDiscovery } from "@bolt-ai/core/instruction-discovery"
+import { SkillInstructions } from "@bolt-ai/core/skill/instructions"
+import { ReferenceInstructions } from "@bolt-ai/core/reference/instructions"
+import { McpInstructions } from "@bolt-ai/core/mcp/instructions"
+import { SessionSystemPrompt } from "@bolt-ai/core/session/system-prompt"
+import { ID, Model } from "@bolt-ai/core/model"
 import { Location } from "@bolt-ai/core/location"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { Cause, DateTime, Deferred, Effect, Exit, Fiber, Layer, Schema, Stream } from "effect"
-import { asc, eq } from "drizzle-orm"
+import { Provider } from "@bolt-ai/core/provider"
+import { Cause, Context, DateTime, Deferred, Effect, Exit, Fiber, Layer, Queue, Schema, Scope, Stream } from "effect"
+import { TestClock } from "effect/testing"
+import { asc, desc, eq, sql } from "drizzle-orm"
 import { testEffect } from "./lib/effect"
 import { promptLocationNode } from "./fixture/prompt-location"
 import { LocationServiceMap } from "@bolt-ai/core/location-service-map"

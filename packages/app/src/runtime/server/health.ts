@@ -1,7 +1,7 @@
-import { usePlatform } from "@/context/platform"
-import { ServerConnection } from "@/context/server"
-import { authTokenFromCredentials, createSdkForServer } from "./server"
-import { ClientError, OpenCode as Bolt } from "@bolt-ai/client"
+import { usePlatform } from "@/runtime/platform/platform"
+import { ServerConnection } from "@/runtime/server/registry"
+import { authTokenFromCredentials } from "./api"
+import { ClientError, isUnauthorizedError, OpenCode } from "@bolt-ai/client"
 import { Accessor, createEffect, onCleanup } from "solid-js"
 import { createStore, reconcile } from "solid-js/store"
 
@@ -116,7 +116,7 @@ export async function checkServerHealth(
   }
 
   const attempt = async (count: number): Promise<ServerHealth> => {
-    const current = await Bolt.make({
+    const current = await OpenCode.make({
       baseUrl: server.url,
       fetch,
       headers,

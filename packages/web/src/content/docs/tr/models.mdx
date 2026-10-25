@@ -3,7 +3,7 @@ title: Modeller
 description: LLM sağlayıcılarını ve model seçimlerini yapılandırın.
 ---
 
-bolt, **75+ LLM sağlayıcısını** desteklemek için [AI SDK](https://ai-sdk.dev/) ve [Models.dev](https://models.dev) kullanır ve yerel modellerin çalıştırılmasını destekler.
+opencode, **75+ LLM sağlayıcısını** desteklemek için [AI SDK](https://ai-sdk.dev/) ve [Models.dev](https://models.dev) kullanır ve yerel modellerin çalıştırılmasını destekler.
 
 ---
 
@@ -51,14 +51,14 @@ Burada, opencode ile belirli bir sıraya göre iyi çalışan birkaç model yer 
 Bunlardan birini varsayılan model olarak ayarlamak için `model` anahtarınızı telefonunuzudan ayarlayabilirsiniz.
 opencode yapılandırması
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-Burada tam kimlik `provider_id/model_id`'dir. Örneğin, [Bolt Zen](/docs/zen) kullanıyorsanız, GPT 5.1 Codex için `opencode/gpt-5.1-codex` kullanırsınız.
+Burada tam kimlik `provider_id/model_id`'dir. Örneğin, [OpenCode Zen](https://opencode.ai/v2/docs/console/) kullanıyorsanız, GPT-6.1 Sol için `opencode/gpt-6.1-sol` kullanırsınız.
 
 Bir [custom provider](/docs/providers#custom) yapılandırılmışsa, `provider_id`, performansınızın `provider` bölümünden gelen anahtardır ve `model_id`, `provider.models`'den gelen anahtardır.
 
@@ -68,9 +68,9 @@ Bir [custom provider](/docs/providers#custom) yapılandırılmışsa, `provider_
 
 Bir modelin seçeneklerini genel olarak yapılandırma aracılığıyla yapılandırabilirsiniz.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -107,11 +107,11 @@ Bu seçenekleri kullandığınız tüm aracılar için de yapılandırabilirsini
 
 Ayrıca yerleşik çeşitleri genişleten özel varyantlar da tanımlayabilirsiniz. Varyantlar, yinelenen girişler oluşturmadan aynı model için farklı ayarları yapılandırmanıza olanak tanır:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -137,7 +137,7 @@ Ayrıca yerleşik çeşitleri genişleten özel varyantlar da tanımlayabilirsin
 
 ## Varyantlar
 
-Birçok model, farklı konfigürasyonlara sahip birden fazla kapasiteye sahip. bolt, popüler sağlayıcılar için sunulan değişkenlerle birlikte gelir.
+Birçok model, farklı konfigürasyonlara sahip birden fazla kapasiteye sahip. opencode, popüler sağlayıcılar için sunulan değişkenlerle birlikte gelir.
 
 ### Yerleşik çeşitler
 
@@ -172,9 +172,9 @@ Bu liste kapsamlı değildir. Diğer birçok sağlayıcının da yerleşik varsa
 
 Mevcut varyantları geçersiz kılabilir veya kendinizinkini ekleyebilirsiniz:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -209,10 +209,10 @@ opencode başlatıldığında modelleri aşağıdaki öncelik sırasına göre k
 
 2. opencode yapılandırmasındaki model listesi.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

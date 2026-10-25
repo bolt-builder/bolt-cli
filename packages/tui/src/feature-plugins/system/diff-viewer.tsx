@@ -1,6 +1,8 @@
 /** @jsxImportSource @opentui/solid */
-import type { TuiPlugin, TuiPluginApi, TuiRouteCurrent } from "@bolt-ai/plugin/tui"
-import type { SnapshotFileDiff, VcsFileDiff } from "@bolt-ai/sdk/v2"
+import type { FileDiffInfo, LocationRef } from "@bolt-ai/client"
+import type { Vcs } from "@bolt-ai/schema/vcs"
+import { Plugin } from "@bolt-ai/plugin/tui"
+import type { KeymapCommand, PanelInput, Route } from "@bolt-ai/plugin/tui/context"
 import {
   MouseButton,
   TextAttributes,
@@ -41,8 +43,13 @@ import {
 
 const ROUTE = "diff"
 const MIN_SPLIT_WIDTH = 100
-const FILE_TREE_WIDTH = 32
-const PLAIN_TEXT_FILETYPE = "bolt-plain-text"
+const FILE_TREE_MIN_WIDTH = 30
+const FILE_TREE_MAX_WIDTH = 40
+const FULL_INSET = 2
+// The full layout keeps its file tree and inset cards only while its patches stay as wide as the narrowest docked
+// panel, an equal split at the host's split threshold. Narrower full screens use the compact panel layout.
+const FULL_LAYOUT_MIN_WIDTH = FILE_TREE_MIN_WIDTH + FULL_INSET * 2 + Math.floor(SESSION_PANEL_SPLIT_MIN_WIDTH / 2)
+const FILE_HEADER_HEIGHT = 2
 const VCS_DIFF_CONTEXT_LINES = 12
 type DiffMode = DiffSource
 type DiffView = "split" | "unified"

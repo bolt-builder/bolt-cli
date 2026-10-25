@@ -1,6 +1,18 @@
 export * as Workspace from "./workspace.js"
 
 import { Workspace } from "@bolt-ai/schema/workspace"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { eq } from "drizzle-orm"
+import { Clock, Context, Deferred, Duration, Effect, Exit, FiberSet, Layer, Ref, Schedule, Schema, Scope } from "effect"
+import { systemError } from "effect/PlatformError"
+import { make } from "effect/process/ChildProcessSpawner"
+import type { EnvironmentDriver } from "./environment/driver.js"
+import { execDefaults } from "./environment/exec-defaults.js"
+import { Failed, type Files, type FilesImpl } from "./environment/files.js"
+import { Database } from "./database/database.js"
+import { KeyedMutex } from "./effect/keyed-mutex.js"
+import { WorkspaceDriver } from "./workspace/driver.js"
+import { WorkspaceTable } from "./workspace/sql.js"
 
 export const ID = Workspace.ID
 export type ID = Workspace.ID

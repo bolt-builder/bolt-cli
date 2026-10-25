@@ -296,7 +296,7 @@ export function modelMarkdown(data: ModelPageData, name: string) {
           ],
         ],
       ),
-    stats && "## Bolt usage: past 2 months",
+    stats && "## OpenCode usage: past 2 months",
     stats &&
       table(
         ["Metric", "Value"],
@@ -468,7 +468,7 @@ export function compareMarkdown(data: ComparePageData, params: string[]) {
         ["Output price per 1M tokens", ...cells((model) => optionalPrice(model.entry?.cost?.output))],
         ["Cached input price per 1M tokens", ...cells((model) => optionalPrice(model.entry?.cost?.cacheRead))],
         [
-          "Bolt tokens: past 2 months",
+          "OpenCode tokens: past 2 months",
           ...cells((model) => (model.stats ? formatTokens(model.stats.totals.tokens) : "-")),
         ],
         ["Share of all tokens", ...cells((model) => (model.stats ? formatPercent(model.stats.tokenShare) : "-"))],
@@ -487,8 +487,8 @@ export function compareMarkdown(data: ComparePageData, params: string[]) {
 
 export function llmsTxt(home: HomePageData, catalog: ModelCatalog) {
   return markdown(
-    "# Bolt Data",
-    "> AI model usage rankings, token prices, session costs, and market share from Bolt, updated hourly.",
+    "# OpenCode Data",
+    "> AI model usage rankings, token prices, session costs, and market share from OpenCode, updated hourly.",
     homeSummary("en", home),
     facts([
       ["Updates", translate("en", "methodology.updates")],

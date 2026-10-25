@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import type { Project } from "@bolt-ai/sdk/v2/client"
+import type { Project } from "@/runtime/server/types"
 import type { SessionInfo } from "@bolt-ai/client/promise"
 import { createRoot } from "solid-js"
 import { createServerSessionEntries } from "@/shell/commands/palette"

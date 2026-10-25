@@ -1,8 +1,24 @@
-import { Schema } from "effect"
-import { ToolContent, ToolFileContent, ToolTextContent } from "@bolt-ai/schema/llm"
-import { JsonSchema, MessageRole, ProviderMetadata } from "./ids"
-import { CacheHint, CachePolicy, GenerationOptions, HttpOptions, ModelSchema, ProviderOptions } from "./options"
-import { isRecord } from "../utils/record"
+import { Option, Schema } from "effect"
+import { withStatics } from "@bolt-ai/schema/schema"
+import { Tool } from "@bolt-ai/schema/tool"
+import {
+  CacheHint,
+  CachePolicy,
+  GenerationOptions,
+  HttpOptions,
+  JsonSchema,
+  LanguageModelSchema,
+  type LanguageModel,
+  ProviderMetadata,
+  ProviderOptions,
+  ReasoningEffort,
+} from "./options.js"
+import { ProviderID } from "./ids.js"
+import { Media } from "../media.js"
+import { Json } from "../utils/json.js"
+
+export const MessageRole = Schema.Literals(["system", "user", "assistant", "tool"])
+export type MessageRole = Schema.Schema.Type<typeof MessageRole>
 
 const systemPartSchema = Schema.Struct({
   type: Schema.Literal("text"),

@@ -54,7 +54,7 @@ export type Interface = ChildProcessSpawner["Service"] & {
   ) => Stream.Stream<string, AppProcessError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/AppProcess") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/AppProcess") {}
 
 export const requireSuccess = (result: RunResult): Effect.Effect<RunResult, AppProcessError> =>
   result.exitCode === 0

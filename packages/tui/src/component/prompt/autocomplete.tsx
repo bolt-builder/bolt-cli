@@ -18,41 +18,14 @@ import { useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
 import type { PromptInfo, PromptPartRef } from "../../prompt/history"
 import { useFrecency } from "../../prompt/frecency"
-import { useBindings, useCommandSlashes, useOpencodeModeStack } from "../../keymap"
-import { displayCharAt, mentionTriggerIndex } from "../../prompt/display"
-import type { FileSystemEntry } from "@bolt-ai/sdk/v2"
-
-function removeLineRange(input: string) {
-  const hashIndex = input.lastIndexOf("#")
-  return hashIndex !== -1 ? input.substring(0, hashIndex) : input
-}
-
-function extractLineRange(input: string) {
-  const hashIndex = input.lastIndexOf("#")
-  if (hashIndex === -1) {
-    return { baseQuery: input }
-  }
-
-  const baseName = input.substring(0, hashIndex)
-  const linePart = input.substring(hashIndex + 1)
-  const lineMatch = linePart.match(/^(\d+)(?:-(\d*))?$/)
-
-  if (!lineMatch) {
-    return { baseQuery: baseName }
-  }
-
-  const startLine = Number(lineMatch[1])
-  const endLine = lineMatch[2] && startLine < Number(lineMatch[2]) ? Number(lineMatch[2]) : undefined
-
-  return {
-    lineRange: {
-      baseName,
-      startLine,
-      endLine,
-    },
-    baseQuery: baseName,
-  }
-}
+import { Keymap, type KeymapCommand } from "../../context/keymap"
+import { mentionTriggerIndex, slashTriggerIndex } from "../../prompt/display"
+import type { FileSystemEntry } from "@bolt-ai/client"
+import { Skill } from "@bolt-ai/schema/skill"
+import { stringWidth } from "../../util/string-width"
+import { parseFileLineRange, stripFileLineRange } from "../../prompt/parse"
+import { moveSelection, reconcileSelectionWindow, revealSelectionOffset } from "../../ui/select-controller"
+import { directoryAutocomplete, slashArgumentAutocomplete } from "../../prompt/directory-completion"
 
 export type AutocompleteRef = {
   onInput: (value: string) => void
@@ -576,11 +549,6 @@ export function Autocomplete(props: {
       return [...nonFileOptions, ...fileOptions]
     }
 
-    if (files.loading && prev && prev.length > 0) {
-      return prev
-    }
-
-    const query = store.visible + removeLineRange(searchValue)
     const fuzziedNonFiles = fuzzysort
       .go(stripFileLineRange(searchValue), nonFileOptions, {
         keys: [
@@ -603,12 +571,6 @@ export function Autocomplete(props: {
         },
       })
       .map((arr) => arr.obj)
-      // Rank an exact name match first so `/compact` selects it over `/compact-view`.
-      // Stable sort preserves fuzzy order for everything else; aliases don't count.
-      .sort(
-        (a, b) =>
-          Number((b.value ?? b.display).trimEnd() === query) - Number((a.value ?? a.display).trimEnd() === query),
-      )
 
     return [...fuzziedNonFiles, ...fileOptions].slice(0, 10)
   })
@@ -837,9 +799,7 @@ export function Autocomplete(props: {
             // Typed text before the trigger
             props.input().cursorOffset <= store.index ||
             // There is a space between the trigger and the cursor
-            /\s/.test(props.input().getTextRange(store.index, props.input().cursorOffset)) ||
-            // "/<command>" is not the sole content
-            (store.visible === "/" && /^\S+\s+\S+\s*$/.test(value))
+            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/)
           ) {
             hide()
           }
@@ -849,10 +809,10 @@ export function Autocomplete(props: {
         // Check if autocomplete should reopen (e.g., after backspace deleted a space)
         if (offset === 0) return
 
-        // Check for "/" at position 0 - reopen slash commands
-        if (value.startsWith("/") && !/\s/.test(value.slice(0, offset))) {
-          show("/")
-          setStore("index", 0)
+        const slash = slashTriggerIndex(beforeCursor, renderer.widthMethod)
+        if (slash === 0) {
+          show("command")
+          setStore("index", slash)
           return
         }
 

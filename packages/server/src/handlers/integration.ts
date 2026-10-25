@@ -1,8 +1,14 @@
 import { Integration } from "@bolt-ai/core/integration"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { Effect } from "effect"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Api } from "../api"
-import { InvalidRequestError } from "@bolt-ai/protocol/errors"
+import {
+  IntegrationAttemptNotFoundError,
+  IntegrationMethodNotFoundError,
+  IntegrationNotFoundError,
+  InvalidRequestError,
+} from "@bolt-ai/protocol/errors"
 import { response } from "../location"
 import { WellKnown } from "@bolt-ai/core/wellknown"
 

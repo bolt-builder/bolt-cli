@@ -1,27 +1,27 @@
 ---
 title: CLI
-description: Bolt CLI のオプションとコマンド。
+description: OpenCode CLI のオプションとコマンド。
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-Bolt CLI は、引数なしで実行すると、デフォルトで [TUI](/docs/tui) を開始します。
+OpenCode CLI は、引数なしで実行すると、デフォルトで [TUI](/docs/tui) を開始します。
 
 ```bash
 opencode
 ```
 
-ただし、このページに記載されているようにコマンドも受け入れます。これにより、Bolt をプログラム的に操作できるようになります。
+ただし、このページに記載されているようにコマンドも受け入れます。これにより、OpenCode をプログラム的に操作できるようになります。
 
 ```bash
-bolt run "Explain how closures work in JavaScript"
+opencode run "Explain how closures work in JavaScript"
 ```
 
 ---
 
 ### tui
 
-Bolt ターミナルユーザーインターフェイスを開始します。
+OpenCode ターミナルユーザーインターフェイスを開始します。
 
 ```bash
 opencode [project]
@@ -44,29 +44,19 @@ opencode [project]
 
 ## コマンド
 
-Bolt CLI には次のコマンドもあります。
-
----
-
-### agent
-
-Bolt のエージェントを管理します。
-
-```bash
-opencode agent [command]
-```
+OpenCode CLI には次のコマンドもあります。
 
 ---
 
 ### attach
 
-`serve` または `web` コマンドを使用して起動された、すでに実行中の Bolt バックエンドサーバーにターミナルを接続します。
+`serve` または `web` コマンドを使用して起動された、すでに実行中の OpenCode バックエンドサーバーにターミナルを接続します。
 
 ```bash
 opencode attach [url]
 ```
 
-これにより、リモート Bolt バックエンドで TUI を使用できるようになります。例えば：
+これにより、リモート OpenCode バックエンドで TUI を使用できるようになります。例えば：
 
 ```bash
 # Start the backend server for web/mobile access
@@ -78,14 +68,14 @@ opencode attach http://10.20.30.40:4096
 
 #### フラグ
 
-| フラグ                                   | ショート | 説明                                                                          |
-| ---------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| <nobr><code>{"--dir"}</code></nobr>      |          | TUI を開始する作業ディレクトリ                                                |
-| <nobr><code>{"--continue"}</code></nobr> | `-c`     | 最後のセッションを続行                                                        |
-| <nobr><code>{"--session"}</code></nobr>  | `-s`     | 続行するセッション ID                                                         |
-| <nobr><code>{"--fork"}</code></nobr>     |          | 続行時にセッションをフォーク（`--continue` または `--session` と使用）        |
-| <nobr><code>{"--password"}</code></nobr> | `-p`     | Basic 認証パスワード（デフォルトは `BOLT_SERVER_PASSWORD`）                   |
-| <nobr><code>{"--username"}</code></nobr> | `-u`     | Basic 認証ユーザー名（デフォルトは `BOLT_SERVER_USERNAME` または `opencode`） |
+| フラグ                                   | ショート | 説明                                                                              |
+| ---------------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| <nobr><code>{"--dir"}</code></nobr>      |          | TUI を開始する作業ディレクトリ                                                    |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`     | 最後のセッションを続行                                                            |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`     | 続行するセッション ID                                                             |
+| <nobr><code>{"--fork"}</code></nobr>     |          | 続行時にセッションをフォーク（`--continue` または `--session` と使用）            |
+| <nobr><code>{"--password"}</code></nobr> | `-p`     | Basic 認証パスワード（デフォルトは `OPENCODE_SERVER_PASSWORD`）                   |
+| <nobr><code>{"--username"}</code></nobr> | `-u`     | Basic 認証ユーザー名（デフォルトは `OPENCODE_SERVER_USERNAME` または `opencode`） |
 
 ---
 
@@ -101,13 +91,13 @@ opencode auth [command]
 
 #### login
 
-Bolt は [Models.dev](https://models.dev) のプロバイダーリストを利用しているため、`opencode auth login` を使用して、使用したいプロバイダーの API キーを構成できます。これは `~/.local/share/opencode/auth.json` に保存されます。
+OpenCode は [Models.dev](https://models.dev) のプロバイダーリストを利用しているため、`opencode auth login` を使用して、使用したいプロバイダーの API キーを構成できます。これは `~/.local/share/opencode/auth.json` に保存されます。
 
 ```bash
 opencode auth login
 ```
 
-Bolt が起動すると、認証情報ファイルからプロバイダーがロードされます。また、環境またはプロジェクト内の `.env` ファイルで定義されたキーがあるかどうかも確認します。
+OpenCode が起動すると、認証情報ファイルからプロバイダーがロードされます。また、環境またはプロジェクト内の `.env` ファイルで定義されたキーがあるかどうかも確認します。
 
 ---
 
@@ -283,7 +273,7 @@ opencode models anthropic
 | <nobr><code>{"--refresh"}</code></nobr> | models.dev からモデルキャッシュを更新します。                   |
 | <nobr><code>{"--verbose"}</code></nobr> | より詳細なモデル出力を使用します (コストなどのメタデータを含む) |
 
-`--refresh` フラグを使用して、キャッシュされたモデルリストを更新します。これは、新しいモデルがプロバイダーに追加され、それを Bolt で確認したい場合に便利です。
+`--refresh` フラグを使用して、キャッシュされたモデルリストを更新します。これは、新しいモデルがプロバイダーに追加され、それを OpenCode で確認したい場合に便利です。
 
 ```bash
 opencode models --refresh
@@ -296,13 +286,13 @@ opencode models --refresh
 プロンプトを直接渡して、非対話モードで opencode を実行します。
 
 ```bash
-bolt run [message..]
+opencode run [message..]
 ```
 
 これは、スクリプト作成、自動化、または完全な TUI を起動せずに迅速な回答が必要な場合に便利です。例えば。
 
-```bash "bolt run"
-bolt run Explain the use of context in Go
+```bash "opencode run"
+opencode run Explain the use of context in Go
 ```
 
 実行中の `opencode serve` インスタンスにアタッチして、実行ごとの MCP サーバーのコールドブート時間を回避することもできます。
@@ -312,7 +302,7 @@ bolt run Explain the use of context in Go
 opencode serve
 
 # In another terminal, run commands that attach to it
-bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### フラグ
@@ -329,8 +319,8 @@ bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
 | <nobr><code>{"--format"}</code></nobr>   |          | 形式: デフォルト (フォーマット済み) または json (生の JSON イベント)                      |
 | <nobr><code>{"--title"}</code></nobr>    |          | セッションのタイトル (値が指定されていない場合は、切り詰められたプロンプトが使用されます) |
 | <nobr><code>{"--attach"}</code></nobr>   |          | 実行中の opencode サーバー (http://localhost:4096 など) に接続します。                    |
-| <nobr><code>{"--password"}</code></nobr> | `-p`     | Basic 認証パスワード（デフォルトは `BOLT_SERVER_PASSWORD`）                               |
-| <nobr><code>{"--username"}</code></nobr> | `-u`     | Basic 認証ユーザー名（デフォルトは `BOLT_SERVER_USERNAME` または `opencode`）             |
+| <nobr><code>{"--password"}</code></nobr> | `-p`     | Basic 認証パスワード（デフォルトは `OPENCODE_SERVER_PASSWORD`）                           |
+| <nobr><code>{"--username"}</code></nobr> | `-u`     | Basic 認証ユーザー名（デフォルトは `OPENCODE_SERVER_USERNAME` または `opencode`）         |
 | <nobr><code>{"--dir"}</code></nobr>      |          | 実行ディレクトリ、またはアタッチ時のリモートサーバー上のパス                              |
 | <nobr><code>{"--variant"}</code></nobr>  |          | モデルバリアント（プロバイダー固有の推論レベル）                                          |
 | <nobr><code>{"--thinking"}</code></nobr> |          | 思考ブロックを表示                                                                        |
@@ -340,13 +330,13 @@ bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
 
 ### serve
 
-API アクセスのためにヘッドレス Bolt サーバーを起動します。完全な HTTP インターフェイスについては、[サーバーのドキュメント](/docs/server) を確認してください。
+API アクセスのためにヘッドレス OpenCode サーバーを起動します。完全な HTTP インターフェイスについては、[サーバーのドキュメント](/docs/server) を確認してください。
 
 ```bash
 opencode serve
 ```
 
-これにより、TUI インターフェイスを使用せずに opencode 機能への API アクセスを提供する HTTP サーバーが起動します。 `BOLT_SERVER_PASSWORD` を設定して HTTP 基本認証を有効にします (ユーザー名のデフォルトは `opencode`)。
+これにより、TUI インターフェイスを使用せずに opencode 機能への API アクセスを提供する HTTP サーバーが起動します。 `OPENCODE_SERVER_PASSWORD` を設定して HTTP 基本認証を有効にします (ユーザー名のデフォルトは `opencode`)。
 
 #### フラグ
 
@@ -361,7 +351,7 @@ opencode serve
 
 ### session
 
-Bolt セッションを管理します。
+OpenCode セッションを管理します。
 
 ```bash
 opencode session [command]
@@ -371,7 +361,7 @@ opencode session [command]
 
 #### list
 
-すべての Bolt セッションをリストします。
+すべての OpenCode セッションをリストします。
 
 ```bash
 opencode session list
@@ -388,7 +378,7 @@ opencode session list
 
 ### stats
 
-Bolt セッションのトークンの使用状況とコストの統計を表示します。
+OpenCode セッションのトークンの使用状況とコストの統計を表示します。
 
 ```bash
 opencode stats
@@ -419,13 +409,11 @@ opencode export [sessionID]
 
 ### import
 
-JSON ファイルまたは Bolt 共有 URL からセッションデータをインポートします。
+JSON ファイルからセッションデータをインポートします。
 
 ```bash
 opencode import <file>
 ```
-
-ローカルファイルまたは Bolt 共有 URL からインポートできます。
 
 ```bash
 opencode import session.json
@@ -435,13 +423,13 @@ opencode import session.json
 
 ### web
 
-Web インターフェイスを使用してヘッドレス Bolt サーバーを起動します。
+Web インターフェイスを使用してヘッドレス OpenCode サーバーを起動します。
 
 ```bash
 opencode web
 ```
 
-これにより、HTTP サーバーが起動し、Web ブラウザが開き、Web インターフェイスを通じて Bolt にアクセスします。 `BOLT_SERVER_PASSWORD` を設定して HTTP 基本認証を有効にします (ユーザー名のデフォルトは `opencode`)。
+これにより、HTTP サーバーが起動し、Web ブラウザが開き、Web インターフェイスを通じて OpenCode にアクセスします。 `OPENCODE_SERVER_PASSWORD` を設定して HTTP 基本認証を有効にします (ユーザー名のデフォルトは `opencode`)。
 
 #### フラグ
 
@@ -476,7 +464,7 @@ opencode acp
 
 ### uninstall
 
-Bolt をアンインストールし、関連ファイルをすべて削除します。
+OpenCode をアンインストールし、関連ファイルをすべて削除します。
 
 ```bash
 opencode uninstall
@@ -536,33 +524,32 @@ opencode CLI は次のグローバルフラグを受け取ります。
 
 ## 環境変数
 
-Bolt は環境変数を使用して構成できます。
+OpenCode は環境変数を使用して構成できます。
 
-| 変数                              | タイプ   | 説明                                                                |
-| --------------------------------- | -------- | ------------------------------------------------------------------- |
-| `BOLT_AUTO_SHARE`                 | ブール値 | セッションを自動的に共有する                                        |
-| `BOLT_GIT_BASH_PATH`              | 文字列   | Windows 上で実行可能な Git Bash へのパス                            |
-| `BOLT_CONFIG`                     | 文字列   | 構成ファイルへのパス                                                |
-| `BOLT_CONFIG_DIR`                 | 文字列   | config ディレクトリへのパス                                         |
-| `BOLT_CONFIG_CONTENT`             | 文字列   | インライン JSON 構成コンテンツ                                      |
-| `BOLT_DISABLE_AUTOUPDATE`         | ブール値 | 自動更新チェックを無効にする                                        |
-| `BOLT_DISABLE_PRUNE`              | ブール値 | 古いデータのプルーニングを無効にする                                |
-| `BOLT_DISABLE_TERMINAL_TITLE`     | ブール値 | ターミナルタイトルの自動更新を無効にする                            |
-| `BOLT_PERMISSION`                 | 文字列   | インライン化された json 権限設定                                    |
-| `BOLT_DISABLE_DEFAULT_PLUGINS`    | ブール値 | デフォルトのプラグインを無効にする                                  |
-| `BOLT_DISABLE_LSP_DOWNLOAD`       | ブール値 | LSP サーバーの自動ダウンロードを無効にする                          |
-| `BOLT_ENABLE_EXPERIMENTAL_MODELS` | ブール値 | 実験モデルを有効にする                                              |
-| `BOLT_DISABLE_AUTOCOMPACT`        | ブール値 | 自動コンテキスト圧縮を無効にする                                    |
-| `BOLT_DISABLE_CLAUDE_CODE`        | ブール値 | `.claude` からの読み取りを無効にする (プロンプト + スキル)          |
-| `BOLT_DISABLE_CLAUDE_CODE_PROMPT` | ブール値 | `~/.claude/CLAUDE.md` の読み取りを無効にする                        |
-| `BOLT_DISABLE_CLAUDE_CODE_SKILLS` | ブール値 | `.claude/skills` のロードを無効にする                               |
-| `BOLT_DISABLE_MODELS_FETCH`       | ブール値 | リモートソースからのモデルの取得を無効にする                        |
-| `BOLT_FAKE_VCS`                   | 文字列   | テスト目的の偽の VCS プロバイダー                                   |
-| `BOLT_CLIENT`                     | 文字列   | クライアント識別子 (デフォルトは `cli`)                             |
-| `BOLT_ENABLE_EXA`                 | ブール値 | Exa Web 検索ツールを有効にする                                      |
-| `BOLT_SERVER_PASSWORD`            | 文字列   | `serve`/`web` の基本認証を有効にする                                |
-| `BOLT_SERVER_USERNAME`            | 文字列   | 基本認証ユーザー名 (デフォルト `opencode`) をオーバーライドします。 |
-| `BOLT_MODELS_URL`                 | 文字列   | モデル設定を取得するためのカスタム URL                              |
+| 変数                                  | タイプ   | 説明                                                                |
+| ------------------------------------- | -------- | ------------------------------------------------------------------- |
+| `OPENCODE_GIT_BASH_PATH`              | 文字列   | Windows 上で実行可能な Git Bash へのパス                            |
+| `OPENCODE_CONFIG`                     | 文字列   | 構成ファイルへのパス                                                |
+| `OPENCODE_CONFIG_DIR`                 | 文字列   | config ディレクトリへのパス                                         |
+| `OPENCODE_CONFIG_CONTENT`             | 文字列   | インライン JSON 構成コンテンツ                                      |
+| `OPENCODE_DISABLE_AUTOUPDATE`         | ブール値 | 自動更新チェックを無効にする                                        |
+| `OPENCODE_DISABLE_PRUNE`              | ブール値 | 古いデータのプルーニングを無効にする                                |
+| `OPENCODE_DISABLE_TERMINAL_TITLE`     | ブール値 | ターミナルタイトルの自動更新を無効にする                            |
+| `OPENCODE_PERMISSION`                 | 文字列   | インライン化された json 権限設定                                    |
+| `OPENCODE_DISABLE_DEFAULT_PLUGINS`    | ブール値 | デフォルトのプラグインを無効にする                                  |
+| `OPENCODE_DISABLE_LSP_DOWNLOAD`       | ブール値 | LSP サーバーの自動ダウンロードを無効にする                          |
+| `OPENCODE_ENABLE_EXPERIMENTAL_MODELS` | ブール値 | 実験モデルを有効にする                                              |
+| `OPENCODE_DISABLE_AUTOCOMPACT`        | ブール値 | 自動コンテキスト圧縮を無効にする                                    |
+| `OPENCODE_DISABLE_CLAUDE_CODE`        | ブール値 | `.claude` からの読み取りを無効にする (プロンプト + スキル)          |
+| `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` | ブール値 | `~/.claude/CLAUDE.md` の読み取りを無効にする                        |
+| `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS` | ブール値 | `.claude/skills` のロードを無効にする                               |
+| `OPENCODE_DISABLE_MODELS_FETCH`       | ブール値 | リモートソースからのモデルの取得を無効にする                        |
+| `OPENCODE_FAKE_VCS`                   | 文字列   | テスト目的の偽の VCS プロバイダー                                   |
+| `OPENCODE_CLIENT`                     | 文字列   | クライアント識別子 (デフォルトは `cli`)                             |
+| `OPENCODE_ENABLE_EXA`                 | ブール値 | Exa Web 検索ツールを有効にする                                      |
+| `OPENCODE_SERVER_PASSWORD`            | 文字列   | `serve`/`web` の基本認証を有効にする                                |
+| `OPENCODE_SERVER_USERNAME`            | 文字列   | 基本認証ユーザー名 (デフォルト `opencode`) をオーバーライドします。 |
+| `OPENCODE_MODELS_URL`                 | 文字列   | モデル設定を取得するためのカスタム URL                              |
 
 ---
 
@@ -570,23 +557,22 @@ Bolt は環境変数を使用して構成できます。
 
 これらの環境変数により、変更または削除される可能性のある実験的な機能が有効になります。
 
-| 変数                                        | タイプ   | 説明                                             |
-| ------------------------------------------- | -------- | ------------------------------------------------ |
-| `BOLT_EXPERIMENTAL`                         | ブール値 | アンブレラフラグ配下の実験的機能を有効にする     |
-| `BOLT_EXPERIMENTAL_ICON_DISCOVERY`          | ブール値 | アイコン検出を有効にする                         |
-| `BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | ブール値 | TUI で選択時のコピーを無効にする                 |
-| `BOLT_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | 数値     | bash コマンドのデフォルトのタイムアウト (ミリ秒) |
-| `BOLT_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | 数値     | LLM 応答の最大出力トークン                       |
-| `BOLT_EXPERIMENTAL_FILEWATCHER`             | ブール値 | ディレクトリ全体のファイル監視を有効にする       |
-| `BOLT_EXPERIMENTAL_OXFMT`                   | ブール値 | oxfmt フォーマッタを有効にする                   |
-| `BOLT_EXPERIMENTAL_LSP_TOOL`                | ブール値 | 実験的な LSP ツールを有効にする                  |
-| `BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER`     | ブール値 | ファイルウォッチャーを無効にする                 |
-| `BOLT_EXPERIMENTAL_EXA`                     | ブール値 | 実験的な Exa 機能を有効にする                    |
-| `BOLT_EXPERIMENTAL_LSP_TY`                  | ブール値 | python ファイルの TY LSP を有効にする            |
-| `BOLT_EXPERIMENTAL_PLAN_MODE`               | ブール値 | プランモードを有効にする                         |
-| `BOLT_EXPERIMENTAL_BACKGROUND_SUBAGENTS`    | ブール値 | バックグラウンド subagent タスクを有効にする     |
-| `BOLT_EXPERIMENTAL_EVENT_SYSTEM`            | ブール値 | 実験的なイベントシステムを有効にする             |
-| `BOLT_EXPERIMENTAL_NATIVE_LLM`              | ブール値 | ネイティブ LLM リクエスト経路を有効にする        |
-| `BOLT_EXPERIMENTAL_PARALLEL`                | ブール値 | 並列 Web 検索実行を有効にする                    |
-| `BOLT_EXPERIMENTAL_SCOUT`                   | ブール値 | Scout subagent を有効にする                      |
-| `BOLT_EXPERIMENTAL_WORKSPACES`              | ブール値 | ワークスペースサポートを有効にする               |
+| 変数                                            | タイプ   | 説明                                             |
+| ----------------------------------------------- | -------- | ------------------------------------------------ |
+| `OPENCODE_EXPERIMENTAL`                         | ブール値 | アンブレラフラグ配下の実験的機能を有効にする     |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | ブール値 | アイコン検出を有効にする                         |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | ブール値 | TUI で選択時のコピーを無効にする                 |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | 数値     | bash コマンドのデフォルトのタイムアウト (ミリ秒) |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | 数値     | LLM 応答の最大出力トークン                       |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | ブール値 | ディレクトリ全体のファイル監視を有効にする       |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | ブール値 | oxfmt フォーマッタを有効にする                   |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | ブール値 | 実験的な LSP ツールを有効にする                  |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | ブール値 | ファイルウォッチャーを無効にする                 |
+| `OPENCODE_EXPERIMENTAL_EXA`                     | ブール値 | 実験的な Exa 機能を有効にする                    |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | ブール値 | python ファイルの TY LSP を有効にする            |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | ブール値 | プランモードを有効にする                         |
+| `OPENCODE_EXPERIMENTAL_EVENT_SYSTEM`            | ブール値 | 実験的なイベントシステムを有効にする             |
+| `OPENCODE_EXPERIMENTAL_NATIVE_LLM`              | ブール値 | ネイティブ LLM リクエスト経路を有効にする        |
+| `OPENCODE_EXPERIMENTAL_PARALLEL`                | ブール値 | 並列 Web 検索実行を有効にする                    |
+| `OPENCODE_EXPERIMENTAL_SCOUT`                   | ブール値 | Scout subagent を有効にする                      |
+| `OPENCODE_EXPERIMENTAL_WORKSPACES`              | ブール値 | ワークスペースサポートを有効にする               |

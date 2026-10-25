@@ -1,4 +1,6 @@
-import type { ProviderAuthMethod } from "@bolt-ai/sdk/v2/client"
+import type { IntegrationMethod } from "@bolt-ai/client/promise"
+
+type ProviderAuthMethod = Extract<IntegrationMethod, { type: "key" | "oauth" }>
 
 const data = {
   provider: {

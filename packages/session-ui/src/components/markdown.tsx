@@ -1,6 +1,5 @@
 import { useI18n } from "@bolt-ai/ui/context/i18n"
-import morphdom from "morphdom"
-import { checksum } from "@bolt-ai/core/util/encode"
+import { checksum } from "@bolt-ai/util/encode"
 import {
   type ComponentProps,
   createEffect,
@@ -12,9 +11,9 @@ import {
   splitProps,
 } from "solid-js"
 import { isServer, render } from "solid-js/web"
-import { Icon as IconV2 } from "@bolt-ai/ui/v2/icon"
-import { IconButtonV2 } from "@bolt-ai/ui/v2/icon-button-v2"
-import { TooltipV2 } from "@bolt-ai/ui/v2/tooltip-v2"
+import { Icon } from "@bolt-ai/ui/icon"
+import { IconButton } from "@bolt-ai/ui/icon-button"
+import { Tooltip } from "@bolt-ai/ui/tooltip"
 import { canReusePendingBlock, completedProjection } from "./markdown-projection"
 import type { Block, Projection } from "./markdown-stream"
 import {
@@ -1030,7 +1029,7 @@ function updateCodeBlock(
   wrapper.setAttribute("data-component", "markdown-code")
   applyCodeMetadata(wrapper, block.language)
   const pre = document.createElement("pre")
-  pre.className = "shiki Bolt"
+  pre.className = "highlights"
   const codeElement = document.createElement("code")
   codeElement.className = `language-${block.language}`
   ;[...block.stable, ...block.unstable].map(createTokenSpan).forEach((span) => codeElement.appendChild(span))

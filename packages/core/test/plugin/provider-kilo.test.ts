@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { ProviderPlugins } from "@bolt-ai/core/plugin/provider"
 import { KiloPlugin } from "@bolt-ai/core/plugin/provider/kilo"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -36,8 +35,8 @@ describe("KiloPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.get(Provider.ID.make("kilo")))?.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
       })
       expect((yield* catalog.get(Provider.ID.openrouter))?.headers).toBeUndefined()
     }),
@@ -54,9 +53,9 @@ describe("KiloPlugin", () => {
       })
       yield* addPlugin()
 
-      expect((yield* catalog.provider.get(ProviderV2.ID.make("kilo")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
+      expect((yield* catalog.get(Provider.ID.make("kilo")))?.headers).toEqual({
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
       })
       expect((yield* catalog.get(Provider.ID.make("kilo")))?.headers).not.toHaveProperty("http-referer")
       expect((yield* catalog.get(Provider.ID.make("kilo")))?.headers).not.toHaveProperty("x-title")
@@ -78,9 +77,10 @@ describe("KiloPlugin", () => {
       })
       yield* addPlugin()
 
-      expect((yield* catalog.provider.get(ProviderV2.ID.make("kilo")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
+      expect((yield* catalog.get(Provider.ID.make("kilo")))?.headers).toBeUndefined()
+      expect((yield* catalog.get(Provider.ID.make("custom-kilo")))?.headers).toEqual({
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
       })
     }),
   )

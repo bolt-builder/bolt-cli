@@ -1,25 +1,23 @@
 /// <reference path="./audio.d.ts" />
 import type {
-  TuiAttention,
-  TuiAttentionNotifyInput,
-  TuiAttentionNotifyResult,
-  TuiAttentionNotifySkipReason,
-  TuiAttentionWhen,
-  TuiKV,
-  TuiAttentionSoundName,
-  TuiAttentionSoundPack,
-  TuiAttentionSoundPackInfo,
-} from "@bolt-ai/plugin/tui"
-import { AttentionSoundName, type TuiConfig } from "./config"
+  Attention,
+  AttentionNotifyOptions,
+  AttentionNotifyResult,
+  AttentionNotifySkipReason,
+  AttentionWhen,
+  AttentionSoundName,
+} from "@bolt-ai/plugin/tui/context"
+import { Config } from "./config"
 import { Schema } from "effect"
 import stripAnsi from "strip-ansi"
 import * as TuiAudio from "./audio"
-import defaultSoundPath from "@bolt-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import questionSoundPath from "@bolt-ai/ui/audio/bip-bop-03.mp3" with { type: "file" }
-import permissionSoundPath from "@bolt-ai/ui/audio/staplebops-06.mp3" with { type: "file" }
-import errorSoundPath from "@bolt-ai/ui/audio/nope-03.mp3" with { type: "file" }
-import doneSoundPath from "@bolt-ai/ui/audio/bip-bop-01.mp3" with { type: "file" }
-import subagentDoneSoundPath from "@bolt-ai/ui/audio/yup-01.mp3" with { type: "file" }
+import {
+  defaultSoundPath,
+  questionSoundPath,
+  permissionSoundPath,
+  errorSoundPath,
+  subagentDoneSoundPath,
+} from "#attention-sounds"
 
 type FocusState = "unknown" | "focused" | "blurred"
 
@@ -34,23 +32,16 @@ type AttentionHost = Attention & {
   dispose(): void
 }
 
-const DEFAULT_TITLE = "bolt"
-const DEFAULT_PACK_ID = "bolt.default"
-const KV_SOUND_PACK = "attention_sound_pack"
+const DEFAULT_TITLE = "Bolt"
 const TITLE_LIMIT = 80
 const MESSAGE_LIMIT = 240
-const BUILTIN_PACK: RegisteredSoundPack = {
-  id: DEFAULT_PACK_ID,
-  name: "Bolt Default",
-  builtin: true,
-  sounds: {
-    default: defaultSoundPath,
-    question: questionSoundPath,
-    permission: permissionSoundPath,
-    error: errorSoundPath,
-    done: doneSoundPath,
-    subagent_done: subagentDoneSoundPath,
-  },
+const BUILTIN_SOUNDS: Record<AttentionSoundName, string> = {
+  default: defaultSoundPath,
+  question: questionSoundPath,
+  permission: permissionSoundPath,
+  error: errorSoundPath,
+  done: defaultSoundPath,
+  subagent_done: subagentDoneSoundPath,
 }
 
 function skipped(reason: AttentionNotifySkipReason): AttentionNotifyResult {

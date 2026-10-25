@@ -1,7 +1,8 @@
 interface ImportMetaEnv {
-  readonly VITE_BOLT_SERVER_HOST: string
-  readonly VITE_BOLT_SERVER_PORT: string
-  readonly VITE_BOLT_CHANNEL?: "dev" | "beta" | "prod"
+  readonly VITE_OPENCODE_SERVER_MODE?: "none" | "origin"
+  readonly VITE_OPENCODE_SERVER_HOST: string
+  readonly VITE_OPENCODE_SERVER_PORT: string
+  readonly VITE_OPENCODE_CHANNEL?: "local" | "dev" | "beta" | "prod"
 
   readonly VITE_SENTRY_DSN?: string
   readonly VITE_SENTRY_ENVIRONMENT?: string

@@ -63,8 +63,7 @@ const models = [
 ] as const
 
 export default function Home() {
-  const workspaceID = createAsync(() => checkLoggedIn())
-  const subscribeUrl = "https://bolt.ai/console/go"
+  const subscribeUrl = "https://opencode.ai/console/go"
   const i18n = useI18n()
   const [searchParams] = useSearchParams()
   return (
@@ -79,15 +78,6 @@ export default function Home() {
         path="/go"
         image="/social-share-black.png"
       />
-      <Meta property="og:image" content="/social-share-black.png" />
-      <Meta name="twitter:card" content="summary_large_image" />
-      <Meta name="twitter:title" content={i18n.t("go.title")} />
-      <Meta
-        name="twitter:description"
-        content={`${i18n.t("go.meta.description")} ${i18n.t("go.plans.plus.description")}`}
-      />
-      <Meta name="twitter:image" content="/social-share-black.png" />
-      <Meta name="bolt:auth" content={workspaceID() ? "true" : "false"} />
 
       <div data-component="container">
         <Header go hideGetStarted />

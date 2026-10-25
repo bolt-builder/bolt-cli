@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@bolt-ai/cli",
-  "version": "1.20.7",  "type": "module",
+  "version": "1.20.7",
+  "type": "module",
   "license": "MIT",
   "bin": {
-    "opencode": "./bin/opencode.cjs",
-    "opencode2": "./bin/opencode2.cjs"
+    "bolt": "./bin/bolt.cjs"
   },
   "files": [
     "bin"
@@ -28,10 +28,13 @@
     "@clack/core": "1.0.0-alpha.1",
     "@clack/prompts": "1.0.0-alpha.1",
     "@effect/platform-node": "catalog:",
-    "@bolt-ai/core": "workspace:*",
-    "@bolt-ai/sdk": "workspace:*",
+    "@bolt-ai/client": "workspace:*",
+    "@bolt-ai/plugin": "workspace:*",
+    "@opencode-ai/pty": "0.3.1",
+    "@bolt-ai/schema": "workspace:*",
     "@bolt-ai/server": "workspace:*",
     "@bolt-ai/tui": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
     "@opentui/core": "catalog:",
     "@opentui/solid": "catalog:",
     "@opentunnel/client": "0.6.1",
@@ -51,6 +54,7 @@
   },
   "devDependencies": {
     "@bolt-ai/script": "workspace:*",
+    "@bolt-ai/protocol": "workspace:*",
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
     "@typescript/native": "catalog:",

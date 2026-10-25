@@ -1,8 +1,22 @@
-import { NodeFileSystem, NodePath } from "@effect/platform-node"
-import { LLMClient, RequestExecutor } from "@bolt-ai/llm/route"
-import { FileSystem, Path } from "effect"
-import { FetchHttpClient, HttpClient } from "effect/unstable/http"
-import { makeGlobalNode } from "./app-node"
+import { LLMClient, RequestExecutor } from "@bolt-ai/ai/route"
+import { Effect, Layer } from "effect"
+import { FetchHttpClient, HttpClient } from "effect/http"
+import { Socket } from "effect/socket"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { httpClient } from "@bolt-ai/util/effect/app-node-platform"
+import { WebSocketConstructor } from "./websocket-constructor.js"
+
+// Bun's fetch ends a request after five quiet minutes, before provider routes' own header and chunk timeouts.
+const withoutBunTimeout = Layer.effect(
+  HttpClient.HttpClient,
+  Effect.gen(function* () {
+    const client = yield* HttpClient.HttpClient
+    return HttpClient.transformResponse(
+      client,
+      Effect.provideService(FetchHttpClient.RequestInit, { timeout: false } as BunFetchRequestInit),
+    )
+  }),
+)
 
 export const requestExecutor = makeGlobalNode({
   service: RequestExecutor.Service,

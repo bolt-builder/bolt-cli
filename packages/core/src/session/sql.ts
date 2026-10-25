@@ -1,18 +1,22 @@
-import { sqliteTable, text, integer, index, primaryKey, real, uniqueIndex } from "drizzle-orm/sqlite-core"
-import * as DatabasePath from "../database/path"
-import { ProjectTable } from "../project/sql"
-import type { SessionMessage } from "./message"
-import type { Prompt } from "./prompt"
-import type { SessionInput } from "./input"
-import type { Snapshot } from "../snapshot"
-import { PermissionV1 } from "../v1/permission"
-import { ProjectV2 } from "../project"
-import type { SessionSchema } from "./schema"
-import type { MessageID, PartID, SessionV1 } from "../v1/session"
-import { WorkspaceV2 } from "../workspace"
-import { Timestamps } from "../database/schema.sql"
-import type { SystemContext } from "../system-context/index"
-import type { Revert } from "@bolt-ai/schema/revert"
+import { blob, sqliteTable, text, integer, index, primaryKey, real, uniqueIndex } from "drizzle-orm/sqlite-core"
+import { sql } from "drizzle-orm"
+import { directoryColumn, pathColumn } from "../database/path.js"
+import { ProjectTable } from "../project/sql.js"
+import type { SessionMessage } from "./message.js"
+import type { SessionInbox } from "./inbox.js"
+import type { Agent } from "@bolt-ai/schema/agent"
+import type { FileDiff } from "@bolt-ai/schema/file-diff"
+import type { Permission } from "@bolt-ai/schema/permission"
+import type { Project } from "@bolt-ai/schema/project"
+import type { SessionSchema } from "./schema.js"
+import type { SessionStored } from "./stored.js"
+import type { Workspace } from "@bolt-ai/schema/workspace"
+import { Timestamps } from "../database/schema.sql.js"
+import type { Instruction } from "@bolt-ai/schema/instruction"
+import type { Session } from "@bolt-ai/schema/session"
+import type { CompactionPayload, MovePayload, SyntheticPayload, UserPayload } from "@bolt-ai/schema/session-inbox"
+import type { RevertV1 } from "@bolt-ai/schema/session-revert"
+import type { Schema } from "effect"
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 type SessionMessageData = DistributiveOmit<
@@ -68,63 +72,12 @@ export const SessionTable = sqliteTable(
     resume_attempts: integer().notNull().default(0),
   },
   (table) => [
-    index("session_project_idx").on(table.project_id),
-    index("session_workspace_idx").on(table.workspace_id),
-    index("session_parent_idx").on(table.parent_id),
-    // listGlobal filters by directory and always sorts by (time_updated desc, id desc);
-    // without this the session sidebar/pagination full-scans + sorts every request.
-    index("session_directory_time_updated_idx").on(table.directory, table.time_updated, table.id),
-  ],
-)
-
-export const MessageTable = sqliteTable(
-  "message",
-  {
-    id: text().$type<MessageID>().primaryKey(),
-    session_id: text()
-      .$type<SessionSchema.ID>()
-      .notNull()
-      .references(() => SessionTable.id, { onDelete: "cascade" }),
-    ...Timestamps,
-    data: text({ mode: "json" }).notNull().$type<V1MessageData>(),
-  },
-  (table) => [index("message_session_time_created_id_idx").on(table.session_id, table.time_created, table.id)],
-)
-
-export const PartTable = sqliteTable(
-  "part",
-  {
-    id: text().$type<PartID>().primaryKey(),
-    message_id: text()
-      .$type<MessageID>()
-      .notNull()
-      .references(() => MessageTable.id, { onDelete: "cascade" }),
-    session_id: text().$type<SessionSchema.ID>().notNull(),
-    ...Timestamps,
-    data: text({ mode: "json" }).notNull().$type<V1PartData>(),
-  },
-  (table) => [
-    index("part_message_id_id_idx").on(table.message_id, table.id),
-    index("part_session_idx").on(table.session_id),
-  ],
-)
-
-export const TodoTable = sqliteTable(
-  "todo",
-  {
-    session_id: text()
-      .$type<SessionSchema.ID>()
-      .notNull()
-      .references(() => SessionTable.id, { onDelete: "cascade" }),
-    content: text().notNull(),
-    status: text().notNull(),
-    priority: text().notNull(),
-    position: integer().notNull(),
-    ...Timestamps,
-  },
-  (table) => [
-    primaryKey({ columns: [table.session_id, table.position] }),
-    index("todo_session_idx").on(table.session_id),
+    index("session_v2_project_idx").on(table.project_id),
+    index("session_v2_workspace_idx").on(table.workspace_id),
+    index("session_v2_parent_idx").on(table.parent_id),
+    index("session_v2_time_suspended_idx")
+      .on(table.time_suspended)
+      .where(sql`${table.time_suspended} is not null`),
   ],
 )
 

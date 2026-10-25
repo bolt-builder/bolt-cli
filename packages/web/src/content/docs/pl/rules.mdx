@@ -1,9 +1,9 @@
 ---
 title: Zasady
-description: Ustaw niestandardowe instrukcje dla bolt.
+description: Ustaw niestandardowe instrukcje dla opencode.
 ---
 
-Możesz dostarczyć niestandardowe instrukcje do bolt, tworząc plik `AGENTS.md`. Jest to podobne do zasad Cursora. Zawiera instrukcje, które zostaną uwzględnione w kontekście LLM, aby dostosować jego zachowanie do konkretnego projektu.
+Możesz dostarczyć niestandardowe instrukcje do opencode, tworząc plik `AGENTS.md`. Jest to podobne do zasad Cursora. Zawiera instrukcje, które zostaną uwzględnione w kontekście LLM, aby dostosować jego zachowanie do konkretnego projektu.
 
 ---
 
@@ -62,7 +62,7 @@ Umieść `AGENTS.md` w katalogu głównym projektu, aby uzyskać reguły specyfi
 
 ### Globalne
 
-Możesz także mieć reguły globalne w pliku `~/.config/opencode/AGENTS.md`. Jest to stosowane we wszystkich sesjach bolt.
+Możesz także mieć reguły globalne w pliku `~/.config/opencode/AGENTS.md`. Jest to stosowane we wszystkich sesjach opencode.
 
 Ponieważ nie jest to wymagane dla Git ani udostępniane Twojemu zespołowi, zalecamy użycie tego do określenia wszelkich osobistych zasad, których powinien przestrzegać LLM.
 
@@ -77,9 +77,9 @@ W przypadku użytkowników migrujących z Claude Code opencode obsługuje konwen
 Aby wyłączyć kompatybilność z Claude Code, ustaw jedną z tych zmiennych środowiskowych:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -98,22 +98,22 @@ Pierwszy pasujący plik wygrywa w każdej kategorii. Na przykład, jeśli masz z
 
 ## Instrukcje niestandardowe
 
-Możesz określić niestandardowe pliki instrukcji w swoim `bolt.json` lub globalnym `~/.config/opencode/bolt.json`. Dzięki temu Ty i Twój zespół możecie ponownie wykorzystać istniejące reguły, zamiast duplikować je w pliku AGENTS.md.
+Możesz określić niestandardowe pliki instrukcji w swoim `opencode.json` lub globalnym `~/.config/opencode/opencode.json`. Dzięki temu Ty i Twój zespół możecie ponownie wykorzystać istniejące reguły, zamiast duplikować je w pliku AGENTS.md.
 
 Przykład:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 Możesz także użyć zdalnych adresów URL, aby załadować instrukcje z Internetu.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -128,13 +128,13 @@ Wszystkie pliki instrukcji są łączone z plikami `AGENTS.md`.
 
 Chociaż opencode nie analizuje automatycznie odniesień do plików w `AGENTS.md`, możesz osiągnąć podobną funkcjonalność na dwa sposoby:
 
-### Używanie bolt.json
+### Używanie opencode.json
 
-Zalecanym podejściem jest użycie pola `instructions` w `bolt.json`:
+Zalecanym podejściem jest użycie pola `instructions` w `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -176,5 +176,5 @@ Takie podejście pozwala:
 - Upewnij się, że opencode ładuje pliki tylko wtedy, gdy są potrzebne do konkretnego zadania
 
 :::tip
-W przypadku monorepo lub projektów ze wspólnymi standardami użycie `bolt.json` ze wzorami globalnymi (takimi jak `packages/*/AGENTS.md`) jest łatwiejsze w utrzymaniu niż instrukcje ręczne.
+W przypadku monorepo lub projektów ze wspólnymi standardami użycie `opencode.json` ze wzorami globalnymi (takimi jak `packages/*/AGENTS.md`) jest łatwiejsze w utrzymaniu niż instrukcje ręczne.
 :::

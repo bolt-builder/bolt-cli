@@ -1,5 +1,5 @@
-import { SkillV2 } from "@bolt-ai/core/skill"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
+import { Skill } from "@bolt-ai/core/skill"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
 import { response } from "../location"
 

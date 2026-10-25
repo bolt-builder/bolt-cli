@@ -1,11 +1,11 @@
 ---
 title: Web
-description: Verwenden Sie Bolt in Ihrem Browser.
+description: Verwenden Sie OpenCode in Ihrem Browser.
 ---
 
-Bolt kann als Webanwendung in Ihrem Browser ausgeführt werden und bietet das gleiche leistungsstarke KI-Codierungserlebnis, ohne dass ein Terminal erforderlich ist.
+OpenCode kann als Webanwendung in Ihrem Browser ausgeführt werden und bietet das gleiche leistungsstarke KI-Codierungserlebnis, ohne dass ein Terminal erforderlich ist.
 
-![Bolt Web – Neue Sitzung](../../../assets/web/web-homepage-new-session.png)
+![OpenCode Web – Neue Sitzung](../../../assets/web/web-homepage-new-session.png)
 
 ## Erste Schritte
 
@@ -15,10 +15,10 @@ Starten Sie die Weboberfläche, indem Sie Folgendes ausführen:
 opencode web
 ```
 
-Dadurch wird ein lokaler Server auf `127.0.0.1` mit einem zufällig verfügbaren Port gestartet und Bolt automatisch in Ihrem Standardbrowser geöffnet.
+Dadurch wird ein lokaler Server auf `127.0.0.1` mit einem zufällig verfügbaren Port gestartet und OpenCode automatisch in Ihrem Standardbrowser geöffnet.
 
 :::caution
-Wenn `BOLT_SERVER_PASSWORD` nicht gesetzt ist, ist der Server ungesichert. Dies ist für den lokalen Gebrauch in Ordnung, sollte aber für den Netzwerkzugriff eingestellt werden.
+Wenn `OPENCODE_SERVER_PASSWORD` nicht gesetzt ist, ist der Server ungesichert. Dies ist für den lokalen Gebrauch in Ordnung, sollte aber für den Netzwerkzugriff eingestellt werden.
 :::
 
 :::tip[Windows-Nutzer]
@@ -33,7 +33,7 @@ Sie können den Webserver mithilfe von Befehlszeilen-Flags oder in Ihrer [Konfig
 
 ### Port
 
-Standardmäßig wählt Bolt einen verfügbaren Port aus. Sie können einen Port angeben:
+Standardmäßig wählt OpenCode einen verfügbaren Port aus. Sie können einen Port angeben:
 
 ```bash
 opencode web --port 4096
@@ -41,13 +41,13 @@ opencode web --port 4096
 
 ### Hostname
 
-Standardmäßig bindet der Server an `127.0.0.1` (nur localhost). So machen Sie Bolt in Ihrem Netzwerk zugänglich:
+Standardmäßig bindet der Server an `127.0.0.1` (nur localhost). So machen Sie OpenCode in Ihrem Netzwerk zugänglich:
 
 ```bash
 opencode web --hostname 0.0.0.0
 ```
 
-Bei Verwendung von `0.0.0.0` zeigt Bolt sowohl lokale als auch Netzwerkadressen an:
+Bei Verwendung von `0.0.0.0` zeigt OpenCode sowohl lokale als auch Netzwerkadressen an:
 
 ```
   Local access:       http://localhost:4096
@@ -62,7 +62,7 @@ Aktivieren Sie mDNS, um Ihren Server im lokalen Netzwerk erkennbar zu machen:
 opencode web --mdns
 ```
 
-Dadurch wird der Hostname automatisch auf `0.0.0.0` gesetzt und der Server als `bolt.local` angekündigt.
+Dadurch wird der Hostname automatisch auf `0.0.0.0` gesetzt und der Server als `opencode.local` angekündigt.
 
 Sie können den mDNS-Domänennamen anpassen, um mehrere Instanzen im selben Netzwerk auszuführen:
 
@@ -80,31 +80,31 @@ opencode web --cors https://example.com
 
 ### Authentifizierung
 
-Um den Zugriff zu schützen, legen Sie mithilfe der Umgebungsvariablen `BOLT_SERVER_PASSWORD` ein Passwort fest:
+Um den Zugriff zu schützen, legen Sie mithilfe der Umgebungsvariablen `OPENCODE_SERVER_PASSWORD` ein Passwort fest:
 
 ```bash
-BOLT_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret opencode web
 ```
 
-Der Benutzername ist standardmäßig `opencode`, kann aber mit `BOLT_SERVER_USERNAME` geändert werden.
+Der Benutzername ist standardmäßig `opencode`, kann aber mit `OPENCODE_SERVER_USERNAME` geändert werden.
 
 ---
 
 ## Verwenden der Weboberfläche
 
-Nach dem Start bietet die Weboberfläche Zugriff auf Ihre Bolt-Sitzungen.
+Nach dem Start bietet die Weboberfläche Zugriff auf Ihre OpenCode-Sitzungen.
 
 ### Sitzungen
 
 Zeigen Sie Ihre Sitzungen auf der Startseite an und verwalten Sie sie. Sie können aktive Sitzungen sehen und neue starten.
 
-![Bolt Web – Aktive Sitzung](../../../assets/web/web-homepage-active-session.png)
+![OpenCode Web – Aktive Sitzung](../../../assets/web/web-homepage-active-session.png)
 
 ### Serverstatus
 
 Klicken Sie auf „Server anzeigen“, um verbundene Server und deren Status anzuzeigen.
 
-![Bolt Web – Siehe Server](../../../assets/web/web-homepage-see-servers.png)
+![OpenCode Web – Siehe Server](../../../assets/web/web-homepage-see-servers.png)
 
 ---
 
@@ -126,7 +126,7 @@ Dadurch können Sie sowohl die Weboberfläche als auch das Terminal gleichzeitig
 
 ## Konfigurationsdatei
 
-Sie können Servereinstellungen auch in Ihrer `bolt.json`-Konfigurationsdatei konfigurieren:
+Sie können Servereinstellungen auch in Ihrer `opencode.json`-Konfigurationsdatei konfigurieren:
 
 ```json
 {

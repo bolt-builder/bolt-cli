@@ -16,7 +16,7 @@ import { isRecord } from "../util/record"
 import { useToast } from "../ui/toast"
 import { Spinner } from "./spinner"
 import { DialogWorkspaceFileChanges } from "./dialog-workspace-file-changes"
-import type { ProjectDirectories } from "@bolt-ai/sdk/v2"
+import type { WorktreeListOutput } from "@bolt-ai/client"
 import { useRoute } from "../context/route"
 import { DialogWorktreeName } from "./dialog-worktree-name"
 

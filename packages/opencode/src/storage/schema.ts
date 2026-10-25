@@ -1,5 +1,0 @@
-export { AccountTable, AccountStateTable, ControlAccountTable } from "@bolt-ai/core/account/sql"
-export { ProjectTable } from "@bolt-ai/core/project/sql"
-export { SessionTable, MessageTable, PartTable, TodoTable } from "@bolt-ai/core/session/sql"
-export { SessionShareTable } from "@bolt-ai/core/share/sql"
-export { WorkspaceTable } from "@bolt-ai/core/control-plane/workspace.sql"

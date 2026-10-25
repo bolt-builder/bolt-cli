@@ -18,13 +18,13 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 
 #### Opções
 
-| Flag            | Descrição                                         | Padrão       |
-| --------------- | ------------------------------------------------- | ------------ |
-| `--port`        | Porta para escutar                                | `4096`       |
-| `--hostname`    | Nome do host para escutar                         | `127.0.0.1`  |
-| `--mdns`        | Habilitar descoberta mDNS                         | `false`      |
-| `--mdns-domain` | Nome de domínio personalizado para o serviço mDNS | `bolt.local` |
-| `--cors`        | Origens adicionais de navegador a permitir        | `[]`         |
+| Flag            | Descrição                                         | Padrão           |
+| --------------- | ------------------------------------------------- | ---------------- |
+| `--port`        | Porta para escutar                                | `4096`           |
+| `--hostname`    | Nome do host para escutar                         | `127.0.0.1`      |
+| `--mdns`        | Habilitar descoberta mDNS                         | `false`          |
+| `--mdns-domain` | Nome de domínio personalizado para o serviço mDNS | `opencode.local` |
+| `--cors`        | Origens adicionais de navegador a permitir        | `[]`             |
 
 `--cors` pode ser passado várias vezes:
 
@@ -36,10 +36,10 @@ opencode serve --cors http://localhost:5173 --cors https://app.example.com
 
 ### Autenticação
 
-Defina `BOLT_SERVER_PASSWORD` para proteger o servidor com autenticação básica HTTP. O nome de usuário padrão é `opencode`, ou defina `BOLT_SERVER_USERNAME` para substituí-lo. Isso se aplica tanto ao `opencode serve` quanto ao `opencode web`.
+Defina `OPENCODE_SERVER_PASSWORD` para proteger o servidor com autenticação básica HTTP. O nome de usuário padrão é `opencode`, ou defina `OPENCODE_SERVER_USERNAME` para substituí-lo. Isso se aplica tanto ao `opencode serve` quanto ao `opencode web`.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---

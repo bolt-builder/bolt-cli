@@ -1,9 +1,17 @@
 import { describe, expect } from "bun:test"
 import { eq, sql } from "drizzle-orm"
 import { Effect } from "effect"
+import { Bus } from "@bolt-ai/core/bus"
 import { Credential } from "@bolt-ai/core/credential"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
+import { CredentialTable } from "@bolt-ai/core/credential/sql"
+import { Database } from "@bolt-ai/core/database/database"
+import { Location } from "@bolt-ai/core/location"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { Workspace } from "@bolt-ai/core/workspace"
+import { Event } from "@bolt-ai/schema/event"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
 import { Integration } from "@bolt-ai/core/integration"
+import { location } from "./fixture/location"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(LayerNode.compile(LayerNode.group([Credential.node, Bus.node, Database.node])))

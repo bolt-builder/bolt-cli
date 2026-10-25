@@ -1,5 +1,4 @@
 #!/usr/bin/env bun
-
 import { Script } from "@bolt-ai/script"
 import { $ } from "bun"
 import { fileURLToPath } from "url"

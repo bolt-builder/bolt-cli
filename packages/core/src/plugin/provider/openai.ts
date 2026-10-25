@@ -1,15 +1,17 @@
-import { createServer } from "node:http"
-import type { IntegrationOAuthMethodRegistration } from "@bolt-ai/plugin/v2/effect/integration"
-import { define } from "@bolt-ai/plugin/v2/effect/plugin"
-import { Deferred, Effect } from "effect"
-import type { Scope } from "effect"
-import { Credential } from "../../credential"
-import { InstallationVersion } from "../../installation/version"
-import { Integration } from "../../integration"
-import { ModelV2 } from "../../model"
-import { OauthCallbackPage } from "../../oauth/page"
-import { ProviderV2 } from "../../provider"
-import type { PluginInternal } from "../internal"
+import type { IntegrationOAuthMethodRegistration } from "@bolt-ai/plugin/effect/integration"
+import { define } from "@bolt-ai/plugin/effect/plugin"
+import type { SessionRequest } from "@bolt-ai/plugin/effect/session"
+import { Deferred, Effect, Option, Schema, Semaphore, Stream } from "effect"
+import type { Server } from "node:http"
+import { App } from "../../app.js"
+import { Credential } from "../../credential.js"
+import { Bus } from "../../bus.js"
+import { Integration } from "../../integration.js"
+import { OauthCallbackPage } from "../../oauth/page.js"
+import { Provider } from "../../provider.js"
+import { SessionAffinity } from "../../session/affinity.js"
+import type { PluginInternal } from "../internal.js"
+import { configuredSettings } from "./configured.js"
 
 const clientID = "app_EMoamEEZ73f0CkXaXp7hrann"
 const issuer = "https://auth.openai.com"
@@ -406,7 +408,7 @@ function authorizeURL(redirect: string, pkce: Pkce, state: string) {
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     state,
-    originator: "bolt",
+    originator: "opencode",
   })}`
 }
 

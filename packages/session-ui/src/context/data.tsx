@@ -1,5 +1,10 @@
-import type { Message, Session, Part, SnapshotFileDiff, SessionStatus, Provider } from "@bolt-ai/sdk/v2"
-import type { FileDiffInfo } from "@bolt-ai/client/promise"
+import type {
+  FileDiffInfo,
+  SessionInfo,
+  SessionStatus,
+  ShellOutputInput,
+  ShellOutputOutput,
+} from "@bolt-ai/client/promise"
 import { createSimpleContext } from "@bolt-ai/ui/context"
 import { PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
 

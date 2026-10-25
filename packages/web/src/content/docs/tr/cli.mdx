@@ -14,7 +14,7 @@ opencode
 Ancak bu sayfada belgelendiği gibi komutları da kabul eder. Bu, opencode ile programlı olarak etkileşim kurmanıza olanak tanır.
 
 ```bash
-bolt run "Explain how closures work in JavaScript"
+opencode run "Explain how closures work in JavaScript"
 ```
 
 ---
@@ -68,14 +68,14 @@ opencode attach http://10.20.30.40:4096
 
 #### Bayraklar
 
-| Bayrak                                   | Kısa | Tanım                                                                                     |
-| ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
-| <nobr><code>{"--dir"}</code></nobr>      |      | TUI'yi başlatmak için çalışma dizini                                                      |
-| <nobr><code>{"--continue"}</code></nobr> | `-c` | Son oturuma devam et                                                                      |
-| <nobr><code>{"--session"}</code></nobr>  | `-s` | Devam edecek oturum açma bilgileri                                                        |
-| <nobr><code>{"--fork"}</code></nobr>     |      | Devam ederken oturumu çatalla (`--continue` veya `--session` ile kullanın)                |
-| <nobr><code>{"--password"}</code></nobr> | `-p` | Temel kimlik doğrulama parolası (varsayılan: `BOLT_SERVER_PASSWORD`)                      |
-| <nobr><code>{"--username"}</code></nobr> | `-u` | Temel kimlik doğrulama kullanıcı adı (varsayılan: `BOLT_SERVER_USERNAME` veya `opencode`) |
+| Bayrak                                   | Kısa | Tanım                                                                                         |
+| ---------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
+| <nobr><code>{"--dir"}</code></nobr>      |      | TUI'yi başlatmak için çalışma dizini                                                          |
+| <nobr><code>{"--continue"}</code></nobr> | `-c` | Son oturuma devam et                                                                          |
+| <nobr><code>{"--session"}</code></nobr>  | `-s` | Devam edecek oturum açma bilgileri                                                            |
+| <nobr><code>{"--fork"}</code></nobr>     |      | Devam ederken oturumu çatalla (`--continue` veya `--session` ile kullanın)                    |
+| <nobr><code>{"--password"}</code></nobr> | `-p` | Temel kimlik doğrulama parolası (varsayılan: `OPENCODE_SERVER_PASSWORD`)                      |
+| <nobr><code>{"--username"}</code></nobr> | `-u` | Temel kimlik doğrulama kullanıcı adı (varsayılan: `OPENCODE_SERVER_USERNAME` veya `opencode`) |
 
 ---
 
@@ -91,7 +91,7 @@ opencode auth [command]
 
 #### login
 
-bolt, [Models.dev](https://models.dev) adresindeki sağlayıcı listesi tarafından desteklenmektedir, dolayısıyla kullanmak istediğiniz herhangi bir sağlayıcı için API anahtarlarını ayarlamak üzere `opencode auth login` kullanabilirsiniz. Bu `~/.local/share/opencode/auth.json`'de saklanıyor.
+opencode, [Models.dev](https://models.dev) adresindeki sağlayıcı listesi tarafından desteklenmektedir, dolayısıyla kullanmak istediğiniz herhangi bir sağlayıcı için API anahtarlarını ayarlamak üzere `opencode auth login` kullanabilirsiniz. Bu `~/.local/share/opencode/auth.json`'de saklanıyor.
 
 ```bash
 opencode auth login
@@ -286,13 +286,13 @@ opencode models --refresh
 Doğrudan bir istem ileterek opencode'u etkileşimli olmayan modda çalıştırın.
 
 ```bash
-bolt run [message..]
+opencode run [message..]
 ```
 
 Bu, komut dosyası oluşturma, otomasyon veya TUI'un tamamını başlatmadan hızlı bir yanıt istediğinizde kullanışlıdır. Örneğin.
 
-```bash "bolt run"
-bolt run Explain the use of context in Go
+```bash "opencode run"
+opencode run Explain the use of context in Go
 ```
 
 Ayrıca, her çalıştırmada MCP sunucusunun soğuk önyükleme sürelerini önlemek için çalışan bir `opencode serve` örneğine de ekleyebilirsiniz:
@@ -302,30 +302,29 @@ Ayrıca, her çalıştırmada MCP sunucusunun soğuk önyükleme sürelerini ön
 opencode serve
 
 # In another terminal, run commands that attach to it
-bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### Bayraklar
 
-| Bayrak                                   | Kısa | Açıklama                                                                                  |
-| ---------------------------------------- | ---- | ----------------------------------------------------------------------------------------- |
-| <nobr><code>{"--command"}</code></nobr>  |      | Çalıştırılacak komut, args için mesajı kullanın                                           |
-| <nobr><code>{"--continue"}</code></nobr> | `-c` | Son oturuma devam et                                                                      |
-| <nobr><code>{"--session"}</code></nobr>  | `-s` | Devam edecek oturum kimliği                                                               |
-| <nobr><code>{"--fork"}</code></nobr>     |      | Devam ederken oturumu fork'lar (`--continue` veya `--session` ile kullanın)               |
-| <nobr><code>{"--share"}</code></nobr>    |      | Oturumu paylaşın                                                                          |
-| <nobr><code>{"--model"}</code></nobr>    | `-m` | provider/model biçiminde kullanılacak model                                               |
-| <nobr><code>{"--agent"}</code></nobr>    |      | Kullanılacak temsilci                                                                     |
-| <nobr><code>{"--file"}</code></nobr>     | `-f` | Mesaja eklenecek dosya(lar)                                                               |
-| <nobr><code>{"--format"}</code></nobr>   |      | Biçim: varsayılan (biçimlendirilmiş) veya json (ham JSON olayları)                        |
-| <nobr><code>{"--title"}</code></nobr>    |      | Oturumun başlığı (değer sağlanmazsa kısaltılmış bilgi istemi kullanılır)                  |
-| <nobr><code>{"--attach"}</code></nobr>   |      | Çalışan bir opencode sunucusuna ekleyin (ör. http://localhost:4096)                       |
-| <nobr><code>{"--password"}</code></nobr> | `-p` | Temel kimlik doğrulama parolası (varsayılan: `BOLT_SERVER_PASSWORD`)                      |
-| <nobr><code>{"--username"}</code></nobr> | `-u` | Temel kimlik doğrulama kullanıcı adı (varsayılan: `BOLT_SERVER_USERNAME` veya `opencode`) |
-| <nobr><code>{"--dir"}</code></nobr>      |      | Çalıştırılacak dizin veya bağlanırken uzak sunucudaki yol                                 |
-| <nobr><code>{"--variant"}</code></nobr>  |      | Model varyantı (sağlayıcıya özgü muhakeme düzeyi)                                         |
-| <nobr><code>{"--thinking"}</code></nobr> |      | Düşünme bloklarını göster                                                                 |
-| <nobr><code>{"--port"}</code></nobr>     |      | Yerel sunucunun bağlantı noktası (varsayılan olarak rastgele bağlantı noktasıdır)         |
+| Bayrak                                   | Kısa | Açıklama                                                                                      |
+| ---------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
+| <nobr><code>{"--command"}</code></nobr>  |      | Çalıştırılacak komut, args için mesajı kullanın                                               |
+| <nobr><code>{"--continue"}</code></nobr> | `-c` | Son oturuma devam et                                                                          |
+| <nobr><code>{"--session"}</code></nobr>  | `-s` | Devam edecek oturum kimliği                                                                   |
+| <nobr><code>{"--fork"}</code></nobr>     |      | Devam ederken oturumu fork'lar (`--continue` veya `--session` ile kullanın)                   |
+| <nobr><code>{"--model"}</code></nobr>    | `-m` | provider/model biçiminde kullanılacak model                                                   |
+| <nobr><code>{"--agent"}</code></nobr>    |      | Kullanılacak temsilci                                                                         |
+| <nobr><code>{"--file"}</code></nobr>     | `-f` | Mesaja eklenecek dosya(lar)                                                                   |
+| <nobr><code>{"--format"}</code></nobr>   |      | Biçim: varsayılan (biçimlendirilmiş) veya json (ham JSON olayları)                            |
+| <nobr><code>{"--title"}</code></nobr>    |      | Oturumun başlığı (değer sağlanmazsa kısaltılmış bilgi istemi kullanılır)                      |
+| <nobr><code>{"--attach"}</code></nobr>   |      | Çalışan bir opencode sunucusuna ekleyin (ör. http://localhost:4096)                           |
+| <nobr><code>{"--password"}</code></nobr> | `-p` | Temel kimlik doğrulama parolası (varsayılan: `OPENCODE_SERVER_PASSWORD`)                      |
+| <nobr><code>{"--username"}</code></nobr> | `-u` | Temel kimlik doğrulama kullanıcı adı (varsayılan: `OPENCODE_SERVER_USERNAME` veya `opencode`) |
+| <nobr><code>{"--dir"}</code></nobr>      |      | Çalıştırılacak dizin veya bağlanırken uzak sunucudaki yol                                     |
+| <nobr><code>{"--variant"}</code></nobr>  |      | Model varyantı (sağlayıcıya özgü muhakeme düzeyi)                                             |
+| <nobr><code>{"--thinking"}</code></nobr> |      | Düşünme bloklarını göster                                                                     |
+| <nobr><code>{"--port"}</code></nobr>     |      | Yerel sunucunun bağlantı noktası (varsayılan olarak rastgele bağlantı noktasıdır)             |
 
 ---
 
@@ -337,7 +336,7 @@ API erişimi için headless bir opencode sunucusu başlatır. Tam HTTP arayüzü
 opencode serve
 ```
 
-Bu, TUI arayüzü olmadan opencode işlevselliğine API erişimi sağlayan bir HTTP sunucusunu başlatır. HTTP temel kimlik doğrulamasını etkinleştirmek için `BOLT_SERVER_PASSWORD` öğesini ayarlayın (kullanıcı adı varsayılan olarak `opencode` şeklindedir).
+Bu, TUI arayüzü olmadan opencode işlevselliğine API erişimi sağlayan bir HTTP sunucusunu başlatır. HTTP temel kimlik doğrulamasını etkinleştirmek için `OPENCODE_SERVER_PASSWORD` öğesini ayarlayın (kullanıcı adı varsayılan olarak `opencode` şeklindedir).
 
 #### Bayraklar
 
@@ -430,7 +429,7 @@ Web arayüzüyle başsız bir opencode sunucusu başlatın.
 opencode web
 ```
 
-Bu, bir HTTP sunucusunu başlatır ve bir web arayüzü aracılığıyla opencode'a erişmek için bir web tarayıcısı açar. HTTP temel kimlik doğrulamasını etkinleştirmek için `BOLT_SERVER_PASSWORD` öğesini ayarlayın (kullanıcı adı varsayılan olarak `opencode` şeklindedir).
+Bu, bir HTTP sunucusunu başlatır ve bir web arayüzü aracılığıyla opencode'a erişmek için bir web tarayıcısı açar. HTTP temel kimlik doğrulamasını etkinleştirmek için `OPENCODE_SERVER_PASSWORD` öğesini ayarlayın (kullanıcı adı varsayılan olarak `opencode` şeklindedir).
 
 #### Bayraklar
 
@@ -527,32 +526,31 @@ opencode CLI aşağıdaki global bayrakları destekler.
 
 opencode ortam değişkenleri kullanılarak yapılandırılabilir.
 
-| Değişken                          | Tip     | Açıklama                                                                    |
-| --------------------------------- | ------- | --------------------------------------------------------------------------- |
-| `BOLT_AUTO_SHARE`                 | boolean | Oturumları otomatik olarak paylaş                                           |
-| `BOLT_GIT_BASH_PATH`              | string  | Windows'ta yürütülebilir Git Bash'in Yolu                                   |
-| `BOLT_CONFIG`                     | string  | Yapılandırma dosyasının yolu                                                |
-| `BOLT_TUI_CONFIG`                 | string  | TUI yapılandırma dosyasının yolu                                            |
-| `BOLT_CONFIG_DIR`                 | string  | Yapılandırma dizinine giden yol                                             |
-| `BOLT_CONFIG_CONTENT`             | string  | Satır içi JSON config içeriği                                               |
-| `BOLT_DISABLE_AUTOUPDATE`         | boolean | Otomatik güncelleme kontrollerini devre dışı bırak                          |
-| `BOLT_DISABLE_PRUNE`              | boolean | Eski verilerin temizlenmesini devre dışı bırak                              |
-| `BOLT_DISABLE_TERMINAL_TITLE`     | boolean | Otomatik terminal başlığı güncellemelerini devre dışı bırakın               |
-| `BOLT_PERMISSION`                 | string  | Satır içi JSON izin config'i                                                |
-| `BOLT_DISABLE_DEFAULT_PLUGINS`    | boolean | Varsayılan eklentileri devre dışı bırakın                                   |
-| `BOLT_DISABLE_LSP_DOWNLOAD`       | boolean | Otomatik LSP sunucu indirmelerini devre dışı bırakın                        |
-| `BOLT_ENABLE_EXPERIMENTAL_MODELS` | boolean | Deneysel modelleri etkinleştir                                              |
-| `BOLT_DISABLE_AUTOCOMPACT`        | boolean | Otomatik context sıkıştırmayı devre dışı bırak                              |
-| `BOLT_DISABLE_CLAUDE_CODE`        | boolean | `.claude`'den okumayı devre dışı bırak (istem + beceriler)                  |
-| `BOLT_DISABLE_CLAUDE_CODE_PROMPT` | boolean | `~/.claude/CLAUDE.md` dosyasını okumayı devre dışı bırak                    |
-| `BOLT_DISABLE_CLAUDE_CODE_SKILLS` | boolean | `.claude/skills` yüklemesini devre dışı bırak                               |
-| `BOLT_DISABLE_MODELS_FETCH`       | boolean | Uzak kaynaklardan model getirmeyi devre dışı bırakın                        |
-| `BOLT_FAKE_VCS`                   | string  | Test amaçlı sahte VCS sağlayıcısı                                           |
-| `BOLT_CLIENT`                     | string  | Client kimliği (varsayılan: `cli`)                                          |
-| `BOLT_ENABLE_EXA`                 | boolean | Exa web arama araçlarını etkinleştir                                        |
-| `BOLT_SERVER_PASSWORD`            | string  | `serve`/`web` için temel kimlik doğrulamayı etkinleştirin                   |
-| `BOLT_SERVER_USERNAME`            | string  | Temel kimlik doğrulama kullanıcı adını geçersiz kıl (varsayılan `opencode`) |
-| `BOLT_MODELS_URL`                 | string  | Model yapılandırmasını almak için özel URL                                  |
+| Değişken                              | Tip     | Açıklama                                                                    |
+| ------------------------------------- | ------- | --------------------------------------------------------------------------- |
+| `OPENCODE_GIT_BASH_PATH`              | string  | Windows'ta yürütülebilir Git Bash'in Yolu                                   |
+| `OPENCODE_CONFIG`                     | string  | Yapılandırma dosyasının yolu                                                |
+| `OPENCODE_TUI_CONFIG`                 | string  | TUI yapılandırma dosyasının yolu                                            |
+| `OPENCODE_CONFIG_DIR`                 | string  | Yapılandırma dizinine giden yol                                             |
+| `OPENCODE_CONFIG_CONTENT`             | string  | Satır içi JSON config içeriği                                               |
+| `OPENCODE_DISABLE_AUTOUPDATE`         | boolean | Otomatik güncelleme kontrollerini devre dışı bırak                          |
+| `OPENCODE_DISABLE_PRUNE`              | boolean | Eski verilerin temizlenmesini devre dışı bırak                              |
+| `OPENCODE_DISABLE_TERMINAL_TITLE`     | boolean | Otomatik terminal başlığı güncellemelerini devre dışı bırakın               |
+| `OPENCODE_PERMISSION`                 | string  | Satır içi JSON izin config'i                                                |
+| `OPENCODE_DISABLE_DEFAULT_PLUGINS`    | boolean | Varsayılan eklentileri devre dışı bırakın                                   |
+| `OPENCODE_DISABLE_LSP_DOWNLOAD`       | boolean | Otomatik LSP sunucu indirmelerini devre dışı bırakın                        |
+| `OPENCODE_ENABLE_EXPERIMENTAL_MODELS` | boolean | Deneysel modelleri etkinleştir                                              |
+| `OPENCODE_DISABLE_AUTOCOMPACT`        | boolean | Otomatik context sıkıştırmayı devre dışı bırak                              |
+| `OPENCODE_DISABLE_CLAUDE_CODE`        | boolean | `.claude`'den okumayı devre dışı bırak (istem + beceriler)                  |
+| `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` | boolean | `~/.claude/CLAUDE.md` dosyasını okumayı devre dışı bırak                    |
+| `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS` | boolean | `.claude/skills` yüklemesini devre dışı bırak                               |
+| `OPENCODE_DISABLE_MODELS_FETCH`       | boolean | Uzak kaynaklardan model getirmeyi devre dışı bırakın                        |
+| `OPENCODE_FAKE_VCS`                   | string  | Test amaçlı sahte VCS sağlayıcısı                                           |
+| `OPENCODE_CLIENT`                     | string  | Client kimliği (varsayılan: `cli`)                                          |
+| `OPENCODE_ENABLE_EXA`                 | boolean | Exa web arama araçlarını etkinleştir                                        |
+| `OPENCODE_SERVER_PASSWORD`            | string  | `serve`/`web` için temel kimlik doğrulamayı etkinleştirin                   |
+| `OPENCODE_SERVER_USERNAME`            | string  | Temel kimlik doğrulama kullanıcı adını geçersiz kıl (varsayılan `opencode`) |
+| `OPENCODE_MODELS_URL`                 | string  | Model yapılandırmasını almak için özel URL                                  |
 
 ---
 
@@ -560,23 +558,22 @@ opencode ortam değişkenleri kullanılarak yapılandırılabilir.
 
 Bu ortam değişkenleri değişebilecek veya kaldırılabilecek deneysel özellikleri etkinleştirir.
 
-| Değişken                                    | Tip     | Tanım                                                   |
-| ------------------------------------------- | ------- | ------------------------------------------------------- |
-| `BOLT_EXPERIMENTAL`                         | boolean | Şemsiye bayrağa bağlı deneysel özellikleri etkinleştir  |
-| `BOLT_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Simge bulmayı etkinleştir                               |
-| `BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | TUI'da seçim yapıldığında kopyalamayı devre dışı bırak  |
-| `BOLT_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | MS cinsinden bash komutları için varsayılan zaman aşımı |
-| `BOLT_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | LLM yanıtları için maksimum çıktı belirteçleri          |
-| `BOLT_EXPERIMENTAL_FILEWATCHER`             | boolean | Tüm dizin için dosya izleyiciyi etkinleştir             |
-| `BOLT_EXPERIMENTAL_OXFMT`                   | boolean | Oxfmt biçimlendiriciyi etkinleştir                      |
-| `BOLT_EXPERIMENTAL_LSP_TOOL`                | boolean | Deneysel LSP aracını etkinleştir                        |
-| `BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | Dosya izleyiciyi devre dışı bırak                       |
-| `BOLT_EXPERIMENTAL_EXA`                     | boolean | Deneysel Exa özelliklerini etkinleştirin                |
-| `BOLT_EXPERIMENTAL_LSP_TY`                  | boolean | python dosyaları için TY LSP'yi etkinleştir             |
-| `BOLT_EXPERIMENTAL_PLAN_MODE`               | boolean | Plan modunu etkinleştir                                 |
-| `BOLT_EXPERIMENTAL_BACKGROUND_SUBAGENTS`    | boolean | Arka plan alt ajan görevlerini etkinleştir              |
-| `BOLT_EXPERIMENTAL_EVENT_SYSTEM`            | boolean | Deneysel olay sistemini etkinleştir                     |
-| `BOLT_EXPERIMENTAL_NATIVE_LLM`              | boolean | Yerel LLM istek yolunu etkinleştir                      |
-| `BOLT_EXPERIMENTAL_PARALLEL`                | boolean | Paralel web araması yürütmesini etkinleştir             |
-| `BOLT_EXPERIMENTAL_SCOUT`                   | boolean | Scout alt ajanını etkinleştir                           |
-| `BOLT_EXPERIMENTAL_WORKSPACES`              | boolean | Çalışma alanı desteğini etkinleştir                     |
+| Değişken                                        | Tip     | Tanım                                                   |
+| ----------------------------------------------- | ------- | ------------------------------------------------------- |
+| `OPENCODE_EXPERIMENTAL`                         | boolean | Şemsiye bayrağa bağlı deneysel özellikleri etkinleştir  |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Simge bulmayı etkinleştir                               |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | TUI'da seçim yapıldığında kopyalamayı devre dışı bırak  |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | MS cinsinden bash komutları için varsayılan zaman aşımı |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | LLM yanıtları için maksimum çıktı belirteçleri          |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | boolean | Tüm dizin için dosya izleyiciyi etkinleştir             |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | boolean | Oxfmt biçimlendiriciyi etkinleştir                      |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | boolean | Deneysel LSP aracını etkinleştir                        |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | Dosya izleyiciyi devre dışı bırak                       |
+| `OPENCODE_EXPERIMENTAL_EXA`                     | boolean | Deneysel Exa özelliklerini etkinleştirin                |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | boolean | python dosyaları için TY LSP'yi etkinleştir             |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | boolean | Plan modunu etkinleştir                                 |
+| `OPENCODE_EXPERIMENTAL_EVENT_SYSTEM`            | boolean | Deneysel olay sistemini etkinleştir                     |
+| `OPENCODE_EXPERIMENTAL_NATIVE_LLM`              | boolean | Yerel LLM istek yolunu etkinleştir                      |
+| `OPENCODE_EXPERIMENTAL_PARALLEL`                | boolean | Paralel web araması yürütmesini etkinleştir             |
+| `OPENCODE_EXPERIMENTAL_SCOUT`                   | boolean | Scout alt ajanını etkinleştir                           |
+| `OPENCODE_EXPERIMENTAL_WORKSPACES`              | boolean | Çalışma alanı desteğini etkinleştir                     |

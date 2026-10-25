@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test"
-import type { ToolPart } from "@bolt-ai/sdk/v2"
-import { entryBody, entryCanStream, entryDone } from "@/cli/cmd/run/entry.body"
-import type { StreamCommit, ToolSnapshot } from "@/cli/cmd/run/types"
+import os from "os"
+import path from "path"
+import type { SessionMessageAssistantTool } from "@bolt-ai/client/promise"
+import { entryBody, entryCanStream, entryDone } from "../../src/mini/entry.body"
+import type { StreamCommit, ToolSnapshot } from "../../src/mini/types"
+import { canonicalToolPart } from "./fixture/tool-part"
 
 function commit(input: Partial<StreamCommit> & Pick<StreamCommit, "kind" | "text" | "phase" | "source">): StreamCommit {
   return input

@@ -3,28 +3,31 @@
 export default $config({
   app(input) {
     return {
-      name: "bolt",
+      name: "opencode",
       removal: input?.stage === "production" ? "retain" : "remove",
       protect: ["production"].includes(input?.stage),
       home: "cloudflare",
-      providers: {
-        aws: {
-          version: "7.30.0",
-          region: "us-east-1",
-          profile: process.env.GITHUB_ACTIONS
-            ? undefined
-            : input.stage === "production"
-              ? "bolt-production"
-              : "bolt-dev",
-        },
-        stripe: {
-          version: "0.0.28",
-          apiKey: process.env.STRIPE_SECRET_KEY!,
-        },
-        random: "4.19.2",
-        planetscale: "0.4.1",
-        honeycomb: "0.49.0",
-      },
+      providers:
+        input.stage === "beta"
+          ? {}
+          : {
+              // Production state was written by 6.15.0; the default 6.13 provider can't read it back.
+              cloudflare: "6.15.0",
+              aws: {
+                version: "7.30.0",
+                region: "us-east-1",
+                profile: process.env.GITHUB_ACTIONS
+                  ? undefined
+                  : input.stage === "production"
+                    ? "opencode-production"
+                    : "opencode-dev",
+              },
+              stripe: {
+                version: "0.0.28",
+                apiKey: process.env.STRIPE_SECRET_KEY!,
+              },
+              planetscale: "0.4.1",
+            },
     }
   },
   async run() {

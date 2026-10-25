@@ -1,10 +1,15 @@
-import { Platform, usePlatform } from "@/context/platform"
-import { makePersisted, type AsyncStorage, type SyncStorage } from "@solid-primitives/storage"
-import { checksum } from "@bolt-ai/core/util/encode"
-import { createResource, type Accessor } from "solid-js"
-import type { SetStoreFunction, Store } from "solid-js/store"
-import { pathKey } from "@/utils/path-key"
-import { ScopedKey, ServerScope, type ServerScope as ServerScopeValue } from "@/utils/server-scope"
+import { Platform, usePlatform } from "@/runtime/platform/platform"
+import { messageSync, type AsyncStorage, type SyncStorage } from "@solid-primitives/storage"
+import { checksum } from "@bolt-ai/util/encode"
+import { createResource, onCleanup, type Accessor } from "solid-js"
+import { createStore, type SetStoreFunction, type Store } from "solid-js/store"
+import { Option, Predicate, Schema } from "effect"
+import { pathKey } from "@/workspaces/path-key"
+import { ScopedKey, ServerScope } from "@/runtime/server/scope"
+import { persistStore } from "./persist"
+import { Persistence } from "./schema"
+
+type InitType = Promise<string | null> | string | null
 
 type PersistedWithReady<T> = [
   Store<T>,
@@ -29,10 +34,18 @@ type PersistTarget = {
   key: string
 }
 
-const LEGACY_STORAGE = "default.dat"
-const GLOBAL_STORAGE = "bolt.global.dat"
-const WINDOW_STORAGE = "bolt.window"
-const LOCAL_PREFIX = "bolt."
+// SAFETY: an older stored value is JSON with no schema of its own; the store decodes what a pick returns.
+// oxlint-disable-next-line anti-slop/no-unknown-parameters, anti-slop/no-unknown-returns -- see SAFETY above
+type PickPart = (value: unknown) => unknown
+
+type CopyFrom = { key: string; storage?: string; pick?: PickPart }
+
+const GLOBAL_STORAGE = "opencode.global.dat"
+
+const WINDOW_STORAGE = "opencode.window"
+
+const LOCAL_PREFIX = "opencode."
+
 const fallback = new Map<string, boolean>()
 
 const CACHE_MAX_ENTRIES = 500
@@ -324,13 +337,15 @@ async function relocateStoredValueAsync(input: {
 function workspaceStorage(dir: string) {
   const head = (dir.slice(0, 12) || "workspace").replace(/[^a-zA-Z0-9._-]/g, "-")
   const sum = checksum(dir) ?? "0"
-  return `bolt.workspace.${head}.${sum}.dat`
+
+  return `opencode.workspace.${head}.${sum}.dat`
 }
 
 function draftStorage(draftID: string) {
   const head = (draftID.slice(0, 12) || "draft").replace(/[^a-zA-Z0-9._-]/g, "-")
   const sum = checksum(draftID) ?? "0"
-  return `bolt.draft.${head}.${sum}.dat`
+
+  return `opencode.draft.${head}.${sum}.dat`
 }
 
 function windowStorage(windowID: string) {

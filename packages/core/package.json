@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "version": "1.20.7",
-  "name": "@bolt-ai/core",  "type": "module",
+  "name": "@bolt-ai/core",
+  "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,11 +19,13 @@
     "db": "bun drizzle-kit",
     "migration": "bun run script/migration.ts",
     "fix-node-pty": "bun run script/fix-node-pty.ts",
-    "test": "bun test --only-failures",
-    "typecheck": "tsgo --noEmit"
-  },
-  "bin": {
-    "bolt": "./bin/bolt"
+    "benchmark:location": "bun run script/benchmark-location.ts",
+    "benchmark:location-memory": "bun run script/benchmark-location-memory.ts",
+    "build": "bun run script/build.ts",
+    "update-models-snapshot": "bun run script/update-models-snapshot.ts",
+    "test": "bun run script/test.ts",
+    "typecheck": "bun check --no-script -b -p tsconfig.tests.json",
+    "typecheck:tsc": "tsc -b tsconfig.json tsconfig.tests.json"
   },
   "exports": {
     "./*": "./src/*.ts"
@@ -73,16 +76,11 @@
     }
   },
   "devDependencies": {
-    "@tsconfig/bun": "catalog:",
-    "@types/bun": "catalog:",
-    "@types/cross-spawn": "catalog:",
-    "@types/mime-types": "3.0.1",
-    "@types/node": "catalog:",
-    "@types/npm-package-arg": "6.1.4",
-    "@types/npmcli__arborist": "6.3.3",
-    "@types/semver": "catalog:",
-    "@types/turndown": "5.0.5",
-    "@types/which": "3.0.4",
+    "@ai-sdk/openai-compatible": "2.0.41",
+    "@effect/platform-node": "catalog:",
+    "@effect/sql-sqlite-bun": "catalog:",
+    "@modelcontextprotocol/server": "2.3.1",
+    "@bolt-ai/http-recorder": "workspace:*",
     "@parcel/watcher-darwin-arm64": "2.5.1",
     "@parcel/watcher-darwin-x64": "2.5.1",
     "@parcel/watcher-linux-arm64-glibc": "2.5.1",
@@ -91,8 +89,12 @@
     "@parcel/watcher-linux-x64-musl": "2.5.1",
     "@parcel/watcher-win32-arm64": "2.5.1",
     "@parcel/watcher-win32-x64": "2.5.1",
-    "@bolt-ai/http-recorder": "workspace:*",
-    "drizzle-kit": "catalog:"
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "@types/which": "3.0.4",
+    "drizzle-kit": "catalog:",
+    "fast-check": "catalog:"
   },
   "dependencies": {
     "@ai-sdk/cohere": "3.0.27",
@@ -103,18 +105,15 @@
     "@ff-labs/fff-bun": "0.10.5",
     "@ff-labs/fff-node": "0.10.5",
     "@lydell/node-pty": "catalog:",
-    "@npmcli/arborist": "9.4.0",
-    "@npmcli/config": "10.8.1",
-    "@bolt-ai/effect-drizzle-sqlite": "workspace:*",
-    "@bolt-ai/effect-sqlite-node": "workspace:*",
-    "@bolt-ai/llm": "workspace:*",
-    "@bolt-ai/memory": "workspace:*",
-    "@bolt-ai/schema": "workspace:*",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/core": "2.3.1",
+    "@opencode-ai/pty": "0.3.1",
+    "@bolt-ai/ai": "workspace:*",
+    "@bolt-ai/codemode": "workspace:*",
     "@bolt-ai/plugin": "workspace:*",
-    "@opentelemetry/api": "1.9.0",
-    "@opentelemetry/context-async-hooks": "2.6.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.214.0",
-    "@opentelemetry/sdk-trace-base": "2.6.1",
+    "@bolt-ai/plugin-browser": "workspace:*",
+    "@bolt-ai/schema": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
     "@parcel/watcher": "2.5.1",
     "@silvia-odwyer/photon-node": "0.3.4",
     "@standard-schema/spec": "catalog:",

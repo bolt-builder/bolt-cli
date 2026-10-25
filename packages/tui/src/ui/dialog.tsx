@@ -17,8 +17,6 @@ import { ThemeContextProvider, useTheme } from "../context/theme"
 import { InputRenderable, MouseButton, Renderable, RGBA, TextAttributes } from "@opentui/core"
 import { createStore } from "solid-js/store"
 import { useToast } from "./toast"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { useBindings, useOpencodeModeStack } from "../keymap"
 import { useClipboard } from "../context/clipboard"
 import { useConfig, useNewDesigns } from "../config"
 import { copy, copyOnSelectRelease } from "../util/selection"
@@ -460,14 +458,16 @@ export function DialogProvider(props: ParentProps) {
         position="absolute"
         zIndex={3000}
         onMouseDown={(evt: { button: number; preventDefault(): void; stopPropagation(): void }) => {
-          if (!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+          if (copyOnSelectEnabled()) return
           if (evt.button !== MouseButton.RIGHT) return
 
           if (!copy(renderer, toast, clipboard)) return
           evt.preventDefault()
           evt.stopPropagation()
         }}
-        onMouseUp={!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? copySelection : undefined}
+        onMouseUp={
+          copyOnSelectEnabled() ? (event) => copyOnSelectRelease(event, renderer, toast, clipboard) : undefined
+        }
       >
         <Show when={value.stack.length}>
           <Dialog onClose={() => value.clear()} size={value.size} centered={value.centered}>

@@ -28,11 +28,6 @@ function hasTransparency(pixels: Uint8Array, width: number, height: number) {
 }
 
 export const make = Effect.gen(function* () {
-  ;(globalThis as typeof globalThis & { __BOLT_PHOTON_WASM_PATH?: string }).__BOLT_PHOTON_WASM_PATH = path.isAbsolute(
-    photonWasm,
-  )
-    ? photonWasm
-    : fileURLToPath(new URL(photonWasm, import.meta.url))
   const loadPhoton = yield* Effect.cached(
     // A runtime without a photon wasm artifact (#photon-wasm resolves to the
     // empty string on workerd) has no resizer, by declaration: fail typed

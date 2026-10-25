@@ -3,13 +3,13 @@ title: LSP-servere
 description: opencode integreres med LSP-serverne dine.
 ---
 
-Bolt kan integreres med Language Server Protocol (LSP)-servere for å bruke diagnostikk som tilbakemelding til agenten.
+OpenCode kan integreres med Language Server Protocol (LSP)-servere for å bruke diagnostikk som tilbakemelding til agenten.
 
 ---
 
 ## Innebygde servere
 
-Bolt kommer med flere innebygde LSP-servere for populære språk:
+OpenCode kommer med flere innebygde LSP-servere for populære språk:
 
 | LSP Server         | Filendelser                                                         | Krav                                                                    |
 | ------------------ | ------------------------------------------------------------------- | ----------------------------------------------------------------------- |
@@ -50,7 +50,7 @@ Bolt kommer med flere innebygde LSP-servere for populære språk:
 LSP er deaktivert som standard. Når det er aktivert, starter servere når en av filtypene ovenfor oppdages og kravene oppfylles.
 
 :::note
-Du kan deaktivere automatiske LSP-servernedlastinger ved å sette miljøvariabelen `BOLT_DISABLE_LSP_DOWNLOAD` til `true`.
+Du kan deaktivere automatiske LSP-servernedlastinger ved å sette miljøvariabelen `OPENCODE_DISABLE_LSP_DOWNLOAD` til `true`.
 :::
 
 ---
@@ -74,22 +74,22 @@ Språkservere kan komme ut av synk, bruke mye minne, variere etter versjon eller
 
 ## Konfigurasjon
 
-Du kan aktivere og tilpasse LSP-servere gjennom `lsp`-delen i Bolt-konfigurasjonen.
+Du kan aktivere og tilpasse LSP-servere gjennom `lsp`-delen i OpenCode-konfigurasjonen.
 
 For å aktivere alle innebygde LSP-servere, sett `lsp` til `true`.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": true
 }
 ```
 
 Bruk et objekt for å beholde innebygde servere aktivert mens du konfigurerer overstyringer eller egendefinerte servere.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {}
 }
 ```
@@ -112,9 +112,9 @@ La oss se på noen eksempler.
 
 Bruk egenskapen `env` til å angi miljøvariabler når du starter LSP-serveren:
 
-```json title="bolt.json" {5-7}
+```json title="opencode.json" {5-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "rust": {
       "env": {
@@ -131,9 +131,9 @@ Bruk egenskapen `env` til å angi miljøvariabler når du starter LSP-serveren:
 
 Bruk egenskapen `initialization` til å sende initialiseringsalternativer til LSP-serveren. Dette er serverspesifikke innstillinger sendt under LSP `initialize`-forespørselen:
 
-```json title="bolt.json" {5-9}
+```json title="opencode.json" {5-9}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "initialization": {
@@ -156,18 +156,18 @@ Initialiseringsalternativer varierer etter LSP-server. Sjekk dokumentasjonen til
 
 Hvis `lsp` utelates, er alle LSP-servere deaktivert. For å deaktivere alle LSP-servere etter at en annen konfigurasjon har aktivert dem, sett `lsp` til `false`:
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": false
 }
 ```
 
 For å deaktivere en **spesifikk** LSP-server, sett `disabled` til `true`:
 
-```json title="bolt.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "disabled": true
@@ -182,9 +182,9 @@ For å deaktivere en **spesifikk** LSP-server, sett `disabled` til `true`:
 
 Du kan legge til egendefinerte LSP-servere ved å spesifisere kommandoen og filtypene:
 
-```json title="bolt.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "custom-lsp": {
       "command": ["custom-lsp-server", "--stdio"],

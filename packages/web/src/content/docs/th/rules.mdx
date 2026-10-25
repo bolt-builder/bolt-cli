@@ -68,7 +68,7 @@ opencode ยังรองรับการอ่านไฟล์ `AGENTS.md
 
 ### ความเข้ากันได้กับ Claude Code
 
-สำหรับผู้ใช้ที่ย้ายจาก Claude Code นั้น Bolt รองรับรูปแบบไฟล์ของ Claude Code เป็นทางเลือก:
+สำหรับผู้ใช้ที่ย้ายจาก Claude Code นั้น OpenCode รองรับรูปแบบไฟล์ของ Claude Code เป็นทางเลือก:
 
 - **กฎของโครงการ**: `CLAUDE.md` ในไดเรกทอรีโครงการของคุณ (ใช้หากไม่มี `AGENTS.md`)
 - **กฎสากล**: `~/.claude/CLAUDE.md` (ใช้หากไม่มี `~/.config/opencode/AGENTS.md`)
@@ -77,9 +77,9 @@ opencode ยังรองรับการอ่านไฟล์ `AGENTS.md
 หากต้องการปิดใช้งานความเข้ากันได้ของ Claude Code ให้ตั้งค่าหนึ่งในตัวแปรสภาพแวดล้อมเหล่านี้:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -98,22 +98,22 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 ## คำแนะนำที่กำหนดเอง
 
-คุณสามารถระบุไฟล์คำแนะนำที่กำหนดเองได้ใน `bolt.json` หรือ `~/.config/opencode/bolt.json` ทั่วโลก สิ่งนี้ช่วยให้คุณและทีมของคุณสามารถนำกฎที่มีอยู่กลับมาใช้ใหม่ได้ แทนที่จะต้องทำซ้ำกฎเหล่านั้นกับ AGENTS.md
+คุณสามารถระบุไฟล์คำแนะนำที่กำหนดเองได้ใน `opencode.json` หรือ `~/.config/opencode/opencode.json` ทั่วโลก สิ่งนี้ช่วยให้คุณและทีมของคุณสามารถนำกฎที่มีอยู่กลับมาใช้ใหม่ได้ แทนที่จะต้องทำซ้ำกฎเหล่านั้นกับ AGENTS.md
 
 ตัวอย่าง:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 คุณยังสามารถใช้ URL ระยะไกลเพื่อโหลดคำแนะนำจากเว็บได้
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -128,13 +128,13 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 แม้ว่า opencode จะไม่แยกวิเคราะห์การอ้างอิงไฟล์ใน `AGENTS.md` โดยอัตโนมัติ แต่คุณสามารถใช้ฟังก์ชันที่คล้ายกันได้สองวิธี:
 
-### ใช้ bolt.json
+### ใช้ opencode.json
 
-แนวทางที่แนะนำคือการใช้ฟิลด์ `instructions` ใน `bolt.json`:
+แนวทางที่แนะนำคือการใช้ฟิลด์ `instructions` ใน `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -176,5 +176,5 @@ Read the following file immediately as it's relevant to all workflows: @rules/ge
 - ตรวจสอบให้แน่ใจว่า opencode จะโหลดไฟล์เมื่อจำเป็นสำหรับงานเฉพาะเท่านั้น
 
 :::tip
-สำหรับ monorepos หรือโปรเจ็กต์ที่มีมาตรฐานร่วมกัน การใช้ `bolt.json` ที่มีรูปแบบ glob (เช่น `packages/*/AGENTS.md`) จะสามารถบำรุงรักษาได้ดีกว่าคำสั่งแบบแมนนวล
+สำหรับ monorepos หรือโปรเจ็กต์ที่มีมาตรฐานร่วมกัน การใช้ `opencode.json` ที่มีรูปแบบ glob (เช่น `packages/*/AGENTS.md`) จะสามารถบำรุงรักษาได้ดีกว่าคำสั่งแบบแมนนวล
 :::

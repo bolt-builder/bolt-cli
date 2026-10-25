@@ -2,6 +2,7 @@ import { Pty } from "@bolt-ai/core/pty"
 import { PtyProtocol } from "@bolt-ai/core/pty/protocol"
 import { PtyTicket } from "@bolt-ai/core/pty/ticket"
 import { Location } from "@bolt-ai/core/location"
+import { LocationServiceMap } from "@bolt-ai/core/location-service-map"
 import { Effect, Queue } from "effect"
 import { HttpServerRequest, HttpServerResponse } from "effect/http"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
@@ -14,8 +15,8 @@ import {
   PTY_CONNECT_TOKEN_HEADER,
   PTY_CONNECT_TOKEN_HEADER_VALUE,
 } from "@bolt-ai/protocol/groups/pty"
-import { response } from "../location"
-import { PtyEnvironment } from "../pty-environment"
+import { locationErrors, requestRef, response } from "../location"
+import { type Outbound, runPtySocket } from "./pty-socket"
 
 const notFound = (ptyID: Pty.ID) => new PtyNotFoundError({ ptyID, message: `PTY session not found: ${ptyID}` })
 

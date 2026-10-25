@@ -1,15 +1,15 @@
 import { batch, createComputed, createEffect, createMemo, on, onCleanup } from "solid-js"
 import { createStore, produce, reconcile } from "solid-js/store"
+import { isFileNotFoundError } from "@bolt-ai/client/promise"
 import { createSimpleContext } from "@bolt-ai/ui/context"
-import { showToast } from "@/utils/toast"
+import { showToast } from "@/shell/notifications/toast"
 import { useParams } from "@solidjs/router"
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { getFilename } from "@bolt-ai/core/util/path"
-import { useSDK } from "./sdk"
-import { useSync } from "./sync"
-import { useLanguage } from "@/context/language"
-import { useLayout } from "@/context/layout"
-import { createPathHelpers } from "./file/path"
+import { getDirectory, getFilename } from "@bolt-ai/util/path"
+import { useWorkspaceLocation } from "@/workspaces/location"
+import { useLanguage } from "@/runtime/i18n/language"
+import { useExtensionAttachment } from "@/runtime/extension/host-apis"
+import { createPathHelpers } from "./path"
+import { fileContentFromBytes } from "./artifact"
 import {
   approxBytes,
   evictContentLru,

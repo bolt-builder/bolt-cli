@@ -3,13 +3,13 @@ title: Modeller
 description: Konfigurere en LLM leverandør og modell.
 ---
 
-Bolt bruker [AI SDK](https://ai-sdk.dev/) og [Models.dev](https://models.dev) for å støtte **75+ LLM leverandører** og den støtter kjøring av lokale modeller.
+OpenCode bruker [AI SDK](https://ai-sdk.dev/) og [Models.dev](https://models.dev) for å støtte **75+ LLM leverandører** og den støtter kjøring av lokale modeller.
 
 ---
 
 ## Leverandører
 
-De fleste populære leverandørene er forhåndslastet som standard. Hvis du har lagt til legitimasjonen for en leverandør gjennom kommandoen `/connect`, vil den være tilgjengelig når du starter Bolt.
+De fleste populære leverandørene er forhåndslastet som standard. Hvis du har lagt til legitimasjonen for en leverandør gjennom kommandoen `/connect`, vil den være tilgjengelig når du starter OpenCode.
 
 Finn ut mer om [leverandører](/docs/providers).
 
@@ -35,7 +35,7 @@ Vurder å bruke en av modellene vi anbefaler.
 
 Imidlertid er det bare noen få av dem som er gode til både å generere kode og verktøykalling.
 
-Her er flere modeller som fungerer godt med Bolt, uten spesiell rekkefølge. (Dette er ikke en uttømmende liste og er heller ikke nødvendigvis oppdatert):
+Her er flere modeller som fungerer godt med OpenCode, uten spesiell rekkefølge. (Dette er ikke en uttømmende liste og er heller ikke nødvendigvis oppdatert):
 
 - GPT 5.2
 - GPT 5.1 Codex
@@ -49,16 +49,16 @@ Her er flere modeller som fungerer godt med Bolt, uten spesiell rekkefølge. (De
 ## Angi en standard
 
 For å angi en av disse som standardmodell, kan du angi `model`-tasten i din
-Bolt-konfigurasjon.
+OpenCode-konfigurasjon.
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-Her er hele ID `provider_id/model_id`. For eksempel, hvis du bruker [Bolt Zen](/docs/zen), vil du bruke `opencode/gpt-5.1-codex` for GPT 5.1 Codex.
+Her er hele ID `provider_id/model_id`. For eksempel, hvis du bruker [OpenCode Zen](https://opencode.ai/v2/docs/console/), vil du bruke `opencode/gpt-6.1-sol` for GPT-6.1 Sol.
 
 Hvis du har konfigurert en [egendefinert leverandør](/docs/providers#custom), er `provider_id` nøkkelen fra `provider`-delen av konfigurasjonen din, og `model_id` er nøkkelen fra `provider.models`.
 
@@ -68,9 +68,9 @@ Hvis du har konfigurert en [egendefinert leverandør](/docs/providers#custom), e
 
 Du kan konfigurere en modells alternativer globalt gjennom konfigurasjonen.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -107,11 +107,11 @@ Du kan også konfigurere disse alternativene for alle agenter du bruker. Agentko
 
 Du kan også definere tilpassede varianter som utvider de innebygde. Varianter lar deg konfigurere forskjellige innstillinger for samme modell uten å opprette dupliserte oppføringer:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -141,7 +141,7 @@ Mange modeller støtter flere varianter med forskjellige konfigurasjoner. openco
 
 ### Innebygde varianter
 
-Bolt leveres med standardvarianter for mange leverandører:
+OpenCode leveres med standardvarianter for mange leverandører:
 
 **Anthropic**:
 
@@ -172,9 +172,9 @@ Denne listen er ikke uttømmende. Mange andre leverandører har også innebygde 
 
 Du kan overstyre eksisterende varianter eller legge til dine egne:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -203,16 +203,16 @@ Bruk tastebindingen `variant_cycle` for raskt å bytte mellom varianter. [Finn u
 
 ## Lasting av modeller
 
-Når Bolt starter opp, ser den etter modeller i følgende prioriterte rekkefølge:
+Når OpenCode starter opp, ser den etter modeller i følgende prioriterte rekkefølge:
 
 1. Kommandolinjeflagget `--model` eller `-m`. Formatet er det samme som i konfigurasjonsfilen: `provider_id/model_id`.
 
-2. Modelllisten i Bolt-konfigurasjonen.
+2. Modelllisten i OpenCode-konfigurasjonen.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

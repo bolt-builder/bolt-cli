@@ -16,28 +16,6 @@ export function datetime(input: number): string {
   return `${localTime} · ${localDate}`
 }
 
-export function todayTimeOrDateTime(input: number): string {
-  const date = new Date(input)
-  const now = new Date()
-  const isToday =
-    date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate()
-
-  if (isToday) {
-    return time(input)
-  } else {
-    return datetime(input)
-  }
-}
-
-export function relative(input: number): string {
-  const diff = Math.max(0, Date.now() - input)
-  if (diff < 60000) return "now"
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d`
-  return new Date(input).toLocaleDateString()
-}
-
 export function number(num: number): string {
   // 999950+ would round to "1000.0K"
   if (num >= 999950) {

@@ -1,4 +1,7 @@
 import { Tooltip } from "@bolt-ai/ui/tooltip"
+import { Icon } from "@bolt-ai/ui/icon"
+import { Spinner } from "@bolt-ai/ui/spinner"
+import { useLanguage } from "@/runtime/i18n/language"
 import { createResizeObserver } from "@solid-primitives/resize-observer"
 import {
   children,

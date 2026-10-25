@@ -1,5 +1,4 @@
 import type { APIEvent } from "@solidjs/start/server"
-import { AWS } from "@bolt-ai/console-core/aws.js"
 import { Resource } from "@bolt-ai/console-resource"
 import { i18n } from "~/i18n"
 import { handleEnterpriseRequest } from "~/lib/enterprise"

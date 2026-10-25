@@ -1,5 +1,5 @@
 import { useFilteredList } from "@bolt-ai/ui/hooks"
-import { getDirectory, getFilename } from "@bolt-ai/core/util/path"
+import { getDirectory, getFilename } from "@bolt-ai/util/path"
 import { createSignal, For, onMount, Show, splitProps, type JSX } from "solid-js"
 import { Button } from "@bolt-ai/ui/button"
 import { FileIcon } from "@bolt-ai/ui/file-icon"

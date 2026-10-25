@@ -1,4 +1,4 @@
-import { dirname, isAbsolute, join, relative, resolve as pathResolve, sep } from "path"
+import path, { dirname, isAbsolute, join, relative, sep } from "path"
 import { realpathSync } from "fs"
 import { readdir } from "fs/promises"
 import { lookup } from "mime-types"
@@ -54,7 +54,7 @@ export namespace FSUtil {
     readonly globMatch: (pattern: string, filepath: string) => boolean
   }
 
-  export class Service extends Context.Service<Service, Interface>()("@bolt/FileSystem") {}
+  export class Service extends Context.Service<Service, Interface>()("@bolt-ai/FSUtil") {}
 
   // Exported so simulation can wrap this layer and override the methods that
   // bypass the injected FileSystem (readDirectoryEntries, scan, globUp).

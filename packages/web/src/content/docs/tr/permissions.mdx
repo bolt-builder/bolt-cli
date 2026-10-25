@@ -3,7 +3,7 @@ title: İzinler
 description: Hangi işlemlerin çalıştırılması için onay sürecini kontrol edin.
 ---
 
-bolt, belirli bir eylemin otomatik olarak mı çalıştırılacağına, size sorulacağına veya engelleneceğine karar vermek için `permission` yapılandırmasını kullanır.
+opencode, belirli bir eylemin otomatik olarak mı çalıştırılacağına, size sorulacağına veya engelleneceğine karar vermek için `permission` yapılandırmasını kullanır.
 
 `v1.1.1` itibarıyla eski `tools` boolean yapılandırması kullanımdan kaldırıldı ve `permission` ile birleştirildi. Eski `tools` yapılandırması geriye dönük uyumluluk açısından hâlâ desteklenmektedir.
 
@@ -23,9 +23,9 @@ Her izin kuralı şunlardan birine çözümlenir:
 
 İzinleri genel olarak (`*` ile) ayarlayabilir ve belirli araçları geçersiz kılabilirsiniz.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "*": "ask",
     "bash": "allow",
@@ -36,9 +36,9 @@ Her izin kuralı şunlardan birine çözümlenir:
 
 Ayrıca tüm izinleri aynı anda ayarlayabilirsiniz:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": "allow"
 }
 ```
@@ -49,9 +49,9 @@ Ayrıca tüm izinleri aynı anda ayarlayabilirsiniz:
 
 Çoğu izin için, araç girişine bağlı olarak farklı eylemleri uygulamak için bir nesneyi kullanabilirsiniz.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",
@@ -94,9 +94,9 @@ Ana sayfa genişletmesi (`~/...` gibi) yalnızca bir kalıbın nasıl yazıldı�
 
 Örneğin bu, `~/projects/personal/` altındaki her şeye erişime izin verir:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -107,9 +107,9 @@ Ana sayfa genişletmesi (`~/...` gibi) yalnızca bir kalıbın nasıl yazıldı�
 
 Burada izin verilen herhangi bir dizin, geçerli çalışma alanıyla aynı varsayılanları devralır. [`read` defaults to `allow`](#defaults)'dan bu yana, geçersiz kılınmadığı sürece `external_directory` altındaki girişler için okumalara da izin verilir. Bir aracın bu yollarda kısıtlanması gerektiğinde (okumaları tutarken düzenlemeleri engellemek gibi) açık kurallar ekleyin:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -152,7 +152,7 @@ Hiçbir şey belirtmezseniz opencode izin verilen varsayılanlardan başlar:
 - `doom_loop` ve `external_directory` varsayılan olarak `"ask"`'dir.
 - `read`, `"allow"`'dır, ancak `.env` dosyaları varsayılan olarak reddedilir:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
   "permission": {
     "read": {
@@ -187,9 +187,9 @@ Agent bazında izinleri geçersiz kılabilirsiniz. Agent izinleri global yapıla
 Daha ayrıntılı desen eşleştirme örnekleri için yukarıdaki [Ayrıntılı kurallar (nesne söz dizimi)](#granular-rules-object-syntax) bölümüne bakın.
 :::
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",

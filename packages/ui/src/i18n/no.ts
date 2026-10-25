@@ -90,7 +90,7 @@ export const dict: Record<Keys, string> = {
 
   "dialog.usageExceeded.freeTier.title": "Gratisgrensen er nådd",
   "dialog.usageExceeded.freeTier.description":
-    "Abonner på Bolt Go for $10/måned for pålitelig tilgang til de beste modellene med åpen kildekode.",
+    "Abonner på OpenCode Go for $10/måned for pålitelig tilgang til de beste modellene med åpen kildekode.",
   "dialog.usageExceeded.freeTier.actionLabel": "Abonner",
   "dialog.usageExceeded.accountRateLimit.title": "Go-grensen er nådd",
   "dialog.usageExceeded.accountRateLimit.description":

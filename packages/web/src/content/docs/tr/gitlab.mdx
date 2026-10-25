@@ -3,9 +3,9 @@ title: GitLab
 description: GitLab sorunlarında ve birleştirme isteklerinde opencode'u kullanın.
 ---
 
-bolt, GitLab CI/CD işlem hattınız veya GitLab Duo aracılığıyla GitLab iş akışınızla bütünleşir.
+opencode, GitLab CI/CD işlem hattınız veya GitLab Duo aracılığıyla GitLab iş akışınızla bütünleşir.
 
-Her iki durumda da bolt, GitLab çalıştırıcılarınızda çalışacaktır.
+Her iki durumda da opencode, GitLab çalıştırıcılarınızda çalışacaktır.
 
 ---
 
@@ -35,7 +35,7 @@ Burada opencode için topluluk tarafından oluşturulan bir CI/CD bileşeni kull
      - component: $CI_SERVER_FQDN/nagyv/gitlab-opencode/opencode@2
        inputs:
          config_dir: ${CI_PROJECT_DIR}/opencode-config
-         auth_json: $BOLT_AUTH_JSON # The variable name for your Bolt authentication JSON
+         auth_json: $OPENCODE_AUTH_JSON # The variable name for your OpenCode authentication JSON
          command: optional-custom-command
          message: "Your prompt here"
    ```
@@ -46,8 +46,8 @@ Daha fazla girdi ve bu bileşene yönelik kullanım durumları için [check out 
 
 ## GitLab Duo
 
-bolt, GitLab iş akışınızla bütünleşir.
-Bir yorumda `@opencode`'dan bahsedin; bolt, GitLab CI işlem hattınızdaki görevleri yürütecektir.
+opencode, GitLab iş akışınızla bütünleşir.
+Bir yorumda `@opencode`'dan bahsedin; opencode, GitLab CI işlem hattınızdaki görevleri yürütecektir.
 
 ---
 
@@ -56,13 +56,13 @@ Bir yorumda `@opencode`'dan bahsedin; bolt, GitLab CI işlem hattınızdaki gör
 - **Sorunları önceliklendirin**: opencode'dan bir sorunu araştırıp size açıklamasını isteyin.
 - **Düzelt ve uygula**: opencode'dan bir sorunu düzeltmesini veya bir özelliği uygulamasını isteyin.
   Yeni bir dal oluşturacak ve değişikliklerle birlikte bir birleştirme isteği oluşturacaktır.
-- **Güvenli**: bolt, GitLab çalıştırıcılarınızda çalışır.
+- **Güvenli**: opencode, GitLab çalıştırıcılarınızda çalışır.
 
 ---
 
 ### Yapılandırma
 
-bolt, GitLab CI/CD işlem hattınızda çalışır; bunu ayarlamak için ihtiyacınız olacaklar:
+opencode, GitLab CI/CD işlem hattınızda çalışır; bunu ayarlamak için ihtiyacınız olacaklar:
 
 :::tip
 Güncel talimatlar için [**GitLab docs**](https://docs.gitlab.com/user/duo_agent_platform/agent_assistant/)'a göz atın.
@@ -83,15 +83,15 @@ Güncel talimatlar için [**GitLab docs**](https://docs.gitlab.com/user/duo_agen
     image: node:22-slim
     commands:
       - echo "Installing opencode"
-      - npm install --global bolt-ai
+      - npm install --global opencode-ai
       - echo "Installing glab"
-      - export GITLAB_TOKEN=$GITLAB_TOKEN_BOLT
+      - export GITLAB_TOKEN=$GITLAB_TOKEN_OPENCODE
       - apt-get update --quiet && apt-get install --yes curl wget gpg git && rm --recursive --force /var/lib/apt/lists/*
       - curl --silent --show-error --location "https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository" | bash
       - apt-get install --yes glab
       - echo "Configuring glab"
       - echo $GITLAB_HOST
-      - echo "Creating Bolt auth configuration"
+      - echo "Creating OpenCode auth configuration"
       - mkdir --parents ~/.local/share/opencode
       - |
         cat > ~/.local/share/opencode/auth.json << EOF
@@ -103,13 +103,13 @@ Güncel talimatlar için [**GitLab docs**](https://docs.gitlab.com/user/duo_agen
         }
         EOF
       - echo "Configuring git"
-      - git config --global user.email "bolt@gitlab.com"
-      - git config --global user.name "Bolt"
+      - git config --global user.email "opencode@gitlab.com"
+      - git config --global user.name "OpenCode"
       - echo "Testing glab"
       - glab issue list
-      - echo "Running Bolt"
+      - echo "Running OpenCode"
       - |
-        bolt run "
+        opencode run "
         You are an AI assistant helping with GitLab operations.
 
         Context: $AI_FLOW_CONTEXT
@@ -146,7 +146,7 @@ Güncel talimatlar için [**GitLab docs**](https://docs.gitlab.com/user/duo_agen
         fi
     variables:
       - ANTHROPIC_API_KEY
-      - GITLAB_TOKEN_BOLT
+      - GITLAB_TOKEN_OPENCODE
       - GITLAB_HOST
     ```
 
@@ -192,4 +192,4 @@ GitLab'da opencode'u nasıl kullanabileceğinize dair bazı örnekleri burada bu
   @opencode review this merge request
   ```
 
-  bolt, birleştirme isteğini inceleyecek ve geri bildirim sağlayacaktır.
+  opencode, birleştirme isteğini inceleyecek ve geri bildirim sağlayacaktır.

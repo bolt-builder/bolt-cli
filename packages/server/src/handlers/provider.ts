@@ -1,8 +1,8 @@
-import { Catalog } from "@bolt-ai/core/catalog"
+import { Provider } from "@bolt-ai/core/provider"
+import { ProviderNotFoundError } from "@bolt-ai/protocol/errors"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
-import { ProviderNotFoundError } from "@bolt-ai/protocol/errors"
 import { response } from "../location"
 
 export const ProviderHandler = HttpApiBuilder.group(Api, "server.provider", (handlers) =>

@@ -25,16 +25,16 @@ ACP — это открытый протокол, который стандар�
 
 ### Zed
 
-Установите Bolt из [реестра ACP Zed](https://zed.dev/docs/ai/external-agents#registry), выполнив `zed: acp registry` в палитре команд.
+Установите OpenCode из [реестра ACP Zed](https://zed.dev/docs/ai/external-agents#registry), выполнив `zed: acp registry` в палитре команд.
 
-Чтобы вместо этого использовать собственный исполняемый файл Bolt, добавьте его в конфигурацию [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+Чтобы вместо этого использовать собственный исполняемый файл OpenCode, добавьте его в конфигурацию [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "type": "custom",
-      "command": "bolt",
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -54,9 +54,9 @@ ACP — это открытый протокол, который стандар�
         {
           "agent": {
             "custom": {
-              "name": "Bolt",
+              "name": "OpenCode",
               "command": {
-                "command": "bolt",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -77,7 +77,7 @@ ACP — это открытый протокол, который стандар�
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -96,8 +96,8 @@ ACP — это открытый протокол, который стандар�
 ```lua
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
@@ -109,11 +109,11 @@ ACP — это открытый протокол, который стандар�
 ```lua {6-8}
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        BOLT_API_KEY = os.getenv("BOLT_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -131,8 +131,8 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "bolt",
-        model = "claude-sonnet-4",
+        name = "opencode",
+        model = "claude-sonnet-5-5",
       },
     },
   },
@@ -141,7 +141,7 @@ require("codecompanion").setup({
 
 Эта конфигурация настраивает CodeCompanion для использования opencode в качестве агента ACP для чата.
 
-Если вам нужно передать переменные среды (например, `BOLT_API_KEY`), обратитесь к разделу [Настройка адаптеров: переменные среды](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) в документации CodeCompanion.nvim для получения полной информации.
+Если вам нужно передать переменные среды (например, `OPENCODE_API_KEY`), обратитесь к разделу [Настройка адаптеров: переменные среды](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) в документации CodeCompanion.nvim для получения полной информации.
 
 ## Поддержка
 

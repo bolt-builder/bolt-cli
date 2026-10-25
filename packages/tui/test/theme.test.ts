@@ -10,22 +10,16 @@ import opencodeSource from "../src/theme/assets/opencode.json" with { type: "jso
 import type { ThemeV1Json } from "@bolt-ai/theme/tui/v1"
 import { tmpdir } from "./fixture/fixture"
 
-test("addTheme writes into module theme store", () => {
-  const name = `plugin-theme-${Date.now()}`
-  expect(addTheme(name, DEFAULT_THEMES.bolt)).toBe(true)
-  expect(allThemes()[name]).toBeDefined()
+const opencodeV1 = opencodeSource as ThemeV1Json
+
+test("rejects unrecognized theme structures", () => {
+  expect(() => parseTheme({})).toThrow()
+  expect(() => parseTheme({ version: 3 })).toThrow("Invalid theme")
 })
 
-test("addTheme keeps first theme for duplicate names", () => {
-  const name = `plugin-theme-keep-${Date.now()}`
-  const one = structuredClone(DEFAULT_THEMES.bolt)
-  const two = structuredClone(DEFAULT_THEMES.bolt)
-  one.theme.primary = "#101010"
-  two.theme.primary = "#fefefe"
-
-  expect(addTheme(name, one)).toBe(true)
-  expect(addTheme(name, two)).toBe(false)
-  expect(allThemes()[name]!.theme.primary).toBe("#101010")
+test("registers opencode as a native V2 theme", () => {
+  expect(allThemes().opencode).toBe(getOpenCodeTheme())
+  expect(parseTheme(getOpenCodeTheme()).base).toBeDefined()
 })
 
 test("keeps the experimental opencode2 theme out of the global theme list", () => {
@@ -82,14 +76,12 @@ test("replacement sources receive independent parse caches", () => {
 })
 
 test("hasTheme checks theme presence", () => {
-  const name = `plugin-theme-has-${Date.now()}`
-  expect(hasTheme(name)).toBe(false)
-  expect(addTheme(name, DEFAULT_THEMES.bolt)).toBe(true)
-  expect(hasTheme(name)).toBe(true)
+  expect(hasTheme("missing-theme")).toBe(false)
+  expect(hasTheme("opencode")).toBe(true)
 })
 
 test("resolveTheme rejects circular color refs", () => {
-  const item = structuredClone(DEFAULT_THEMES.bolt)
+  const item = structuredClone(opencodeV1)
   item.defs = { ...item.defs, one: "two", two: "one" }
   item.theme.primary = "one"
   expect(() => resolveTheme(item, "dark")).toThrow("Circular color reference")

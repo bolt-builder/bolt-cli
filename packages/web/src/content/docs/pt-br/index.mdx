@@ -1,6 +1,6 @@
 ---
 title: Introdução
-description: Comece a usar o bolt.
+description: Comece a usar o opencode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
@@ -34,7 +34,7 @@ Para usar o opencode no seu terminal, você precisará de:
 A maneira mais fácil de instalar o opencode é através do script de instalação.
 
 ```bash
-curl -fsSL https://bolt.ai/install | bash
+curl -fsSL https://opencode.ai/install | bash
 ```
 
 Você também pode instalá-lo com os seguintes comandos:
@@ -45,28 +45,28 @@ Você também pode instalá-lo com os seguintes comandos:
 
       <TabItem label="npm">
       ```bash
-      npm install -g bolt-ai
+      npm install -g opencode-ai
       ```
 
           </TabItem>
 
         <TabItem label="Bun">
         ```bash
-        bun install -g bolt-ai
+        bun install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="pnpm">
         ```bash
-        pnpm install -g bolt-ai
+        pnpm install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="Yarn">
         ```bash
-        yarn global add bolt-ai
+        yarn global add opencode-ai
         ```
 
       </TabItem>
@@ -91,7 +91,7 @@ Você também pode instalá-lo com os seguintes comandos:
 #### Windows
 
 :::tip[Recomendado: Use WSL]
-Para a melhor experiência no Windows, recomendamos usar o [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). Ele oferece melhor desempenho e total compatibilidade com os recursos do bolt.
+Para a melhor experiência no Windows, recomendamos usar o [Windows Subsystem for Linux (WSL)](/docs/windows-wsl). Ele oferece melhor desempenho e total compatibilidade com os recursos do opencode.
 :::
 
 - **Usando Chocolatey**
@@ -109,35 +109,35 @@ Para a melhor experiência no Windows, recomendamos usar o [Windows Subsystem fo
 - **Usando NPM**
 
   ```bash
-  npm install -g bolt-ai
+  npm install -g opencode-ai
   ```
 
 - **Usando Mise**
 
   ```bash
-  mise use -g github:bolt-builder/bolt-cli
+  mise use -g github:anomalyco/opencode
   ```
 
 - **Usando Docker**
 
   ```bash
-  docker run -it --rm ghcr.io/bolt-builder/bolt-cli
+  docker run -it --rm ghcr.io/anomalyco/opencode
   ```
 
 O suporte para instalar o opencode no Windows usando Bun está atualmente em andamento.
 
-Você também pode baixar o binário na seção [Releases](https://github.com/Bolt-builder/bolt-cli/releases).
+Você também pode baixar o binário na seção [Releases](https://github.com/anomalyco/opencode/releases).
 
 ---
 
 ## Configuração
 
-Com o bolt, você pode usar qualquer provedor de LLM configurando suas chaves de API.
+Com o opencode, você pode usar qualquer provedor de LLM configurando suas chaves de API.
 
-Se você é novo no uso de provedores de LLM, recomendamos usar o [Bolt Zen](/docs/zen).
-É uma lista selecionada de modelos que foram testados e verificados pela equipe do bolt.
+Se você é novo no uso de provedores de LLM, recomendamos usar o [OpenCode Zen](https://opencode.ai/v2/docs/console/).
+É uma lista selecionada de modelos que foram testados e verificados pela equipe do opencode.
 
-1. Execute o comando `/connect` no TUI, selecione opencode e acesse [bolt.ai/auth](https://bolt.ai/auth).
+1. Execute o comando `/connect` no TUI, selecione opencode e acesse [opencode.ai/auth](https://opencode.ai/auth).
 
    ```txt
    /connect
@@ -166,7 +166,7 @@ Agora que você configurou um provedor, pode navegar até um projeto no qual des
 cd /path/to/project
 ```
 
-E execute o bolt.
+E execute o opencode.
 
 ```bash
 opencode
@@ -319,26 +319,8 @@ Ou você **pode refazer** as alterações usando o comando `/redo`.
 
 ---
 
-## Compartilhamento
-
-As conversas que você tem com o opencode podem ser [compartilhadas com sua equipe](/docs/share).
-
-```bash frame="none"
-/share
-```
-
-Isso criará um link para a conversa atual e o copiará para sua área de transferência.
-
-:::note
-As conversas não são compartilhadas por padrão.
-:::
-
-Aqui está uma [conversa de exemplo](https://bolt.ai/s/4XP1fce5) com o bolt.
-
----
-
 ## Personalização
 
-E é isso! Agora você é um profissional em usar o bolt.
+E é isso! Agora você é um profissional em usar o opencode.
 
 Para torná-lo seu, recomendamos [escolher um tema](/docs/themes), [personalizar os atalhos de teclado](/docs/keybinds), [configurar formatadores de código](/docs/formatters), [criar comandos personalizados](/docs/commands) ou brincar com a [configuração do opencode](/docs/config).

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { Schema } from "effect"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Model } from "@bolt-ai/core/model"
+import { Provider } from "@bolt-ai/core/provider"
 
 const decode = Schema.decodeUnknownSync(Model.Ref)
 

@@ -1,15 +1,5 @@
 const model_id = "claude-3-7-sonnet"
-
-export const popularProviders = [
-  "bolt",
-  "bolt-go",
-  "anthropic",
-  "github-copilot",
-  "openai",
-  "google",
-  "openrouter",
-  "vercel",
-]
+export { popularProviders } from "@/providers/catalog/order"
 
 const provider = {
   id: "anthropic",
@@ -25,8 +15,8 @@ const provider = {
 }
 
 const popular = [
-  { id: "bolt", name: "Bolt Zen", models: {} },
-  { id: "bolt-go", name: "Bolt Go", models: {} },
+  { id: "opencode-go", name: "OpenCode Go", models: {} },
+  { id: "opencode", name: "OpenCode Zen", models: {} },
   { id: "openai", name: "OpenAI", models: {} },
   provider,
   { id: "google", name: "Google", models: {} },

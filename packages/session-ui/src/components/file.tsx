@@ -1,4 +1,4 @@
-import { sampledChecksum } from "@bolt-ai/core/util/encode"
+import { sampledChecksum } from "@bolt-ai/util/encode"
 import {
   areFilesEqual,
   areOptionsEqual,

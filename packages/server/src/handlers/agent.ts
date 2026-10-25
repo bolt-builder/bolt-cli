@@ -1,4 +1,4 @@
-import { AgentV2 } from "@bolt-ai/core/agent"
+import { Agent } from "@bolt-ai/core/agent"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"

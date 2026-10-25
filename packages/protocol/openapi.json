@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "bolt HttpApi",
+    "title": "opencode HttpApi",
     "version": "0.0.1",
     "description": "Experimental HttpApi surface for selected instance routes."
   },
@@ -1512,7 +1512,7 @@
             }
           }
         },
-        "description": "Retrieve foreground Session drains currently owned by this Bolt process. Sessions absent from the result are inactive. Watermarks are the durable log positions read alongside the activity snapshot; activity itself is process state, so the pairing is advisory rather than transactional.",
+        "description": "Retrieve foreground Session drains currently owned by this OpenCode process. Sessions absent from the result are inactive.",
         "summary": "List active sessions"
       }
     },
@@ -4118,7 +4118,7 @@
             }
           }
         },
-        "description": "Interrupt active execution owned by this Bolt process. Idle interruption is a no-op.",
+        "description": "Interrupt active execution owned by this OpenCode process. Returns interrupted=true when an active execution was interrupted and false for the idle no-op. When resume=true, execution resumes pending steering input and next-in-line control items (manual compaction, moves) while queued prompts remain parked.",
         "summary": "Interrupt session execution"
       }
     },

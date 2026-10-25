@@ -1,4 +1,5 @@
-import { checksum } from "@bolt-ai/core/util/encode"
+import { checksum } from "@bolt-ai/util/encode"
+import { parseSmallMarkdown } from "@bolt-ai/ui/context/marked-base"
 import DOMPurify from "dompurify"
 import { MarkdownWorkerDisposedError, parseMarkdown } from "./markdown-worker"
 import { localImagePath, localLinkPath } from "./markdown-image"

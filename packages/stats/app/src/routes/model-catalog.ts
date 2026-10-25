@@ -1,9 +1,9 @@
-import { statModel } from "@bolt-ai/stats-core/domain/model-normalization"
+import { STEALTH_MODELS, statModel } from "@bolt-ai/stats-core/domain/model-normalization"
 import { query } from "@solidjs/router"
 
-export const modelCatalogSourceUrl = "https://models.bolt.ai/catalog.json"
-export const modelCatalogPricingUrl = "https://models.bolt.ai/api.json"
-export const modelCatalogLabSourceUrl = "https://models.bolt.ai/labs"
+export const modelCatalogSourceUrl = "https://models.opencode.ai/catalog.json"
+export const modelCatalogPricingUrl = "https://models.opencode.ai/api.json"
+export const modelCatalogLabSourceUrl = "https://models.opencode.ai/labs"
 
 export type ModelCatalogCost = {
   input: number

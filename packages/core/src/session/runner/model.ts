@@ -1,11 +1,9 @@
 export * as SessionRunnerModel from "./model.js"
 
-import { makeLocationNode } from "../../effect/app-node"
-import { type Model } from "@bolt-ai/llm"
-import * as AnthropicMessages from "@bolt-ai/llm/protocols/anthropic-messages"
-import * as OpenAICompatibleChat from "@bolt-ai/llm/protocols/openai-compatible-chat"
-import * as OpenAIResponses from "@bolt-ai/llm/protocols/openai-responses"
-import { Auth, type AnyRoute } from "@bolt-ai/llm/route"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { LanguageModel } from "@bolt-ai/ai/effect"
+import { Model } from "@bolt-ai/schema/model"
+import { Provider } from "@bolt-ai/schema/provider"
 import { Context, Effect, Layer, Schema } from "effect"
 import { Agent } from "../../agent.js"
 import { ModelResolver } from "../../model-resolver.js"
@@ -43,7 +41,7 @@ export interface Interface {
   ) => Effect.Effect<Resolved, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/SessionRunnerModel") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionRunnerModel") {}
 
 /** Builds a Resolved whose catalog identity mirrors the route model. Test or embedding seam. */
 export const resolved = (
@@ -78,15 +76,21 @@ const layer = Layer.effect(
     return Service.of({
       resolve: Effect.fn("SessionRunnerModel.resolve")(function* (session, available) {
         // Location plugins populate and filter the catalog asynchronously during layer startup.
-        const defaultModel = session.model ? undefined : yield* catalog.model.cheapest()
-        const selected = session.model
-          ? (yield* catalog.model.available()).find(
-              (model) => model.providerID === session.model?.providerID && model.id === session.model.id,
-            )
-          : defaultModel && supported(defaultModel)
-            ? defaultModel
-            : (yield* catalog.model.available()).find(supported)
-        if (!selected && session.model)
+        if (!session.model) {
+          const agent = (yield* agents.select(session.agent)).info?.model
+          const preferred =
+            agent &&
+            (yield* available()).find((model) => model.providerID === agent.providerID && model.id === agent.id)
+          const resolved = preferred
+            ? yield* resolver.resolveModel(preferred, agent.variant)
+            : yield* resolver.resolve()
+          if (resolved) return resolved
+          return yield* new ModelNotSelectedError({ sessionID: session.id })
+        }
+        const selected = (yield* available()).find(
+          (model) => model.providerID === session.model?.providerID && model.id === session.model.id,
+        )
+        if (!selected)
           return yield* new ModelUnavailableError({
             providerID: session.model.providerID,
             modelID: session.model.id,

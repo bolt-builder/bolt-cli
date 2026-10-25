@@ -1,9 +1,6 @@
-import type { AssistantMessage } from "@bolt-ai/sdk/v2"
-import type { TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
-import { createMemo } from "solid-js"
-
-const id = "internal:sidebar-context"
+import { Plugin } from "@bolt-ai/plugin/tui"
+import { createMemo, Show } from "solid-js"
+import { contextUsage } from "../../util/session"
 
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",

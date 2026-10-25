@@ -1,7 +1,7 @@
 import { createRoot, createSignal, getOwner, onCleanup, runWithOwner, type Accessor, type Owner } from "solid-js"
 import { createStore, type SetStoreFunction, type Store } from "solid-js/store"
-import { Persist, persisted } from "@/utils/persist"
-import type { VcsInfo } from "@bolt-ai/sdk/v2/client"
+import { Persist, persisted } from "@/runtime/persistence/storage"
+import type { Path } from "@/runtime/server/types"
 import {
   DIR_IDLE_TTL_MS,
   MAX_DIR_STORES,
@@ -16,8 +16,10 @@ import { canDisposeDirectory, pickDirectoriesToEvict } from "./eviction"
 import { useQuery } from "@tanstack/solid-query"
 import { QueryOptionsApi } from "../sync"
 import { directoryKey, type DirectoryKey } from "./utils"
-import { NormalizedProviderListResponse } from "@bolt-ai/session-ui/context"
-import type { ServerScope } from "@/utils/server-scope"
+import type { ServerScope } from "@/runtime/server/scope"
+import type { Data } from "@bolt-ai/client/solid"
+import { normalizeAgentList, normalizeProviderList } from "./utils"
+import { IconState, ProjectState, VcsState } from "../persistence"
 
 export function createChildStoreManager(input: {
   owner: Owner

@@ -47,7 +47,7 @@ opencode 데스크톱은 배경에서 로컬 opencode 서버 (`opencode-cli` sid
 
 - 완전히 종료하고 앱을 다시 시작.
 - 앱이 오류 화면을 보여 주면 ** Restart**를 클릭하고 오류 세부 정보를 복사합니다.
-- macOS만: `Bolt` 메뉴 -> **웹뷰 **(UI가 공백/frozen인 경우).
+- macOS만: `OpenCode` 메뉴 -> **웹뷰 **(UI가 공백/frozen인 경우).
 
 ---
 
@@ -59,15 +59,15 @@ opencode 데스크톱은 배경에서 로컬 opencode 서버 (`opencode-cli` sid
 
 글로벌 설정 파일을 열고 `plugin` 키를 찾습니다.
 
--**macOS/리눅스**: `~/.config/opencode/bolt.jsonc` (또는 `~/.config/opencode/bolt.json`) -**macOS/Linux** (외부 설치): `~/.local/share/opencode/bolt.jsonc`
+-**macOS/리눅스**: `~/.config/opencode/opencode.jsonc` (또는 `~/.config/opencode/opencode.json`) -**macOS/Linux** (외부 설치): `~/.local/share/opencode/opencode.jsonc`
 
-- **Windows**: 압박 `WIN+R`와 풀 `%USERPROFILE%\.config\opencode\bolt.jsonc`
+- **Windows**: 압박 `WIN+R`와 풀 `%USERPROFILE%\.config\opencode\opencode.jsonc`
 
 구성 된 플러그인이있는 경우, 일시적으로 키를 제거하거나 빈 배열로 설정하여 비활성화하십시오.
 
 ```jsonc
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
@@ -79,7 +79,7 @@ opencode는 디스크에서 로컬 플러그인을로드 할 수 있습니다. T
 - **글로벌 플러그인** -**macOS/리눅스**: `~/.config/opencode/plugins/`
 - **Windows**: 압박 `WIN+R`와 풀 `%USERPROFILE%\.config\opencode\plugins`
 - **프로젝트 플러그인** (프로젝트 설정만 사용)
-- `<your-project>/.bolt/plugins/`
+- `<your-project>/.opencode/plugins/`
 
 앱이 다시 일하는 경우, 재 활성화 플러그인은 한 번에 문제가 발생할 수 있습니다.
 
@@ -113,13 +113,13 @@ Home 화면에서 Server Picker를 열려면 서버 이름(상태 점)을 클릭
 
 #### 설정에서 server.port/server.hostname 제거
 
-`bolt.json(c)`가 `server` 섹션을 포함하면 일시적으로 제거하고 데스크톱 앱을 다시 시작합니다.
+`opencode.json(c)`가 `server` 섹션을 포함하면 일시적으로 제거하고 데스크톱 앱을 다시 시작합니다.
 
 ### 환경 변수 확인
 
-`BOLT_PORT`가 있는 경우, 데스크탑 앱은 로컬 서버의 포트를 사용하려고 합니다.
+`OPENCODE_PORT`가 있는 경우, 데스크탑 앱은 로컬 서버의 포트를 사용하려고 합니다.
 
-- `BOLT_PORT` (또는 무료 포트를 선택) 및 재시작.
+- `OPENCODE_PORT` (또는 무료 포트를 선택) 및 재시작.
 
 ---
 
@@ -160,8 +160,8 @@ opencode 데스크톱은 시스템 알림을 보여줍니다 :
 1. Quit opencode 데스크탑.
 2. 이 파일을 찾아 삭제 (opencode 데스크톱 앱 데이터 디렉토리에서 라이브):
 
-- `bolt.settings.dat` (데스크톱 기본 서버 URL)
-- `bolt.global.dat` 및 `bolt.workspace.*.dat` (최근 서버/프로젝트와 같은 UI 국가)
+- `opencode.settings.dat` (데스크톱 기본 서버 URL)
+- `opencode.global.dat` 및 `opencode.workspace.*.dat` (최근 서버/프로젝트와 같은 UI 국가)
 
 빠른 디렉토리를 찾을 수:
 
@@ -180,7 +180,7 @@ opencode와 문제가 발생하면:
 
 버그 또는 요청 기능을보고하는 가장 좋은 방법은 GitHub 저장소를 통해 다음과 같습니다.
 
-[**https://github.com/Bolt-builder/bolt-cli/issues**](https://github.com/Bolt-builder/bolt-cli/issues)
+[**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
 새로운 문제를 만들기 전에, 당신의 문제가 이미보고 된 경우 기존 문제를 검색.
 
@@ -188,7 +188,7 @@ opencode와 문제가 발생하면:
 
 실시간 도움말 및 커뮤니티 토론을 위해 Discord 서버에 가입하십시오.
 
-[**bolt.ai/discord**](https://bolt.ai/discord)
+[**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 

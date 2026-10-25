@@ -16,7 +16,7 @@
 - Do not preserve `V2` as the permanent name for the replacement architecture. Remove `V2` from current namespaces, brands, and identifiers as the contracts are normalized.
 - Retained V1 contracts live under `src/v1/`. New/current code must not depend on that subtree.
 - V1 coexistence is temporary. Keep compatibility entrypoints only where migration requires them, and delete the V1 subtree when the legacy runtime is retired.
-- `@bolt-ai/protocol` and `@bolt-ai/sdk-next` are current `/api/...` surfaces.
+- `@bolt-ai/protocol` and `@bolt-ai/sdk-v2` are current `/api/...` surfaces.
 
 ## Events
 

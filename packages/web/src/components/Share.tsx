@@ -5,24 +5,20 @@ import { IconArrowDown } from "./icons"
 import { IconOpencode } from "./icons/custom"
 import { ShareI18nProvider, formatCurrency, formatNumber, normalizeLocale } from "./share/common"
 import styles from "./share.module.css"
-import type { MessageV2 } from "bolt/session/message-v2"
-import type { Message } from "bolt/session/message"
-import type { Session } from "bolt/session/index"
+import type { MessageV2 } from "opencode/session/message-v2"
+import type { Message } from "opencode/session/message"
+import type { Session } from "opencode/session/index"
 import { Part, ProviderIcon } from "./share/part"
 
 type MessageWithParts = MessageV2.Info & { parts: MessageV2.Part[] }
 
 type Status = "disconnected" | "connecting" | "connected" | "error" | "reconnecting"
 
-function scrollBehavior(): ScrollBehavior {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
-}
-
 function scrollToAnchor(id: string) {
   const el = document.getElementById(id)
   if (!el) return
 
-  el.scrollIntoView({ behavior: scrollBehavior() })
+  el.scrollIntoView({ behavior: "smooth" })
 }
 
 function getStatusText(status: [Status, string?], messages: Record<string, string>): string {
@@ -197,7 +193,7 @@ export default function Share(props: {
       if (scrollTimeout) {
         clearTimeout(scrollTimeout)
       }
-      // Hide button after 1.5 seconds of no scrolling (unless hovered)
+      // Hide button after 3 seconds of no scrolling (unless hovered)
       scrollTimeout = window.setTimeout(() => {
         if (!isButtonHovered()) {
           setShowScrollButton(false)
@@ -309,8 +305,8 @@ export default function Share(props: {
             <h1 data-component="header-title">{store.info?.title}</h1>
             <div data-component="header-details">
               <ul data-component="header-stats">
-                <li title={props.messages.bolt_version} data-slot="item">
-                  <div data-slot="icon" title={props.messages.bolt_name}>
+                <li title={props.messages.opencode_version} data-slot="item">
+                  <div data-slot="icon" title={props.messages.opencode_name}>
                     <IconOpencode width={16} height={16} />
                   </div>
                   <Show when={store.info?.version} fallback="v0.0.1">
@@ -397,9 +393,7 @@ export default function Share(props: {
                     <span data-status={connectionStatus()[0]}></span>
                   </div>
                   <div data-section="content">
-                    <p data-section="copy" aria-live="polite">
-                      {getStatusText(connectionStatus(), props.messages)}
-                    </p>
+                    <p data-section="copy">{getStatusText(connectionStatus(), props.messages)}</p>
                     <ul data-section="stats">
                       <li>
                         <span data-element-label>{props.messages.cost}</span>
@@ -444,7 +438,7 @@ export default function Share(props: {
             <div style={{ margin: "2rem 0" }}>
               <div
                 style={{
-                  border: "1px solid var(--sl-color-divider)",
+                  border: "1px solid #ccc",
                   padding: "1rem",
                   "overflow-y": "auto",
                 }}
@@ -457,7 +451,7 @@ export default function Share(props: {
                           style={{
                             padding: "0.75rem",
                             margin: "0.75rem 0",
-                            border: "1px solid var(--sl-color-divider)",
+                            "box-shadow": "0 1px 3px rgba(0,0,0,0.1)",
                           }}
                         >
                           <div>
@@ -477,7 +471,7 @@ export default function Share(props: {
             <button
               type="button"
               class={styles["scroll-button"]}
-              onClick={() => document.body.scrollIntoView({ behavior: scrollBehavior(), block: "end" })}
+              onClick={() => document.body.scrollIntoView({ behavior: "smooth", block: "end" })}
               onMouseEnter={() => {
                 setIsButtonHovered(true)
                 if (scrollTimeout) {

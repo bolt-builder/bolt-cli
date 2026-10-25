@@ -5,26 +5,42 @@ export * as SkillPlugin from "./skill.js"
 import { define, type Context } from "@bolt-ai/plugin/effect/plugin"
 import { Document } from "@bolt-ai/schema/config"
 import { Effect } from "effect"
-import { AbsolutePath } from "../schema"
-import { SkillV2 } from "../skill"
-import boltConfigContent from "./skill/bolt-config.md" with { type: "text" }
+import { AbsolutePath } from "../schema.js"
+import { Skill } from "../skill.js"
+import { Config } from "../config.js"
+import os from "os"
+import opencodeContent from "./skill/opencode.md" with { type: "text" }
+import reportContent from "./skill/report.md" with { type: "text" }
 
-export const BoltConfigContent = boltConfigContent
+export const OpencodeContent = opencodeContent
+export const ReportContent = reportContent
+
+export const OpencodeDescription =
+  "Use this skill for any question about Bolt itself, including how Bolt works, using or configuring it, migrating from V1 to V2, troubleshooting it, developing plugins or integrations, using the Bolt SDK, clients, server, or API, and contributing to the Bolt codebase. Also use it for Bolt agents, commands, skills, tools, permissions, MCP servers, providers, models, themes, keybinds, formatters, the CLI, TUI, desktop app, and web app."
+const REPORT_DESCRIPTION =
+  "Use when the user wants to report an opencode issue or bug. Collect standard diagnostics, add user-specific reproduction context, and publish the issue with GitHub CLI."
 
 export const Plugin = define({
   id: "opencode.skill",
   effect: Effect.fn(function* (ctx) {
-    yield* ctx.skill.transform((draft) => {
-      draft.source(
-        SkillV2.EmbeddedSource.make({
-          type: "embedded",
-          skill: SkillV2.Info.make({
-            name: "bolt-config",
-            description:
-              "Use ONLY when the user is editing or creating bolt's own configuration: bolt.json, bolt.jsonc, legacy opencode.json(c), files under .opencode/ or .bolt/, or files under ~/.config/bolt/. Also use when creating or fixing bolt agents, subagents, commands, skills, plugins, MCP servers, or permission rules. Do not use for the user's own application code, or for any project that is not configuring bolt itself.",
-            location: AbsolutePath.make("/builtin/bolt-config.md"),
-            content: BoltConfigContent,
-          }),
+    const reportContent = yield* reportContentWithDiagnostics(ctx.app)
+    yield* ctx.skill.transform((editor) => {
+      editor.add(
+        Skill.Info.make({
+          id: Skill.ID.make("opencode"),
+          name: Skill.Name.make("Bolt"),
+          description: OpencodeDescription,
+          path: AbsolutePath.make("/builtin/opencode.md"),
+          content: OpencodeContent,
+        }),
+      )
+      editor.add(
+        Skill.Info.make({
+          id: Skill.ID.make("report"),
+          name: Skill.Name.make("Report"),
+          description: REPORT_DESCRIPTION,
+          path: AbsolutePath.make("/builtin/report.md"),
+          content: reportContent,
         }),
       )
     })

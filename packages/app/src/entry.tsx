@@ -13,9 +13,7 @@ import en from "@/runtime/i18n/en"
 import zh from "@/runtime/i18n/zh"
 import { authFromToken } from "@/runtime/server/api"
 import pkg from "../package.json"
-import { ServerConnection } from "./context/server"
-
-const DEFAULT_SERVER_URL_KEY = "bolt.settings.dat:defaultServerUrl"
+import { ServerConnection } from "@/runtime/server/registry"
 
 const getLocale = () => {
   if (typeof navigator === "undefined") return "en" as const
@@ -37,84 +35,10 @@ const getRootNotFoundError = () => {
   return locale === "zh" ? (zh[key] ?? en[key]) : en[key]
 }
 
-const getStorage = (key: string) => {
-  if (typeof localStorage === "undefined") return null
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-const setStorage = (key: string, value: string | null) => {
-  if (typeof localStorage === "undefined") return
-  try {
-    if (value !== null) {
-      localStorage.setItem(key, value)
-      return
-    }
-    localStorage.removeItem(key)
-  } catch {
-    return
-  }
-}
-
-const readDefaultServerUrl = () => getStorage(DEFAULT_SERVER_URL_KEY)
-const writeDefaultServerUrl = (url: string | null) => setStorage(DEFAULT_SERVER_URL_KEY, url)
-
-const notify: Platform["notify"] = async (title, description, onClick) => {
-  if (!("Notification" in window)) return
-
-  const permission =
-    Notification.permission === "default"
-      ? await Notification.requestPermission().catch(() => "denied")
-      : Notification.permission
-
-  if (permission !== "granted") return
-
-  const inView = document.visibilityState === "visible" && document.hasFocus()
-  if (inView) return
-
-  const notification = new Notification(title, {
-    body: description ?? "",
-    icon: "https://bolt.ai/favicon-96x96-v3.png",
-  })
-
-  notification.onclick = () => {
-    window.focus()
-    onClick?.()
-    notification.close()
-  }
-}
-
-const openExternal: Platform["openExternal"] = (value) => {
-  if (!URL.canParse(value)) return
-  const url = new URL(value)
-  if (url.protocol !== "http:" && url.protocol !== "https:" && url.protocol !== "mailto:") return
-  window.open(url.href, "_blank", "noopener,noreferrer")
-}
-
-const restart: Platform["restart"] = async () => {
-  window.location.reload()
-}
-
 const root = document.getElementById("root")
 
 if (!(root instanceof HTMLElement) && import.meta.env.DEV) {
   throw new Error(getRootNotFoundError())
-}
-
-const getCurrentUrl = () => {
-  if (location.hostname.includes("bolt.ai")) return "http://localhost:4096"
-  if (import.meta.env.DEV)
-    return `http://${import.meta.env.VITE_BOLT_SERVER_HOST ?? "localhost"}:${import.meta.env.VITE_BOLT_SERVER_PORT ?? "4096"}`
-  return location.origin
-}
-
-const getDefaultUrl = () => {
-  const lsDefault = readDefaultServerUrl()
-  if (lsDefault) return lsDefault
-  return getCurrentUrl()
 }
 
 const clearAuthToken = () => {
@@ -143,7 +67,8 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     },
     integrations: (integrations) => {
       return integrations.filter(
-        (i) => i.name !== "Breadcrumbs" && !(import.meta.env.BOLT_CHANNEL === "prod" && i.name === "GlobalHandlers"),
+        (i) =>
+          i.name !== "Breadcrumbs" && !(import.meta.env.OPENCODE_CHANNEL === "prod" && i.name === "GlobalHandlers"),
       )
     },
   })

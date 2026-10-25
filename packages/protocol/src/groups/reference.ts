@@ -1,8 +1,23 @@
 import { Location } from "@bolt-ai/schema/location"
 import { Reference } from "@bolt-ai/schema/reference"
-import { Schema } from "effect"
-import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/unstable/httpapi"
-import { LocationQuery, locationQueryOpenApi } from "./location"
+import { Schema, Struct } from "effect"
+import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
+import { LocationQuery, locationQueryOpenApi } from "./location.js"
+
+const PublicLocalSource = Schema.Struct(Struct.omit(Reference.LocalSource.fields, ["description", "hidden"])).annotate({
+  identifier: "Reference.LocalSource",
+})
+const PublicGitSource = Schema.Struct(Struct.omit(Reference.GitSource.fields, ["description", "hidden"])).annotate({
+  identifier: "Reference.GitSource",
+})
+const PublicSource = Schema.Union([PublicLocalSource, PublicGitSource])
+  .pipe(Schema.toTaggedUnion("type"))
+  .annotate({ identifier: "Reference.Source" })
+
+const PublicInfo = Schema.Struct({
+  ...Struct.omit(Reference.Info.fields, ["source"]),
+  source: PublicSource,
+}).annotate({ identifier: "Reference.Info" })
 
 export const ReferenceGroup = HttpApiGroup.make("server.reference")
   .add(

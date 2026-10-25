@@ -3,13 +3,13 @@ title: النماذج
 description: تهيئة مزوّد LLM والنموذج.
 ---
 
-يستخدم Bolt كلاً من [AI SDK](https://ai-sdk.dev/) و[Models.dev](https://models.dev) لدعم **أكثر من 75 مزوّداً لنماذج LLM**، كما يدعم تشغيل النماذج محلياً.
+يستخدم OpenCode كلاً من [AI SDK](https://ai-sdk.dev/) و[Models.dev](https://models.dev) لدعم **أكثر من 75 مزوّداً لنماذج LLM**، كما يدعم تشغيل النماذج محلياً.
 
 ---
 
 ## المزوّدون
 
-أكثر المزوّدين شيوعاً مُحمَّلون مسبقاً افتراضياً. إذا أضفت بيانات اعتماد أحد المزوّدين عبر الأمر `/connect` فستكون متاحة عند تشغيل Bolt.
+أكثر المزوّدين شيوعاً مُحمَّلون مسبقاً افتراضياً. إذا أضفت بيانات اعتماد أحد المزوّدين عبر الأمر `/connect` فستكون متاحة عند تشغيل OpenCode.
 
 تعرّف على المزيد حول [المزوّدين](/docs/providers).
 
@@ -35,7 +35,7 @@ description: تهيئة مزوّد LLM والنموذج.
 
 لكن القليل منها فقط يكون جيداً في كلٍ من توليد الشيفرة واستدعاء الأدوات.
 
-فيما يلي عدة نماذج تعمل جيداً مع Bolt، دون ترتيب معيّن. (هذه ليست قائمة شاملة وقد لا تكون محدَّثة دائماً):
+فيما يلي عدة نماذج تعمل جيداً مع OpenCode، دون ترتيب معيّن. (هذه ليست قائمة شاملة وقد لا تكون محدَّثة دائماً):
 
 - GPT 5.2
 - GPT 5.1 Codex
@@ -48,16 +48,16 @@ description: تهيئة مزوّد LLM والنموذج.
 
 ## تعيين الافتراضي
 
-لتعيين أحد هذه النماذج كنموذج افتراضي، يمكنك ضبط المفتاح `model` في ملف إعدادات Bolt.
+لتعيين أحد هذه النماذج كنموذج افتراضي، يمكنك ضبط المفتاح `model` في ملف إعدادات OpenCode.
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-المعرّف الكامل هنا يكون بالشكل `provider_id/model_id`. على سبيل المثال، إذا كنت تستخدم [Bolt Zen](/docs/zen) فستستخدم `opencode/gpt-5.1-codex` لنموذج GPT 5.1 Codex.
+المعرّف الكامل هنا يكون بالشكل `provider_id/model_id`. على سبيل المثال، إذا كنت تستخدم [OpenCode Zen](https://opencode.ai/v2/docs/console/) فستستخدم `opencode/gpt-6.1-sol` لنموذج GPT-6.1 Sol.
 
 إذا كنت قد هيّأت [مزوّداً مخصّصاً](/docs/providers#custom)، فإن `provider_id` هو المفتاح الموجود ضمن قسم `provider` في إعداداتك، و`model_id` هو المفتاح الموجود ضمن `provider.models`.
 
@@ -67,9 +67,9 @@ description: تهيئة مزوّد LLM والنموذج.
 
 يمكنك ضبط خيارات النموذج على مستوى عام عبر ملف الإعدادات.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -106,11 +106,11 @@ description: تهيئة مزوّد LLM والنموذج.
 
 كما يمكنك تعريف متغيّرات مخصّصة تُوسّع المتغيّرات المدمجة. تتيح لك المتغيّرات ضبط إعدادات مختلفة للنموذج نفسه دون إنشاء إدخالات مكرّرة:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -136,11 +136,11 @@ description: تهيئة مزوّد LLM والنموذج.
 
 ## المتغيّرات
 
-تدعم العديد من النماذج عدة متغيّرات بإعدادات مختلفة. يأتي Bolt مع متغيّرات افتراضية مدمجة للمزوّدين الشائعين.
+تدعم العديد من النماذج عدة متغيّرات بإعدادات مختلفة. يأتي OpenCode مع متغيّرات افتراضية مدمجة للمزوّدين الشائعين.
 
 ### المتغيّرات المدمجة
 
-يأتي Bolt مع متغيّرات افتراضية لعدد كبير من المزوّدين:
+يأتي OpenCode مع متغيّرات افتراضية لعدد كبير من المزوّدين:
 
 **Anthropic**:
 
@@ -171,9 +171,9 @@ description: تهيئة مزوّد LLM والنموذج.
 
 يمكنك تجاوز المتغيّرات الموجودة أو إضافة متغيّراتك الخاصة:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -202,16 +202,16 @@ description: تهيئة مزوّد LLM والنموذج.
 
 ## تحميل النماذج
 
-عند بدء تشغيل Bolt، يتحقق من النماذج وفق ترتيب الأولوية التالي:
+عند بدء تشغيل OpenCode، يتحقق من النماذج وفق ترتيب الأولوية التالي:
 
 1. خيار CLI `--model` أو `-m`. الصيغة هي نفسها الموجودة في ملف الإعدادات: `provider_id/model_id`.
 
-2. قائمة النماذج في إعدادات Bolt.
+2. قائمة النماذج في إعدادات OpenCode.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

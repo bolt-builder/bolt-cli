@@ -1,6 +1,6 @@
 ---
 title: Dostawcy
-description: Korzystanie z dowolnego dostawcy LLM w bolt.
+description: Korzystanie z dowolnego dostawcy LLM w opencode.
 ---
 
 import config from "../../../../config.mjs"
@@ -11,7 +11,7 @@ opencode używa [AI SDK](https://ai-sdk.dev/) i [Models.dev](https://models.dev)
 Aby dodać dostawcę należy:
 
 1. Dodaj klucze API dla dostawcy za pomocą komendy `/connect`.
-2. Skonfiguruj dostawcę w konfiguracji bolt.
+2. Skonfiguruj dostawcę w konfiguracji opencode.
 
 ---
 
@@ -33,9 +33,9 @@ config.
 
 Możesz dostosować podstawowy adres URL dla dowolnego dostawcy, ustawiając opcję `baseURL`. Jest to przydatne podczas korzystania z usług proxy lub niestandardowych punktów końcowych.
 
-```json title="bolt.json" {6}
+```json title="opencode.json" {6}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "anthropic": {
       "options": {
@@ -48,16 +48,16 @@ Możesz dostosować podstawowy adres URL dla dowolnego dostawcy, ustawiając opc
 
 ---
 
-## Bolt Zen
+## OpenCode Zen
 
-Bolt Zen to lista modeli dostarczonych przez zespół bolt, które zostały
-przetestowane i zweryfikowane, aby dobrze współpracować z bolt. [Dowiedz się więcej](/docs/zen).
+OpenCode Zen to lista modeli dostarczonych przez zespół opencode, które zostały
+przetestowane i zweryfikowane, aby dobrze współpracować z opencode. [Dowiedz się więcej](https://opencode.ai/v2/docs/console/).
 
 :::tip
-Jeśli jesteś nowy, zalecamy rozpoczęcie od Bolt Zen.
+Jeśli jesteś nowy, zalecamy rozpoczęcie od OpenCode Zen.
 :::
 
-1. Uruchom polecenie `/connect` w TUI, wybierz `Bolt Zen` i przejdź do [bolt.ai/auth](https://bolt.ai/zen).
+1. Uruchom polecenie `/connect` w TUI, wybierz `OpenCode Zen` i przejdź do [opencode.ai/auth](https://opencode.ai/zen).
 
    ```txt
    /connect
@@ -84,11 +84,11 @@ Działa jak każdy inny dostawca w opencode i jest całkowicie opcjonalny w uży
 
 ---
 
-## Bolt Go
+## OpenCode Go
 
-Bolt Go to tani plan subskrypcji, który zapewnia niezawodny dostęp do popularnych modeli open coding dostarczanych przez zespół bolt, które zostały przetestowane i zweryfikowane pod kątem dobrej współpracy z bolt.
+OpenCode Go to tani plan subskrypcji, który zapewnia niezawodny dostęp do popularnych modeli open coding dostarczanych przez zespół opencode, które zostały przetestowane i zweryfikowane pod kątem dobrej współpracy z opencode.
 
-1. Uruchom polecenie `/connect` w TUI, wybierz `Bolt Go` i przejdź do [bolt.ai/auth](https://bolt.ai/zen).
+1. Uruchom polecenie `/connect` w TUI, wybierz `OpenCode Go` i przejdź do [opencode.ai/auth](https://opencode.ai/zen).
 
    ```txt
    /connect
@@ -190,11 +190,11 @@ Aby używać Amazon Bedrock z opencode:
 
    #### Plik konfiguracyjny (zalecane)
 
-   W przypadku konfiguracji specyficznej dla projektu lub trwałej użyj `bolt.json`:
+   W przypadku konfiguracji specyficznej dla projektu lub trwałej użyj `opencode.json`:
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -219,9 +219,9 @@ Aby używać Amazon Bedrock z opencode:
 
    Jeśli używasz punktów końcowych VPC dla Bedrock:
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "amazon-bedrock": {
          "options": {
@@ -263,9 +263,9 @@ Aby używać Amazon Bedrock z opencode:
 :::note
 W przypadku niestandardowych profili wnioskowania użyj nazwy modelu i dostawcy w kluczu i ustaw właściwość `id` na wartość arn. Zapewnia to prawidłowe buforowanie:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "amazon-bedrock": {
       // ...
@@ -325,9 +325,9 @@ Lub jeśli masz już klucz API, możesz wybrać **Wprowadź klucz API ręcznie**
 
 Możesz skonfigurować opencode do korzystania z modeli lokalnych przez [Atomic Chat](https://atomic.chat) — aplikację desktopową uruchamiającą lokalne LLM-y za serwerem API zgodnym z OpenAI (domyślny endpoint `http://127.0.0.1:1337/v1`).
 
-```json title="bolt.json" "atomic-chat" {5, 6, 8, 10-14}
+```json title="opencode.json" "atomic-chat" {5, 6, 8, 10-14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "atomic-chat": {
       "npm": "@ai-sdk/openai-compatible",
@@ -551,11 +551,11 @@ Cloudflare AI Gateway umożliwia dostęp do modeli z OpenAI, Anthropic, Workers 
    /models
    ```
 
-   Możesz także dodawać modele za pomocą konfiguracji bolt.
+   Możesz także dodawać modele za pomocą konfiguracji opencode.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "cloudflare-ai-gateway": {
          "models": {
@@ -731,7 +731,7 @@ GitLab Duo zapewnia czat agentowy oparty na sztucznej inteligencji z natywnymi m
    #### Użycie osobistego tokenu dostępu
    1. Przejdź do [Ustawienia użytkownika GitLab > Tokeny dostępu](https://gitlab.com/-/user_settings/personal_access_tokens)
    2. Click **Add new token**
-   3. Name: `Bolt`, Scopes: `api`
+   3. Name: `OpenCode`, Scopes: `api`
    4. Skopiuj token (zaczyna się od `glpat-`)
    5. Wpisz go w terminalu
 
@@ -757,13 +757,12 @@ to store token in opencode auth storage.
 opencode używa małego modelu do niektórych zadań AI, takich jak generowanie tytułu sesji.
 Domyślnie jest skonfigurowany do używania gpt-5-nano, hostowanego przez Zen. Aby zablokować opencode
 aby używać tylko własnej instancji hostowanej przez GitLab, dodaj następujące elementy do pliku
-`bolt.json` plik. Zalecane jest również wyłączenie udostępniania sesji.
+`opencode.json` plik.
 
 ```json
 {
-  "$schema": "https://bolt.ai/config.json",
-  "small_model": "gitlab/duo-chat-haiku-4-5",
-  "share": "disabled"
+  "$schema": "https://opencode.ai/config.json",
+  "small_model": "gitlab/duo-chat-haiku-4-5"
 }
 ```
 
@@ -819,11 +818,11 @@ Więcej informacji znajdziesz na stronie [opencode-gitlab-auth](https://www.npmj
 
 ##### Konfiguracja
 
-Customize through `bolt.json`:
+Customize through `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "gitlab": {
       "options": {
@@ -838,10 +837,10 @@ Customize through `bolt.json`:
 
 To access GitLab tools (merge requests, issues, pipelines, CI/CD, etc.):
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
-  "plugin": ["bolt-gitlab-plugin"]
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-gitlab-plugin"]
 }
 ```
 
@@ -903,7 +902,7 @@ Aby używać Google Vertex AI z opencode:
      - `GOOGLE_APPLICATION_CREDENTIALS`: Ścieżka do pliku klucza JSON konta usługi
      - Uwierzytelnij się za pomocą interfejsu CLI gcloud: `gcloud auth application-default login`
 
-   Ustaw je podczas uruchamiania bolt.
+   Ustaw je podczas uruchamiania opencode.
 
    ```bash
    GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json GOOGLE_CLOUD_PROJECT=your-project-id opencode
@@ -1016,13 +1015,13 @@ Więcej dostawców i zaawansowanych funkcji, takich jak buforowanie i ograniczan
 
 #### Opcjonalna konfiguracja
 
-Jeśli zobaczysz funkcję lub model firmy Helicone, która nie jest konfigurowana automatycznie za pomocą bolt, zawsze możesz ją skonfigurować samodzielnie.
+Jeśli zobaczysz funkcję lub model firmy Helicone, która nie jest konfigurowana automatycznie za pomocą opencode, zawsze możesz ją skonfigurować samodzielnie.
 
 Oto [Katalog modeli Helicone](https://helicone.ai/models), będziesz go potrzebować, aby pobrać identyfikatory modeli, które chcesz dodać.
 
-```jsonc title="~/.config/opencode/bolt.jsonc"
+```jsonc title="~/.config/opencode/opencode.jsonc"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1048,9 +1047,9 @@ Oto [Katalog modeli Helicone](https://helicone.ai/models), będziesz go potrzebo
 
 Helicone obsługuje niestandardowe nagłówki dla funkcji takich jak buforowanie, śledzenie użytkowników i zarządzanie sesjami. Dodaj je do konfiguracji dostawcy za pomocą `options.headers`:
 
-```jsonc title="~/.config/opencode/bolt.jsonc"
+```jsonc title="~/.config/opencode/opencode.jsonc"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "helicone": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1059,7 +1058,7 @@ Helicone obsługuje niestandardowe nagłówki dla funkcji takich jak buforowanie
         "baseURL": "https://ai-gateway.helicone.ai",
         "headers": {
           "Helicone-Cache-Enabled": "true",
-          "Helicone-User-Id": "bolt",
+          "Helicone-User-Id": "opencode",
         },
       },
     },
@@ -1077,9 +1076,9 @@ npm install -g opencode-helicone-session
 
 Dodaj go do swojej konfiguracji.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "plugin": ["bolt-helicone-session"]
+  "plugin": ["opencode-helicone-session"]
 }
 ```
 
@@ -1102,9 +1101,9 @@ Zobacz [Katalog nagłówków Helicone](https://docs.helicone.ai/helicone-headers
 
 Możesz skonfigurować opencode tak, aby korzystał z modeli lokalnych, za pomocą narzędzia llama-server [llama.cpp](https://github.com/ggml-org/llama.cpp)
 
-```json title="bolt.json" "llama.cpp" {5, 6, 8, 10-15}
+```json title="opencode.json" "llama.cpp" {5, 6, 8, 10-15}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "llama.cpp": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1169,9 +1168,9 @@ IO.NET oferuje 17 modeli zoptymalizowanych pod kątem różnych zastosowań:
 
 Możesz skonfigurować opencode tak, aby korzystał z modeli lokalnych poprzez LM Studio.
 
-```json title="bolt.json" "lmstudio" {5, 6, 8, 10-14}
+```json title="opencode.json" "lmstudio" {5, 6, 8, 10-14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "lmstudio": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1287,12 +1286,12 @@ Aby użyć Kimi K2 z Moonshot AI:
 Możesz skonfigurować opencode tak, aby korzystał z modeli lokalnych poprzez Ollamę.
 
 :::tip
-Ollama może automatycznie skonfigurować się pod kątem bolt. Aby uzyskać szczegółowe informacje, zobacz [dokumentację integracji Ollama](https://docs.ollama.com/integrations/opencode).
+Ollama może automatycznie skonfigurować się pod kątem opencode. Aby uzyskać szczegółowe informacje, zobacz [dokumentację integracji Ollama](https://docs.ollama.com/integrations/opencode).
 :::
 
-```json title="bolt.json" "ollama" {5, 6, 8, 10-14}
+```json title="opencode.json" "ollama" {5, 6, 8, 10-14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "ollama": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1332,7 +1331,7 @@ Aby korzystać z Ollama Cloud z opencode:
 
 2. Przejdź do **Ustawienia** > **Klucze** i kliknij **Dodaj klucz API**, aby wygenerować nowy klucz API.
 
-3. Skopiuj klucz API do użycia w bolt.
+3. Skopiuj klucz API do użycia w opencode.
 
 4. Uruchom polecenie `/connect` i wyszukaj **Ollama Cloud**.
 
@@ -1396,19 +1395,19 @@ Jeśli posiadasz już klucz API, możesz wybrać opcję **Wprowadź klucz API r�
 
 ---
 
-### Bolt Zen
+### OpenCode Zen
 
-Bolt Zen to lista przetestowanych i zweryfikowanych modeli udostępniona przez zespół bolt. [Dowiedz się więcej](/docs/zen).
+OpenCode Zen to lista przetestowanych i zweryfikowanych modeli udostępniona przez zespół opencode. [Dowiedz się więcej](https://opencode.ai/v2/docs/console/).
 
-1. Zaloguj się do **<a href={console}>Bolt Zen</a>** i kliknij **Utwórz klucz API**.
+1. Zaloguj się do **<a href={console}>OpenCode Zen</a>** i kliknij **Utwórz klucz API**.
 
-2. Uruchom polecenie `/connect` i wyszukaj **Bolt Zen**.
+2. Uruchom polecenie `/connect` i wyszukaj **OpenCode Zen**.
 
    ```txt
    /connect
    ```
 
-3. Wprowadź klucz API bolt.
+3. Wprowadź klucz API opencode.
 
    ```txt
    ┌ API key
@@ -1450,11 +1449,11 @@ Bolt Zen to lista przetestowanych i zweryfikowanych modeli udostępniona przez z
    /models
    ```
 
-   Możesz także dodać dodatkowe modele za pomocą konfiguracji bolt.
+   Możesz także dodać dodatkowe modele za pomocą konfiguracji opencode.
 
-   ```json title="bolt.json" {6}
+   ```json title="opencode.json" {6}
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1465,11 +1464,11 @@ Bolt Zen to lista przetestowanych i zweryfikowanych modeli udostępniona przez z
    }
    ```
 
-5. Możesz je także dostosować za pomocą konfiguracji bolt. Oto przykład określenia dostawcy
+5. Możesz je także dostosować za pomocą konfiguracji opencode. Oto przykład określenia dostawcy
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "openrouter": {
          "models": {
@@ -1714,11 +1713,11 @@ Vercel AI Gateway umożliwia dostęp do modeli z OpenAI, Anthropic, Google, xAI 
    /models
    ```
 
-Możesz także dostosować modele za pomocą konfiguracji bolt. Oto przykład określenia kolejności routingu dostawcy.
+Możesz także dostosować modele za pomocą konfiguracji opencode. Oto przykład określenia kolejności routingu dostawcy.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "vercel": {
       "models": {
@@ -1824,11 +1823,11 @@ Przydatne opcje routingu:
    /models
    ```
 
-   Możesz także dodać dodatkowe modele za pomocą konfiguracji bolt.
+   Możesz także dodać dodatkowe modele za pomocą konfiguracji opencode.
 
-   ```json title="bolt.json" {6}
+   ```json title="opencode.json" {6}
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "zenmux": {
          "models": {
@@ -1846,7 +1845,7 @@ Przydatne opcje routingu:
 Aby dodać dowolnego dostawcę **kompatybilnego z OpenAI**, którego nie ma na liście w poleceniu `/connect`:
 
 :::tip
-Możesz użyć dowolnego dostawcy kompatybilnego z OpenAI z bolt. Większość nowoczesnych dostawców sztucznej inteligencji oferuje interfejsy API kompatybilne z OpenAI.
+Możesz użyć dowolnego dostawcy kompatybilnego z OpenAI z opencode. Większość nowoczesnych dostawców sztucznej inteligencji oferuje interfejsy API kompatybilne z OpenAI.
 :::
 
 1. Uruchom polecenie `/connect` i przewiń w dół do **Inne**.
@@ -1885,18 +1884,18 @@ Możesz użyć dowolnego dostawcy kompatybilnego z OpenAI z bolt. Większość n
 
    ┌  Add credential
    │
-   ▲  This only stores a credential for myprovider - you will need to configure it in bolt.json, check the docs for examples.
+   ▲  This only stores a credential for myprovider - you will need to configure it in opencode.json, check the docs for examples.
    │
    ◇  Enter your API key
    │  sk-...
    └
    ```
 
-4. Utwórz lub zaktualizuj plik `bolt.json` w katalogu projektu:
+4. Utwórz lub zaktualizuj plik `opencode.json` w katalogu projektu:
 
-   ```json title="bolt.json" ""myprovider"" {5-15}
+   ```json title="opencode.json" ""myprovider"" {5-15}
    {
-     "$schema": "https://bolt.ai/config.json",
+     "$schema": "https://opencode.ai/config.json",
      "provider": {
        "myprovider": {
          "npm": "@ai-sdk/openai-compatible",
@@ -1932,9 +1931,9 @@ Możesz użyć dowolnego dostawcy kompatybilnego z OpenAI z bolt. Większość n
 
 Oto przykład ustawienia opcji `apiKey`, `headers` i modelu `limit`.
 
-```json title="bolt.json" {9,11,17-20}
+```json title="opencode.json" {9,11,17-20}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "myprovider": {
       "npm": "@ai-sdk/openai-compatible",
@@ -1981,6 +1980,6 @@ Jeśli masz problemy z konfiguracją dostawcy, sprawdź następujące elementy:
    Nie dotyczy to dostawców takich jak Amazon Bedrock, którzy w procesie uwierzytelniania opierają się na zmiennych środowiskowych.
 
 2. W przypadku dostawców niestandardowych sprawdź konfigurację opencode i:
-   - Upewnij się, że identyfikator dostawcy użyty w poleceniu `/connect` jest zgodny z identyfikatorem w konfiguracji bolt.
+   - Upewnij się, że identyfikator dostawcy użyty w poleceniu `/connect` jest zgodny z identyfikatorem w konfiguracji opencode.
    - Dla dostawcy używany jest właściwy pakiet npm. Na przykład użyj `@ai-sdk/cerebras` dla Cerebras. W przypadku wszystkich innych dostawców zgodnych z OpenAI użyj `@ai-sdk/openai-compatible`.
    - Sprawdź, czy w polu `options.baseURL` użyto prawidłowego punktu końcowego API.

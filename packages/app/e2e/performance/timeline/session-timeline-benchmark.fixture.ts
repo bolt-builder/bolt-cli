@@ -1,11 +1,13 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
+import { base64Encode } from "@bolt-ai/util/encode"
+import type { JsonValue, OpenCodeEvent, SessionMessageAssistant, SessionMessageInfo } from "@bolt-ai/client/promise"
 import type { Page } from "@playwright/test"
-import { mockBoltServer } from "../../utils/mock-server"
+import { mockOpenCodeServer } from "../../utils/mock-server"
 import { expectAppVisible, expectSessionTitle } from "../../utils/waits"
 import { expect } from "../benchmark"
 import { createTwoFilesPatch } from "diff"
 
-const directory = "C:/Bolt/TimelineStateRegression"
+const directory = "C:/OpenCode/TimelineStateRegression"
+
 const projectID = "proj_timeline_state_regression"
 
 /** The workspace a benchmark response names, in the shape the server's location-scoped routes return. */
@@ -22,7 +24,8 @@ const editPartID = "prt_0001_edit"
 export const textPartID = `${assistantMessageID}:text:0`
 
 const title = "Timeline collapse state regression"
-const model = { providerID: "bolt", modelID: "claude-opus-4-6", variant: "max" }
+
+const model = { providerID: "opencode", modelID: "claude-opus-4-6", variant: "max" }
 
 type EventPayload = OpenCodeEvent
 
@@ -82,7 +85,43 @@ export async function setupTimelineBenchmark(
   const currentUserMessage = options.turnDiffs
     ? { ...userMessage, metadata: { diffs: options.turnDiffs as JsonValue } }
     : userMessage
-  await mockBoltServer(page, {
+
+  const messages = [
+    ...Array.from({ length: options.historyTurns }, (_, index) => performanceTurn(index))
+      .flat()
+      .map((message) => {
+        if (options.historyShape !== "tool-heavy" || message.type !== "assistant") return message
+
+        return {
+          ...message,
+          content: [
+            ...Array.from({ length: 6 }, (_, index) =>
+              toolContent({
+                id: `${message.id}:read:${index}`,
+                type: "tool",
+                name: "read",
+                state: {
+                  status: "completed",
+                  input: { path: `src/session/module-${index}.ts` },
+                  content: [{ type: "text", text: historicalSource(index, false) }],
+                  metadata: {},
+                },
+                time: {
+                  created: message.time.created,
+                  ran: message.time.created,
+                  completed: message.time.created + 100,
+                },
+              }),
+            ),
+            ...message.content,
+          ],
+        }
+      }),
+    currentUserMessage,
+    assistantMessage,
+  ]
+
+  await mockOpenCodeServer(page, {
     directory,
     project: project(),
     provider: provider(),
@@ -511,12 +550,12 @@ function provider() {
   return {
     all: [
       {
-        id: "bolt",
-        name: "Bolt",
+        id: "opencode",
+        name: "OpenCode",
         models: { "claude-opus-4-6": { id: "claude-opus-4-6", name: "Claude Opus 4.6", limit: { context: 200_000 } } },
       },
     ],
-    connected: ["bolt"],
-    default: { providerID: "bolt", modelID: "claude-opus-4-6" },
+    connected: ["opencode"],
+    default: { providerID: "opencode", modelID: "claude-opus-4-6" },
   }
 }

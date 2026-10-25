@@ -18,13 +18,13 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 
 #### Seçenekler
 
-| Bayrak          | Açıklama                                       | Varsayılan   |
-| --------------- | ---------------------------------------------- | ------------ |
-| `--port`        | Dinlenecek bağlantı noktası                    | `4096`       |
-| `--hostname`    | Dinlenecek ana bilgisayar adı                  | `127.0.0.1`  |
-| `--mdns`        | mDNS keşfini etkinleştir                       | `false`      |
-| `--mdns-domain` | mDNS hizmeti için özel alan adı                | `bolt.local` |
-| `--cors`        | İzin verilecek ek tarayıcı kaynakları (origin) | `[]`         |
+| Bayrak          | Açıklama                                       | Varsayılan       |
+| --------------- | ---------------------------------------------- | ---------------- |
+| `--port`        | Dinlenecek bağlantı noktası                    | `4096`           |
+| `--hostname`    | Dinlenecek ana bilgisayar adı                  | `127.0.0.1`      |
+| `--mdns`        | mDNS keşfini etkinleştir                       | `false`          |
+| `--mdns-domain` | mDNS hizmeti için özel alan adı                | `opencode.local` |
+| `--cors`        | İzin verilecek ek tarayıcı kaynakları (origin) | `[]`             |
 
 `--cors` birden fazla kez geçilebilir:
 
@@ -36,10 +36,10 @@ opencode serve --cors http://localhost:5173 --cors https://app.example.com
 
 ### Kimlik Doğrulama
 
-Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `BOLT_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `opencode` değeridir; değiştirmek isterseniz `BOLT_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `opencode serve` hem de `opencode web` için geçerlidir.
+Sunucuyu HTTP temel kimlik doğrulama (basic auth) ile korumak için `OPENCODE_SERVER_PASSWORD` ayarlayın. Kullanıcı adı varsayılan olarak `opencode` değeridir; değiştirmek isterseniz `OPENCODE_SERVER_USERNAME` ayarlayabilirsiniz. Bu ayar hem `opencode serve` hem de `opencode web` için geçerlidir.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---

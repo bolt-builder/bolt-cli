@@ -1,35 +1,15 @@
-import type { TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
+import { Plugin } from "@bolt-ai/plugin/tui"
 import { createMemo, Match, Show, Switch } from "solid-js"
 import { useTerminalDimensions } from "@opentui/solid"
 import { usePlugin } from "../../plugin/context"
 import { Slot } from "../../plugin/render"
 
-const id = "internal:home-footer"
-
-function Directory(props: { api: TuiPluginApi }) {
-  const theme = () => props.api.theme.current
-  const destination = useHomeSessionDestination()
-  const paths = useTuiPaths()
-  const dir = createMemo(() => {
-    const selected = destination?.destination()
-    if (!selected || selected.type === "new") return
-    const out = abbreviateHome(selected.directory, paths.home)
-    const branch =
-      selected.directory === (props.api.state.path.directory || paths.cwd) ? props.api.state.vcs?.branch : undefined
-    if (branch) return out + ":" + branch
-    return out
-  })
-
-  return (
-    <Show when={dir()}>
-      {(value) => (
-        <text fg={theme().textMuted} wrapMode="none" flexShrink={1} truncate>
-          {value()}
-        </text>
-      )}
-    </Show>
-  )
+export function homeFooterVisibility(width: number) {
+  return {
+    mcpCommand: width >= 64,
+    pluginCommand: width >= 80,
+    version: width >= 64,
+  }
 }
 
 function Mcp(props: { context: Plugin.Context }) {
@@ -69,24 +49,15 @@ function Mcp(props: { context: Plugin.Context }) {
   )
 }
 
-function Lsp(props: { api: TuiPluginApi }) {
-  const theme = () => props.api.theme.current
-  const list = createMemo(() => props.api.state.lsp())
-
-  return (
-    <Show when={list().length > 0}>
-      <box flexShrink={0}>
-        <text fg={theme().text}>
-          <span style={{ fg: theme().success }}>• </span>
-          {list().length} LSP
-        </text>
-      </box>
-    </Show>
+function Plugins(props: { context: Plugin.Context }) {
+  const dimensions = useTerminalDimensions()
+  const visibility = createMemo(() => homeFooterVisibility(dimensions().width))
+  const plugins = usePlugin()
+  const failed = createMemo(
+    () =>
+      plugins.list().filter((item) => item.status === "failed").length +
+      plugins.server().filter((item) => item.state.status === "failed").length,
   )
-}
-
-function Version(props: { api: TuiPluginApi }) {
-  const theme = () => props.api.theme.current
 
   return (
     <Show when={failed()}>
@@ -108,22 +79,28 @@ function View(props: { context: Plugin.Context }) {
   const visibility = createMemo(() => homeFooterVisibility(dimensions().width))
 
   return (
-    <box
-      width="100%"
-      paddingTop={1}
-      paddingBottom={1}
-      paddingLeft={2}
-      paddingRight={2}
-      flexDirection="row"
-      flexShrink={0}
-      gap={2}
-    >
-      <Directory api={props.api} />
-      <Lsp api={props.api} />
-      <Mcp api={props.api} />
-      <box flexGrow={1} />
-      <Version api={props.api} />
-    </box>
+    <Show when={dimensions().height >= 14 && dimensions().width >= 44}>
+      <box
+        width="100%"
+        paddingTop={dimensions().height < 16 ? 0 : 1}
+        paddingBottom={dimensions().height < 16 ? 0 : 1}
+        paddingLeft={2}
+        paddingRight={2}
+        flexDirection="row"
+        flexShrink={0}
+        gap={2}
+      >
+        <Mcp context={props.context} />
+        <Plugins context={props.context} />
+        <Slot path="home.footer.status" />
+        <box flexGrow={1} />
+        <Show when={visibility().version}>
+          <box flexShrink={0}>
+            <text fg={props.context.theme.text.muted}>{props.context.app.version}</text>
+          </box>
+        </Show>
+      </box>
+    </Show>
   )
 }
 

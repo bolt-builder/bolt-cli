@@ -1,6 +1,6 @@
 import { BrowserWindow } from "electron"
 import type { DesktopMenuAction } from "@bolt-ai/app/desktop-menu"
-import { createMainWindow, updateTitlebar } from "./windows"
+import { setZoomFactor } from "../windows"
 
 export type DesktopMenuActionHandlers = Partial<{
   installCli: () => void

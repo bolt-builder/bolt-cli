@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import Notifications from "../../../../src/feature-plugins/system/notifications"
-import type { Event, PermissionRequest, QuestionRequest, Session } from "@bolt-ai/sdk/v2"
-import type { TuiAttentionNotifyInput } from "@bolt-ai/plugin/tui"
-import { createTuiPluginApi } from "../../../fixture/tui-plugin"
+import type { OpenCodeEvent, PermissionAsked } from "@bolt-ai/client"
+import type { AttentionNotifyOptions, Context, Route, ToastOptions } from "@bolt-ai/plugin/tui/context"
 
 type Session = { id: string; title: string; parentID?: string }
 

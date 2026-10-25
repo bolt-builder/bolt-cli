@@ -35,7 +35,7 @@ if (snapshotArg === "--snapshot=") {
 const ver = raw.replace(/^v/, "")
 const root = path.resolve(import.meta.dir, "..")
 const lockfile = path.join(root, "bun.lock")
-const skip = new Set([".git", ".bolt", ".turbo", "dist", "node_modules"])
+const skip = new Set([".git", ".opencode", ".turbo", "dist", "node_modules"])
 const keys = ["@opentui/core", "@opentui/keymap", "@opentui/solid"] as const
 
 const files = (await Array.fromAsync(new Bun.Glob("**/package.json").scan({ cwd: root }))).filter(
@@ -145,29 +145,6 @@ if (stale.length > 0) {
 }
 
 console.log("bun.lock opentui versions are consistent")
-
-async function fixKnownLockfileIssues() {
-  const txt = await Bun.file(lockfile).text()
-  const stale = findStaleLockfileEntriesInText(txt)
-  if (stale.length === 0) return []
-  if (stale.some((item) => !item.entry.startsWith("opentui-spinner/@opentui/"))) return []
-
-  const removed = txt
-    .split("\n")
-    .map((line) => line.match(/^    "(opentui-spinner\/@opentui\/[^\"]+)": /)?.[1])
-    .filter((item): item is string => item !== undefined)
-
-  if (removed.length === 0) return []
-
-  await Bun.write(
-    lockfile,
-    txt
-      .split("\n")
-      .filter((line) => !/^    "opentui-spinner\/@opentui\//.test(line))
-      .join("\n"),
-  )
-  return removed
-}
 
 async function findStaleLockfileEntries() {
   const txt = await Bun.file(lockfile).text()

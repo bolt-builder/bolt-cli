@@ -1,5 +1,108 @@
 import { expect, test } from "bun:test"
+import { GenerationOptions, LLMClient, LLMEvent, LanguageModel, ToolDefinition, type LLMRequest } from "@bolt-ai/ai/effect"
+import { OpenAIChat } from "@bolt-ai/ai/protocols"
+import { Database } from "@bolt-ai/core/database/database"
+import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
+import { llmClient } from "@bolt-ai/core/effect/app-node-platform"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { EventTable } from "@bolt-ai/core/event/sql"
 import { SessionCompaction } from "@bolt-ai/core/session/compaction"
+import type { SessionContext } from "@bolt-ai/core/session/context"
+import { SessionEvent } from "@bolt-ai/core/session/event"
+import { SessionMessage } from "@bolt-ai/core/session/message"
+import { SessionModelRequest } from "@bolt-ai/core/session/model-request"
+import { PluginHooks } from "@bolt-ai/core/plugin/hooks"
+import { SessionProjector } from "@bolt-ai/core/session/projector"
+import { SessionRunnerModel } from "@bolt-ai/core/session/runner/model"
+import { SessionMessageTable, SessionTable } from "@bolt-ai/core/session/sql"
+import { SessionStore } from "@bolt-ai/core/session/store"
+import { Session } from "@bolt-ai/core/session"
+import { Location } from "@bolt-ai/core/location"
+import { Project } from "@bolt-ai/core/project"
+import { ProjectTable } from "@bolt-ai/core/project/sql"
+import { App } from "@bolt-ai/core/app"
+import { Agent } from "@bolt-ai/core/agent"
+import { Model } from "@bolt-ai/core/model"
+import { Provider } from "@bolt-ai/core/provider"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { Money } from "@bolt-ai/schema/money"
+import { Skill } from "@bolt-ai/schema/skill"
+import { Shell } from "@bolt-ai/schema/shell"
+import { DateTime, Deferred, Effect, Fiber, Layer, Schema, Stream } from "effect"
+import { asc, eq } from "drizzle-orm"
+import { testEffect } from "./lib/effect"
+
+let requests: LLMRequest[] = []
+/** Runs before a request's response streams; tests hold it back to keep a background summary in flight. */
+let beforeResponse: Effect.Effect<void> = Effect.void
+const model = LanguageModel.make({
+  id: "summary-model",
+  provider: "test",
+  route: OpenAIChat.route,
+})
+const cost = [
+  {
+    input: Money.USDPerMillionTokens.make(1),
+    output: Money.USDPerMillionTokens.make(2),
+    cache: {
+      read: Money.USDPerMillionTokens.make(0.1),
+      write: Money.USDPerMillionTokens.make(0.5),
+    },
+  },
+]
+const client = Layer.mock(LLMClient.Service)({
+  stream: (request: LLMRequest) => {
+    requests.push(request)
+    return Stream.fromEffect(beforeResponse).pipe(
+      Stream.drain,
+      Stream.concat(
+        Stream.make(
+          LLMEvent.textDelta({ id: "summary", text: "## Objective\n- manual summary" }),
+          LLMEvent.stepFinish({
+            index: 0,
+            reason: { normalized: "stop" },
+            usage: {
+              inputTokens: 15,
+              outputTokens: 6,
+              nonCachedInputTokens: 10,
+              cacheReadInputTokens: 3,
+              cacheWriteInputTokens: 2,
+              reasoningTokens: 2,
+            },
+          }),
+          LLMEvent.finish({
+            reason: { normalized: "stop" },
+          }),
+        ),
+      ),
+    )
+  },
+  generate: () => Effect.die("unused"),
+})
+const resolved = SessionRunnerModel.resolved(model, {
+  capabilities: { tools: true, input: ["text", "image"], output: ["text"] },
+  cost,
+  limit: { context: 200_000, output: 32_000 },
+})
+const it = testEffect(
+  AppNodeBuilder.build(
+    LayerNode.group([
+      Database.node,
+      Bus.node,
+      SessionProjector.node,
+      SessionStore.node,
+      SessionCompaction.node,
+      SessionModelRequest.node,
+      PluginHooks.node,
+    ]),
+    [
+      Bus.node.replace(Bus.configured({ persist: true })),
+      llmClient.replace(client),
+      Location.node.replace(Location.boundNode({ directory: AbsolutePath.make("/project") })),
+    ],
+  ),
+)
 
 test("compaction prompt preserves detailed work state and relevant files", () => {
   const prompt = SessionCompaction.buildPrompt(false)

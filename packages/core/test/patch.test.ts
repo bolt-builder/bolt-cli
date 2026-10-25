@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { Patch } from "@bolt-ai/core/patch"
+import { Patch } from "@bolt-ai/util/patch"
+import { Result } from "effect"
+
+const parse = (input: string) => Result.getOrThrow(Patch.parse(input))
 
 describe("Patch", () => {
   test("parses add, update, and delete hunks", () => {

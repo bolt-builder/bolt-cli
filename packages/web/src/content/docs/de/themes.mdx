@@ -3,9 +3,9 @@ title: Themes
 description: Waehle ein eingebautes Theme oder erstelle eins.
 ---
 
-Mit Bolt kannst du ein eingebautes Theme waehlen, ein an dein Terminal angepasstes Theme nutzen oder ein eigenes Theme definieren.
+Mit OpenCode kannst du ein eingebautes Theme waehlen, ein an dein Terminal angepasstes Theme nutzen oder ein eigenes Theme definieren.
 
-Standardmaessig verwendet Bolt das `opencode`-Theme.
+Standardmaessig verwendet OpenCode das `opencode`-Theme.
 
 ---
 
@@ -24,7 +24,7 @@ Ohne truecolor werden Farben weniger exakt dargestellt oder auf eine 256-Farben-
 
 ## Eingebaute Themes
 
-Bolt liefert mehrere eingebaute Themes mit.
+OpenCode liefert mehrere eingebaute Themes mit.
 
 | Name                   | Description                                                                  |
 | ---------------------- | ---------------------------------------------------------------------------- |
@@ -55,7 +55,7 @@ Im Gegensatz zu Themes mit festen Farben gilt beim _system_-Theme:
 
 Das System-Theme ist ideal fuer Nutzer, die:
 
-- Bolt optisch ans Terminal anpassen wollen
+- OpenCode optisch ans Terminal anpassen wollen
 - eigene Terminal-Farbschemata nutzen
 - ein konsistentes Erscheinungsbild in Terminal-Apps bevorzugen
 
@@ -65,9 +65,9 @@ Das System-Theme ist ideal fuer Nutzer, die:
 
 Du kannst ein Theme ueber `/theme` auswaehlen oder direkt in der [Konfiguration](/docs/config) setzen.
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "theme": "tokyonight"
 }
 ```
@@ -76,7 +76,7 @@ Du kannst ein Theme ueber `/theme` auswaehlen oder direkt in der [Konfiguration]
 
 ## Eigene Themes
 
-Bolt unterstuetzt ein flexibles JSON-basiertes Theme-System.
+OpenCode unterstuetzt ein flexibles JSON-basiertes Theme-System.
 Damit lassen sich Themes einfach erstellen und anpassen.
 
 ---
@@ -87,8 +87,8 @@ Themes werden aus mehreren Verzeichnissen in folgender Reihenfolge geladen, wobe
 
 1. **Eingebaute Themes** - Diese sind im Binary eingebettet
 2. **Benutzer-Config-Verzeichnis** - Definiert in `~/.config/opencode/themes/*.json` oder `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **Projekt-Root-Verzeichnis** - Definiert in `<project-root>/.bolt/themes/*.json`
-4. **Aktuelles Arbeitsverzeichnis** - Definiert in `./.bolt/themes/*.json`
+3. **Projekt-Root-Verzeichnis** - Definiert in `<project-root>/.opencode/themes/*.json`
+4. **Aktuelles Arbeitsverzeichnis** - Definiert in `./.opencode/themes/*.json`
 
 Wenn mehrere Verzeichnisse ein Theme mit demselben Namen enthalten, wird das Theme aus dem Verzeichnis mit der hoeheren Prioritaet verwendet.
 
@@ -108,8 +108,8 @@ vim ~/.config/opencode/themes/my-theme.json
 Und fuer projektspezifische Themes:
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -147,7 +147,7 @@ Hier ist ein Beispiel fuer ein eigenes Theme:
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

@@ -3,7 +3,6 @@ import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
 import { createSignal, For, Show } from "solid-js"
 import { getScrollAcceleration } from "../util/scroll"
 import { useClipboard } from "../context/clipboard"
-import { InstallationVersion } from "@bolt-ai/core/installation/version"
 import { useExit } from "../context/exit"
 import { useTuiApp } from "../context/runtime"
 import { describeOS, describeTerminal } from "../util/system"
@@ -15,7 +14,7 @@ export function ErrorComponent(props: { error: Error; reset: () => void; mode?: 
   const app = useTuiApp()
   const [copyState, setCopyState] = createSignal<"idle" | "copied" | "failed">("idle")
 
-  // Safe fallback palette per mode (mirrors theme/assets/bolt.json) since the
+  // Safe fallback palette per mode (mirrors theme/assets/opencode.json) since the
   // theme context may be the thing that crashed.
   const isLight = props.mode === "light"
   const colors = isLight
@@ -118,7 +117,7 @@ export function ErrorComponent(props: { error: Error; reset: () => void; mode?: 
         {/* Headline */}
         <box flexDirection="column" alignItems="center" flexShrink={0}>
           <text attributes={TextAttributes.BOLD} fg={colors.text}>
-            Bolt ClI crashed
+            OpenCode crashed
           </text>
           <Show when={showSubtext()}>
             <text fg={colors.muted}>An unexpected error stopped the session.</text>
@@ -211,7 +210,7 @@ export function ErrorComponent(props: { error: Error; reset: () => void; mode?: 
                   ? "Clipboard write failed. Try again or report the crash manually."
                   : "Copy the report and open a GitHub issue to help us fix this."}
             </text>
-            <text fg={colors.muted}>bolt {InstallationVersion}</text>
+            <text fg={colors.muted}>OpenCode {app.version}</text>
           </box>
         </Show>
       </box>
@@ -223,9 +222,9 @@ function buildIssueURL(message: string, stack: string, version: string) {
   // Field keys match the ids in .github/ISSUE_TEMPLATE/bug-report.yml so the issue
   // form opens pre-filled. Populating os/terminal/reproduce keeps the report past
   // the contributing-guidelines compliance check, which pushes for system info.
-  const url = new URL("https://github.com/bolt-builder/bolt-cli/issues/new?template=bug-report.yml")
+  const url = new URL("https://github.com/anomalyco/opencode/issues/new?template=bug-report.yml")
   url.searchParams.set("title", `TUI crash: ${message}`)
-  url.searchParams.set("bolt-version", InstallationVersion)
+  url.searchParams.set("opencode-version", version)
   url.searchParams.set("os", describeOS())
   url.searchParams.set("terminal", describeTerminal())
   url.searchParams.set(
@@ -238,7 +237,7 @@ function buildIssueURL(message: string, stack: string, version: string) {
   // clipped trace is obvious. searchParams.set handles encoding without throwing,
   // so measuring url.toString() is both correct and safe on any input.
   const MAX_URL_LENGTH = 6000
-  const marker = "\n... (truncated)"
+  const marker = "\n… (truncated)"
   const head = `The Bolt TUI crashed with an unexpected error.\n\n**Error:** ${message}\n\n**Stack trace:**\n`
   const setBody = (body: string) => url.searchParams.set("description", head + "```\n" + body + "\n```")
 

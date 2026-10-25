@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import type { AgentListOutput, ModelDefaultOutput, ModelListOutput, ProviderListOutput } from "@bolt-ai/client/promise"
-import { directoryKey, normalizeAgentList, normalizePermissionRequest, normalizeProviderList } from "./utils"
+import type { AgentListOutput, ModelListOutput, Project, ProviderListOutput } from "@bolt-ai/client/promise"
+import { directoryKey, normalizeAgentList, normalizeProjectInfo, normalizeProviderList } from "./utils"
 
 describe("normalizeAgentList", () => {
   test("adapts current agents to the app agent shape", () => {

@@ -4,7 +4,7 @@ import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
 import { Location } from "@bolt-ai/core/location"
 import { Project } from "@bolt-ai/core/project"
 import { AbsolutePath } from "@bolt-ai/core/schema"
-import { WorkspaceV2 } from "@bolt-ai/core/workspace"
+import { Workspace } from "@bolt-ai/core/workspace"
 import { testEffect } from "./lib/effect"
 
 const workspaceID = Workspace.ID.make("wrk_test")

@@ -32,7 +32,7 @@ export async function buildLocalWslCli(input: { version: string; script: string;
         "--skip-web-ui",
         `--outdir=${directory}`,
       ],
-      { cwd: root, env: { ...process.env, OPENCODE_VERSION: input.version }, windowsHide: true },
+      { cwd: root, env: { ...process.env, BOLT_VERSION: input.version }, windowsHide: true },
     )
     await copyFile(join(directory, `cli-${target}`, "bin", "opencode"), input.output)
 

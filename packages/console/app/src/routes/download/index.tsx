@@ -54,39 +54,40 @@ export default function Download() {
             <div data-component="section-content">
               <button
                 data-component="cli-row"
-                onClick={handleCopyClick("curl -fsSL https://bolt.ai/v2/install | bash")}
+                onClick={handleCopyClick("curl -fsSL https://opencode.ai/v2/install | bash")}
               >
                 <code>
-                  curl -fsSL https://<strong>bolt.ai/v2/install</strong> | bash
+                  curl -fsSL https://<strong>opencode.ai/v2/install</strong> | bash
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("npm install -g bolt-ai")}>
+              <button data-component="cli-row" onClick={handleCopyClick("npm install -g @bolt-ai/cli")}>
                 <code>
-                  npm install -g <strong>bolt-ai</strong>
+                  npm install -g <strong>@bolt-ai/cli</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("bun install -g --trust bolt-ai")}>
+              <button data-component="cli-row" onClick={handleCopyClick("bun install -g --trust @bolt-ai/cli")}>
                 <code>
-                  bun install -g --trust <strong>bolt-ai</strong>                </code>
-                <CopyStatus />
-              </button>
-              <button data-component="cli-row" onClick={handleCopyClick("brew install anomalyco/tap/bolt-v2")}>
-                <code>
-                  brew install <strong>anomalyco/tap/bolt-v2</strong>
+                  bun install -g --trust <strong>@bolt-ai/cli</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("paru -S bolt-beta")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install anomalyco/tap/opencode-v2")}>
                 <code>
-                  paru -S <strong>bolt-beta</strong>
+                  brew install <strong>anomalyco/tap/opencode-v2</strong>
                 </code>
                 <CopyStatus />
               </button>
-              <button data-component="cli-row" onClick={handleCopyClick("yay -S bolt-beta")}>
+              <button data-component="cli-row" onClick={handleCopyClick("paru -S opencode-beta")}>
                 <code>
-                  yay -S <strong>bolt-beta</strong>
+                  paru -S <strong>opencode-beta</strong>
+                </code>
+                <CopyStatus />
+              </button>
+              <button data-component="cli-row" onClick={handleCopyClick("yay -S opencode-beta")}>
+                <code>
+                  yay -S <strong>opencode-beta</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -98,9 +99,9 @@ export default function Download() {
               <span>[2]</span> {i18n.t("download.section.desktop")}
             </div>
             <div data-component="section-content">
-              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask bolt-desktop")}>
+              <button data-component="cli-row" onClick={handleCopyClick("brew install --cask opencode-desktop")}>
                 <code>
-                  brew install --cask <strong>bolt-desktop</strong>
+                  brew install --cask <strong>opencode-desktop</strong>
                 </code>
                 <CopyStatus />
               </button>
@@ -433,7 +434,7 @@ export default function Download() {
                   {i18n.t("nav.github")}
                 </a>{" "}
                 {i18n.t("home.faq.a8.p2")}{" "}
-                <a href={`${config.github.repoUrl}?tab=AGPL-3.0-1-ov-file#readme`} target="_blank">
+                <a href={`${config.github.repoUrl}?tab=MIT-1-ov-file#readme`} target="_blank">
                   {i18n.t("home.faq.a8.mitLicense")}
                 </a>
                 {i18n.t("home.faq.a8.p3")}

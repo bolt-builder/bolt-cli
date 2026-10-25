@@ -1,18 +1,22 @@
 import path from "path"
 import { describe, expect } from "bun:test"
-import { Effect, Layer } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
+import { Money } from "@bolt-ai/schema/money"
+import { Context, Effect, Exit, Layer, Scope } from "effect"
+import { TestClock } from "effect/testing"
 import { Integration } from "@bolt-ai/core/integration"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { Flag } from "@bolt-ai/core/flag/flag"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
 import { Location } from "@bolt-ai/core/location"
-import { ModelV2 } from "@bolt-ai/core/model"
+import { Model } from "@bolt-ai/core/model"
 import { ModelsDev } from "@bolt-ai/core/models-dev"
 import { ModelsDevPlugin } from "@bolt-ai/core/plugin/models-dev"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Plugin } from "@bolt-ai/core/plugin"
+import { PluginHost } from "@bolt-ai/core/plugin/host"
+import { ProviderPlugins } from "@bolt-ai/core/plugin/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { AbsolutePath } from "@bolt-ai/core/schema"
+import { withEnv } from "../fixture/env"
 import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
 import { providerHost, host, integrationHost } from "./host"
@@ -761,16 +765,39 @@ describe("ModelsDevPlugin", () => {
   )
 
   it.effect("registers key methods for providers with environment variables", () =>
-    Effect.acquireUseRelease(
-      Effect.sync(() => {
-        const previous = {
-          path: Flag.BOLT_MODELS_PATH,
-          disabled: Flag.BOLT_DISABLE_MODELS_FETCH,
-        }
-        Flag.BOLT_MODELS_PATH = path.join(import.meta.dir, "fixtures", "models-dev.json")
-        Flag.BOLT_DISABLE_MODELS_FETCH = true
-        return previous
-      }),
+    Effect.gen(function* () {
+      const integrations = yield* Integration.Service
+      const providers = yield* Provider.Service
+      yield* ModelsDevPlugin.effect(
+        host({
+          provider: providerHost(providers),
+          integration: integrationHost(integrations),
+        }),
+      )
+      expect(yield* integrations.list()).toEqual([
+        Integration.Info.make({
+          id: Integration.ID.make("acme"),
+          name: "Acme",
+          methods: [
+            { type: "key" },
+            {
+              type: "env",
+              names: ["ACME_API_KEY"],
+            },
+          ],
+          connections: [],
+        }),
+      ])
+    }).pipe(Effect.provide(models(path.join(import.meta.dir, "fixtures", "models-dev.json")))),
+  )
+
+  it.effect("preserves provider and model URL templates in the catalog", () =>
+    withEnv(
+      {
+        ACME_HOST: "api.acme.test",
+        ACME_MODEL_PATH: undefined,
+        UNDECLARED_HOST: "private.example",
+      },
       () =>
         Effect.gen(function* () {
           const integrations = yield* Integration.Service
@@ -828,25 +855,6 @@ describe("ModelsDevPlugin", () => {
           expect((yield* modelState.get(providerID, modelID))?.settings?.baseURL).toBe(
             "https://${ACME_HOST}/${ACME_MODEL_PATH}/v1",
           )
-          expect(yield* integrations.list()).toEqual([
-            new Integration.Info({
-              id: Integration.ID.make("acme"),
-              name: "Acme",
-              methods: [
-                { type: "key" },
-                {
-                  type: "env",
-                  names: ["ACME_API_KEY"],
-                },
-              ],
-              connections: [],
-            }),
-          ])
-        }).pipe(Effect.provide(AppNodeBuilder.build(ModelsDev.node))),
-      (previous) =>
-        Effect.sync(() => {
-          Flag.BOLT_MODELS_PATH = previous.path
-          Flag.BOLT_DISABLE_MODELS_FETCH = previous.disabled
         }),
     ),
   )

@@ -41,21 +41,27 @@ export function assertAttachmentBudget(files: { size: number }[]) {
   throw new Error(nativeT("desktop.picker.error.sizeLimit", { limit: MAX_ATTACHMENT_BYTES / 1024 / 1024 }))
 }
 
-export async function readAttachment(filePath: string, maxBytes = MAX_ATTACHMENT_BYTES) {
-  const file = await open(filePath, "r")
-  try {
-    const info = await file.stat()
-    if (info.size > maxBytes)
-      throw new Error(nativeT("desktop.picker.error.sizeLimit", { limit: maxBytes / 1024 / 1024 }))
-    const bytes = Buffer.allocUnsafe(info.size)
-    let offset = 0
-    while (offset < info.size) {
-      const result = await file.read(bytes, offset, info.size - offset, offset)
-      if (result.bytesRead === 0) break
-      offset += result.bytesRead
-    }
-    return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + offset) as ArrayBuffer
-  } finally {
-    await file.close()
-  }
+export function readAttachment(filePath: string, maxBytes = MAX_ATTACHMENT_BYTES) {
+  return Effect.scoped(
+    Effect.gen(function* () {
+      const fs = yield* FileSystem.FileSystem
+      const file = yield* fs.open(filePath, { flag: "r" })
+      const info = yield* file.stat
+
+      if (info.size > ByteSize.bytes(maxBytes))
+        throw new Error(nativeT("desktop.picker.error.sizeLimit", { limit: MAX_ATTACHMENT_BYTES / 1024 / 1024 }))
+
+      const bytes = new Uint8Array(Number(info.size))
+      let offset = 0
+
+      while (offset < bytes.byteLength) {
+        const read = Number(yield* file.read(bytes.subarray(offset)))
+
+        if (read === 0) break
+        offset += read
+      }
+
+      return bytes.buffer.slice(0, offset)
+    }),
+  )
 }

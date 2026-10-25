@@ -4,6 +4,7 @@ import { $ } from "bun"
 import { mkdir, rm } from "fs/promises"
 import path from "path"
 import { Script } from "@bolt-ai/script"
+import { embed } from "@bolt-ai/script/highlights"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 import type { BunPlugin } from "bun"
 import pkg from "../package.json"
@@ -14,7 +15,12 @@ import { resolveOpencodePty } from "./opencode-pty"
 import { NativeArch } from "../../../script/native-arch"
 
 const dir = path.resolve(import.meta.dirname, "..")
-const binary = "bolt"
+const binary = "opencode"
+const outdir = path.resolve(
+  dir,
+  process.argv.find((arg) => arg.startsWith("--outdir="))?.slice("--outdir=".length) ?? "dist",
+)
+if (outdir === dir) throw new Error("--outdir must not be the package directory")
 process.chdir(dir)
 
 await rm(outdir, { recursive: true, force: true })
@@ -184,11 +190,10 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
     },
     define: {
       BOLT_VERSION: `'${Script.version}'`,
-      BOLT_CLI_NAME: `'${binary}'`,
-      BOLT_MODELS_DEV: modelsData,
+      BOLT_CLI_NAME: "'bolt'",
       BOLT_CHANNEL: `'${Script.channel}'`,
       BOLT_ARTIFACT: `'cli'`,
-      BOLT_RELEASE_HIGHLIGHTS: JSON.stringify(process.env.BOLT_RELEASE_HIGHLIGHTS ?? ""),
+      ...(highlights ? { BOLT_RELEASE_HIGHLIGHTS: JSON.stringify(highlights) } : {}),
       BOLT_LIBC: item.os === "linux" ? `'${item.abi ?? "glibc"}'` : "undefined",
       // FFF_LIBC selects the fff native lib variant: "musl" or "gnu".
       FFF_LIBC: item.os === "linux" ? `'${item.abi ?? "gnu"}'` : "undefined",
@@ -209,11 +214,8 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       {
         name: `@bolt-ai/${name}`,
         version: Script.version,
-        license: "AGPL-3.0-only",
-        repository: {
-          type: "git",
-          url: "git+https://github.com/Bolt-builder/bolt-cli.git",
-        },
+        license: "MIT",
+        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
         os: [item.os],
         cpu: [item.arch],
       },
@@ -221,9 +223,87 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       2,
     ),
   )
+  await verifyArtifact(path.join(outdir, name))
+}
 
-  // codesign only exists on macOS; release builds cross-compile darwin targets on Linux
-  if (item.os === "darwin" && process.platform === "darwin") {
-    await $`codesign --sign - ./dist/${name}/bin/${binary}`
-  }
+async function compileExecutable(item: (typeof allTargets)[number]) {
+  const release = process.env.BUN_COMPILE_RELEASE
+  if (!release) return
+
+  const platform = item.os === "win32" ? "windows" : item.os
+  const name = [
+    "bun",
+    platform,
+    item.arch === "arm64" ? "aarch64" : item.arch,
+    item.abi,
+    item.avx2 === false ? "baseline" : undefined,
+  ]
+    .filter(Boolean)
+    .join("-")
+  const cache = path.join(outdir, ".bun", release)
+  const executable = path.join(cache, name, item.os === "win32" ? "bun.exe" : "bun")
+  if (await Bun.file(executable).exists()) return executable
+
+  await mkdir(cache, { recursive: true })
+  const archive = path.join(cache, `${name}.zip`)
+  const assets = await compileReleaseAssets(release)
+  const url = assets.get(`${name}.zip`)
+  if (!url) throw new Error(`Bun release ${release} does not include ${name}.zip`)
+  const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN
+  const response = await fetch(url, {
+    headers: { Accept: "application/octet-stream", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  })
+  if (!response.ok) throw new Error(`Failed to download ${name} from Bun release ${release}: ${response.status}`)
+  // Stream to disk instead of `Bun.write(archive, response)`: passing the Response object
+  // hangs forever if it gets GC'd mid-download (https://github.com/oven-sh/bun/issues/40278).
+  const sink = Bun.file(archive).writer()
+  for await (const chunk of response.body!) await sink.write(chunk)
+  await sink.end()
+  await $`unzip -oq ${archive} -d ${cache}`
+  await rm(archive)
+  return executable
+}
+
+function compileReleaseAssets(release: string) {
+  const existing = releaseAssets.get(release)
+  if (existing) return existing
+  const pending = fetch(`https://api.github.com/repos/oven-sh/bun/releases/tags/${release}?cache=${Date.now()}`)
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Failed to resolve Bun release ${release}: ${response.status}`)
+      const data: unknown = await response.json()
+      if (typeof data !== "object" || data === null || !("assets" in data) || !Array.isArray(data.assets)) {
+        throw new Error(`Bun release ${release} returned invalid metadata`)
+      }
+      return new Map(
+        data.assets
+          .filter(
+            (asset): asset is { name: string; url: string } =>
+              typeof asset === "object" &&
+              asset !== null &&
+              "name" in asset &&
+              typeof asset.name === "string" &&
+              "url" in asset &&
+              typeof asset.url === "string",
+          )
+          .map((asset) => [asset.name, asset.url]),
+      )
+    })
+    .catch((error) => {
+      releaseAssets.delete(release)
+      throw error
+    })
+  releaseAssets.set(release, pending)
+  return pending
+}
+
+function targetName(item: (typeof allTargets)[number]) {
+  return [
+    binary,
+    item.os === "win32" ? "windows" : item.os,
+    item.arch,
+    item.avx2 === false ? "baseline" : undefined,
+    item.abi,
+  ]
+    .filter(Boolean)
+    .join("-")
 }

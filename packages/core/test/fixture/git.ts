@@ -5,6 +5,8 @@ import path from "path"
 import { promisify } from "util"
 import { pathToFileURL } from "url"
 import { Repository } from "@bolt-ai/core/repository"
+import { Effect } from "effect"
+import { tmpdir } from "./tmpdir"
 
 const exec = promisify(execFile)
 

@@ -1,5 +1,5 @@
 import { Index, createMemo } from "solid-js"
-import type { UiI18nPluralKey } from "@bolt-ai/ui/context"
+import { useI18n, type UiI18nPluralKey } from "@bolt-ai/ui/context"
 import { AnimatedCountLabel } from "./tool-count-label"
 
 export type CountItem = {

@@ -1,5 +1,0 @@
-version: "1"
-rules:
-  - base: dev
-    upstream: anomalyco:dev
-    mergeMethod: none

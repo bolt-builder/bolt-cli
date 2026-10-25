@@ -1,7 +1,7 @@
 import { useDialog } from "@bolt-ai/ui/context/dialog"
-import { useSettingsCommand } from "@/components/settings-dialog"
-import { useCommand } from "@/context/command"
-import { useLanguage } from "@/context/language"
+import { useSettingsCommand } from "@/settings/command"
+import { useCommand } from "@/shell/commands/command"
+import { useLanguage } from "@/runtime/i18n/language"
 
 export function useNewSessionCommands(input: {
   restoreFocus: () => void

@@ -22,12 +22,10 @@ describe("timeline fixture validation", () => {
     ).toThrow()
     expect(() =>
       validateTimelineEvent({
-        directory: "C:/Bolt/TimelineStability",
-        payload: {
-          id: "evt_invalid_status",
-          type: "session.status",
-          properties: { sessionID: "ses_timeline_stability", status: { type: "retry", attempt: 1 } },
-        },
+        id: "evt_invalid_status",
+        created: 1,
+        type: "session.status",
+        data: { sessionID: "ses_timeline_stability", status: { type: "retry", attempt: 1 } },
       }),
     ).toThrow()
     expect(() => validateTimelineMessages([{ ...userMessage(), id: "invalid" } as never])).toThrow()

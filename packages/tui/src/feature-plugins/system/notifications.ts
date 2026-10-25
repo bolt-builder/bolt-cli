@@ -1,6 +1,5 @@
-import type { Event } from "@bolt-ai/sdk/v2"
-import type { TuiAttentionSoundName, TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
+import { Plugin } from "@bolt-ai/plugin/tui"
+import type { AttentionSoundName } from "@bolt-ai/plugin/tui/context"
 
 function notify(
   context: Plugin.Context,

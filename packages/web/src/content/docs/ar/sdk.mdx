@@ -1,6 +1,6 @@
 ---
 title: مجموعة تطوير البرمجيات (SDK)
-description: عميل JavaScript آمن الأنواع لخادم bolt.
+description: عميل JavaScript آمن الأنواع لخادم opencode.
 ---
 
 import config from "../../../../config.mjs"
@@ -18,7 +18,7 @@ export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types
 ثبّت SDK من npm:
 
 ```bash
-npm install @bolt-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
@@ -28,9 +28,9 @@ npm install @bolt-ai/sdk
 أنشئ مثيلا من opencode:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createBolt()
+const { client } = await createOpencode()
 ```
 
 هذا يشغّل خادما وعميلا معا.
@@ -49,12 +49,12 @@ const { client } = await createBolt()
 
 ## الإعدادات
 
-يمكنك تمرير كائن إعدادات لتخصيص السلوك. سيستمر المثيل في التقاط `bolt.json` لديك، لكن يمكنك تجاوز الإعدادات أو إضافة إعدادات مباشرة:
+يمكنك تمرير كائن إعدادات لتخصيص السلوك. سيستمر المثيل في التقاط `opencode.json` لديك، لكن يمكنك تجاوز الإعدادات أو إضافة إعدادات مباشرة:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const bolt = await createBolt({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,9 +62,9 @@ const bolt = await createBolt({
   },
 })
 
-console.log(`Server running at ${bolt.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-bolt.server.close()
+opencode.server.close()
 ```
 
 ## العميل فقط
@@ -72,9 +72,9 @@ bolt.server.close()
 إذا كان لديك مثيل opencode يعمل بالفعل، يمكنك إنشاء مثيل عميل للاتصال به:
 
 ```javascript
-import { createBoltClient } from "@bolt-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createBoltClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createBoltClient({
 تتضمن SDK تعريفات TypeScript لجميع أنواع API. استوردها مباشرة:
 
 ```typescript
-import type { Session, Message, Part } from "@bolt-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 جميع الأنواع مولّدة من مواصفات OpenAPI الخاصة بالخادم ومتاحة في <a href={typesUrl}>ملف الأنواع</a>.

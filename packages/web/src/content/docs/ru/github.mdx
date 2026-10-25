@@ -37,9 +37,9 @@ opencode github install
 
 2. **Добавьте рабочий процесс**
 
-   Добавьте следующий файл рабочего процесса в `.github/workflows/bolt.yml` в своем репозитории. Обязательно установите соответствующий `model` и необходимые ключи API в `env`.
+   Добавьте следующий файл рабочего процесса в `.github/workflows/opencode.yml` в своем репозитории. Обязательно установите соответствующий `model` и необходимые ключи API в `env`.
 
-   ```yml title=".github/workflows/bolt.yml" {24,26}
+   ```yml title=".github/workflows/opencode.yml" {24,26}
    name: opencode
 
    on:
@@ -63,8 +63,8 @@ opencode github install
              fetch-depth: 1
              persist-credentials: false
 
-          - name: Run Bolt
-           uses: bolt-builder/bolt-cli/github@latest
+         - name: Run OpenCode
+           uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
@@ -80,10 +80,9 @@ opencode github install
 
 ## Настройка
 
-- `model`: модель для использования с bolt. Принимает формат `provider/model`. Это **обязательно**.
+- `model`: модель для использования с opencode. Принимает формат `provider/model`. Это **обязательно**.
 - `agent`: используемый агент. Должен быть основным агентом. Возвращается к `default_agent` из конфигурации или к `"build"`, если не найден.
-- `share`: следует ли предоставлять общий доступ к сеансу bolt. По умолчанию **true** для общедоступных репозиториев.
-- `prompt`: дополнительный настраиваемый запрос для переопределения поведения по умолчанию. Используйте это, чтобы настроить обработку запросов bolt.
+- `prompt`: дополнительный настраиваемый запрос для переопределения поведения по умолчанию. Используйте это, чтобы настроить обработку запросов opencode.
 - `token`: дополнительный токен доступа GitHub для выполнения таких операций, как создание комментариев, фиксация изменений и открытие запросов на включение. По умолчанию opencode использует токен доступа к установке из приложения opencode GitHub, поэтому фиксации, комментарии и запросы на включение отображаются как исходящие из приложения.
 
   Кроме того, вы можете использовать [встроенный `GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) средства запуска действий GitHub без установки приложения opencode GitHub. Просто не забудьте предоставить необходимые разрешения в вашем рабочем процессе:
@@ -118,7 +117,7 @@ opencode может быть запущен следующими события�
 Запускайте opencode по расписанию для выполнения автоматизированных задач:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled Bolt Task
+name: Scheduled OpenCode Task
 
 on:
   schedule:
@@ -138,8 +137,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Bolt
-        uses: bolt-builder/bolt-cli/github@latest
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -176,7 +175,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -232,7 +231,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -253,8 +252,8 @@ jobs:
 
 Переопределите приглашение по умолчанию, чтобы настроить поведение opencode для вашего рабочего процесса.
 
-```yaml title=".github/workflows/bolt.yml"
-- uses: bolt-builder/bolt-cli/github@latest
+```yaml title=".github/workflows/opencode.yml"
+- uses: anomalyco/opencode/github@latest
   with:
     model: anthropic/claude-sonnet-5-5
     prompt: |

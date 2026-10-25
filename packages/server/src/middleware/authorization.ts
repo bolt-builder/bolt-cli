@@ -2,9 +2,13 @@ import { ServerAuth } from "../auth"
 import { UnauthorizedError } from "@bolt-ai/protocol/errors"
 import { Authorization } from "@bolt-ai/protocol/middleware/authorization"
 export { Authorization } from "@bolt-ai/protocol/middleware/authorization"
-import { hasPtyConnectTicketURL } from "@bolt-ai/protocol/groups/pty"
-import { Effect, Encoding, Layer, Redacted } from "effect"
-import { HttpEffect, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
+import { PTY_CONNECT_PATH, PTY_CONNECT_TICKET_QUERY } from "@bolt-ai/protocol/groups/pty"
+import { PERSISTENT_PTY_CONNECT_PATH } from "@bolt-ai/protocol/groups/persistent-pty"
+import { MCP_CLIENT_PATH } from "@bolt-ai/protocol/groups/mcp"
+import { PAIRING_CONNECT_PATH } from "@bolt-ai/protocol/groups/server"
+import { Effect, Layer, Redacted } from "effect"
+import { Base64 } from "effect/encoding"
+import { HttpEffect, HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/http"
 
 const AUTH_TOKEN_QUERY = "auth_token"
 const WWW_AUTHENTICATE = 'Basic realm="Secure Area"'
@@ -29,12 +33,7 @@ function decodeCredential(input: string) {
 function credentialFromRequest(request: HttpServerRequest.HttpServerRequest) {
   const url = new URL(request.url, "http://localhost")
   const token = url.searchParams.get(AUTH_TOKEN_QUERY)
-  // Only honor credentials from the query string on safe, non-mutating requests
-  // (UI page loads, EventSource, WebSocket upgrades) that cannot set an
-  // Authorization header. Requiring the header for mutating methods keeps a
-  // password leaked via URL, Referer, or access logs from being replayed to
-  // change state.
-  if (token && (request.method === "GET" || request.method === "HEAD")) return decodeCredential(token)
+  if (token) return decodeCredential(token)
   const match = /^Basic\s+(.+)$/i.exec(request.headers.authorization ?? "")
   if (match) return decodeCredential(match[1])
   return Effect.succeed(emptyCredential())

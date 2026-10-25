@@ -1,28 +1,28 @@
-import { describe, expect, beforeAll, beforeEach, afterAll } from "bun:test"
-import { Effect, Layer, Ref } from "effect"
-import { HttpClient, HttpClientResponse } from "effect/unstable/http"
+import { describe, expect, test } from "bun:test"
+import { Money } from "@bolt-ai/schema/money"
+import { Effect, Fiber, Layer, Ref, Scope, Stream } from "effect"
+import { HttpClient, HttpClientResponse } from "effect/http"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { Global } from "@bolt-ai/core/global"
-import { ModelsDev } from "@bolt-ai/core/models-dev"
+import { LayerNodePlatform } from "@bolt-ai/util/effect/app-node-platform"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { KV } from "@bolt-ai/core/kv"
+import { Location } from "@bolt-ai/core/location"
+import { Model } from "@bolt-ai/core/model"
+import { bodyDigest, ModelsDev } from "@bolt-ai/core/models-dev"
+import { Provider } from "@bolt-ai/core/provider"
+import { AbsolutePath } from "@bolt-ai/core/schema"
+import { location } from "./fixture/location"
 import { it } from "./lib/effect"
 
-// test/preload.ts pins BOLT_MODELS_PATH to a fixture so other tests can
-// resolve providers without network. These tests need to drive the on-disk
-// cache themselves and silence the eager refresh fork. Save/restore around
-// the suite — never leak the mutation to subsequent test files in the same
-// bun process.
-const ORIGINAL_MODELS_PATH = Flag.BOLT_MODELS_PATH
-const ORIGINAL_DISABLE_FETCH = Flag.BOLT_DISABLE_MODELS_FETCH
-beforeAll(() => {
-  Flag.BOLT_MODELS_PATH = undefined
-  Flag.BOLT_DISABLE_MODELS_FETCH = true
-})
-afterAll(() => {
-  Flag.BOLT_MODELS_PATH = ORIGINAL_MODELS_PATH
-  Flag.BOLT_DISABLE_MODELS_FETCH = ORIGINAL_DISABLE_FETCH
+const cacheKey = "models-dev:catalog"
+const metaKey = `${cacheKey}:meta`
+
+test("normalizes permissive interleaved values to compatibility", () => {
+  expect(Model.compatibility("reasoning_text")).toEqual({ reasoningField: "reasoning_text" })
+  expect(Model.compatibility({ field: "vendor_reasoning" })).toEqual({ reasoningField: "vendor_reasoning" })
+  expect(Model.compatibility(true)).toBeUndefined()
+  expect(Model.compatibility(false)).toBeUndefined()
 })
 
 const fixture = {
@@ -376,19 +376,13 @@ describe("ModelsDev Service", () => {
       const cache = makeCache()
       writeCacheText(cache, "{")
       const state = yield* Ref.make({ ...initialState, body: JSON.stringify(fixture2) })
-      const context = yield* Layer.build(buildLayer(state))
-      const result = yield* Effect.acquireUseRelease(
-        Effect.sync(() => {
-          Flag.BOLT_DISABLE_MODELS_FETCH = false
-        }),
-        () => ModelsDev.Service.use((s) => s.get()).pipe(Effect.provide(context)),
-        () =>
-          Effect.sync(() => {
-            Flag.BOLT_DISABLE_MODELS_FETCH = true
-          }),
-      )
-      expect(result).toEqual(fixture2)
-      expect(yield* Effect.promise(() => readFile(cacheFile, "utf8"))).toBe(JSON.stringify(fixture2))
+      const context = yield* Layer.build(buildLayer(state, cache, { fetch: true, snapshot: false }))
+      const result = yield* ModelsDev.Service.use((s) => s.get()).pipe(Effect.provide(context))
+      expect(result).toEqual(fixture2Snapshot)
+      expect(cache.values.get(cacheKey)).toMatchObject({
+        body: JSON.stringify(fixture2),
+        digest: bodyDigest(JSON.stringify(fixture2)),
+      })
       const final = yield* Ref.get(state)
       expect(final.calls.length).toBe(1)
     }),

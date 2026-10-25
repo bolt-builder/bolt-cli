@@ -56,7 +56,7 @@ export declare namespace ModelStatRepo {
 }
 
 export class ModelStatRepo extends Context.Service<ModelStatRepo, ModelStatRepo.Service>()(
-  "@bolt/stats/ModelStatRepo",
+  "@bolt-ai/stats/ModelStatRepo",
 ) {
   static readonly layer: Layer.Layer<ModelStatRepo, never, DrizzleClient> = Layer.effect(
     ModelStatRepo,

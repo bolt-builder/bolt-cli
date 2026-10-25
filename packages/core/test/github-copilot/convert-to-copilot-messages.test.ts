@@ -1,4 +1,4 @@
-import { convertToOpenAICompatibleChatMessages as convertToCopilotMessages } from "@bolt-ai/core/github-copilot/chat/convert-to-openai-compatible-chat-messages"
+import { convertToOpenAICompatibleChatMessages } from "@bolt-ai/core/github-copilot/chat/convert-to-openai-compatible-chat-messages"
 import { describe, test, expect } from "bun:test"
 
 describe("system messages", () => {

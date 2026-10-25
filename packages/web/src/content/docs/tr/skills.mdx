@@ -13,7 +13,7 @@ Beceriler, yerel `skill` araci uzerinden ihtiyac aninda yuklenir; ajanlar mevcut
 Her beceri adi icin bir klasor olusturun ve icine bir `SKILL.md` koyun.
 opencode su konumlari tarar:
 
-- Proje konfigurasyonu: `.bolt/skills/<name>/SKILL.md`
+- Proje konfigurasyonu: `.opencode/skills/<name>/SKILL.md`
 - Genel konfigurasyon: `~/.config/opencode/skills/<name>/SKILL.md`
 - Proje Claude uyumlu: `.claude/skills/<name>/SKILL.md`
 - Genel Claude uyumlu: `~/.claude/skills/<name>/SKILL.md`
@@ -24,8 +24,8 @@ opencode su konumlari tarar:
 
 ## Kesfi anlayin
 
-Proje yerel yollarinda bolt, mevcut calisma dizininizden baslayip git worktree kokune kadar yukari cikar.
-Bu sirada `skills/*/SKILL.md` altindaki eslesen `.bolt/` dosyalarini ve `.claude/skills/*/SKILL.md` ya da `.agents/skills/*/SKILL.md` dosyalarini yukler.
+Proje yerel yollarinda opencode, mevcut calisma dizininizden baslayip git worktree kokune kadar yukari cikar.
+Bu sirada `skills/*/SKILL.md` altindaki eslesen `.opencode/` dosyalarini ve `.claude/skills/*/SKILL.md` ya da `.agents/skills/*/SKILL.md` dosyalarini yukler.
 
 Genel tanimlar da `~/.config/opencode/skills/*/SKILL.md`, `~/.claude/skills/*/SKILL.md` ve `~/.agents/skills/*/SKILL.md` yollarindan yuklenir.
 
@@ -73,7 +73,7 @@ Ajanin dogru secim yapmasi icin yeterince acik yazin.
 
 ## Ornek kullanin
 
-`.bolt/skills/git-release/SKILL.md` dosyasini soyle olusturun:
+`.opencode/skills/git-release/SKILL.md` dosyasini soyle olusturun:
 
 ```markdown
 ---
@@ -102,7 +102,7 @@ Ask clarifying questions if the target versioning scheme is unclear.
 
 ## Arac aciklamasini taniyin
 
-bolt, `skill` araci aciklamasinda mevcut becerileri listeler.
+opencode, `skill` araci aciklamasinda mevcut becerileri listeler.
 Her kayitta beceri adi ve aciklamasi yer alir:
 
 ```xml
@@ -124,7 +124,7 @@ skill({ name: "git-release" })
 
 ## Izinleri yapilandirin
 
-`bolt.json` icinde pattern tabanli izinlerle ajanlarin hangi becerilere erisecegini kontrol edin:
+`opencode.json` icinde pattern tabanli izinlerle ajanlarin hangi becerilere erisecegini kontrol edin:
 
 ```json
 {
@@ -163,7 +163,7 @@ permission:
 ---
 ```
 
-**Yerlesik ajanlar icin** (`bolt.json` icinde):
+**Yerlesik ajanlar icin** (`opencode.json` icinde):
 
 ```json
 {

@@ -9,7 +9,7 @@ O opencode usa o [AI SDK](https://ai-sdk.dev/) e [Models.dev](https://models.dev
 
 ## Provedores
 
-Os provedores mais populares são pré-carregados por padrão. Se você adicionou as credenciais para um provedor através do comando `/connect`, elas estarão disponíveis quando você iniciar o bolt.
+Os provedores mais populares são pré-carregados por padrão. Se você adicionou as credenciais para um provedor através do comando `/connect`, elas estarão disponíveis quando você iniciar o opencode.
 
 Saiba mais sobre [provedores](/docs/providers).
 
@@ -35,7 +35,7 @@ Considere usar um dos modelos que recomendamos.
 
 No entanto, há apenas alguns deles que são bons tanto em gerar código quanto em chamar ferramentas.
 
-Aqui estão vários modelos que funcionam bem com o bolt, em nenhuma ordem específica. (Esta não é uma lista exaustiva nem necessariamente atualizada):
+Aqui estão vários modelos que funcionam bem com o opencode, em nenhuma ordem específica. (Esta não é uma lista exaustiva nem necessariamente atualizada):
 
 - GPT 5.2
 - GPT 5.1 Codex
@@ -48,16 +48,16 @@ Aqui estão vários modelos que funcionam bem com o bolt, em nenhuma ordem espec
 
 ## Definindo um padrão
 
-Para definir um desses como o modelo padrão, você pode definir a chave `model` na sua configuração do bolt.
+Para definir um desses como o modelo padrão, você pode definir a chave `model` na sua configuração do opencode.
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-Aqui, o ID completo é `provider_id/model_id`. Por exemplo, se você estiver usando [Bolt Zen](/docs/zen), você usaria `opencode/gpt-5.1-codex` para GPT 5.1 Codex.
+Aqui, o ID completo é `provider_id/model_id`. Por exemplo, se você estiver usando [OpenCode Zen](https://opencode.ai/v2/docs/console/), você usaria `opencode/gpt-6.1-sol` para GPT-6.1 Sol.
 
 Se você configurou um [provedor personalizado](/docs/providers#custom), o `provider_id` é a chave da parte `provider` da sua configuração, e o `model_id` é a chave de `provider.models`.
 
@@ -67,9 +67,9 @@ Se você configurou um [provedor personalizado](/docs/providers#custom), o `prov
 
 Você pode configurar globalmente as opções de um modelo através da configuração.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -106,11 +106,11 @@ Você também pode configurar essas opções para quaisquer agentes que estiver 
 
 Você também pode definir variantes personalizadas que estendem as integradas. As variantes permitem que você configure diferentes configurações para o mesmo modelo sem criar entradas duplicadas:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -171,9 +171,9 @@ Esta lista não é abrangente. Muitos outros provedores também têm padrões in
 
 Você pode substituir variantes existentes ou adicionar as suas:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -206,12 +206,12 @@ Quando o opencode é iniciado, ele verifica modelos na seguinte ordem de priorid
 
 1. A flag de linha de comando `--model` ou `-m`. O formato é o mesmo que no arquivo de configuração: `provider_id/model_id`.
 
-2. A lista de modelos na configuração do bolt.
+2. A lista de modelos na configuração do opencode.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

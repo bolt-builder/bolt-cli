@@ -1,15 +1,35 @@
 /** @jsxImportSource @opentui/solid */
-import { expect, test } from "bun:test"
-import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
-import { DiffRenderable, type Renderable, ScrollBoxRenderable } from "@opentui/core"
-import { testRender, useRenderer } from "@opentui/solid"
-import type { TuiPluginApi, TuiPluginMeta, TuiRouteCurrent, TuiRouteDefinition } from "@bolt-ai/plugin/tui"
-import type { Session } from "@bolt-ai/sdk/v2"
-import { KVProvider } from "../../../src/context/kv"
-import { ThemeProvider } from "../../../src/context/theme"
-import { TuiConfigProvider } from "../../../src/config"
-import { TuiKeybind } from "../../../src/config/keybind"
-import { OpencodeKeymapProvider } from "../../../src/keymap"
+import { afterAll, expect, test } from "bun:test"
+import { once } from "node:events"
+import { readdir } from "node:fs/promises"
+import path from "node:path"
+import {
+  BoxRenderable,
+  CliRenderEvents,
+  DiffRenderable,
+  ImageRenderable,
+  InputRenderable,
+  MouseButton,
+  type Renderable,
+  ScrollBoxRenderable,
+} from "@opentui/core"
+import { testRender } from "@opentui/solid"
+import type {
+  Context,
+  Destination,
+  KeymapCommand,
+  KeymapLayer,
+  Page,
+  SlotClaim,
+  Route,
+} from "@bolt-ai/plugin/tui/context"
+import { ThemeProvider, useThemes } from "../../../src/context/theme"
+import { emptyThemeSource, tmpdir } from "../../fixture/fixture"
+import { StorageProvider, useStorage } from "../../../src/context/storage"
+import { TuiAppProvider } from "../../../src/context/runtime"
+import { ConfigProvider, type Info } from "../../../src/config"
+import type { TuiKeybind } from "../../../src/config/keybind"
+import { Keymap } from "../../../src/context/keymap"
 import diffViewerPlugin from "../../../src/feature-plugins/system/diff-viewer"
 import { createTuiResolvedConfig } from "../../fixture/tui-runtime"
 import { TestTuiContexts } from "../../fixture/tui-environment"

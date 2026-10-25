@@ -15,8 +15,8 @@
 // Demo mode handles permission and Form replies locally, completing or failing
 // the synthetic tool parts through the same callbacks used by the live footer.
 import path from "path"
-import type { Event, ToolPart } from "@bolt-ai/sdk/v2"
-import { createSessionData, reduceSessionData, type SessionData } from "./session-data"
+import type { JsonValue, SessionMessageAssistantTool } from "@bolt-ai/client/promise"
+import { parseSlashHead } from "../prompt/parse"
 import { writeSessionOutput } from "./stream"
 import { toolCommit, toolFinalPhase } from "./stream-v2.subagent"
 import type {
@@ -649,8 +649,7 @@ function emitPermission(state: State, kind: PermissionKind = "edit"): void {
       patterns: [target],
       always: [target],
       done: {
-        title: "read",
-        output: ["1: {", '2:   "name": "bolt",', '3:   "private": true', "4: }"].join("\n"),
+        output: ["1: {", '2:   "name": "opencode",', '3:   "private": true', "4: }"].join("\n"),
         metadata: {},
       },
     })

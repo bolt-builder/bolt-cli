@@ -585,38 +585,7 @@ const layer = Layer.effectDiscard(
           .pipe(Effect.orDie)
       }),
     )
-    yield* events.project(SessionEvent.PromptAdmitted, (event) =>
-      Effect.gen(function* () {
-        if (event.durable === undefined) return yield* Effect.die("Durable Session event is missing aggregate sequence")
-        yield* SessionInput.projectAdmitted(db, {
-          admittedSeq: event.durable.seq,
-          id: event.data.messageID,
-          sessionID: event.data.sessionID,
-          prompt: event.data.prompt,
-          delivery: event.data.delivery,
-          timeCreated: event.data.timestamp,
-        })
-      }),
-    )
-    yield* events.project(SessionEvent.ContextUpdated, (event) => run(db, event))
-    yield* events.project(SessionEvent.Synthetic, (event) => run(db, event))
-    yield* events.project(SessionEvent.Shell.Started, (event) => run(db, event))
-    yield* events.project(SessionEvent.Shell.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.Step.Started, (event) => run(db, event))
-    yield* events.project(SessionEvent.Step.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.Step.Failed, (event) => run(db, event))
-    yield* events.project(SessionEvent.Text.Started, (event) => run(db, event))
-    yield* events.project(SessionEvent.Text.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Input.Started, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Input.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Called, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Progress, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Success, (event) => run(db, event))
-    yield* events.project(SessionEvent.Tool.Failed, (event) => run(db, event))
-    yield* events.project(SessionEvent.Reasoning.Started, (event) => run(db, event))
-    yield* events.project(SessionEvent.Reasoning.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.Compaction.Ended, (event) => run(db, event))
-    yield* events.project(SessionEvent.RevertEvent.Staged, (event) =>
+    yield* bus.project(SessionEvent.Renamed, (event) =>
       db
         .update(SessionTable)
         .set({ title: event.data.title, time_updated: event.created })

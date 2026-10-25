@@ -9,7 +9,7 @@ opencode использует [AI SDK](https://ai-sdk.dev/) и [Models.dev](http
 
 ## Провайдеры
 
-Большинство популярных провайдеров предварительно загружены по умолчанию. Если вы добавили учетные данные для поставщика с помощью команды `/connect`, они будут доступны при запуске bolt.
+Большинство популярных провайдеров предварительно загружены по умолчанию. Если вы добавили учетные данные для поставщика с помощью команды `/connect`, они будут доступны при запуске opencode.
 
 Узнайте больше о [providers](/docs/providers).
 
@@ -49,16 +49,16 @@ opencode использует [AI SDK](https://ai-sdk.dev/) и [Models.dev](http
 ## Установить значение по умолчанию
 
 Чтобы установить одну из них в качестве модели по умолчанию, вы можете установить ключ `model` в вашем
-Конфигурация bolt.
+Конфигурация opencode.
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "model": "lmstudio/google/gemma-3n-e4b"
 }
 ```
 
-Здесь полный идентификатор `provider_id/model_id`. Например, если вы используете [Bolt Zen](/docs/zen), вы должны использовать `opencode/gpt-5.1-codex` для кодекса GPT 5.1.
+Здесь полный идентификатор `provider_id/model_id`. Например, если вы используете [OpenCode Zen](https://opencode.ai/v2/docs/console/), вы должны использовать `opencode/gpt-6.1-sol` для GPT-6.1 Sol.
 
 Если вы настроили [пользовательский поставщик](/docs/providers#custom), `provider_id` — это ключ из части `provider` вашей конфигурации, а `model_id` — это ключ из `provider.models`.
 
@@ -68,9 +68,9 @@ opencode использует [AI SDK](https://ai-sdk.dev/) и [Models.dev](http
 
 Вы можете глобально настроить параметры модели через файл config.
 
-```jsonc title="bolt.jsonc" {7-12,19-24}
+```jsonc title="opencode.jsonc" {7-12,19-24}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -107,11 +107,11 @@ opencode использует [AI SDK](https://ai-sdk.dev/) и [Models.dev](http
 
 Вы также можете определить собственные варианты, расширяющие встроенные. Варианты позволяют настраивать разные параметры для одной и той же модели без создания повторяющихся записей:
 
-```jsonc title="bolt.jsonc" {6-21}
+```jsonc title="opencode.jsonc" {6-21}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "bolt": {
+    "opencode": {
       "models": {
         "gpt-6.1-sol": {
           "variants": {
@@ -172,9 +172,9 @@ opencode поставляется с вариантами по умолчани�
 
 Вы можете переопределить существующие варианты или добавить свои собственные:
 
-```jsonc title="bolt.jsonc" {7-18}
+```jsonc title="opencode.jsonc" {7-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "provider": {
     "openai": {
       "models": {
@@ -207,12 +207,12 @@ opencode поставляется с вариантами по умолчани�
 
 1. CLI-флаг `--model` или `-m`. Формат тот же, что и в файле конфигурации: `provider_id/model_id`.
 
-2. Список моделей в конфигурации bolt.
+2. Список моделей в конфигурации opencode.
 
-   ```json title="bolt.json"
+   ```json title="opencode.json"
    {
-     "$schema": "https://bolt.ai/config.json",
-     "model": "anthropic/claude-sonnet-4-20250514"
+     "$schema": "https://opencode.ai/config.json",
+     "model": "anthropic/claude-sonnet-5-5"
    }
    ```
 

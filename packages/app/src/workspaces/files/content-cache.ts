@@ -1,4 +1,4 @@
-import type { FileContent } from "@bolt-ai/sdk/v2"
+import type { FileContent } from "@bolt-ai/gui-extensions/sdk"
 
 const MAX_FILE_CONTENT_ENTRIES = 40
 

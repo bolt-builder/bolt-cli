@@ -1,12 +1,9 @@
-import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect, mock } from "bun:test"
+import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { CerebrasPlugin } from "@bolt-ai/core/plugin/provider/cerebras"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -31,7 +28,7 @@ describe("CerebrasPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.get(Provider.ID.make("cerebras")))?.headers).toEqual({
         Existing: "1",
-        "X-Cerebras-3rd-Party-Integration": "bolt",
+        "X-Cerebras-3rd-Party-Integration": "opencode",
       })
     }),
   )

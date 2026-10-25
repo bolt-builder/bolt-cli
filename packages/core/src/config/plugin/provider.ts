@@ -7,8 +7,12 @@ import { Document, type Entry } from "@bolt-ai/schema/config"
 import { ConfigProvider } from "@bolt-ai/schema/config/provider"
 import { Money } from "@bolt-ai/schema/money"
 import { Effect } from "effect"
-import { Config } from "../../config"
-import { ModelV2 } from "../../model"
+import { Config } from "../../config.js"
+import { Model } from "../../model.js"
+import { Provider } from "../../provider.js"
+import { Variant } from "../../variant.js"
+import { ConfigIntegration } from "../integration.js"
+import { ConfigEntryObserver } from "./entry-observer.js"
 
 export const Plugin = define({
   id: "opencode.config.provider",

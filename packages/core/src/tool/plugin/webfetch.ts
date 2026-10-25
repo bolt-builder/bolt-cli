@@ -1,18 +1,14 @@
 export * as WebFetchTool from "./webfetch.js"
 
-import { ToolFailure } from "@bolt-ai/llm"
-import { Duration, Effect, Layer, Schema } from "effect"
-import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
+import type { Context } from "@bolt-ai/plugin/effect/plugin"
+import { ToolFailure } from "@bolt-ai/ai/effect"
+import { Duration, Effect, Schema } from "effect"
+import { HttpClient, type HttpClientError, HttpClientRequest, HttpClientResponse } from "effect/http"
 import { Parser } from "htmlparser2"
-import TurndownService from "turndown"
-import { makeLocationNode } from "../effect/app-node"
-import { NetGuard } from "../net-guard"
-import { LayerNodePlatform } from "../effect/app-node-platform"
-import { PermissionV2 } from "../permission"
-import { collectBoundedResponseBody } from "./http-body"
-import { ToolRegistry } from "./registry"
-import { Tool } from "./tool"
-import { Tools } from "./tools"
+import { Mime } from "../../mime.js"
+import { Permission } from "../../permission.js"
+import { convertHTMLToMarkdown, MAX_MARKDOWN_BYTES } from "../html-markdown.js"
+import { collectBoundedResponseBody } from "../http-body.js"
 
 export const name = "webfetch"
 export const MAX_RESPONSE_BYTES = MAX_MARKDOWN_BYTES
@@ -112,12 +108,8 @@ export const Plugin = {
           output: Output,
           execute: (input, context) =>
             Effect.gen(function* () {
-              const url = yield* Effect.try({
-                try: () => {
-                  const parsed = new URL(input.url)
-                  assertHttpUrl(parsed)
-                  return parsed
-                },
+              yield* Effect.try({
+                try: () => assertHttpUrl(new URL(input.url)),
                 catch: (error) => error,
               })
 
@@ -131,11 +123,9 @@ export const Plugin = {
                 source: { type: "tool", messageID: context.messageID, id: context.id },
               })
 
-              yield* NetGuard.assertFetchable(url)
-
               const { body, contentType } = yield* Effect.gen(function* () {
                 const response = yield* execute(http, input.url, input.format).pipe(
-                  Effect.catchIf(isCloudflareChallenge, () => execute(http, input.url, input.format, "bolt")),
+                  Effect.catchIf(isCloudflareChallenge, () => execute(http, input.url, input.format, "opencode")),
                 )
                 const contentType = response.headers["content-type"] || ""
                 const mime = mimeFrom(contentType)

@@ -7,20 +7,27 @@ import { AutoScroller, Feedback, PointerActivationConstraints } from "@dnd-kit/d
 import { RestrictToVerticalAxis } from "@dnd-kit/abstract/modifiers"
 import { RestrictToElement } from "@dnd-kit/dom/modifiers"
 import { ScrollView } from "@bolt-ai/ui/scroll-view"
-import { ProjectAvatar } from "@bolt-ai/ui/v2/project-avatar-v2"
-import { Icon as IconV2 } from "@bolt-ai/ui/v2/icon"
-import { IconButtonV2 } from "@bolt-ai/ui/v2/icon-button-v2"
-import { MenuV2 } from "@bolt-ai/ui/v2/menu-v2"
-import { TooltipV2 } from "@bolt-ai/ui/v2/tooltip-v2"
-import { getProjectAvatarVariant, type HomeProjectSelection, type LocalProject } from "@/context/layout"
-import { ServerConnection } from "@/context/server"
-import { useLanguage } from "@/context/language"
-import { usePlatform } from "@/context/platform"
-import { displayName, getProjectAvatarSource } from "@/pages/layout/helpers"
-import { ServerRowMenuView, serverMenuLabels } from "@/components/server/server-row-menu"
-import { ServerHealthIndicator } from "@/components/server/server-row"
-import { type ServerHealth } from "@/utils/server-health"
-import { fileManagerApp } from "@/utils/file-manager"
+import {
+  displayName,
+  getProjectAvatarSource,
+  getProjectAvatarVariant,
+  ProjectAvatar,
+} from "@bolt-ai/ui/project-avatar"
+import { Icon } from "@bolt-ai/ui/icon"
+import { IconButton } from "@bolt-ai/ui/icon-button"
+import { Button } from "@bolt-ai/ui/button"
+import { Spinner } from "@bolt-ai/ui/spinner"
+import { Menu } from "@bolt-ai/ui/menu"
+import { Tooltip } from "@bolt-ai/ui/tooltip"
+import type { HomeProjectSelection, LocalProject } from "@/shell/state/layout"
+import { ServerConnection } from "@/runtime/server/registry"
+import { useLanguage } from "@/runtime/i18n/language"
+import { usePlatform } from "@/runtime/platform/platform"
+import { ServerRowMenuView, serverMenuLabels } from "@/servers/registry/row-menu"
+import { ServerHealthIndicator } from "@/servers/registry/row"
+import { type ServerHealth } from "@/runtime/server/health"
+import { fileManagerApp } from "@/home/projects/file-manager"
+import "./view.css"
 
 const HOME_PROJECT_NAV_LABEL = "min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
 

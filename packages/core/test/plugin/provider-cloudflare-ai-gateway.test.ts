@@ -1,11 +1,11 @@
-import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect, mock } from "bun:test"
+import { describe, expect } from "bun:test"
 import { Effect } from "effect"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Integration } from "@bolt-ai/core/integration"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { CloudflareAIGatewayPlugin } from "@bolt-ai/core/plugin/provider/cloudflare-ai-gateway"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
+import { withEnv } from "../fixture/env"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -29,38 +29,14 @@ describe("CloudflareAIGatewayPlugin", () => {
     withEnv({ CLOUDFLARE_ACCOUNT_ID: undefined, CLOUDFLARE_GATEWAY_ID: undefined }, () =>
       Effect.gen(function* () {
         yield* addPlugin()
-
-        yield* aisdk.runSDK({
-          model: ModelV2.Info.make({
-            ...ModelV2.Info.empty(ProviderV2.ID.make("cloudflare-ai-gateway"), ModelV2.ID.make("openai/gpt-5")),
-            api: { id: ModelV2.ID.make("openai/gpt-5"), type: "aisdk", package: "test-provider" },
-          }),
-          package: "ai-gateway-provider",
-          options: {
-            name: "cloudflare-ai-gateway",
-            metadata: { invoked_by: "test", project: "bolt" },
-            cacheTtl: 300,
-            cacheKey: "cache-key",
-            skipCache: true,
-            collectLog: false,
-          },
-        })
-
-        expect(aiGatewayCalls).toHaveLength(1)
-        expect(aiGatewayCalls[0]).toEqual({
-          accountId: "env-account",
-          gateway: "env-gateway",
-          apiKey: "env-token",
-          options: {
-            metadata: { invoked_by: "test", project: "bolt" },
-            cacheTtl: 300,
-            cacheKey: "cache-key",
-            skipCache: true,
-            collectLog: false,
-            headers: {
-              "User-Agent": expect.stringContaining("bolt/"),
-            },
-          },
+        const integrations = yield* Integration.Service
+        expect((yield* integrations.get(Integration.ID.make("cloudflare-ai-gateway")))?.methods).toContainEqual({
+          type: "key",
+          label: "Gateway API token",
+          form: [
+            expect.objectContaining({ type: "string", key: "accountId", required: true }),
+            expect.objectContaining({ type: "string", key: "gatewayId", required: true }),
+          ],
         })
       }),
     ),
@@ -70,23 +46,10 @@ describe("CloudflareAIGatewayPlugin", () => {
     withEnv({ CLOUDFLARE_ACCOUNT_ID: "account", CLOUDFLARE_GATEWAY_ID: "gateway" }, () =>
       Effect.gen(function* () {
         yield* addPlugin()
-
-        yield* aisdk.runSDK({
-          model: ModelV2.Info.make({
-            ...ModelV2.Info.empty(ProviderV2.ID.make("cloudflare-ai-gateway"), ModelV2.ID.make("openai/gpt-5")),
-            api: { id: ModelV2.ID.make("openai/gpt-5"), type: "aisdk", package: "test-provider" },
-          }),
-          package: "ai-gateway-provider",
-          options: {
-            name: "cloudflare-ai-gateway",
-            headers: {
-              "cf-aig-metadata": JSON.stringify({ invoked_by: "header", project: "bolt" }),
-            },
-          },
-        })
-
-        expect(aiGatewayCalls[0]?.options).toMatchObject({
-          metadata: { invoked_by: "header", project: "bolt" },
+        const integrations = yield* Integration.Service
+        expect((yield* integrations.get(Integration.ID.make("cloudflare-ai-gateway")))?.methods).toContainEqual({
+          type: "key",
+          label: "Gateway API token",
         })
       }),
     ),

@@ -30,46 +30,18 @@ export const AmazonBedrockPlugin = define({
     const files = yield* Effect.all(
       paths.map((file) => fs.readFileStringSafe(file).pipe(Effect.orElseSucceed(() => undefined))),
     )
-    yield* ctx.aisdk.sdk(
-      Effect.fn(function* (evt) {
-        if (!["@ai-sdk/amazon-bedrock", "@ai-sdk/amazon-bedrock/mantle"].includes(evt.package)) return
-        const options = { ...evt.options }
-        const profile = typeof options.profile === "string" ? options.profile : process.env.AWS_PROFILE
-        const region = typeof options.region === "string" ? options.region : (process.env.AWS_REGION ?? "us-east-1")
-        const bearerToken =
-          process.env.AWS_BEARER_TOKEN_BEDROCK ??
-          (typeof options.bearerToken === "string" ? options.bearerToken : undefined)
-        if (bearerToken && !process.env.AWS_BEARER_TOKEN_BEDROCK) process.env.AWS_BEARER_TOKEN_BEDROCK = bearerToken
-
-        options.region = region
-        if (typeof options.endpoint === "string") options.baseURL = options.endpoint
-        if (!bearerToken && options.credentialProvider === undefined) {
-          // Do not gate SDK creation on explicit AWS env vars. The default chain
-          // also handles ~/.aws/credentials, SSO, process creds, and instance roles.
-          const { fromNodeProviderChain } = yield* Effect.promise(() => import("@aws-sdk/credential-providers"))
-          options.credentialProvider = fromNodeProviderChain(profile ? { profile } : {})
-        }
-
-        if (evt.package === "@ai-sdk/amazon-bedrock/mantle") {
-          const mod = yield* Effect.promise(() => import("@ai-sdk/amazon-bedrock/mantle"))
-          evt.sdk = mod.createBedrockMantle(options)
-          return
-        }
-
-        const mod = yield* Effect.promise(() => import("@ai-sdk/amazon-bedrock"))
-        evt.sdk = mod.createAmazonBedrock(options)
-      }),
-    )
-    yield* ctx.aisdk.language(
-      Effect.fn(function* (evt) {
-        if (evt.model.providerID !== ProviderV2.ID.amazonBedrock) return
-        if (evt.model.api.type === "aisdk" && evt.model.api.package === "@ai-sdk/amazon-bedrock/mantle") {
-          evt.language = selectMantleModel(evt.sdk, evt.model.api.id)
-          return
-        }
-        const region = typeof evt.options.region === "string" ? evt.options.region : process.env.AWS_REGION
-        evt.language = evt.sdk.languageModel(resolveModelID(evt.model.api.id, region))
-      }),
+    // Discover names only. Resolving every profile here could run credential helpers or contact AWS.
+    const profiles = Array.from(
+      new Set(
+        files.flatMap((content, index) =>
+          Array.from((content ?? "").matchAll(/^\s*\[([^\]\r\n]+)\]/gm)).flatMap((match) => {
+            const section = match[1].trim()
+            // The credentials file uses bare names; the config file prefixes all but "default" with "profile ".
+            if (index === 1 || section === "default") return [section]
+            return section.startsWith("profile ") ? [section.slice(8).trim()] : []
+          }),
+        ),
+      ),
     )
       .filter(Boolean)
       .toSorted()

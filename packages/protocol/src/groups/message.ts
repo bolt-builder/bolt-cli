@@ -1,8 +1,24 @@
 import { Session } from "@bolt-ai/schema/session"
 import { SessionMessage } from "@bolt-ai/schema/session-message"
-import { Schema } from "effect"
-import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/unstable/httpapi"
-import { InvalidCursorError, SessionNotFoundError, UnknownError } from "../errors"
+import { Location } from "@bolt-ai/schema/location"
+import { Schema, Struct } from "effect"
+import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
+import { InvalidCursorError, SessionNotFoundError, UnknownError } from "../errors.js"
+
+// Keyed by message type so a new message type cannot be left out of the filter.
+const MessageTypes = {
+  "agent-switched": true,
+  "model-switched": true,
+  "location-switched": true,
+  user: true,
+  synthetic: true,
+  system: true,
+  skill: true,
+  shell: true,
+  assistant: true,
+  compaction: true,
+  idle: true,
+} satisfies Record<SessionMessage.Type, true>
 
 export const SessionMessagesQuery = Schema.Struct({
   limit: Schema.optional(

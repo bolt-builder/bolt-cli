@@ -13,7 +13,7 @@ import {
 import { createAsync, query } from "@solidjs/router"
 import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show, type JSX } from "solid-js"
 import { getRequestEvent } from "solid-js/web"
-import { FormatLinks, JsonLd, LastModified, boltOrganization } from "../component/agent-meta"
+import { FormatLinks, JsonLd, LastModified, openCodeOrganization } from "../component/agent-meta"
 import { ChartDataTable } from "../component/chart-data-table"
 import { LocaleLinks } from "../component/locale-links"
 import { useI18n } from "../context/i18n"
@@ -111,7 +111,7 @@ export default function StatsHome() {
             <FormatLinks path="/data/" />
             <LastModified value={stats().updatedAt} />
             <Meta property="og:type" content="website" />
-            <Meta property="og:site_name" content="Bolt" />
+            <Meta property="og:site_name" content="OpenCode" />
             <Meta property="og:title" content={i18n.t("app.title")} />
             <Meta property="og:description" content={i18n.t("app.description")} />
             <Meta property="og:url" content={statsHomeUrl} />
@@ -1823,8 +1823,8 @@ function homeStructuredData(
         name: page.name,
         description: page.description,
         url: page.url,
-        creator: boltOrganization,
-        publisher: boltOrganization,
+        creator: openCodeOrganization,
+        publisher: openCodeOrganization,
         isAccessibleForFree: true,
         variableMeasured: ["Tokens", "Unique users", "Sessions", "Cost per session", "Cache ratio", "Weekly retention"],
         ...(data.updatedAt ? { dateModified: data.updatedAt } : {}),

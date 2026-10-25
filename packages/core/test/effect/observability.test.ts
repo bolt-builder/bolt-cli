@@ -8,14 +8,10 @@ import { fileLogger } from "@bolt-ai/util/observability/logging"
 import { resource } from "@bolt-ai/util/observability/otlp"
 
 const otelResourceAttributes = process.env.OTEL_RESOURCE_ATTRIBUTES
-const opencodeClient = process.env.BOLT_CLIENT
 
 afterEach(() => {
   if (otelResourceAttributes === undefined) delete process.env.OTEL_RESOURCE_ATTRIBUTES
   else process.env.OTEL_RESOURCE_ATTRIBUTES = otelResourceAttributes
-
-  if (opencodeClient === undefined) delete process.env.BOLT_CLIENT
-  else process.env.BOLT_CLIENT = opencodeClient
 })
 
 describe("resource", () => {
@@ -35,19 +31,20 @@ describe("resource", () => {
     process.env.OTEL_RESOURCE_ATTRIBUTES = "service.namespace=anomalyco,broken"
 
     expect(resource().attributes["service.namespace"]).toBeUndefined()
-    expect(resource().attributes["bolt.client"]).toBeDefined()
+    expect(resource().attributes["opencode.client"]).toBeDefined()
   })
 
   test("keeps built-in attributes when env values conflict", () => {
-    process.env.BOLT_CLIENT = "cli"
-    process.env.OTEL_RESOURCE_ATTRIBUTES = "bolt.client=web,service.instance.id=override,service.namespace=anomalyco"
+    process.env.OTEL_RESOURCE_ATTRIBUTES =
+      "opencode.client=web,service.instance.id=override,service.namespace=anomalyco"
 
-    expect(resource().attributes).toMatchObject({
-      "bolt.client": "cli",
+    const app = { client: "cli", version: "1.2.3", channel: "beta" }
+    expect(resource(app).attributes).toMatchObject({
+      "opencode.client": "cli",
       "service.namespace": "anomalyco",
     })
-    expect(resource().attributes["service.instance.id"]).not.toBe("override")
-    expect(resource().attributes["bolt.run"]).toMatch(/^[0-9a-f]{8}$/)
+    expect(resource(app).attributes["service.instance.id"]).not.toBe("override")
+    expect(resource(app).attributes["opencode.run"]).toMatch(/^[0-9a-f]{8}$/)
   })
 })
 
@@ -88,13 +85,13 @@ test("falls back to local logging when OTLP initialization fails", async () => {
 })
 
 test("file logger appends concurrent runs with a run on every line", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-log-test-"))
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-log-test-"))
   await using _ = {
     async [Symbol.asyncDispose]() {
       await fs.rm(dir, { recursive: true, force: true })
     },
   }
-  const file = path.join(dir, "bolt.log")
+  const file = path.join(dir, "opencode.log")
   const write = (runID: string) =>
     Effect.forEach(
       Array.from({ length: 50 }, (_, index) => index),
@@ -116,13 +113,13 @@ test("file logger appends concurrent runs with a run on every line", async () =>
 })
 
 test("file logger flattens nested objects", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-log-test-"))
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-log-test-"))
   await using _ = {
     async [Symbol.asyncDispose]() {
       await fs.rm(dir, { recursive: true, force: true })
     },
   }
-  const file = path.join(dir, "bolt.log")
+  const file = path.join(dir, "opencode.log")
 
   await Effect.logInfo("request complete", {
     request: { method: "GET", timing: { duration: 42 } },

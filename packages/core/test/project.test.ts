@@ -2,11 +2,18 @@ import { describe, expect } from "bun:test"
 import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
-import { Effect, Schema } from "effect"
+import { Effect, Layer, Stream } from "effect"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { ProjectV2 } from "@bolt-ai/core/project"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { Database } from "@bolt-ai/core/database/database"
+import { Project } from "@bolt-ai/core/project"
+import { ProjectSchema } from "@bolt-ai/core/project/schema"
+import { ProjectTable } from "@bolt-ai/core/project/sql"
 import { AbsolutePath } from "@bolt-ai/core/schema"
-import { Hash } from "@bolt-ai/core/util/hash"
+import { Hash } from "@bolt-ai/util/hash"
+import { initGit } from "./fixture/git"
+import { countingSpawner } from "./fixture/spawn"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
@@ -321,11 +328,7 @@ function real(value: string) {
 }
 
 async function initRepo(dir: string, opts?: { commit?: boolean; remote?: string }) {
-  await $`git init`.cwd(dir).quiet()
-  await $`git config core.fsmonitor false`.cwd(dir).quiet()
-  await $`git config commit.gpgsign false`.cwd(dir).quiet()
-  await $`git config user.email test@bolt.test`.cwd(dir).quiet()
-  await $`git config user.name Test`.cwd(dir).quiet()
+  await initGit(dir)
   if (opts?.commit) await $`git commit --allow-empty -m root`.cwd(dir).quiet()
   if (opts?.remote) await $`git remote add origin ${opts.remote}`.cwd(dir).quiet()
 }
@@ -580,8 +583,8 @@ describe("Project.resolve", () => {
         (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
       )
       yield* Effect.promise(() => initRepo(tmp.path, { commit: true, remote: "git@github.com:owner/repo.git" }))
-      yield* Effect.promise(() => Bun.write(path.join(tmp.path, ".git", "bolt"), "old-id"))
-      const project = yield* ProjectV2.Service
+      yield* Effect.promise(() => Bun.write(path.join(tmp.path, ".git", "opencode"), "old-id"))
+      const project = yield* Project.Service
 
       const result = yield* project.resolve(abs(tmp.path))
 
@@ -601,7 +604,7 @@ describe("Project.resolve", () => {
 
       yield* project.resolve(abs(tmp.path))
 
-      expect(yield* Effect.promise(() => Bun.file(path.join(tmp.path, ".git", "bolt")).exists())).toBe(false)
+      expect(yield* Effect.promise(() => Bun.file(path.join(tmp.path, ".git", "opencode")).exists())).toBe(false)
     }),
   )
 
@@ -706,7 +709,7 @@ describe("Project.resolve", () => {
         Effect.promise(() => $`rm -rf ${worktree}`.quiet().nothrow()).pipe(Effect.ignore),
       )
       yield* Effect.promise(() => initRepo(tmp.path, { commit: true, remote: "git@github.com:owner/repo.git" }))
-      yield* Effect.promise(() => Bun.write(path.join(tmp.path, ".git", "bolt"), "old-id"))
+      yield* Effect.promise(() => Bun.write(path.join(tmp.path, ".git", "opencode"), "old-id"))
       yield* Effect.promise(() => $`git worktree add ${worktree} -b test-${Date.now()}`.cwd(tmp.path).quiet())
       const project = yield* Project.Service
       const db = (yield* Database.Service).db

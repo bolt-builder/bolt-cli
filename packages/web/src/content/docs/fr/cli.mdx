@@ -1,27 +1,27 @@
 ---
 title: CLI
-description: Options et commandes de la CLI Bolt.
+description: Options et commandes de la CLI OpenCode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-La CLI Bolt démarre par défaut le [TUI](/docs/tui) lorsqu'il est exécuté sans aucun argument.
+La CLI OpenCode démarre par défaut le [TUI](/docs/tui) lorsqu'il est exécuté sans aucun argument.
 
 ```bash
 opencode
 ```
 
-Mais elle accepte également les commandes documentées sur cette page. Cela vous permet d'interagir avec Bolt par programme.
+Mais elle accepte également les commandes documentées sur cette page. Cela vous permet d'interagir avec OpenCode par programme.
 
 ```bash
-bolt run "Explain how closures work in JavaScript"
+opencode run "Explain how closures work in JavaScript"
 ```
 
 ---
 
 ### tui
 
-Démarrez l’interface utilisateur du terminal Bolt.
+Démarrez l’interface utilisateur du terminal OpenCode.
 
 ```bash
 opencode [project]
@@ -44,29 +44,19 @@ opencode [project]
 
 ## Commandes
 
-La CLI Bolt dispose également des commandes suivantes.
-
----
-
-### agent
-
-Gérer les agents pour Bolt.
-
-```bash
-opencode agent [command]
-```
+La CLI OpenCode dispose également des commandes suivantes.
 
 ---
 
 ### attach
 
-Attachez un terminal à un serveur backend Bolt déjà en cours d'exécution démarré via les commandes `serve` ou `web`.
+Attachez un terminal à un serveur backend OpenCode déjà en cours d'exécution démarré via les commandes `serve` ou `web`.
 
 ```bash
 opencode attach [url]
 ```
 
-Cela permet d'utiliser le TUI avec un backend Bolt distant. Par exemple :
+Cela permet d'utiliser le TUI avec un backend OpenCode distant. Par exemple :
 
 ```bash
 # Start the backend server for web/mobile access
@@ -78,14 +68,14 @@ opencode attach http://10.20.30.40:4096
 
 #### Options
 
-| Option                                   | Court | Description                                                                                    |
-| ---------------------------------------- | ----- | ---------------------------------------------------------------------------------------------- |
-| <nobr><code>{"--dir"}</code></nobr>      |       | Répertoire de travail dans lequel démarrer TUI                                                 |
-| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continuer la dernière session                                                                  |
-| <nobr><code>{"--session"}</code></nobr>  | `-s`  | ID de session pour continuer                                                                   |
-| <nobr><code>{"--fork"}</code></nobr>     |       | Dupliquer la session lors de la reprise (à utiliser avec `--continue` ou `--session`)          |
-| <nobr><code>{"--password"}</code></nobr> | `-p`  | Mot de passe d'authentification de base (par défaut `BOLT_SERVER_PASSWORD`)                    |
-| <nobr><code>{"--username"}</code></nobr> | `-u`  | Nom d'utilisateur d'authentification de base (par défaut `BOLT_SERVER_USERNAME` ou `opencode`) |
+| Option                                   | Court | Description                                                                                        |
+| ---------------------------------------- | ----- | -------------------------------------------------------------------------------------------------- |
+| <nobr><code>{"--dir"}</code></nobr>      |       | Répertoire de travail dans lequel démarrer TUI                                                     |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continuer la dernière session                                                                      |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`  | ID de session pour continuer                                                                       |
+| <nobr><code>{"--fork"}</code></nobr>     |       | Dupliquer la session lors de la reprise (à utiliser avec `--continue` ou `--session`)              |
+| <nobr><code>{"--password"}</code></nobr> | `-p`  | Mot de passe d'authentification de base (par défaut `OPENCODE_SERVER_PASSWORD`)                    |
+| <nobr><code>{"--username"}</code></nobr> | `-u`  | Nom d'utilisateur d'authentification de base (par défaut `OPENCODE_SERVER_USERNAME` ou `opencode`) |
 
 ---
 
@@ -101,13 +91,13 @@ opencode auth [command]
 
 #### login
 
-Bolt est alimenté par la liste des fournisseurs sur [Models.dev](https://models.dev), vous pouvez donc utiliser `opencode auth login` pour configurer les clés API pour tout fournisseur que vous souhaitez utiliser. Ceci est stocké dans `~/.local/share/opencode/auth.json`.
+OpenCode est alimenté par la liste des fournisseurs sur [Models.dev](https://models.dev), vous pouvez donc utiliser `opencode auth login` pour configurer les clés API pour tout fournisseur que vous souhaitez utiliser. Ceci est stocké dans `~/.local/share/opencode/auth.json`.
 
 ```bash
 opencode auth login
 ```
 
-Lorsque Bolt démarre, il charge les fournisseurs à partir du fichier d'informations d'identification, ainsi que les clés définies dans vos environnements ou un fichier `.env` dans votre projet.
+Lorsque OpenCode démarre, il charge les fournisseurs à partir du fichier d'informations d'identification, ainsi que les clés définies dans vos environnements ou un fichier `.env` dans votre projet.
 
 ---
 
@@ -283,7 +273,7 @@ opencode models anthropic
 | <nobr><code>{"--refresh"}</code></nobr> | Actualisez le cache des modèles à partir de models.dev                                     |
 | <nobr><code>{"--verbose"}</code></nobr> | Utiliser une sortie de modèle plus détaillée (inclut des métadonnées telles que les coûts) |
 
-Utilisez l'option `--refresh` pour mettre à jour la liste des modèles mis en cache. Ceci est utile lorsque de nouveaux modèles ont été ajoutés à un fournisseur et que vous souhaitez les voir dans Bolt.
+Utilisez l'option `--refresh` pour mettre à jour la liste des modèles mis en cache. Ceci est utile lorsque de nouveaux modèles ont été ajoutés à un fournisseur et que vous souhaitez les voir dans OpenCode.
 
 ```bash
 opencode models --refresh
@@ -296,13 +286,13 @@ opencode models --refresh
 Exécutez opencode en mode non interactif en transmettant directement un prompt.
 
 ```bash
-bolt run [message..]
+opencode run [message..]
 ```
 
 Ceci est utile pour les scripts, l'automatisation ou lorsque vous souhaitez une réponse rapide sans lancer le TUI complet. Par exemple :
 
-```bash "bolt run"
-bolt run Explain the use of context in Go
+```bash "opencode run"
+opencode run Explain the use of context in Go
 ```
 
 Vous pouvez également vous connecter à une instance `opencode serve` en cours d'exécution pour éviter les temps de démarrage à froid du serveur MCP à chaque exécution :
@@ -312,42 +302,41 @@ Vous pouvez également vous connecter à une instance `opencode serve` en cours 
 opencode serve
 
 # In another terminal, run commands that attach to it
-bolt run --attach http://localhost:4096 "Explain async/await in JavaScript"
+opencode run --attach http://localhost:4096 "Explain async/await in JavaScript"
 ```
 
 #### Options
 
-| Option                                   | Court | Description                                                                                    |
-| ---------------------------------------- | ----- | ---------------------------------------------------------------------------------------------- |
-| <nobr><code>{"--command"}</code></nobr>  |       | La commande à exécuter, utilisez le message pour les arguments                                 |
-| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continuer la dernière session                                                                  |
-| <nobr><code>{"--session"}</code></nobr>  | `-s`  | ID de session pour continuer                                                                   |
-| <nobr><code>{"--fork"}</code></nobr>     |       | Forker la session en continuant (à utiliser avec `--continue` ou `--session`)                  |
-| <nobr><code>{"--share"}</code></nobr>    |       | Partager la session                                                                            |
-| <nobr><code>{"--model"}</code></nobr>    | `-m`  | Modèle à utiliser sous forme de fournisseur/modèle                                             |
-| <nobr><code>{"--agent"}</code></nobr>    |       | Agent à utiliser                                                                               |
-| <nobr><code>{"--file"}</code></nobr>     | `-f`  | Fichier(s) à joindre au message                                                                |
-| <nobr><code>{"--format"}</code></nobr>   |       | Format : par défaut (formaté) ou json (événements JSON bruts)                                  |
-| <nobr><code>{"--title"}</code></nobr>    |       | Titre de la session (utilise un prompt tronqué si aucune valeur n'est fournie)                 |
-| <nobr><code>{"--attach"}</code></nobr>   |       | Connectez-vous à un serveur opencode en cours d'exécution (par exemple, http://localhost:4096) |
-| <nobr><code>{"--password"}</code></nobr> | `-p`  | Mot de passe d'authentification de base (par défaut `BOLT_SERVER_PASSWORD`)                    |
-| <nobr><code>{"--username"}</code></nobr> | `-u`  | Nom d'utilisateur d'authentification de base (par défaut `BOLT_SERVER_USERNAME` ou `opencode`) |
-| <nobr><code>{"--dir"}</code></nobr>      |       | Répertoire d'exécution, ou chemin sur le serveur distant lors de l'attachement                 |
-| <nobr><code>{"--variant"}</code></nobr>  |       | Variante du modèle (effort de raisonnement spécifique au fournisseur)                          |
-| <nobr><code>{"--thinking"}</code></nobr> |       | Afficher les blocs de réflexion                                                                |
-| <nobr><code>{"--port"}</code></nobr>     |       | Port du serveur local (port aléatoire par défaut)                                              |
+| Option                                   | Court | Description                                                                                        |
+| ---------------------------------------- | ----- | -------------------------------------------------------------------------------------------------- |
+| <nobr><code>{"--command"}</code></nobr>  |       | La commande à exécuter, utilisez le message pour les arguments                                     |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continuer la dernière session                                                                      |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`  | ID de session pour continuer                                                                       |
+| <nobr><code>{"--fork"}</code></nobr>     |       | Forker la session en continuant (à utiliser avec `--continue` ou `--session`)                      |
+| <nobr><code>{"--model"}</code></nobr>    | `-m`  | Modèle à utiliser sous forme de fournisseur/modèle                                                 |
+| <nobr><code>{"--agent"}</code></nobr>    |       | Agent à utiliser                                                                                   |
+| <nobr><code>{"--file"}</code></nobr>     | `-f`  | Fichier(s) à joindre au message                                                                    |
+| <nobr><code>{"--format"}</code></nobr>   |       | Format : par défaut (formaté) ou json (événements JSON bruts)                                      |
+| <nobr><code>{"--title"}</code></nobr>    |       | Titre de la session (utilise un prompt tronqué si aucune valeur n'est fournie)                     |
+| <nobr><code>{"--attach"}</code></nobr>   |       | Connectez-vous à un serveur opencode en cours d'exécution (par exemple, http://localhost:4096)     |
+| <nobr><code>{"--password"}</code></nobr> | `-p`  | Mot de passe d'authentification de base (par défaut `OPENCODE_SERVER_PASSWORD`)                    |
+| <nobr><code>{"--username"}</code></nobr> | `-u`  | Nom d'utilisateur d'authentification de base (par défaut `OPENCODE_SERVER_USERNAME` ou `opencode`) |
+| <nobr><code>{"--dir"}</code></nobr>      |       | Répertoire d'exécution, ou chemin sur le serveur distant lors de l'attachement                     |
+| <nobr><code>{"--variant"}</code></nobr>  |       | Variante du modèle (effort de raisonnement spécifique au fournisseur)                              |
+| <nobr><code>{"--thinking"}</code></nobr> |       | Afficher les blocs de réflexion                                                                    |
+| <nobr><code>{"--port"}</code></nobr>     |       | Port du serveur local (port aléatoire par défaut)                                                  |
 
 ---
 
 ### serve
 
-Démarrez un serveur Bolt sans interface graphique pour un accès API. Consultez le [serveur docs](/docs/server) pour l'interface complète HTTP.
+Démarrez un serveur OpenCode sans interface graphique pour un accès API. Consultez le [serveur docs](/docs/server) pour l'interface complète HTTP.
 
 ```bash
 opencode serve
 ```
 
-Cela démarre un serveur HTTP qui fournit un accès API aux fonctionnalités d'Bolt sans l'interface TUI. Définissez `BOLT_SERVER_PASSWORD` pour activer l'authentification de base HTTP (le nom d'utilisateur par défaut est `opencode`).
+Cela démarre un serveur HTTP qui fournit un accès API aux fonctionnalités d'OpenCode sans l'interface TUI. Définissez `OPENCODE_SERVER_PASSWORD` pour activer l'authentification de base HTTP (le nom d'utilisateur par défaut est `opencode`).
 
 #### Options
 
@@ -362,7 +351,7 @@ Cela démarre un serveur HTTP qui fournit un accès API aux fonctionnalités d'B
 
 ### session
 
-Gérer les sessions Bolt.
+Gérer les sessions OpenCode.
 
 ```bash
 opencode session [command]
@@ -372,7 +361,7 @@ opencode session [command]
 
 #### list
 
-Liste toutes les sessions Bolt.
+Liste toutes les sessions OpenCode.
 
 ```bash
 opencode session list
@@ -389,7 +378,7 @@ opencode session list
 
 ### stats
 
-Affichez les statistiques d'utilisation et de coût des jetons pour vos sessions Bolt.
+Affichez les statistiques d'utilisation et de coût des jetons pour vos sessions OpenCode.
 
 ```bash
 opencode stats
@@ -420,13 +409,11 @@ Si vous ne fournissez pas d'ID de session, vous serez invité à sélectionner p
 
 ### import
 
-Importez les données de session à partir d'un fichier JSON ou d'une URL de partage Bolt.
+Importez les données de session à partir d'un fichier JSON.
 
 ```bash
 opencode import <file>
 ```
-
-Vous pouvez importer à partir d'un fichier local ou d'une URL de partage Bolt.
 
 ```bash
 opencode import session.json
@@ -436,13 +423,13 @@ opencode import session.json
 
 ### web
 
-Démarrez un serveur Bolt sans interface graphique avec une interface Web.
+Démarrez un serveur OpenCode sans interface graphique avec une interface Web.
 
 ```bash
 opencode web
 ```
 
-Cela démarre un serveur HTTP et ouvre un navigateur Web pour accéder à Bolt via une interface Web. Définissez `BOLT_SERVER_PASSWORD` pour activer l'authentification de base HTTP (le nom d'utilisateur par défaut est `opencode`).
+Cela démarre un serveur HTTP et ouvre un navigateur Web pour accéder à OpenCode via une interface Web. Définissez `OPENCODE_SERVER_PASSWORD` pour activer l'authentification de base HTTP (le nom d'utilisateur par défaut est `opencode`).
 
 #### Options
 
@@ -477,7 +464,7 @@ Cette commande démarre un serveur ACP qui communique via stdin/stdout en utilis
 
 ### uninstall
 
-Désinstallez Bolt et supprimez tous les fichiers associés.
+Désinstallez OpenCode et supprimez tous les fichiers associés.
 
 ```bash
 opencode uninstall
@@ -537,34 +524,33 @@ La CLI opencode prend les flags globaux suivants.
 
 ## Variables d'environnement
 
-Bolt peut être configuré à l'aide de variables d'environnement.
+OpenCode peut être configuré à l'aide de variables d'environnement.
 
-| Variables                         | Type    | Description                                                                       |
-| --------------------------------- | ------- | --------------------------------------------------------------------------------- |
-| `BOLT_AUTO_SHARE`                 | booléen | Partager automatiquement des sessions                                             |
-| `BOLT_GIT_BASH_PATH`              | chaîne  | Chemin vers l'exécutable Git Bash sur Windows                                     |
-| `BOLT_CONFIG`                     | chaîne  | Chemin d'accès au fichier de configuration                                        |
-| `BOLT_TUI_CONFIG`                 | chaîne  | Chemin d'accès au fichier de configuration TUI                                    |
-| `BOLT_CONFIG_DIR`                 | chaîne  | Chemin d'accès au répertoire de configuration                                     |
-| `BOLT_CONFIG_CONTENT`             | chaîne  | Contenu de configuration JSON en ligne                                            |
-| `BOLT_DISABLE_AUTOUPDATE`         | booléen | Désactiver les vérifications automatiques des mises à jour                        |
-| `BOLT_DISABLE_PRUNE`              | booléen | Désactiver le nettoyage des anciennes données                                     |
-| `BOLT_DISABLE_TERMINAL_TITLE`     | booléen | Désactiver les mises à jour automatiques des titres du terminal                   |
-| `BOLT_PERMISSION`                 | chaîne  | Configuration des autorisations JSON intégrées                                    |
-| `BOLT_DISABLE_DEFAULT_PLUGINS`    | booléen | Désactiver les plugins par défaut                                                 |
-| `BOLT_DISABLE_LSP_DOWNLOAD`       | booléen | Désactiver les téléchargements automatiques du serveur LSP                        |
-| `BOLT_ENABLE_EXPERIMENTAL_MODELS` | booléen | Activer les modèles expérimentaux                                                 |
-| `BOLT_DISABLE_AUTOCOMPACT`        | booléen | Désactiver le compactage automatique du contexte                                  |
-| `BOLT_DISABLE_CLAUDE_CODE`        | booléen | Désactiver la lecture de `.claude` (prompt + compétences)                         |
-| `BOLT_DISABLE_CLAUDE_CODE_PROMPT` | booléen | Désactiver la lecture `~/.claude/CLAUDE.md`                                       |
-| `BOLT_DISABLE_CLAUDE_CODE_SKILLS` | booléen | Désactiver le chargement de `.claude/skills`                                      |
-| `BOLT_DISABLE_MODELS_FETCH`       | booléen | Désactiver la récupération de modèles à partir de sources distantes               |
-| `BOLT_FAKE_VCS`                   | chaîne  | Faux fournisseur VCS à des fins de test                                           |
-| `BOLT_CLIENT`                     | chaîne  | Identifiant du client (par défaut `cli`)                                          |
-| `BOLT_ENABLE_EXA`                 | booléen | Activer les outils de recherche Web Exa                                           |
-| `BOLT_SERVER_PASSWORD`            | chaîne  | Activer l'authentification de base pour `serve`/`web`                             |
-| `BOLT_SERVER_USERNAME`            | chaîne  | Remplacer le nom d'utilisateur d'authentification de base (par défaut `opencode`) |
-| `BOLT_MODELS_URL`                 | chaîne  | URL personnalisé pour récupérer la configuration des modèles                      |
+| Variables                             | Type    | Description                                                                       |
+| ------------------------------------- | ------- | --------------------------------------------------------------------------------- |
+| `OPENCODE_GIT_BASH_PATH`              | chaîne  | Chemin vers l'exécutable Git Bash sur Windows                                     |
+| `OPENCODE_CONFIG`                     | chaîne  | Chemin d'accès au fichier de configuration                                        |
+| `OPENCODE_TUI_CONFIG`                 | chaîne  | Chemin d'accès au fichier de configuration TUI                                    |
+| `OPENCODE_CONFIG_DIR`                 | chaîne  | Chemin d'accès au répertoire de configuration                                     |
+| `OPENCODE_CONFIG_CONTENT`             | chaîne  | Contenu de configuration JSON en ligne                                            |
+| `OPENCODE_DISABLE_AUTOUPDATE`         | booléen | Désactiver les vérifications automatiques des mises à jour                        |
+| `OPENCODE_DISABLE_PRUNE`              | booléen | Désactiver le nettoyage des anciennes données                                     |
+| `OPENCODE_DISABLE_TERMINAL_TITLE`     | booléen | Désactiver les mises à jour automatiques des titres du terminal                   |
+| `OPENCODE_PERMISSION`                 | chaîne  | Configuration des autorisations JSON intégrées                                    |
+| `OPENCODE_DISABLE_DEFAULT_PLUGINS`    | booléen | Désactiver les plugins par défaut                                                 |
+| `OPENCODE_DISABLE_LSP_DOWNLOAD`       | booléen | Désactiver les téléchargements automatiques du serveur LSP                        |
+| `OPENCODE_ENABLE_EXPERIMENTAL_MODELS` | booléen | Activer les modèles expérimentaux                                                 |
+| `OPENCODE_DISABLE_AUTOCOMPACT`        | booléen | Désactiver le compactage automatique du contexte                                  |
+| `OPENCODE_DISABLE_CLAUDE_CODE`        | booléen | Désactiver la lecture de `.claude` (prompt + compétences)                         |
+| `OPENCODE_DISABLE_CLAUDE_CODE_PROMPT` | booléen | Désactiver la lecture `~/.claude/CLAUDE.md`                                       |
+| `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS` | booléen | Désactiver le chargement de `.claude/skills`                                      |
+| `OPENCODE_DISABLE_MODELS_FETCH`       | booléen | Désactiver la récupération de modèles à partir de sources distantes               |
+| `OPENCODE_FAKE_VCS`                   | chaîne  | Faux fournisseur VCS à des fins de test                                           |
+| `OPENCODE_CLIENT`                     | chaîne  | Identifiant du client (par défaut `cli`)                                          |
+| `OPENCODE_ENABLE_EXA`                 | booléen | Activer les outils de recherche Web Exa                                           |
+| `OPENCODE_SERVER_PASSWORD`            | chaîne  | Activer l'authentification de base pour `serve`/`web`                             |
+| `OPENCODE_SERVER_USERNAME`            | chaîne  | Remplacer le nom d'utilisateur d'authentification de base (par défaut `opencode`) |
+| `OPENCODE_MODELS_URL`                 | chaîne  | URL personnalisé pour récupérer la configuration des modèles                      |
 
 ---
 
@@ -572,23 +558,22 @@ Bolt peut être configuré à l'aide de variables d'environnement.
 
 Ces variables d'environnement activent des fonctionnalités expérimentales qui peuvent être modifiées ou supprimées.
 
-| Variables                                   | Type    | Description                                                     |
-| ------------------------------------------- | ------- | --------------------------------------------------------------- |
-| `BOLT_EXPERIMENTAL`                         | booléen | Activer les fonctionnalités expérimentales du drapeau global    |
-| `BOLT_EXPERIMENTAL_ICON_DISCOVERY`          | booléen | Activer la découverte d'icônes                                  |
-| `BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | booléen | Désactiver la copie lors de la sélection dans TUI               |
-| `BOLT_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | numéro  | Délai d'expiration par défaut pour les commandes bash en ms     |
-| `BOLT_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | numéro  | Nombre maximum de jetons de sortie pour les réponses LLM        |
-| `BOLT_EXPERIMENTAL_FILEWATCHER`             | booléen | Activer l'observateur de fichiers pour l'ensemble du répertoire |
-| `BOLT_EXPERIMENTAL_OXFMT`                   | booléen | Activer le formateur oxfmt                                      |
-| `BOLT_EXPERIMENTAL_LSP_TOOL`                | booléen | Activer l'outil expérimental LSP                                |
-| `BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER`     | booléen | Désactiver l'observateur de fichiers                            |
-| `BOLT_EXPERIMENTAL_EXA`                     | booléen | Activer les fonctionnalités Exa expérimentales                  |
-| `BOLT_EXPERIMENTAL_LSP_TY`                  | booléen | Activer TY LSP pour les fichiers python                         |
-| `BOLT_EXPERIMENTAL_PLAN_MODE`               | booléen | Activer le mode plan                                            |
-| `BOLT_EXPERIMENTAL_BACKGROUND_SUBAGENTS`    | booléen | Activer les tâches de sous-agents en arrière-plan               |
-| `BOLT_EXPERIMENTAL_EVENT_SYSTEM`            | booléen | Activer le système d'événements expérimental                    |
-| `BOLT_EXPERIMENTAL_NATIVE_LLM`              | booléen | Activer le chemin de requête LLM natif                          |
-| `BOLT_EXPERIMENTAL_PARALLEL`                | booléen | Activer l'exécution parallèle de la recherche web               |
-| `BOLT_EXPERIMENTAL_SCOUT`                   | booléen | Activer le sous-agent Scout                                     |
-| `BOLT_EXPERIMENTAL_WORKSPACES`              | booléen | Activer la prise en charge des espaces de travail               |
+| Variables                                       | Type    | Description                                                     |
+| ----------------------------------------------- | ------- | --------------------------------------------------------------- |
+| `OPENCODE_EXPERIMENTAL`                         | booléen | Activer les fonctionnalités expérimentales du drapeau global    |
+| `OPENCODE_EXPERIMENTAL_ICON_DISCOVERY`          | booléen | Activer la découverte d'icônes                                  |
+| `OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | booléen | Désactiver la copie lors de la sélection dans TUI               |
+| `OPENCODE_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | numéro  | Délai d'expiration par défaut pour les commandes bash en ms     |
+| `OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | numéro  | Nombre maximum de jetons de sortie pour les réponses LLM        |
+| `OPENCODE_EXPERIMENTAL_FILEWATCHER`             | booléen | Activer l'observateur de fichiers pour l'ensemble du répertoire |
+| `OPENCODE_EXPERIMENTAL_OXFMT`                   | booléen | Activer le formateur oxfmt                                      |
+| `OPENCODE_EXPERIMENTAL_LSP_TOOL`                | booléen | Activer l'outil expérimental LSP                                |
+| `OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER`     | booléen | Désactiver l'observateur de fichiers                            |
+| `OPENCODE_EXPERIMENTAL_EXA`                     | booléen | Activer les fonctionnalités Exa expérimentales                  |
+| `OPENCODE_EXPERIMENTAL_LSP_TY`                  | booléen | Activer TY LSP pour les fichiers python                         |
+| `OPENCODE_EXPERIMENTAL_PLAN_MODE`               | booléen | Activer le mode plan                                            |
+| `OPENCODE_EXPERIMENTAL_EVENT_SYSTEM`            | booléen | Activer le système d'événements expérimental                    |
+| `OPENCODE_EXPERIMENTAL_NATIVE_LLM`              | booléen | Activer le chemin de requête LLM natif                          |
+| `OPENCODE_EXPERIMENTAL_PARALLEL`                | booléen | Activer l'exécution parallèle de la recherche web               |
+| `OPENCODE_EXPERIMENTAL_SCOUT`                   | booléen | Activer le sous-agent Scout                                     |
+| `OPENCODE_EXPERIMENTAL_WORKSPACES`              | booléen | Activer la prise en charge des espaces de travail               |

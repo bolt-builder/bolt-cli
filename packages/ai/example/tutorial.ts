@@ -1,7 +1,8 @@
-import { Config, Effect, Formatter, Layer, Schema, Stream } from "effect"
-import { LLM, LLMClient, Message, ProviderID, Tool, ToolRuntime } from "@bolt-ai/llm"
-import { Route, Auth, Endpoint, Framing, Protocol, RequestExecutor, WebSocketExecutor } from "@bolt-ai/llm/route"
-import { OpenAI } from "@bolt-ai/llm/providers"
+import { Config, Effect, Formatter, Schema, Stream } from "effect"
+import { NodeFileSystem } from "@effect/platform-node"
+import { AIClient, Image, LLM, LLMRequest, Media, Message, ProviderID, Tool, ToolRuntime } from "@bolt-ai/ai/effect"
+import { Route, Auth, Endpoint, Framing, Protocol } from "@bolt-ai/ai/route"
+import { OpenAI } from "@bolt-ai/ai/providers"
 
 /**
  * A runnable walkthrough of the LLM package use-site API.

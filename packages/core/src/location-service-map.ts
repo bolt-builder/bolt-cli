@@ -8,8 +8,8 @@ import type { Instance } from "./instance.js"
 
 export class Service extends Context.Service<
   Service,
-  LayerMap.LayerMap<Location.Ref, LocationServices, LocationError>
->()("@bolt/example/LocationServiceMap") {
+  LayerMap.LayerMap<Location.Ref, Instance.Services, Instance.Error>
+>()("@bolt-ai/example/LocationServiceMap") {
   static get(ref: Location.Ref) {
     return Layer.unwrap(Effect.map(Service, (locations) => locations.get(ref)))
   }

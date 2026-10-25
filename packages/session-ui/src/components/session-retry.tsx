@@ -1,9 +1,11 @@
 import { createEffect, createMemo, createSignal, on, onCleanup, Show } from "solid-js"
-import type { SessionStatus } from "@bolt-ai/sdk/v2/client"
+import type { SessionStatus } from "@bolt-ai/client/promise"
 import { useI18n } from "@bolt-ai/ui/context/i18n"
 import { Card } from "@bolt-ai/ui/card"
+import { Icon } from "@bolt-ai/ui/icon"
+import { TextShimmer } from "@bolt-ai/ui/text-shimmer"
 import { Tooltip } from "@bolt-ai/ui/tooltip"
-import { Spinner } from "@bolt-ai/ui/spinner"
+import { SessionErrorMessage } from "./session-error"
 
 export function SessionRetry(props: { status: SessionStatus; show?: boolean }) {
   const i18n = useI18n()

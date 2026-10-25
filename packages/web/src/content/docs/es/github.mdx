@@ -1,17 +1,17 @@
 ---
 title: GitHub
-description: Utilice Bolt en problemas y solicitudes de extracción de GitHub.
+description: Utilice OpenCode en problemas y solicitudes de extracción de GitHub.
 ---
 
-Bolt se integra con su flujo de trabajo GitHub. Mencione `/opencode` o `/oc` en su comentario y Bolt ejecutará tareas dentro de su corredor de acciones GitHub.
+OpenCode se integra con su flujo de trabajo GitHub. Mencione `/opencode` o `/oc` en su comentario y OpenCode ejecutará tareas dentro de su corredor de acciones GitHub.
 
 ---
 
 ## Características
 
-- **Clasificación de problemas**: Pídele a Bolt que investigue un problema y te lo explique.
-- **Reparar e implementar**: pídale a Bolt que solucione un problema o implemente una función. Y funcionará en una nueva sucursal y enviará un PR con todos los cambios.
-- **Seguro**: Bolt se ejecuta dentro de los corredores de tu GitHub.
+- **Clasificación de problemas**: Pídele a OpenCode que investigue un problema y te lo explique.
+- **Reparar e implementar**: pídale a OpenCode que solucione un problema o implemente una función. Y funcionará en una nueva sucursal y enviará un PR con todos los cambios.
+- **Seguro**: OpenCode se ejecuta dentro de los corredores de tu GitHub.
 
 ---
 
@@ -37,9 +37,9 @@ O puede configurarlo manualmente.
 
 2. **Agregar el flujo de trabajo**
 
-   Agregue el siguiente archivo de flujo de trabajo a `.github/workflows/bolt.yml` en su repositorio. Asegúrese de configurar las claves `model` apropiadas y API requeridas en `env`.
+   Agregue el siguiente archivo de flujo de trabajo a `.github/workflows/opencode.yml` en su repositorio. Asegúrese de configurar las claves `model` apropiadas y API requeridas en `env`.
 
-   ```yml title=".github/workflows/bolt.yml" {24,26}
+   ```yml title=".github/workflows/opencode.yml" {24,26}
    name: opencode
 
    on:
@@ -63,8 +63,8 @@ O puede configurarlo manualmente.
              fetch-depth: 1
              persist-credentials: false
 
-          - name: Run Bolt
-           uses: bolt-builder/bolt-cli/github@latest
+         - name: Run OpenCode
+           uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
@@ -80,13 +80,12 @@ O puede configurarlo manualmente.
 
 ## Configuración
 
-- `model`: El modelo a usar con Bolt. Toma el formato de `provider/model`. Esto es **obligatorio**.
+- `model`: El modelo a usar con OpenCode. Toma el formato de `provider/model`. Esto es **obligatorio**.
 - `agent`: El agente a utilizar. Debe ser un agente primario. Vuelve a `default_agent` desde la configuración o `"build"` si no se encuentra.
-- `share`: si se comparte la sesión Bolt. El valor predeterminado es **verdadero** para repositorios públicos.
-- `prompt`: mensaje personalizado opcional para anular el comportamiento predeterminado. Utilice esto para personalizar cómo Bolt procesa las solicitudes.
-- `token`: token de acceso GitHub opcional para realizar operaciones como crear comentarios, confirmar cambios y abrir solicitudes de extracción. De forma predeterminada, Bolt usa el token de acceso a la instalación de la aplicación Bolt GitHub, por lo que las confirmaciones, los comentarios y las solicitudes de extracción aparecen como provenientes de la aplicación.
+- `prompt`: mensaje personalizado opcional para anular el comportamiento predeterminado. Utilice esto para personalizar cómo OpenCode procesa las solicitudes.
+- `token`: token de acceso GitHub opcional para realizar operaciones como crear comentarios, confirmar cambios y abrir solicitudes de extracción. De forma predeterminada, OpenCode usa el token de acceso a la instalación de la aplicación OpenCode GitHub, por lo que las confirmaciones, los comentarios y las solicitudes de extracción aparecen como provenientes de la aplicación.
 
-  Alternativamente, puede usar el GitHub Action Runner [`GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) incorporado sin instalar la aplicación Bolt GitHub. Solo asegúrese de otorgar los permisos necesarios en su flujo de trabajo:
+  Alternativamente, puede usar el GitHub Action Runner [`GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) incorporado sin instalar la aplicación OpenCode GitHub. Solo asegúrese de otorgar los permisos necesarios en su flujo de trabajo:
 
   ```yaml
   permissions:
@@ -102,23 +101,23 @@ O puede configurarlo manualmente.
 
 ## Eventos admitidos
 
-Bolt puede desencadenarse por los siguientes eventos GitHub:
+OpenCode puede desencadenarse por los siguientes eventos GitHub:
 
-| Tipo de evento                | Activado por                                  | Detalles                                                                                                                                    |
-| ----------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `issue_comment`               | Comentar sobre un tema o PR                   | Mencione `/opencode` o `/oc` en su comentario. Bolt lee el contexto y puede crear ramas, abrir relaciones públicas o responder.             |
-| `pull_request_review_comment` | Comente líneas de código específicas en un PR | Mencione `/opencode` o `/oc` mientras revisa el código. Bolt recibe la ruta del archivo, los números de línea y el contexto de diferencias. |
-| `issues`                      | Número abierto o editado                      | Activa automáticamente Bolt cuando se crean o modifican problemas. Requiere entrada `prompt`.                                               |
-| `pull_request`                | PR abierto o actualizado                      | Activa automáticamente Bolt cuando los PR se abren, sincronizan o vuelven a abrir. Útil para revisiones automatizadas.                      |
-| `schedule`                    | Programación basada en cron                   | Ejecute Bolt según una programación. Requiere entrada `prompt`. La salida va a registros y relaciones públicas (no hay temas que comentar). |
-| `workflow_dispatch`           | Activador manual desde GitHub UI              | Active Bolt a pedido a través de la pestaña Acciones. Requiere entrada `prompt`. La salida va a registros y relaciones públicas.            |
+| Tipo de evento                | Activado por                                  | Detalles                                                                                                                                        |
+| ----------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `issue_comment`               | Comentar sobre un tema o PR                   | Mencione `/opencode` o `/oc` en su comentario. OpenCode lee el contexto y puede crear ramas, abrir relaciones públicas o responder.             |
+| `pull_request_review_comment` | Comente líneas de código específicas en un PR | Mencione `/opencode` o `/oc` mientras revisa el código. OpenCode recibe la ruta del archivo, los números de línea y el contexto de diferencias. |
+| `issues`                      | Número abierto o editado                      | Activa automáticamente OpenCode cuando se crean o modifican problemas. Requiere entrada `prompt`.                                               |
+| `pull_request`                | PR abierto o actualizado                      | Activa automáticamente OpenCode cuando los PR se abren, sincronizan o vuelven a abrir. Útil para revisiones automatizadas.                      |
+| `schedule`                    | Programación basada en cron                   | Ejecute OpenCode según una programación. Requiere entrada `prompt`. La salida va a registros y relaciones públicas (no hay temas que comentar). |
+| `workflow_dispatch`           | Activador manual desde GitHub UI              | Active OpenCode a pedido a través de la pestaña Acciones. Requiere entrada `prompt`. La salida va a registros y relaciones públicas.            |
 
 ### Ejemplo de programación
 
-Ejecute Bolt según una programación para realizar tareas automatizadas:
+Ejecute OpenCode según una programación para realizar tareas automatizadas:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled Bolt Task
+name: Scheduled OpenCode Task
 
 on:
   schedule:
@@ -138,8 +137,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Bolt
-        uses: bolt-builder/bolt-cli/github@latest
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -149,7 +148,7 @@ jobs:
             If you find issues worth addressing, open an issue to track them.
 ```
 
-Para eventos programados, la entrada `prompt` es **obligatoria** ya que no hay comentarios del que extraer instrucciones. Los flujos de trabajo programados se ejecutan sin un contexto de usuario para verificar los permisos, por lo que el flujo de trabajo debe otorgar `contents: write` y `pull-requests: write` si espera que Bolt cree ramas o PR.
+Para eventos programados, la entrada `prompt` es **obligatoria** ya que no hay comentarios del que extraer instrucciones. Los flujos de trabajo programados se ejecutan sin un contexto de usuario para verificar los permisos, por lo que el flujo de trabajo debe otorgar `contents: write` y `pull-requests: write` si espera que OpenCode cree ramas o PR.
 
 ---
 
@@ -176,7 +175,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -190,7 +189,7 @@ jobs:
             - Suggest improvements
 ```
 
-Para los eventos `pull_request`, si no se proporciona `prompt`, Bolt revisa de forma predeterminada la solicitud de extracción.
+Para los eventos `pull_request`, si no se proporciona `prompt`, OpenCode revisa de forma predeterminada la solicitud de extracción.
 
 ---
 
@@ -232,7 +231,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -251,10 +250,10 @@ Para eventos `issues`, la entrada `prompt` es **obligatoria** ya que no hay ning
 
 ## Indicaciones personalizadas
 
-Anule el mensaje predeterminado para personalizar el comportamiento de Bolt para su flujo de trabajo.
+Anule el mensaje predeterminado para personalizar el comportamiento de OpenCode para su flujo de trabajo.
 
-```yaml title=".github/workflows/bolt.yml"
-- uses: bolt-builder/bolt-cli/github@latest
+```yaml title=".github/workflows/opencode.yml"
+- uses: anomalyco/opencode/github@latest
   with:
     model: anthropic/claude-sonnet-5-5
     prompt: |
@@ -270,7 +269,7 @@ Esto es útil para hacer cumplir criterios de revisión específicos, estándare
 
 ## Ejemplos
 
-A continuación se muestran algunos ejemplos de cómo puede utilizar Bolt en GitHub.
+A continuación se muestran algunos ejemplos de cómo puede utilizar OpenCode en GitHub.
 
 - **Explica un problema**
 
@@ -280,7 +279,7 @@ A continuación se muestran algunos ejemplos de cómo puede utilizar Bolt en Git
   /opencode explain this issue
   ```
 
-  Bolt leerá el hilo completo, incluidos todos los comentarios, y responderá con una explicación clara.
+  OpenCode leerá el hilo completo, incluidos todos los comentarios, y responderá con una explicación clara.
 
 - **Solucionar un problema**
 
@@ -290,7 +289,7 @@ A continuación se muestran algunos ejemplos de cómo puede utilizar Bolt en Git
   /opencode fix this
   ```
 
-  Y Bolt creará una nueva rama, implementará los cambios y abrirá un PR con los cambios.
+  Y OpenCode creará una nueva rama, implementará los cambios y abrirá un PR con los cambios.
 
 - **Revisar relaciones públicas y realizar cambios**
 
@@ -300,18 +299,18 @@ A continuación se muestran algunos ejemplos de cómo puede utilizar Bolt en Git
   Delete the attachment from S3 when the note is removed /oc
   ```
 
-  Bolt implementará el cambio solicitado y lo comprometerá con el mismo PR.
+  OpenCode implementará el cambio solicitado y lo comprometerá con el mismo PR.
 
 - **Revisar líneas de código específicas**
 
-  Deje un comentario directamente en las líneas de código en la pestaña "Archivos" del PR. Bolt detecta automáticamente el archivo, los números de línea y el contexto de diferencias para proporcionar respuestas precisas.
+  Deje un comentario directamente en las líneas de código en la pestaña "Archivos" del PR. OpenCode detecta automáticamente el archivo, los números de línea y el contexto de diferencias para proporcionar respuestas precisas.
 
   ```
   [Comment on specific lines in Files tab]
   /oc add error handling here
   ```
 
-  Al comentar líneas específicas, Bolt recibe:
+  Al comentar líneas específicas, OpenCode recibe:
   - El archivo exacto que se está revisando.
   - Las líneas de código específicas.
   - El contexto diferencial circundante.

@@ -1,4 +1,4 @@
-import type { FileContent } from "@bolt-ai/sdk/v2"
+import type { PresentationFileContent } from "../file-presentation"
 import { createEffect, createMemo, Match, on, onCleanup, Show, Switch, untrack, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { useI18n } from "@bolt-ai/ui/context/i18n"

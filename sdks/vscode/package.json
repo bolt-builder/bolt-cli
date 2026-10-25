@@ -1,12 +1,12 @@
 {
   "name": "bolt-vscode",
-  "displayName": "bolt",
-  "description": "bolt for VS Code",
+  "displayName": "opencode",
+  "description": "opencode for VS Code",
   "version": "1.20.7",
   "publisher": "sst-dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bolt-builder/bolt-cli"
+    "url": "https://github.com/sst/opencode"
   },
   "license": "MIT",
   "icon": "images/icon.png",
@@ -25,54 +25,54 @@
   "contributes": {
     "commands": [
       {
-        "command": "bolt.openTerminal",
-        "title": "Open bolt",
+        "command": "opencode.openTerminal",
+        "title": "Open opencode",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "bolt.openNewTerminal",
-        "title": "Open bolt in new tab",
+        "command": "opencode.openNewTerminal",
+        "title": "Open opencode in new tab",
         "icon": {
           "light": "images/button-dark.svg",
           "dark": "images/button-light.svg"
         }
       },
       {
-        "command": "bolt.addFilepathToTerminal",
+        "command": "opencode.addFilepathToTerminal",
         "title": "Add Filepath to Terminal"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "bolt.openNewTerminal",
+          "command": "opencode.openNewTerminal",
           "group": "navigation"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "bolt.openTerminal",
-        "title": "Run bolt",
+        "command": "opencode.openTerminal",
+        "title": "Run opencode",
         "key": "cmd+escape",
         "mac": "cmd+escape",
         "win": "ctrl+escape",
         "linux": "ctrl+escape"
       },
       {
-        "command": "bolt.openNewTerminal",
-        "title": "Run bolt",
+        "command": "opencode.openNewTerminal",
+        "title": "Run opencode",
         "key": "cmd+shift+escape",
         "mac": "cmd+shift+escape",
         "win": "ctrl+shift+escape",
         "linux": "ctrl+shift+escape"
       },
       {
-        "command": "bolt.addFilepathToTerminal",
-        "title": "bolt: Insert At-Mentioned",
+        "command": "opencode.addFilepathToTerminal",
+        "title": "opencode: Insert At-Mentioned",
         "key": "cmd+alt+k",
         "mac": "cmd+alt+k",
         "win": "ctrl+alt+K",

@@ -1,8 +1,8 @@
 import "./index.css"
 import { Title, Meta } from "@solidjs/meta"
 //import { HttpHeader } from "@solidjs/start"
-import video from "../asset/lander/bolt-min.mp4"
-import videoPoster from "../asset/lander/bolt-poster.png"
+import video from "../asset/lander/opencode-min.mp4"
+import videoPoster from "../asset/lander/opencode-poster.png"
 import { IconCopy, IconCheck } from "../component/icon"
 import { A, createAsync } from "@solidjs/router"
 import { createMemo } from "solid-js"
@@ -57,7 +57,7 @@ export default function Home() {
   }
 
   return (
-    <main data-page="bolt">
+    <main data-page="opencode">
       {/*<HttpHeader name="Cache-Control" value="public, max-age=1, s-maxage=3600, stale-while-revalidate=86400" />*/}
       <Title>{i18n.t("home.title")}</Title>
       <Meta name="description" content={i18n.t("app.meta.description")} />
@@ -116,7 +116,8 @@ export default function Home() {
                       <span data-slot="command-script">
                         <span>curl -fsSL </span>
                         <span data-slot="protocol">https://</span>
-                        <span data-slot="highlight">bolt.ai/v2/install</span>                        <span> | bash</span>
+                        <span data-slot="highlight">opencode.ai/v2/install</span>
+                        <span> | bash</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -125,7 +126,8 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">npm install -g </span>
-                        <span data-slot="highlight">bolt-ai</span>                      </span>
+                        <span data-slot="highlight">@bolt-ai/cli</span>
+                      </span>
                       <CopyStatus />
                     </button>
                   </Tabs.Content>
@@ -133,7 +135,8 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">bun install -g --trust </span>
-                        <span data-slot="highlight">bolt-ai</span>                      </span>
+                        <span data-slot="highlight">@bolt-ai/cli</span>
+                      </span>
                       <CopyStatus />
                     </button>
                   </Tabs.Content>
@@ -141,7 +144,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">brew install </span>
-                        <span data-slot="highlight">anomalyco/tap/bolt-v2</span>
+                        <span data-slot="highlight">anomalyco/tap/opencode-v2</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -150,7 +153,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">paru -S </span>
-                        <span data-slot="highlight">bolt-beta</span>
+                        <span data-slot="highlight">opencode-beta</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -159,7 +162,7 @@ export default function Home() {
                     <button data-copy data-slot="command" onClick={handleCopyClick}>
                       <span>
                         <span data-slot="protocol">yay -S </span>
-                        <span data-slot="highlight">bolt-beta</span>
+                        <span data-slot="highlight">opencode-beta</span>
                       </span>
                       <CopyStatus />
                     </button>
@@ -711,7 +714,7 @@ export default function Home() {
                     {i18n.t("nav.github")}
                   </a>{" "}
                   {i18n.t("home.faq.a8.p2")}{" "}
-                  <a href={`${config.github.repoUrl}?tab=AGPL-3.0-1-ov-file#readme`} target="_blank">
+                  <a href={`${config.github.repoUrl}?tab=MIT-1-ov-file#readme`} target="_blank">
                     {i18n.t("home.faq.a8.mitLicense")}
                   </a>
                   {i18n.t("home.faq.a8.p3")}

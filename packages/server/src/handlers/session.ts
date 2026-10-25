@@ -1,8 +1,13 @@
-import { SessionV2 } from "@bolt-ai/core/session"
+import { Instance } from "@bolt-ai/core/instance/service"
+import { Session } from "@bolt-ai/core/session"
+import { SessionStats } from "@bolt-ai/core/session/stats"
+import { SessionTitle } from "@bolt-ai/core/session/title"
+import { SessionTransfer } from "@bolt-ai/core/session/transfer"
+import { InstructionEntry } from "@bolt-ai/core/session/instruction-entry"
+import { Form } from "@bolt-ai/core/form"
 import { DateTime, Effect, Stream } from "effect"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Api } from "../api"
-import { SessionsCursor } from "@bolt-ai/protocol/groups/session"
 import {
   ConflictError,
   CommandExecutionError,
@@ -14,10 +19,12 @@ import {
   InvalidCursorError,
   MessageNotFoundError,
   ServiceUnavailableError,
-  SessionNotFoundError,
-  UnknownError,
+  SessionBusyError,
+  SkillNotFoundError,
 } from "@bolt-ai/protocol/errors"
 import { AbsolutePath } from "@bolt-ai/core/schema"
+import { locationErrors } from "../location"
+import { failedMessageDecode, failedSnapshot, missingMessage, missingSession } from "./session-error"
 
 function missingForm(id: Form.ID) {
   return new FormNotFoundError({ id, message: `Form not found: ${id}` })

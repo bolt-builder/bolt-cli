@@ -1,6 +1,7 @@
 {
   "name": "@bolt-ai/session-ui",
-  "version": "1.20.7",  "private": true,
+  "version": "1.20.7",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "exports": {
@@ -63,10 +64,9 @@
   },
   "dependencies": {
     "@kobalte/core": "catalog:",
-    "@bolt-ai/client": "file:../app/vendor/bolt-ai-client-1.17.13-v2.tgz",
-    "@bolt-ai/core": "workspace:*",
-    "@bolt-ai/sdk": "workspace:*",
+    "@bolt-ai/client": "workspace:*",
     "@bolt-ai/ui": "workspace:*",
+    "@bolt-ai/util": "workspace:*",
     "@pierre/diffs": "catalog:",
     "@pierre/highlights": "catalog:",
     "@solid-primitives/event-listener": "catalog:",

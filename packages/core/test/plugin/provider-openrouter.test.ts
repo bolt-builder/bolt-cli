@@ -1,13 +1,11 @@
-import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect } from "bun:test"
+import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Model } from "@bolt-ai/core/model"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { ProviderPlugins } from "@bolt-ai/core/plugin/provider"
 import { OpenRouterPlugin } from "@bolt-ai/core/plugin/provider/openrouter"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -38,8 +36,8 @@ describe("OpenRouterPlugin", () => {
 
       expect((yield* catalog.get(Provider.ID.openrouter))?.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
       })
       expect((yield* catalog.get(Provider.ID.make("nvidia")))?.headers).toBeUndefined()
     }),

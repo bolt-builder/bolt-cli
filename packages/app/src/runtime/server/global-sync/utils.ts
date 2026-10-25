@@ -1,14 +1,9 @@
-import type {
-  AgentListOutput,
-  ModelDefaultOutput,
-  ModelListOutput,
-  PermissionV2Request,
-  ProviderListOutput,
-} from "@bolt-ai/client/promise"
-import type { Agent, PermissionRequest, Project, Provider, ProviderListResponse } from "@bolt-ai/sdk/v2/client"
+import type { AgentListOutput, ModelListOutput, ProviderListOutput } from "@bolt-ai/client/promise"
+import type { Agent, Project, Provider, ProviderListResponse } from "@/runtime/server/types"
 import type { Project as CurrentProject } from "@bolt-ai/client/promise"
-import { NormalizedProviderListResponse } from "@bolt-ai/session-ui/context"
-export { pathKey as directoryKey, type PathKey as DirectoryKey } from "@/utils/path-key"
+import { unwrap } from "solid-js/store"
+
+export { pathKey as directoryKey, type PathKey as DirectoryKey } from "@/workspaces/path-key"
 
 export const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 

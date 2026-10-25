@@ -1,6 +1,14 @@
 import { afterEach, expect, test } from "bun:test"
-import type { ToolPart } from "@bolt-ai/sdk/v2"
-import { RGBA, SyntaxStyle } from "@opentui/core"
+import type { SessionMessageAssistantTool } from "@bolt-ai/client/promise"
+import {
+  CliRenderEvents,
+  MarkdownRenderable,
+  ResourceContext,
+  RGBA,
+  SyntaxStyle,
+  TextAttributes,
+  TextRenderable,
+} from "@opentui/core"
 import { MockTreeSitterClient, createTestRenderer, type TestRenderer } from "@opentui/core/testing"
 import { monoSnapshot } from "../../src/mini/mono"
 import { RunScrollbackStream } from "../../src/mini/scrollback.surface"

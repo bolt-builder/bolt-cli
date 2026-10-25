@@ -1,5 +1,5 @@
-import { getFilename } from "@bolt-ai/core/util/path"
-import type { Project } from "@bolt-ai/sdk/v2/client"
+import { getFilename } from "@bolt-ai/util/path"
+import type { Project } from "@/runtime/server/types"
 import type { SessionInfo } from "@bolt-ai/client/promise"
 import { useDialog } from "@bolt-ai/ui/context/dialog"
 import { createMemo, onCleanup } from "solid-js"

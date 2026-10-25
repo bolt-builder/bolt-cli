@@ -1,4 +1,4 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
+import { base64Encode } from "@bolt-ai/util/encode"
 import { createSimpleContext } from "@bolt-ai/ui/context"
 import { useParams, useSearchParams } from "@solidjs/router"
 import { createMemo, createResource, createRoot, getOwner, onCleanup } from "solid-js"

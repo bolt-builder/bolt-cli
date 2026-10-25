@@ -1,6 +1,6 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { ServerConnection } from "@/context/server"
-import { decode64 } from "@/utils/base64"
+import { base64Encode } from "@bolt-ai/util/encode"
+import { ServerConnection } from "@/runtime/server/registry"
+import { decode64 } from "@/runtime/persistence/base64"
 
 export function sessionHref(server: ServerConnection.Key, sessionID: string) {
   return `/server/${base64Encode(server)}/session/${sessionID}`

@@ -22,7 +22,7 @@ async function bundleInputs(specifier: string) {
   const entrypoint = join(temporary, "index.ts")
   const metafile = join(temporary, "meta.json")
   try {
-    await Bun.write(entrypoint, 'export * from "@bolt-ai/sdk-next"')
+    await Bun.write(entrypoint, `export * from ${JSON.stringify(specifier)}`)
     const child = Bun.spawn(
       [
         process.execPath,

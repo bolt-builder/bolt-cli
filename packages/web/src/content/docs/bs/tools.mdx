@@ -3,7 +3,7 @@ title: Alati
 description: Upravljajte alatima koje LLM moze koristiti.
 ---
 
-Alati omogucavaju LLM-u da izvrsava akcije u vasem kodu. Bolt dolazi sa skupom ugradenih alata, a mozete ga prosiriti kroz [custom tools](/docs/custom-tools) ili [MCP servers](/docs/mcp-servers).
+Alati omogucavaju LLM-u da izvrsava akcije u vasem kodu. OpenCode dolazi sa skupom ugradenih alata, a mozete ga prosiriti kroz [custom tools](/docs/custom-tools) ili [MCP servers](/docs/mcp-servers).
 
 Po defaultu su svi alati **ukljuceni** i ne traze dozvolu za pokretanje. Ponasanje alata kontrolisete kroz [permissions](/docs/permissions).
 
@@ -13,9 +13,9 @@ Po defaultu su svi alati **ukljuceni** i ne traze dozvolu za pokretanje. Ponasan
 
 Koristite polje `permission` za kontrolu ponasanja alata. Za svaki alat mozete postaviti allow, deny ili ask.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "edit": "deny",
     "bash": "ask",
@@ -26,9 +26,9 @@ Koristite polje `permission` za kontrolu ponasanja alata. Za svaki alat mozete p
 
 Mozete koristiti i wildcard obrasce da kontrolisete vise alata odjednom. Na primjer, da trazite odobrenje za sve alate jednog MCP servera:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "mymcp_*": "ask"
   }
@@ -41,7 +41,7 @@ Mozete koristiti i wildcard obrasce da kontrolisete vise alata odjednom. Na prim
 
 ## Ugrađeni
 
-Ovo su svi ugradeni alati dostupni u Bolt.
+Ovo su svi ugradeni alati dostupni u OpenCode.
 
 ---
 
@@ -49,9 +49,9 @@ Ovo su svi ugradeni alati dostupni u Bolt.
 
 Izvrsava shell komande u okruzenju projekta.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": "allow"
   }
@@ -66,9 +66,9 @@ Ovaj alat omogucava LLM-u da pokrece terminalske komande kao `npm install`, `git
 
 Mijenja postojece datoteke tacnim zamjenama stringova.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -83,9 +83,9 @@ Ovaj alat radi precizne izmjene datoteka zamjenom tacnih poklapanja teksta. To j
 
 Kreira nove datoteke ili prepisuje postojece.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -104,9 +104,9 @@ Koristite ovo da dozvolite LLM-u kreiranje novih datoteka. Ako datoteka vec post
 
 Cita sadrzaj datoteka iz vaseg koda.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "read": "allow"
   }
@@ -121,9 +121,9 @@ Ovaj alat cita datoteke i vraca njihov sadrzaj. Podrzava citanje odredenih raspo
 
 Pretrazuje sadrzaj datoteka pomocu regularnih izraza.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "grep": "allow"
   }
@@ -138,9 +138,9 @@ Brza pretraga sadrzaja kroz cijeli kod. Podrzava puni regex i filtriranje po obr
 
 Pronalazi datoteke po obrascima.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "glob": "allow"
   }
@@ -156,12 +156,12 @@ Trazi datoteke koristeci glob obrasce kao `**/*.js` ili `src/**/*.ts`. Vraca put
 Komunicira sa konfigurisanim LSP serverima za funkcije inteligencije koda kao definicije, reference, hover info i hijerarhija poziva.
 
 :::note
-Ovaj alat je dostupan samo kada je `BOLT_EXPERIMENTAL_LSP_TOOL=true` (ili `BOLT_EXPERIMENTAL=true`).
+Ovaj alat je dostupan samo kada je `OPENCODE_EXPERIMENTAL_LSP_TOOL=true` (ili `OPENCODE_EXPERIMENTAL=true`).
 :::
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "lsp": "allow"
   }
@@ -178,9 +178,9 @@ Za konfiguraciju dostupnih LSP servera u projektu, pogledajte [LSP Servers](/doc
 
 Primjenjuje zakrpe na datoteke.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "edit": "allow"
   }
@@ -199,9 +199,9 @@ Ovaj alat primjenjuje patch datoteke na kod. Koristan je za diffs i patch-eve iz
 
 Ucitajte [skill](/docs/skills) (`SKILL.md` datoteku) i vratite njegov sadrzaj u razgovor.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "skill": "allow"
   }
@@ -210,34 +210,13 @@ Ucitajte [skill](/docs/skills) (`SKILL.md` datoteku) i vratite njegov sadrzaj u 
 
 ---
 
-### todowrite
-
-Upravlja todo listama tokom coding sesija.
-
-```json title="bolt.json" {4}
-{
-  "$schema": "https://bolt.ai/config.json",
-  "permission": {
-    "todowrite": "allow"
-  }
-}
-```
-
-Kreira i azurira liste zadataka za pracenje napretka tokom slozenih operacija. LLM ovo koristi za organizaciju zadataka u vise koraka.
-
-:::note
-Ovaj alat je po defaultu iskljucen za subagente, ali ga mozete rucno ukljuciti. [Saznajte vise](/docs/agents/#permissions)
-:::
-
----
-
 ### webfetch
 
 Preuzima web sadrzaj.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "webfetch": "allow"
   }
@@ -253,19 +232,19 @@ Omogucava LLM-u da preuzima i cita web stranice. Korisno za dokumentaciju i onli
 Pretrazuje web za informacije.
 
 :::note
-Ovaj alat je dostupan samo uz Bolt provajdera ili kada je varijabla `BOLT_ENABLE_EXA` postavljena na truthy vrijednost (npr. `true` ili `1`).
+Ovaj alat je dostupan samo uz OpenCode provajdera ili kada je varijabla `OPENCODE_ENABLE_EXA` postavljena na truthy vrijednost (npr. `true` ili `1`).
 
-Da ukljucite pri pokretanju Bolt:
+Da ukljucite pri pokretanju OpenCode:
 
 ```bash
-BOLT_ENABLE_EXA=1 opencode
+OPENCODE_ENABLE_EXA=1 opencode
 ```
 
 :::
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "websearch": "allow"
   }
@@ -286,9 +265,9 @@ Koristite `websearch` kada trebate pronaci informacije (discovery), a `webfetch`
 
 Postavlja korisniku pitanja tokom izvrsavanja.
 
-```json title="bolt.json" {4}
+```json title="opencode.json" {4}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "question": "allow"
   }

@@ -18,7 +18,7 @@ opencode web
 Spowoduje to uruchomienie lokalnego serwera na `127.0.0.1` z losowo dostępnym portem i automatyczne otwarcie opencode w domyślnej przeglądarce.
 
 :::caution
-Jeśli `BOLT_SERVER_PASSWORD` nie jest ustawione, serwer będzie niezabezpieczony. Jest to dobre rozwiązanie do użytku lokalnego, ale powinno być ustawione na dostęp do sieci.
+Jeśli `OPENCODE_SERVER_PASSWORD` nie jest ustawione, serwer będzie niezabezpieczony. Jest to dobre rozwiązanie do użytku lokalnego, ale powinno być ustawione na dostęp do sieci.
 :::
 
 :::tip[Windows Users]
@@ -62,7 +62,7 @@ Włącz mDNS, aby Twój serwer był wykrywalny w sieci lokalnej:
 opencode web --mdns
 ```
 
-To automatycznie ustawia nazwę hosta na `0.0.0.0` i anonsuje serwer jako `bolt.local`.
+To automatycznie ustawia nazwę hosta na `0.0.0.0` i anonsuje serwer jako `opencode.local`.
 
 Możesz dostosować nazwę domeny mDNS, aby uruchamiała wiele instancji w tej samej sieci:
 
@@ -80,19 +80,19 @@ opencode web --cors https://example.com
 
 ### Uwierzytelnianie
 
-Aby chronić dostęp, ustaw hasło za pomocą zmiennej środowiskowej `BOLT_SERVER_PASSWORD`:
+Aby chronić dostęp, ustaw hasło za pomocą zmiennej środowiskowej `OPENCODE_SERVER_PASSWORD`:
 
 ```bash
-BOLT_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret opencode web
 ```
 
-Domyślna nazwa użytkownika to `opencode`, ale można ją zmienić za pomocą `BOLT_SERVER_USERNAME`.
+Domyślna nazwa użytkownika to `opencode`, ale można ją zmienić za pomocą `OPENCODE_SERVER_USERNAME`.
 
 ---
 
 ## Korzystanie z interfejsu internetowego
 
-Po uruchomieniu interfejs sieciowy zapewnia dostęp do sesji bolt.
+Po uruchomieniu interfejs sieciowy zapewnia dostęp do sesji opencode.
 
 ### Sesje
 
@@ -126,7 +126,7 @@ Umożliwia to jednoczesne korzystanie z interfejsu sieciowego i terminala, wspó
 
 ## Plik konfiguracyjny
 
-Możesz także skonfigurować ustawienia serwera w pliku konfiguracyjnym `bolt.json`:
+Możesz także skonfigurować ustawienia serwera w pliku konfiguracyjnym `opencode.json`:
 
 ```json
 {

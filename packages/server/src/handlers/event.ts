@@ -1,21 +1,9 @@
-import { EventV2 } from "@bolt-ai/core/event"
-import { BoltEvent } from "@bolt-ai/protocol/groups/event"
-import { Effect, Schema, Stream } from "effect"
-import { HttpServerResponse } from "effect/unstable/http"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
-import * as Sse from "effect/unstable/encoding/Sse"
+import { Event } from "@bolt-ai/schema/event"
+import { Effect, Stream } from "effect"
+import { HttpServerResponse } from "effect/http"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
-
-const subscriberCapacity = 256
-
-function eventData(data: unknown): Sse.Event {
-  return {
-    _tag: "Event",
-    event: "message",
-    id: undefined,
-    data: JSON.stringify(Schema.encodeUnknownSync(BoltEvent)(data)),
-  }
-}
+import { EventFeed } from "../event-feed"
 
 export const EventHandler = HttpApiBuilder.group(Api, "server.event", (handlers) =>
   Effect.gen(function* () {

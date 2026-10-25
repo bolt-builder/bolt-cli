@@ -3,9 +3,9 @@ title: 主題
 description: 選擇內建主題或定義您自己的主題。
 ---
 
-透過 Bolt，您可以從多個內建主題中進行選擇，使用能自動適配終端機主題的主題，或者定義您自己的自訂主題。
+透過 OpenCode，您可以從多個內建主題中進行選擇，使用能自動適配終端機主題的主題，或者定義您自己的自訂主題。
 
-預設情況下，Bolt 使用我們自己的 `opencode` 主題。
+預設情況下，OpenCode 使用我們自己的 `opencode` 主題。
 
 ---
 
@@ -23,7 +23,7 @@ description: 選擇內建主題或定義您自己的主題。
 
 ## 內建主題
 
-Bolt 自帶多個內建主題。
+OpenCode 自帶多個內建主題。
 
 | 名稱                   | 描述                                                                |
 | ---------------------- | ------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ Bolt 自帶多個內建主題。
 
 系統主題適合以下使用者：
 
-- 希望 Bolt 與終端機的外觀保持一致
+- 希望 OpenCode 與終端機的外觀保持一致
 - 使用了自訂終端機配色方案
 - 偏好所有終端機應用程式擁有統一的視覺風格
 
@@ -65,7 +65,7 @@ Bolt 自帶多個內建主題。
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Bolt 自帶多個內建主題。
 
 ## 自訂主題
 
-Bolt 支援靈活的基於 JSON 的主題系統，讓使用者可以輕鬆建立和自訂主題。
+OpenCode 支援靈活的基於 JSON 的主題系統，讓使用者可以輕鬆建立和自訂主題。
 
 ---
 
@@ -84,8 +84,8 @@ Bolt 支援靈活的基於 JSON 的主題系統，讓使用者可以輕鬆建立
 
 1. **內建主題** — 嵌入在二進位檔案中
 2. **使用者設定目錄** — 定義在 `~/.config/opencode/themes/*.json` 或 `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **專案根目錄** — 定義在 `<project-root>/.bolt/themes/*.json`
-4. **當前工作目錄** — 定義在 `./.bolt/themes/*.json`
+3. **專案根目錄** — 定義在 `<project-root>/.opencode/themes/*.json`
+4. **當前工作目錄** — 定義在 `./.opencode/themes/*.json`
 
 如果多個目錄包含同名主題，將使用優先順序較高的目錄中的主題。
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 建立專案級主題：
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ vim .bolt/themes/my-theme.json
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

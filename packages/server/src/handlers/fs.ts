@@ -1,8 +1,9 @@
 import { FileSystem } from "@bolt-ai/core/filesystem"
 import { RelativePath } from "@bolt-ai/core/schema"
-import { Effect } from "effect"
-import { HttpServerResponse } from "effect/unstable/http"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
+import { FileNotFoundError } from "@bolt-ai/protocol/errors"
+import { Effect, Option, Stream } from "effect"
+import { type HttpServerRequest, HttpServerResponse } from "effect/http"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
 import { response } from "../location"
 

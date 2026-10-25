@@ -40,7 +40,3 @@ jobs:
 
       - name: Build Storybook
         run: bun --cwd packages/storybook build
-        env:
-          # The build exceeds node's default old-space cap; raise it below the
-          # 16GB available on the 4vcpu runner.
-          NODE_OPTIONS: --max-old-space-size=6144

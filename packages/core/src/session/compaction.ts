@@ -1,13 +1,42 @@
 export * as SessionCompaction from "./compaction.js"
 
-import { LLM, LLMError, LLMEvent, Message, type LLMRequest, type Model } from "@bolt-ai/llm"
-import { DateTime, Effect, Stream } from "effect"
-import type { Config } from "../config"
-import type { EventV2 } from "../event"
-import { SessionEvent } from "./event"
-import { SessionMessage } from "./message"
-import { SessionSchema } from "./schema"
-import { Token } from "../util/token"
+import {
+  AIError,
+  type ContentPart,
+  InvalidProviderOutputError,
+  InvalidRequestError,
+  isContextOverflowFailure,
+  LLMClient,
+  LLMEvent,
+  LLMRequest,
+  Message,
+  type ToolEntry,
+  UnknownProviderError,
+  type Usage,
+} from "@bolt-ai/ai/effect"
+import type { StreamOptions } from "@bolt-ai/ai/route"
+import type { SessionCompactionResult } from "@bolt-ai/plugin/effect/session"
+import type { SessionError } from "@bolt-ai/schema/session-error"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { Context, Effect, Exit, Fiber, Layer, Result, Scope, Stream } from "effect"
+import { Agent } from "../agent.js"
+import { Bus } from "../bus.js"
+import { Database } from "../database/database.js"
+import { llmClient } from "../effect/app-node-platform.js"
+import { Model } from "../model.js"
+import { State } from "../state.js"
+import { Token } from "../util/token.js"
+import type { SessionContext } from "./context.js"
+import { SessionEvent } from "./event.js"
+import { SessionHistory } from "./history.js"
+import type { SessionMessage } from "./message.js"
+import { SessionModelRequest } from "./model-request.js"
+import { SessionRunnerModel } from "./runner/model.js"
+import { SessionRunnerRetry } from "./runner/retry.js"
+import { toLLMMessages } from "./runner/to-llm-message.js"
+import { SessionRecentText } from "./recent-text.js"
+import { contentFilterError, toSessionError } from "./to-session-error.js"
+import { SessionUsage } from "./usage.js"
 
 export type Settings = {
   auto: boolean

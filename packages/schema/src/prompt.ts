@@ -1,5 +1,7 @@
 import { Schema } from "effect"
-import { optional, statics } from "./schema"
+import { optional } from "./schema.js"
+import { statics } from "./schema.js"
+import { Skill } from "./skill.js"
 
 export interface PromptMention extends Schema.Schema.Type<typeof PromptMention> {}
 export const PromptMention = Schema.Struct({

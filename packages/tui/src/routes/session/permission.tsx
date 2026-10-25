@@ -2,16 +2,16 @@ import { createStore } from "solid-js/store"
 import { createMemo, For, Match, Show, Switch } from "solid-js"
 import { Portal, useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
 import type { TextareaRenderable } from "@opentui/core"
-import { useTheme, selectedForeground } from "../../context/theme"
-import type { PermissionRequest } from "@bolt-ai/sdk/v2"
-import { useSDK } from "../../context/sdk"
+import { useTheme, useThemes } from "../../context/theme"
+import type { PermissionReply, PermissionRequest } from "@bolt-ai/client"
 import { SplitBorder } from "../../ui/border"
 import { useData } from "../../context/data"
 import { filetype } from "../../util/filetype"
 import { permissionAlwaysLines, permissionOptionLabel, permissionPresentation } from "../../util/permission"
 import { getScrollAcceleration } from "../../util/scroll"
-import { useTuiConfig } from "../../config"
-import { BOLT_BASE_MODE, useBindings, useCommandShortcut } from "../../keymap"
+import { useConfig } from "../../config"
+import { Keymap } from "../../context/keymap"
+import { useInteractivity } from "../../context/interactivity"
 import { usePathFormatter } from "../../context/path-format"
 import { SimulationSemantics } from "../../simulation/semantics"
 import { PatchDiff } from "../../component/patch-diff"
@@ -141,45 +141,6 @@ export function PermissionPrompt(props: { request: PermissionRequest; directory?
 
   return (
     <Switch>
-      <Match when={store.stage === "always"}>
-        <Prompt
-          title="Always allow"
-          body={
-            <Switch>
-              <Match when={props.request.always.length === 1 && props.request.always[0] === "*"}>
-                <TextBody title={"This will allow " + props.request.permission + " until Bolt is restarted."} />
-              </Match>
-              <Match when={true}>
-                <box paddingLeft={1} gap={1}>
-                  <text fg={theme.textMuted}>This will allow the following patterns until Bolt is restarted</text>
-                  <box>
-                    <For each={props.request.always}>
-                      {(pattern) => (
-                        <text fg={theme.text}>
-                          {"- "}
-                          {pattern}
-                        </text>
-                      )}
-                    </For>
-                  </box>
-                </box>
-              </Match>
-            </Switch>
-          }
-          options={{ confirm: "Confirm", cancel: "Cancel" }}
-          escapeKey="cancel"
-          onSelect={(option) => {
-            setStore("stage", "permission")
-            if (option === "cancel") return
-            void sdk.client.permission.reply({
-              reply: "always",
-              requestID: props.request.id,
-              directory: props.directory,
-              workspace: project.workspace.current(),
-            })
-          }}
-        />
-      </Match>
       <Match when={store.stage === "reject"}>
         <RejectPrompt
           action={props.request.action}
@@ -320,8 +281,8 @@ function RejectPrompt(props: {
   const config = useConfig().data
   const dimensions = useTerminalDimensions()
   const narrow = createMemo(() => dimensions().width < 80)
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
+    mode: "base",
     commands: [
       {
         id: "app.exit",
@@ -364,7 +325,7 @@ function RejectPrompt(props: {
           <text fg={theme.text.base}>Reject permission</text>
         </box>
         <box paddingLeft={1}>
-          <text fg={theme.textMuted}>Tell Bolt what to do differently</text>
+          <text fg={theme.text.muted}>Tell OpenCode what to do differently</text>
         </box>
       </box>
       <box
@@ -476,8 +437,8 @@ export function SessionQuestion<const T extends Record<string, string>>(props: {
     if (props.escapeKey) props.onSelect(props.escapeKey)
   }
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
+  Keymap.createLayer(() => ({
+    mode: "base",
     commands: [
       ...(props.escapeKey
         ? [

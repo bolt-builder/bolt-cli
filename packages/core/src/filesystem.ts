@@ -2,12 +2,12 @@ export * as FileSystem from "./filesystem.js"
 
 import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
 import path from "path"
-import { Context, Effect, Layer, Schema } from "effect"
-import { FSUtil } from "./fs-util"
-import { Location } from "./location"
-import { PositiveInt, RelativePath } from "./schema"
-import { FileSystemSearch } from "./filesystem/search"
-import { Entry, FileSystem, FindInput, Match } from "@bolt-ai/schema/filesystem"
+import { Context, Effect, Layer, type Option, type PlatformError, Schema, type Stream } from "effect"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Location } from "./location.js"
+import { AbsolutePath, PositiveInt, RelativePath } from "./schema.js"
+import { FileSystemSearch } from "./filesystem/search.js"
+import { Entry, FileSystem, FindInput, Write } from "@bolt-ai/schema/filesystem"
 export { Entry, Match, Submatch } from "@bolt-ai/schema/filesystem"
 
 export interface ReadInput {
@@ -94,7 +94,16 @@ export interface File {
   }) => Stream.Stream<Uint8Array, PlatformError.PlatformError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/FileSystem") {}
+export interface Interface {
+  readonly read: (input: ReadInput) => Effect.Effect<File, NotFoundError>
+  /** Fails with `NotFoundError` when the path is missing or is not a directory. */
+  readonly list: (input?: ListInput) => Effect.Effect<Entry[], NotFoundError>
+  readonly find: (input: FindInput) => Effect.Effect<Entry[]>
+  /** Writes a file at an absolute path or one relative to the location; not confined to it. */
+  readonly write: (input: WriteInput) => Effect.Effect<Write>
+}
+
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/FileSystem") {}
 
 const baseLayer = Layer.effect(
   Service,

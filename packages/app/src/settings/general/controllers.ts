@@ -1,9 +1,6 @@
 import { createMemo, createResource, onMount, type Accessor } from "solid-js"
 import type { ColorScheme } from "@bolt-ai/ui/theme/context"
 import { useTheme } from "@bolt-ai/ui/theme/context"
-import { usePermission } from "@/context/permission"
-import { useServerSDK } from "@/context/server-sdk"
-import { useServerSync } from "@/context/server-sync"
 import {
   monoDefault,
   monoFontFamily,

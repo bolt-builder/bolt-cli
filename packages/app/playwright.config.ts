@@ -30,7 +30,10 @@ const touchScroll = /mobile-timeline-scroll\.spec\.ts/
 
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: process.env.BOLT_PERFORMANCE === "1" ? "performance/**/*.test.ts" : "performance/**",
+  testIgnore: [
+    "service-worker/**",
+    process.env.OPENCODE_PERFORMANCE === "1" ? "performance/**/*.test.ts" : "performance/**",
+  ],
   outputDir: "./e2e/test-results",
   timeout: 60_000,
   expect: {
@@ -41,16 +44,19 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers,
   reporter: [["html", { outputFolder: "e2e/playwright-report", open: "never" }], ["line"]],
-  webServer: {
-    command,
-    url: baseURL,
-    reuseExistingServer: reuse,
-    timeout: 120_000,
-    env: {
-      VITE_BOLT_SERVER_HOST: serverHost,
-      VITE_BOLT_SERVER_PORT: serverPort,
-    },
-  },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command,
+        url: baseURL,
+        reuseExistingServer: !built,
+        timeout: 120_000,
+        env: {
+          VITE_OPENCODE_TEST_FIXTURES: "1",
+          VITE_OPENCODE_SERVER_HOST: serverHost,
+          VITE_OPENCODE_SERVER_PORT: serverPort,
+        },
+      },
   use: {
     baseURL,
     trace: "on-first-retry",

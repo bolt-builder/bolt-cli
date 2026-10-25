@@ -1,45 +1,71 @@
 export * as Session from "./session.js"
 export * from "./session/schema.js"
 
-import { DateTime, Effect, Layer, Schema, Context, Stream } from "effect"
-import { ListAnchor } from "@bolt-ai/schema/session"
-import { and, asc, desc, eq, gt, like, lt, or, type SQL } from "drizzle-orm"
-import { ProjectV2 } from "./project"
-import { WorkspaceV2 } from "./workspace"
-import { ModelV2 } from "./model"
-import { Location } from "./location"
-import { SessionMessage } from "./session/message"
-import { Prompt } from "./session/prompt"
+import { DateTime, Effect, Layer, Context, Stream } from "effect"
+import { LLMClient } from "@bolt-ai/ai/effect"
+import { ListAnchor, ListCursor, ListFilter } from "@bolt-ai/schema/session"
+import { and, desc, eq } from "drizzle-orm"
+import { Project } from "./project.js"
+import { Model } from "@bolt-ai/schema/model"
+import { Location } from "./location.js"
+import type { FileSystem } from "./filesystem.js"
+import { SessionMessage } from "./session/message.js"
 import { PromptInput } from "@bolt-ai/schema/prompt-input"
-import { EventV2 } from "./event"
-import { Database } from "./database/database"
-import { SessionProjector } from "./session/projector"
-import { SessionMessageTable, SessionTable } from "./session/sql"
-import { SessionSchema } from "./session/schema"
-import { AbsolutePath, PositiveInt, RelativePath } from "./schema"
-import { AgentV2 } from "./agent"
-import { SessionV1 } from "./v1/session"
-import { InstallationVersion } from "./installation/version"
-import { Slug } from "./util/slug"
-import { ProjectTable } from "./project/sql"
+import { Bus } from "./bus.js"
+import { Instance } from "./instance/service.js"
+import { Database } from "./database/database.js"
+import { SessionProjector } from "./session/projector.js"
+import { SessionMessageTable } from "./session/sql.js"
+import { SessionSchema } from "./session/schema.js"
+import { RelativePath } from "./schema.js"
+import { Agent } from "@bolt-ai/schema/agent"
+import type { Permission } from "@bolt-ai/schema/permission"
+import { App } from "./app.js"
+import { Slug } from "./util/slug.js"
 import path from "path"
-import { fromRow } from "./session/info"
-import { SessionRunner } from "./session/runner/index"
-import { SessionStore } from "./session/store"
-import { SessionExecution } from "./session/execution"
-import { makeGlobalNode } from "./effect/app-node"
-import { LocationServiceMap } from "./location-service-map"
-import { MessageDecodeError } from "./session/error"
-import { SessionEvent } from "./session/event"
-import { SessionInput } from "./session/input"
-import { Snapshot } from "./snapshot"
-import { SessionRevert } from "./session/revert"
-import { Revert } from "@bolt-ai/schema/revert"
-import { FSUtil } from "./fs-util"
-import { SessionDurable } from "@bolt-ai/schema/durable-event-manifest"
-
-export const RevertState = Revert.State
-export type RevertState = Revert.State
+import { SessionRunner } from "./session/runner/index.js"
+import { SessionStore } from "./session/store.js"
+import { SessionExecution } from "./session/execution.js"
+import {
+  AttachmentError,
+  BusyError,
+  CompactionConflictError,
+  ForkEmptyError,
+  InboxConflictError,
+  InvalidListCursorError,
+  MessageDecodeError,
+  MessageNotFoundError,
+  NotFoundError,
+  PromptConflictError,
+  SkillNotFoundError,
+  SyntheticConflictError,
+} from "./session/error.js"
+import { Node } from "@bolt-ai/util/effect/app-node"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { SessionEvent } from "./session/event.js"
+import { SessionInbox } from "./session/inbox.js"
+import { InstructionState } from "./session/instruction-state.js"
+import { SessionGenerate } from "./session/generate.js"
+import { SessionCommand } from "./session/command.js"
+import {
+  SessionMove,
+  DestinationNotFoundError,
+  DestinationNotDirectoryError,
+  DestinationUnavailableError,
+} from "./session/move.js"
+import { SessionModelTransport } from "./session/model-transport.js"
+import { llmClient } from "./effect/app-node-platform.js"
+import { Snapshot } from "./snapshot.js"
+import { Session } from "./session/session.js"
+import { SessionDiff, TurnRangeError } from "./session/diff.js"
+import { LocationServiceMap } from "./location-service-map.js"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import type { EventLog } from "@bolt-ai/schema/event-log"
+import type { FileDiff } from "@bolt-ai/schema/file-diff"
+import { Job } from "./job.js"
+import type { Command } from "./command.js"
+import { SessionEnvironment } from "./session/environment.js"
+import { InstructionEntry } from "./session/instruction-entry.js"
 
 // get project -> project.locations
 //
@@ -222,7 +248,7 @@ export interface Interface {
   }
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Session") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Session") {}
 
 const layer = Layer.effect(
   Service,

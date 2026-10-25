@@ -2,15 +2,24 @@ import { $ } from "bun"
 import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import { ConfigProvider, Deferred, Duration, Effect, Fiber, Layer, Option, Stream } from "effect"
+import { Deferred, Duration, Effect, Fiber, Layer, Option, Schedule, Stream } from "effect"
 import { Config } from "@bolt-ai/core/config"
+import { ConfigLocationWatcherPlugin } from "@bolt-ai/core/config/plugin/location-watcher"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { FSUtil } from "@bolt-ai/core/fs-util"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Bus } from "@bolt-ai/core/bus"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { LocationWatcher } from "@bolt-ai/core/filesystem/location-watcher"
+import { LocationWatcherPolicy } from "@bolt-ai/core/filesystem/location-watcher-policy"
 import { Watcher } from "@bolt-ai/core/filesystem/watcher"
+import { FileSystem } from "@bolt-ai/schema/filesystem"
+import { Document, Event, Info, type Entry } from "@bolt-ai/schema/config"
 import { Location } from "@bolt-ai/core/location"
+import { Plugin } from "@bolt-ai/core/plugin"
+import { PluginSupervisor } from "@bolt-ai/core/plugin/supervisor"
 import { AbsolutePath } from "@bolt-ai/core/schema"
+import { initRepo } from "../fixture/git"
 import { location } from "../fixture/location"
 import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
@@ -23,12 +32,9 @@ const it = testEffect(AppNodeBuilder.build(LayerNode.group([FSUtil.node, Bus.nod
 
 const configLayer = Config.testLayer()
 
-const flagsLayer = ConfigProvider.layer(
-  ConfigProvider.fromUnknown({
-    BOLT_EXPERIMENTAL_FILEWATCHER: "true",
-    BOLT_EXPERIMENTAL_DISABLE_FILEWATCHER: "false",
-  }),
-)
+function withNative(native: Watcher.NativeInterface) {
+  return Effect.provide(Watcher.layer().pipe(Layer.provide(Layer.succeed(Watcher.Native, native))))
+}
 
 function countingNative() {
   const counts = { subscribes: 0, unsubscribes: 0 }
@@ -257,13 +263,12 @@ function withTmp<A, E, R>(
   return Effect.acquireRelease(
     Effect.promise(async () => {
       const tmp = await tmpdir()
-      if (!options?.git) return { tmp, vcs: undefined }
-      await $`git init`.cwd(tmp.path).quiet()
-      await $`git config core.fsmonitor false`.cwd(tmp.path).quiet()
-      await $`git config commit.gpgsign false`.cwd(tmp.path).quiet()
-      await $`git config user.email test@bolt.test`.cwd(tmp.path).quiet()
-      await $`git config user.name Test`.cwd(tmp.path).quiet()
-      await $`git commit --allow-empty -m root`.cwd(tmp.path).quiet()
+      if (options?.vcs === "hg") {
+        await fs.mkdir(path.join(tmp.path, ".hg"))
+        return { tmp, vcs: { type: "hg" as const, store: AbsolutePath.make(path.join(tmp.path, ".hg")) } }
+      }
+      if (options?.vcs !== "git") return { tmp, vcs: undefined }
+      await initRepo(tmp.path)
       await options.init?.(tmp.path)
       return { tmp, vcs: { type: "git" as const, store: AbsolutePath.make(path.join(tmp.path, ".git")) } }
     }),

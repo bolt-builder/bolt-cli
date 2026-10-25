@@ -1,11 +1,18 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { expect, test, type Page } from "@playwright/test"
-import { currentSession, mockBoltServer } from "../utils/mock-server"
+import type { OpenCodeEvent, SessionMessageInfo } from "@bolt-ai/client/promise"
+import { timelinePresets } from "@bolt-ai/session-ui/timeline/detail"
+import { expect, test, type Locator, type Page } from "@playwright/test"
+import { expectPath, SERVER, sessionHref } from "../utils/app"
+import { currentSession } from "../utils/mock-server"
+import { assistantMessage, session, sessionID, setupTimeline, textPart, userMessage } from "../utils/timeline"
 import { expectSessionTitle } from "../utils/waits"
 import { mockWorkspace } from "../utils/workspace"
 
-const directory = "C:/Bolt/SubagentNavigation"
-const projectID = "proj_subagent_navigation"
+const directory = "C:/OpenCode/SubagentNavigation"
+
+const projectID = "proj_subagentnavigation"
+
+const serverPort = new URL(SERVER).port
+
 const parentID = "ses_subagent_parent"
 
 const childID = "ses_subagent_child"
@@ -272,31 +279,54 @@ test("shows the not found fallback when the viewed session is deleted", async ({
   await expect(page.getByRole("heading", { name: taskDescription })).toHaveCount(0)
 })
 
-async function setup(page: Page, events?: () => EventPayload[]) {
-  await mockBoltServer(page, {
-    directory,
-    project: {
-      id: projectID,
-      worktree: directory,
-      vcs: "git",
-      name: "subagent-navigation",
-      time: { created: 1700000000000, updated: 1700000000000 },
-      sandboxes: [],
-    },
-    provider: {
-      all: [
-        {
-          id: "bolt",
-          name: "Bolt",
-          models: {
-            "claude-opus-4-6": { id: "claude-opus-4-6", name: "Claude Opus 4.6", limit: { context: 200_000 } },
-          },
-        },
+test.describe("session ID links", () => {
+  const target = "ses_0123456789abcdefghijklmnop"
+  const missing = "ses_abcdefghijklmnopqrstuvwxyz"
+
+  test("opens a verified session from agent prose or inline code with the keyboard", async ({ page }) => {
+    await setupTimeline(page, {
+      sessions: [session(), session({ id: target, title: "Linked session" })],
+      messages: [
+        userMessage(),
+        assistantMessage([textPart("prt_session_links", `Visit ${target} or \`${target}\` to see the result.`)]),
       ],
-      connected: ["bolt"],
-      default: { providerID: "bolt", modelID: "claude-opus-4-6" },
-    },
-    sessions: [session(parentID, parentTitle, 1700000000000), childSession()],
+    })
+    const markdown = page.locator('[data-component="markdown"]').filter({ hasText: `Visit ${target}` })
+    await expect(markdown).toHaveAttribute("data-markdown-ready", "")
+    await expect(markdown.getByRole("button", { name: target })).toHaveCount(2)
+    await markdown
+      .getByRole("button", { name: target })
+      .filter({ has: page.locator("code") })
+      .press("Enter")
+    await expectPath(page, sessionHref(target))
+    await expect(page.locator(`[data-titlebar-tab-link][href$="/session/${target}"]`)).toContainText("Linked session")
+  })
+
+  test("does not navigate to an ID that is absent from the current server", async ({ page }) => {
+    await setupTimeline(page, {
+      messages: [userMessage(), assistantMessage([textPart("prt_session_missing", `See ${missing}.`)])],
+    })
+    const markdown = page.locator('[data-component="markdown"]').filter({ hasText: `See ${missing}.` })
+    await expect(markdown).toHaveAttribute("data-markdown-ready", "")
+    await markdown.getByRole("button", { name: missing }).click()
+    await expect(page.getByText("This session cannot be found")).toBeVisible()
+    await expectPath(page, sessionHref(sessionID))
+  })
+})
+
+async function setup(page: Page, events?: () => OpenCodeEvent[], nestedDepth: 0 | 1 | 2 = 0) {
+  await mockWorkspace(page, {
+    name: "SubagentNavigation",
+    sessions: [
+      { id: parentID, title: parentTitle, created: 1700000000000 },
+      { id: childID, title: childTitle, created: 1700000001000, parentID },
+      ...(nestedDepth >= 1
+        ? [{ id: grandchildID, title: grandchildTitle, created: 1700000002000, parentID: childID }]
+        : []),
+      ...(nestedDepth >= 2
+        ? [{ id: greatGrandchildID, title: greatGrandchildTitle, created: 1700000003000, parentID: grandchildID }]
+        : []),
+    ],
     pageMessages: (sessionID) => ({ items: sessionID === parentID ? parentMessages() : [] }),
     events,
     eventRetry: events ? 16 : undefined,
@@ -359,41 +389,21 @@ function parentMessages(): SessionMessageInfo[] {
 
   return [
     {
-      info: {
-        id: userID,
-        sessionID: parentID,
-        role: "user",
-        time: { created: 1700000000000 },
-        agent: "build",
-        model: { providerID: "bolt", modelID: "claude-opus-4-6" },
-      },
-      parts: [
-        {
-          id: "prt_user_text_0001",
-          sessionID: parentID,
-          messageID: userID,
-          type: "text",
-          text: "Delegate work to a subagent",
-        },
-      ],
+      id: userID,
+      type: "user",
+      time: { created: 1700000000000 },
+      text: "Delegate work to a subagent",
     },
     {
-      info: {
-        id: assistantID,
-        sessionID: parentID,
-        role: "assistant",
-        time: { created: 1700000001000, completed: 1700000002000 },
-        parentID: userID,
-        modelID: "claude-opus-4-6",
-        providerID: "bolt",
-        mode: "build",
-        agent: "build",
-        path: { cwd: directory, root: directory },
-        cost: 0.01,
-        tokens: { input: 100, output: 200, reasoning: 0, cache: { read: 0, write: 0 } },
-        finish: "stop",
-      },
-      parts: [
+      id: assistantID,
+      type: "assistant",
+      time: { created: 1700000001000, completed: 1700000002000 },
+      model: { id: "claude-opus-4-6", providerID: "opencode" },
+      agent: "build",
+      cost: 0.01,
+      tokens: { input: 100, output: 200, reasoning: 0, cache: { read: 0, write: 0 } },
+      finish: "stop",
+      content: [
         {
           type: "tool",
           id: "call_subagent_0001",
@@ -409,27 +419,4 @@ function parentMessages(): SessionMessageInfo[] {
       ],
     },
   ]
-}
-
-async function configurePage(page: Page) {
-  const server = `http://${process.env.PLAYWRIGHT_SERVER_HOST ?? "127.0.0.1"}:${process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"}`
-  await page.addInitScript(
-    ({ directory, server, sessionId }) => {
-      localStorage.setItem("settings.v3", JSON.stringify({ general: { newLayoutDesigns: true } }))
-      localStorage.setItem(
-        "bolt.global.dat:server",
-        JSON.stringify({
-          projects: { local: [{ worktree: directory, expanded: true }] },
-          lastProject: { local: directory },
-        }),
-      )
-      localStorage.setItem("bolt.window.browser.dat:tabs", JSON.stringify([{ type: "session", server, sessionId }]))
-    },
-    { directory, server, sessionId: parentID },
-  )
-}
-
-function sessionHref(sessionID: string) {
-  const server = `http://${process.env.PLAYWRIGHT_SERVER_HOST ?? "127.0.0.1"}:${process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"}`
-  return `/server/${base64Encode(server)}/session/${sessionID}`
 }

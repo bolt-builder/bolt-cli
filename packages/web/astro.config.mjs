@@ -32,7 +32,7 @@ export default defineConfig({
     configSchema(),
     solidJs(),
     starlight({
-      title: "Bolt",
+      title: "OpenCode",
       defaultLocale: "root",
       locales: {
         root: {

@@ -20,7 +20,9 @@ const config = Config.all({
   migrationsDir: Config.NonEmptyString("DATABASE_MIGRATIONS_DIR").pipe(Config.withDefault("./migrations")),
 }).pipe(Config.map(decodeDatabaseSettings))
 
-export class DatabaseConfig extends Context.Service<DatabaseConfig, DatabaseSettings>()("@bolt/stats/DatabaseConfig") {
+export class DatabaseConfig extends Context.Service<DatabaseConfig, DatabaseSettings>()(
+  "@bolt-ai/stats/DatabaseConfig",
+) {
   static readonly config = config
   static readonly layer: Layer.Layer<DatabaseConfig, never, never> = Layer.effect(
     DatabaseConfig,
@@ -34,7 +36,7 @@ function makeDrizzle(settings: DatabaseSettings) {
 
 export type Drizzle = ReturnType<typeof makeDrizzle>
 
-export class DrizzleClient extends Context.Service<DrizzleClient, Drizzle>()("@bolt/stats/DrizzleClient") {
+export class DrizzleClient extends Context.Service<DrizzleClient, Drizzle>()("@bolt-ai/stats/DrizzleClient") {
   static readonly layer: Layer.Layer<DrizzleClient, never, DatabaseConfig> = Layer.effect(
     DrizzleClient,
     Effect.map(DatabaseConfig, makeDrizzle),

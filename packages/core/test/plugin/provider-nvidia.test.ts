@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { Plugin } from "@bolt-ai/core/plugin"
 import { PluginHost } from "@bolt-ai/core/plugin/host"
 import { ProviderPlugins } from "@bolt-ai/core/plugin/provider"
 import { NvidiaPlugin } from "@bolt-ai/core/plugin/provider/nvidia"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Provider } from "@bolt-ai/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -36,9 +35,9 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.get(Provider.ID.make("nvidia")))?.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
-        "X-BILLING-INVOKE-ORIGIN": "Bolt",
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
+        "X-BILLING-INVOKE-ORIGIN": "OpenCode",
       })
       expect((yield* catalog.get(Provider.ID.openrouter))?.headers).toBeUndefined()
     }),
@@ -55,10 +54,10 @@ describe("NvidiaPlugin", () => {
       })
       yield* addPlugin()
 
-      expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
-        "X-BILLING-INVOKE-ORIGIN": "Bolt",
+      expect((yield* catalog.get(Provider.ID.make("nvidia")))?.headers).toEqual({
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
+        "X-BILLING-INVOKE-ORIGIN": "OpenCode",
       })
     }),
   )
@@ -75,9 +74,9 @@ describe("NvidiaPlugin", () => {
       })
       yield* addPlugin()
 
-      expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
+      expect((yield* catalog.get(Provider.ID.make("nvidia")))?.headers).toEqual({
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
         "X-BILLING-INVOKE-ORIGIN": "CustomOrigin",
       })
     }),

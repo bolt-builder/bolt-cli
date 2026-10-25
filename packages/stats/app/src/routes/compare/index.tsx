@@ -114,7 +114,7 @@ export default function ModelCompareIndex() {
         <Meta name="description" content={compareDescription} />
         <LocaleLinks path={comparePath} />
         <Meta property="og:type" content="website" />
-        <Meta property="og:site_name" content="Bolt" />
+        <Meta property="og:site_name" content="OpenCode" />
         <Meta property="og:title" content={compareTitle} />
         <Meta property="og:description" content={compareDescription} />
         <Meta property="og:url" content={compareUrl()} />

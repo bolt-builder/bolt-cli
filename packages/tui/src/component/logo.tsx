@@ -1,4 +1,4 @@
-import { TextAttributes } from "@opentui/core"
+import { RGBA, TextAttributes } from "@opentui/core"
 import { For, type JSX } from "solid-js"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTheme } from "../context/theme"
@@ -9,18 +9,10 @@ export function Logo() {
   const theme = useTheme()
   const dimensions = useTerminalDimensions()
 
-  const leftWidth = logo.left[0]?.length ?? 0
-  const totalWidth = leftWidth + 1 + (logo.right[0]?.length ?? 0)
-
-  // Horizontal gradient across the whole wordmark, accent to primary.
-  const gradient = (column: number) =>
-    tint(theme.accent, theme.primary, totalWidth <= 1 ? 1 : column / (totalWidth - 1))
-
-  const renderLine = (line: string, offset: number, bold: boolean): JSX.Element[] => {
+  const renderLine = (line: string, fg: RGBA, bold: boolean): JSX.Element[] => {
+    const shadow = tint(theme.background.base, fg, 0.25)
     const attrs = bold ? TextAttributes.BOLD : undefined
-    return Array.from(line).map((char, column) => {
-      const fg = gradient(offset + column)
-      const shadow = tint(theme.background, fg, 0.25)
+    return Array.from(line).map((char) => {
       if (char === "_") {
         return (
           <text fg={fg} bg={shadow} attributes={attrs} selectable={false}>
@@ -59,15 +51,29 @@ export function Logo() {
 
   return (
     <box>
-      <For each={logo.left}>
-        {(line, index) => (
-          <box flexDirection="row" gap={1}>
-            <box flexDirection="row">{renderLine(line, 0, false)}</box>
-            {/* Safely access logo.right with fallback to empty string */}
-            <box flexDirection="row">{renderLine(logo.right[index()] ?? "", leftWidth + 1, true)}</box>
-          </box>
-        )}
-      </For>
+      {dimensions().height < 12 ? null : dimensions().width < 22 ? (
+        <For each={go.right.slice(1)}>
+          {(line) => <box flexDirection="row">{renderLine(line, theme.text.base, true)}</box>}
+        </For>
+      ) : dimensions().width < 44 ? (
+        <>
+          <For each={logo.left.slice(1)}>
+            {(line) => <box flexDirection="row">{renderLine(line, theme.text.muted, false)}</box>}
+          </For>
+          <For each={logo.right}>
+            {(line) => <box flexDirection="row">{renderLine(line, theme.text.base, true)}</box>}
+          </For>
+        </>
+      ) : (
+        <For each={logo.left}>
+          {(line, index) => (
+            <box flexDirection="row" gap={1}>
+              <box flexDirection="row">{renderLine(line, theme.text.muted, false)}</box>
+              <box flexDirection="row">{renderLine(logo.right[index()], theme.text.base, true)}</box>
+            </box>
+          )}
+        </For>
+      )}
     </box>
   )
 }

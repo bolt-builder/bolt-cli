@@ -1,7 +1,6 @@
-import { UserMessage } from "@bolt-ai/sdk/v2"
+import type { FileDiffInfo, SessionMessageUser } from "@bolt-ai/client/promise"
 import { HoverCard } from "@kobalte/core/hover-card"
-import { ComponentProps, For, Match, Show, createSignal, splitProps, Switch } from "solid-js"
-import { DiffChanges } from "@bolt-ai/ui/diff-changes"
+import { ComponentProps, For, Match, Show, createMemo, createSignal, splitProps, Switch } from "solid-js"
 import { useI18n } from "@bolt-ai/ui/context/i18n"
 
 export function MessageNav(

@@ -1,6 +1,6 @@
 ---
 title: Reglas
-description: Establezca instrucciones personalizadas para bolt.
+description: Establezca instrucciones personalizadas para opencode.
 ---
 
 Puede proporcionar instrucciones personalizadas a opencode creando un archivo `AGENTS.md`. Esto es similar a las reglas del Cursor. Contiene instrucciones que se incluirán en el contexto de LLM para personalizar su comportamiento para su proyecto específico.
@@ -9,7 +9,7 @@ Puede proporcionar instrucciones personalizadas a opencode creando un archivo `A
 
 ## Inicializar
 
-Para crear un nuevo archivo `AGENTS.md`, puede ejecutar el comando `/init` en bolt.
+Para crear un nuevo archivo `AGENTS.md`, puede ejecutar el comando `/init` en opencode.
 
 :::tip
 Debes enviar el archivo `AGENTS.md` de tu proyecto a Git.
@@ -62,13 +62,13 @@ Coloque un `AGENTS.md` en la raíz de su proyecto para reglas específicas del p
 
 ### Global
 
-También puedes tener reglas globales en un archivo `~/.config/opencode/AGENTS.md`. Esto se aplica en todas las sesiones bolt.
+También puedes tener reglas globales en un archivo `~/.config/opencode/AGENTS.md`. Esto se aplica en todas las sesiones opencode.
 
 Dado que esto no está comprometido con Git ni se comparte con su equipo, recomendamos usarlo para especificar las reglas personales que debe seguir LLM.
 
 ### Compatibilidad con Claude Code
 
-Para los usuarios que migran desde Claude Code, Bolt admite las convenciones de archivos de Claude Code como alternativas:
+Para los usuarios que migran desde Claude Code, OpenCode admite las convenciones de archivos de Claude Code como alternativas:
 
 - **Reglas del proyecto**: `CLAUDE.md` en el directorio de tu proyecto (se usa si no existe `AGENTS.md`)
 - **Reglas globales**: `~/.claude/CLAUDE.md` (se usa si no existe `~/.config/opencode/AGENTS.md`)
@@ -77,16 +77,16 @@ Para los usuarios que migran desde Claude Code, Bolt admite las convenciones de 
 Para deshabilitar la compatibilidad de Claude Code, configure una de estas variables de entorno:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
 
 ## Prioridad
 
-Cuando se inicia bolt, busca archivos de reglas en este orden:
+Cuando se inicia opencode, busca archivos de reglas en este orden:
 
 1. **Archivos locales** atravesando desde el directorio actual (`AGENTS.md`, `CLAUDE.md`)
 2. **Archivo global** en `~/.config/opencode/AGENTS.md`
@@ -98,22 +98,22 @@ El primer archivo coincidente gana en cada categoría. Por ejemplo, si tiene `AG
 
 ## Instrucciones personalizadas
 
-Puede especificar archivos de instrucciones personalizados en su `bolt.json` o el `~/.config/opencode/bolt.json` global. Esto le permite a usted y a su equipo reutilizar las reglas existentes en lugar de tener que duplicarlas en AGENTS.md.
+Puede especificar archivos de instrucciones personalizados en su `opencode.json` o el `~/.config/opencode/opencode.json` global. Esto le permite a usted y a su equipo reutilizar las reglas existentes en lugar de tener que duplicarlas en AGENTS.md.
 
 Ejemplo:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 También puede utilizar URL remotas para cargar instrucciones desde la web.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -128,13 +128,13 @@ Todos los archivos de instrucciones se combinan con sus archivos `AGENTS.md`.
 
 Si bien opencode no analiza automáticamente las referencias de archivos en `AGENTS.md`, puedes lograr una funcionalidad similar de dos maneras:
 
-### Usar bolt.json
+### Usar opencode.json
 
-El enfoque recomendado es utilizar el campo `instructions` en `bolt.json`:
+El enfoque recomendado es utilizar el campo `instructions` en `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -176,5 +176,5 @@ Este enfoque le permite:
 - Asegúrese de que opencode cargue archivos solo cuando sea necesario para la tarea específica
 
 :::tip
-Para monorepos o proyectos con estándares compartidos, usar `bolt.json` con patrones globales (como `packages/*/AGENTS.md`) es más fácil de mantener que las instrucciones manuales.
+Para monorepos o proyectos con estándares compartidos, usar `opencode.json` con patrones globales (como `packages/*/AGENTS.md`) es más fácil de mantener que las instrucciones manuales.
 :::

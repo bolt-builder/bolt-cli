@@ -1,20 +1,9 @@
 /** @jsxImportSource @opentui/solid */
 import { testRender } from "@opentui/solid"
 import { expect, test } from "bun:test"
-import { onCleanup } from "solid-js"
-import { TuiKeybind } from "../src/config/keybind"
-import { getOpencodeModeStack, BOLT_BASE_MODE, OpencodeKeymapProvider, registerOpencodeKeymap } from "../src/keymap"
-
-function createResolvedKeymapConfig(input: TuiKeybind.KeybindOverrides = {}) {
-  const keybinds = TuiKeybind.parse(input)
-  return {
-    keybinds: createBindingLookup(TuiKeybind.toBindingConfig(keybinds), {
-      commandMap: TuiKeybind.CommandMap,
-      bindingDefaults: TuiKeybind.bindingDefaults(),
-    }),
-    leader_timeout: 2000,
-  }
-}
+import { ConfigProvider } from "../src/config"
+import { Keymap } from "../src/context/keymap"
+import { createTuiResolvedConfig } from "./fixture/tui-runtime"
 
 test("legacy page key aliases compile as page keys", async () => {
   let read = () => ({ up: "", down: "" })
@@ -31,41 +20,7 @@ test("legacy page key aliases compile as page keys", async () => {
       up: shortcuts.get("session.page.up") ?? "",
       down: shortcuts.get("session.page.down") ?? "",
     })
-    const offBase = keymap.registerLayer({
-      mode: BOLT_BASE_MODE,
-      commands: [{ name: "model.list", run() {} }],
-      bindings: config.keybinds.gather("test.base", ["model.list"]),
-    })
-    const activeCounts = () =>
-      Object.fromEntries(
-        Array.from(
-          keymap.getCommandBindings({
-            visibility: "active",
-            commands: ["session.list", "session.new", "session.page.up", "session.first", "model.list"],
-          }),
-          ([command, bindings]) => [command, bindings.length],
-        ),
-      )
-
-    counts.base = activeCounts()
-    const popQuestion = getOpencodeModeStack(keymap).push("question")
-    counts.question = activeCounts()
-    popQuestion()
-    const popAutocomplete = getOpencodeModeStack(keymap).push("autocomplete")
-    counts.autocomplete = activeCounts()
-    popAutocomplete()
-
-    onCleanup(() => {
-      offBase()
-      offGlobal()
-      offKeymap()
-    })
-
-    return (
-      <OpencodeKeymapProvider keymap={keymap}>
-        <box />
-      </OpencodeKeymapProvider>
-    )
+    return <box />
   }
 
   const app = await testRender(() => (

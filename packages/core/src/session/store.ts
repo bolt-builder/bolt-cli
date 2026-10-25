@@ -24,7 +24,68 @@ const ListInputBase = {
   anchor: Session.ListAnchor.pipe(Schema.optional),
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/SessionStore") {}
+const ListDirectoryInput = Schema.Struct({
+  ...ListInputBase,
+  directory: AbsolutePath,
+})
+
+const ListProjectInput = Schema.Struct({
+  ...ListInputBase,
+  project: Project.ID,
+  subpath: RelativePath.pipe(Schema.optional),
+})
+
+const ListAllInput = Schema.Struct(ListInputBase)
+
+export const ListInput = Schema.Union([ListDirectoryInput, ListProjectInput, ListAllInput])
+export type ListInput = typeof ListInput.Type
+
+export type MessagesInput = {
+  sessionID: Session.ID
+  limit?: number
+  order?: "asc" | "desc"
+  type?: SessionMessage.Type
+  cursor?: {
+    id: SessionMessage.ID
+    direction: "previous" | "next"
+  }
+}
+
+export interface Interface {
+  readonly get: (sessionID: Session.ID) => Effect.Effect<Session.Info | undefined>
+  readonly list: (input?: ListInput) => Effect.Effect<Session.Info[]>
+  readonly messages: (input: MessagesInput) => Effect.Effect<SessionMessage.Info[], MessageDecodeError>
+  readonly context: (sessionID: Session.ID) => Effect.Effect<SessionMessage.Info[], MessageDecodeError>
+  readonly message: (
+    messageID: SessionMessage.ID,
+  ) => Effect.Effect<{ readonly sessionID: Session.ID; readonly message: SessionMessage.Info } | undefined>
+  /**
+   * Top-level Sessions holding an execution claim. Recoverable background
+   * children are resumed separately through their durable Job records.
+   */
+  readonly listSuspended: () => Effect.Effect<ReadonlyArray<Session.ID>>
+  /**
+   * Records the execution claim: the durable write-ahead intent that a turn is
+   * (or was) in flight. Set when execution starts; a claim that survives to the
+   * next boot marks a turn that never completed — its process crashed or shut
+   * down mid-turn.
+   */
+  readonly claim: (sessionID: Session.ID) => Effect.Effect<void>
+  /** Releases the claim and resets resume accounting. Terminal events call this on commit. */
+  readonly release: (sessionID: Session.ID) => Effect.Effect<void>
+  /**
+   * Clears orphaned child claims except children owned by recoverable
+   * background subagent jobs.
+   */
+  readonly releaseChildClaims: (recoverable: ReadonlyArray<Session.ID>) => Effect.Effect<void>
+  /**
+   * Durably counts one more resume of an orphaned claim, returning the new
+   * total — or undefined when the Session no longer exists.
+   */
+  readonly countResume: (sessionID: Session.ID) => Effect.Effect<number | undefined>
+}
+
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionStore") {}
 
 const layer = Layer.effect(
   Service,

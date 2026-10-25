@@ -3,7 +3,7 @@ title: Fejlfinding
 description: Almindelige problemer, og hvordan de løses.
 ---
 
-For at fejlfinde problemer med Bolt, start med at tjekke logfilerne og de lokale data, den gemmer på disken.
+For at fejlfinde problemer med OpenCode, start med at tjekke logfilerne og de lokale data, den gemmer på disken.
 
 ---
 
@@ -39,13 +39,13 @@ Denne mappe indeholder:
 
 ## Desktop-app
 
-Bolt Desktop kører en lokal Bolt-server (`opencode-cli` sidevognen) i baggrunden. De fleste problemer er forårsaget af et plugin, der fungerer dårligt, en ødelagt cache eller en dårlig serverindstilling.
+OpenCode Desktop kører en lokal OpenCode-server (`opencode-cli` sidevognen) i baggrunden. De fleste problemer er forårsaget af et plugin, der fungerer dårligt, en ødelagt cache eller en dårlig serverindstilling.
 
 ### Hurtige tjek
 
 - Afslut og start appen på ny.
 - Hvis appen viser en fejlskærm, klikker du på **Start på ny** og kopierer fejldetaljerne.
-- Kun macOS: `Bolt`-menu -> **Genindlæs webvisning** (hjælper hvis UI er tom/frosset).
+- Kun macOS: `OpenCode`-menu -> **Genindlæs webvisning** (hjælper hvis UI er tom/frosset).
 
 ---
 
@@ -57,28 +57,28 @@ Hvis skrivebordsappen går ned ved opstart, hænger eller opfører sig mærkelig
 
 Åbn den globale konfigurationsfil og se efter en `plugin`-nøgle.
 
-- **macOS/Linux**: `~/.config/opencode/bolt.jsonc` (eller `~/.config/opencode/bolt.json`)
-- **macOS/Linux** (ældre installationer): `~/.local/share/opencode/bolt.jsonc`
-- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.config\opencode\bolt.jsonc`
+- **macOS/Linux**: `~/.config/opencode/opencode.jsonc` (eller `~/.config/opencode/opencode.json`)
+- **macOS/Linux** (ældre installationer): `~/.local/share/opencode/opencode.jsonc`
+- **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.config\opencode\opencode.jsonc`
 
 Hvis du har konfigureret plugins, deaktiver dem midlertidigt ved at fjerne nøglen eller sætte den til et tomt array:
 
 ```jsonc
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
 
 #### Tjek plugin-mapper
 
-Bolt kan også indlæse lokale plugins fra disken. Flyt disse midlertidigt væk (eller giv mappen nyt navn) og start skrivebordsappen på ny:
+OpenCode kan også indlæse lokale plugins fra disken. Flyt disse midlertidigt væk (eller giv mappen nyt navn) og start skrivebordsappen på ny:
 
 - **Globale plugins**
   - **macOS/Linux**: `~/.config/opencode/plugins/`
   - **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.config\opencode\plugins`
 - **Projektplugins** (kun hvis du bruger konfiguration per projekt)
-  - `<your-project>/.bolt/plugins/`
+  - `<your-project>/.opencode/plugins/`
 
 Hvis appen begynder at fungere igen, aktiverer du plugins én ad gangen for at finde ud af, hvilken som forårsager problemet.
 
@@ -86,22 +86,22 @@ Hvis appen begynder at fungere igen, aktiverer du plugins én ad gangen for at f
 
 ### Ryd cachen
 
-Hvis deaktivering af plugins ikke hjælper (eller en plugin-installation sidder fast), tøm cachen så Bolt kan genopbygge den.
+Hvis deaktivering af plugins ikke hjælper (eller en plugin-installation sidder fast), tøm cachen så OpenCode kan genopbygge den.
 
-1. Afslut Bolt Desktop helt.
+1. Afslut OpenCode Desktop helt.
 2. Slet cache-mappen:
 
 - **macOS**: Finder -> `Cmd+Shift+G` -> indsæt `~/.cache/opencode`
 - **Linux**: slet `~/.cache/opencode` (eller kør `rm -rf ~/.cache/opencode`)
 - **Windows**: Tryk `WIN+R` og indsæt `%USERPROFILE%\.cache\opencode`
 
-3. Start Bolt Desktop på ny.
+3. Start OpenCode Desktop på ny.
 
 ---
 
 ### Løs problemer med serverforbindelse
 
-Bolt Desktop kan enten starte sin egen lokale server (standard) eller forbinde til en server URL, du har konfigureret.
+OpenCode Desktop kan enten starte sin egen lokale server (standard) eller forbinde til en server URL, du har konfigureret.
 
 Hvis du ser en **"Forbindelse mislykkedes"**-dialogboks (eller appen kommer aldrig forbi splash-skærmen), se efter en brugerdefineret server URL.
 
@@ -111,13 +111,13 @@ Fra startskærmen klikker du på servernavnet (med statusprikken) for at åbne s
 
 #### Fjern `server.port` / `server.hostname` fra din konfiguration
 
-Hvis `bolt.json(c)` indeholder en `server`-del, fjern den midlertidigt og start skrivebordsappen på ny.
+Hvis `opencode.json(c)` indeholder en `server`-del, fjern den midlertidigt og start skrivebordsappen på ny.
 
 #### Tjek miljøvariabler
 
-Hvis du har `BOLT_PORT` sat i dit miljø, vil skrivebordsappen prøve at bruge den port for den lokale server.
+Hvis du har `OPENCODE_PORT` sat i dit miljø, vil skrivebordsappen prøve at bruge den port for den lokale server.
 
-- Deaktiver `BOLT_PORT` (eller vælg en ledig port) og start på ny.
+- Deaktiver `OPENCODE_PORT` (eller vælg en ledig port) og start på ny.
 
 ---
 
@@ -132,21 +132,21 @@ På Linux kan nogle Wayland-opsætninger forårsage tomme vinduer eller komposit
 
 ### Windows: WebView2-runtime
 
-På Windows kræver Bolt Desktop Microsoft Edge **WebView2 Runtime**. Hvis appen åbnes i et tomt vindue eller ikke starter, installer/opdater WebView2 og prøv igen.
+På Windows kræver OpenCode Desktop Microsoft Edge **WebView2 Runtime**. Hvis appen åbnes i et tomt vindue eller ikke starter, installer/opdater WebView2 og prøv igen.
 
 ---
 
 ### Windows: Generelle ydeevneproblemer
 
-Hvis du oplever langsom ydeevne, problemer med filadgang eller terminalproblemer på Windows, kan du prøve at bruge [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL giver et Linux-miljø som fungerer mere sømløst med funktionerne i Bolt.
+Hvis du oplever langsom ydeevne, problemer med filadgang eller terminalproblemer på Windows, kan du prøve at bruge [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). WSL giver et Linux-miljø som fungerer mere sømløst med funktionerne i OpenCode.
 
 ---
 
 ### Meddelelser vises ikke
 
-Bolt Desktop viser kun systemvarsler når:
+OpenCode Desktop viser kun systemvarsler når:
 
-- varsler er aktiveret for Bolt i dine OS-indstillinger, og
+- varsler er aktiveret for OpenCode i dine OS-indstillinger, og
 - appvinduet ikke er fokuseret.
 
 ---
@@ -155,11 +155,11 @@ Bolt Desktop viser kun systemvarsler når:
 
 Hvis appen ikke starter og du ikke kan slette indstillingerne fra UI, nulstil skrivebordsappens gemte tilstand.
 
-1. Afslut Bolt Desktop.
-2. Find og slet disse filer (de findes i Bolt Desktop-appens datamappe):
+1. Afslut OpenCode Desktop.
+2. Find og slet disse filer (de findes i OpenCode Desktop-appens datamappe):
 
-- `bolt.settings.dat` (skrivebordsstandardserver URL)
-- `bolt.global.dat` og `bolt.workspace.*.dat` (UI tilstand som nylige servere/projekter)
+- `opencode.settings.dat` (skrivebordsstandardserver URL)
+- `opencode.global.dat` og `opencode.workspace.*.dat` (UI tilstand som nylige servere/projekter)
 
 Sådan finder du mappen hurtigt:
 
@@ -171,13 +171,13 @@ Sådan finder du mappen hurtigt:
 
 ## Få hjælp
 
-Hvis du oplever problemer med Bolt:
+Hvis du oplever problemer med OpenCode:
 
 1. **Rapporter problemer på GitHub**
 
    Den bedste måde at rapportere fejl eller bede om funktioner på er gennem vores GitHub-repo:
 
-   [**https://github.com/Bolt-builder/bolt-cli/issues**](https://github.com/Bolt-builder/bolt-cli/issues)
+   [**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
    Før du opretter et nyt issue, søg i eksisterende issues for at se om dit problem allerede er rapporteret.
 
@@ -185,7 +185,7 @@ Hvis du oplever problemer med Bolt:
 
    For hjælp i realtid og fællesskabsdiskussion, bliv en del af vores Discord-server:
 
-   [**bolt.ai/discord**](https://bolt.ai/discord)
+   [**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 
@@ -195,7 +195,7 @@ Her er nogle almindelige problemer og hvordan du kan løse dem.
 
 ---
 
-### Bolt vil ikke starte
+### OpenCode vil ikke starte
 
 1. Tjek logfilerne for fejlmeddelelser
 2. Prøv at køre med `--print-logs` for at se output i terminalen

@@ -4,7 +4,7 @@
     {
       "type": "bun",
       "request": "attach",
-      "name": "bolt (attach)",
+      "name": "opencode (attach)",
       "url": "ws://localhost:6499/"
     }
   ]

@@ -27,18 +27,15 @@ export function DialogStatus() {
                 <text flexShrink={0} style={{ fg: color(item.status.status) }}>
                   •
                 </text>
-                <text fg={theme.text} wrapMode="word">
-                  <b>{key}</b>{" "}
-                  <span style={{ fg: theme.textMuted }}>
-                    <Switch fallback={item.status}>
-                      <Match when={item.status === "connected"}>Connected</Match>
-                      <Match when={item.status === "failed" && item}>{(val) => val().error}</Match>
-                      <Match when={item.status === "disabled"}>Disabled in configuration</Match>
-                      <Match when={(item.status as string) === "needs_auth"}>
-                        Needs authentication (run: bolt mcp auth {key})
-                      </Match>
-                      <Match when={(item.status as string) === "needs_client_registration" && item}>
-                        {(val) => (val() as { error: string }).error}
+                <text fg={theme.text.base} wrapMode="word">
+                  <b>{item.name}</b>{" "}
+                  <span style={{ fg: theme.text.muted }}>
+                    <Switch fallback={item.status.status}>
+                      <Match when={item.status.status === "connected"}>Connected</Match>
+                      <Match when={item.status.status === "failed" && item.status}>{(val) => val().error}</Match>
+                      <Match when={item.status.status === "disabled"}>Disabled in configuration</Match>
+                      <Match when={item.status.status === "needs_auth" && item.status}>
+                        {(val) => `Needs authentication: ${val().error}`}
                       </Match>
                     </Switch>
                   </span>

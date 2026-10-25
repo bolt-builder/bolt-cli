@@ -1,40 +1,5 @@
-// @ts-nocheck
-import * as mod from "./dock-prompt"
-import { create } from "@bolt-ai/ui/storybook/scaffold"
-
-const docs = `### Overview
-Docked prompt layout for questions and permission requests.
-
-Use with form controls or confirmation buttons in the footer.
-
-### API
-- Required: \`kind\` (question | permission), \`header\`, \`children\`, \`footer\`.
-- Optional: \`ref\` for measuring or focus management.
-
-### Variants and states
-- Question and permission layouts (data attributes).
-
-### Behavior
-- Pure layout component; behavior handled by parent.
-
-### Accessibility
-- Ensure header and footer content provide clear context and actions.
-
-### Theming/tokens
-- Uses \`data-component="dock-prompt"\` with kind data attribute.
-
-`
-
-const story = create({
-  title: "UI/DockPrompt",
-  mod,
-  args: {
-    kind: "question",
-    header: "Header",
-    children: "Prompt content",
-    footer: "Footer",
-  },
-})
+import { Button } from "@bolt-ai/ui/button"
+import { DockPrompt } from "./dock-prompt"
 
 export default {
   title: "OpenCode/Requests/Prompt frame",

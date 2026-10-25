@@ -1,9 +1,10 @@
 import { SessionMessage } from "@bolt-ai/core/session/message"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { Effect, Schema } from "effect"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
+import { Session } from "@bolt-ai/core/session"
+import { Effect, Option, Schema } from "effect"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
-import { InvalidCursorError, SessionNotFoundError, UnknownError } from "@bolt-ai/protocol/errors"
+import { InvalidCursorError } from "@bolt-ai/protocol/errors"
+import { failedMessageDecode, missingSession } from "./session-error"
 
 const DefaultMessagesLimit = 50
 

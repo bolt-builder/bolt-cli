@@ -1,17 +1,17 @@
 ---
 title: GitHub
-description: 在 GitHub Issue 和 Pull Request 中使用 Bolt。
+description: 在 GitHub Issue 和 Pull Request 中使用 OpenCode。
 ---
 
-Bolt 可以与你的 GitHub 工作流集成。在评论中提及 `/opencode` 或 `/oc`，Bolt 就会在你的 GitHub Actions 运行器中执行任务。
+OpenCode 可以与你的 GitHub 工作流集成。在评论中提及 `/opencode` 或 `/oc`，OpenCode 就会在你的 GitHub Actions 运行器中执行任务。
 
 ---
 
 ## 功能特性
 
-- **问题分类**：让 Bolt 调查某个 Issue 并为你做出解释。
-- **修复与实现**：让 Bolt 修复 Issue 或实现某个功能。它会在新分支中工作，并提交包含所有变更的 PR。
-- **安全可靠**：Bolt 在你自己的 GitHub 运行器中运行。
+- **问题分类**：让 OpenCode 调查某个 Issue 并为你做出解释。
+- **修复与实现**：让 OpenCode 修复 Issue 或实现某个功能。它会在新分支中工作，并提交包含所有变更的 PR。
+- **安全可靠**：OpenCode 在你自己的 GitHub 运行器中运行。
 
 ---
 
@@ -37,9 +37,9 @@ opencode github install
 
 2. **添加工作流**
 
-   将以下工作流文件添加到仓库的 `.github/workflows/bolt.yml` 中。请确保在 `env` 中设置合适的 `model` 及所需的 API 密钥。
+   将以下工作流文件添加到仓库的 `.github/workflows/opencode.yml` 中。请确保在 `env` 中设置合适的 `model` 及所需的 API 密钥。
 
-   ```yml title=".github/workflows/bolt.yml" {24,26}
+   ```yml title=".github/workflows/opencode.yml" {24,26}
    name: opencode
 
    on:
@@ -63,8 +63,8 @@ opencode github install
              fetch-depth: 1
              persist-credentials: false
 
-          - name: Run Bolt
-           uses: bolt-builder/bolt-cli/github@latest
+         - name: Run OpenCode
+           uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
@@ -80,13 +80,12 @@ opencode github install
 
 ## 配置
 
-- `model`：Bolt 使用的模型，格式为 `provider/model`。此项为**必填**。
+- `model`：OpenCode 使用的模型，格式为 `provider/model`。此项为**必填**。
 - `agent`：要使用的代理，必须是主代理。如果未找到，则回退到配置中的 `default_agent`，若仍未找到则使用 `"build"`。
-- `share`：是否共享 Bolt 会话。对于公开仓库，默认为 **true**。
-- `prompt`：可选的自定义提示词，用于覆盖默认行为。可通过此项自定义 Bolt 处理请求的方式。
-- `token`：可选的 GitHub 访问 Token，用于执行创建评论、提交变更和创建 Pull Request 等操作。默认情况下，Bolt 使用 Bolt GitHub App 的安装访问 Token，因此提交、评论和 Pull Request 会显示为来自该应用。
+- `prompt`：可选的自定义提示词，用于覆盖默认行为。可通过此项自定义 OpenCode 处理请求的方式。
+- `token`：可选的 GitHub 访问 Token，用于执行创建评论、提交变更和创建 Pull Request 等操作。默认情况下，OpenCode 使用 OpenCode GitHub App 的安装访问 Token，因此提交、评论和 Pull Request 会显示为来自该应用。
 
-  你也可以使用 GitHub Action 运行器内置的 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token)，而无需安装 Bolt GitHub App。只需确保在工作流中授予所需的权限：
+  你也可以使用 GitHub Action 运行器内置的 [`GITHUB_TOKEN`](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token)，而无需安装 OpenCode GitHub App。只需确保在工作流中授予所需的权限：
 
   ```yaml
   permissions:
@@ -102,23 +101,23 @@ opencode github install
 
 ## 支持的事件
 
-Bolt 可以由以下 GitHub 事件触发：
+OpenCode 可以由以下 GitHub 事件触发：
 
-| 事件类型                      | 触发方式                     | 详情                                                                                  |
-| ----------------------------- | ---------------------------- | ------------------------------------------------------------------------------------- |
-| `issue_comment`               | 在 Issue 或 PR 上发表评论    | 在评论中提及 `/opencode` 或 `/oc`。Bolt 会读取上下文，并可创建分支、提交 PR 或回复。  |
-| `pull_request_review_comment` | 在 PR 中对特定代码行发表评论 | 在代码审查时提及 `/opencode` 或 `/oc`。Bolt 会接收文件路径、行号和 diff 上下文。      |
-| `issues`                      | Issue 被创建或编辑           | 在 Issue 创建或修改时自动触发 Bolt。需要提供 `prompt` 输入。                          |
-| `pull_request`                | PR 被创建或更新              | 在 PR 被打开、同步或重新打开时自动触发 Bolt。适用于自动化审查场景。                   |
-| `schedule`                    | 基于 Cron 的定时任务         | 按计划运行 Bolt。需要提供 `prompt` 输入。输出会写入日志和 PR（没有 Issue 可供评论）。 |
-| `workflow_dispatch`           | 从 GitHub UI 手动触发        | 通过 Actions 选项卡按需触发 Bolt。需要提供 `prompt` 输入。输出会写入日志和 PR。       |
+| 事件类型                      | 触发方式                     | 详情                                                                                      |
+| ----------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------- |
+| `issue_comment`               | 在 Issue 或 PR 上发表评论    | 在评论中提及 `/opencode` 或 `/oc`。OpenCode 会读取上下文，并可创建分支、提交 PR 或回复。  |
+| `pull_request_review_comment` | 在 PR 中对特定代码行发表评论 | 在代码审查时提及 `/opencode` 或 `/oc`。OpenCode 会接收文件路径、行号和 diff 上下文。      |
+| `issues`                      | Issue 被创建或编辑           | 在 Issue 创建或修改时自动触发 OpenCode。需要提供 `prompt` 输入。                          |
+| `pull_request`                | PR 被创建或更新              | 在 PR 被打开、同步或重新打开时自动触发 OpenCode。适用于自动化审查场景。                   |
+| `schedule`                    | 基于 Cron 的定时任务         | 按计划运行 OpenCode。需要提供 `prompt` 输入。输出会写入日志和 PR（没有 Issue 可供评论）。 |
+| `workflow_dispatch`           | 从 GitHub UI 手动触发        | 通过 Actions 选项卡按需触发 OpenCode。需要提供 `prompt` 输入。输出会写入日志和 PR。       |
 
 ### 定时任务示例
 
-按计划运行 Bolt 以执行自动化任务：
+按计划运行 OpenCode 以执行自动化任务：
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled Bolt Task
+name: Scheduled OpenCode Task
 
 on:
   schedule:
@@ -138,8 +137,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Bolt
-        uses: bolt-builder/bolt-cli/github@latest
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -149,7 +148,7 @@ jobs:
             If you find issues worth addressing, open an issue to track them.
 ```
 
-对于定时事件，`prompt` 输入为**必填**，因为没有评论可供提取指令。定时工作流在运行时没有用户上下文来进行权限检查，因此如果你希望 Bolt 创建分支或 PR，工作流必须授予 `contents: write` 和 `pull-requests: write` 权限。
+对于定时事件，`prompt` 输入为**必填**，因为没有评论可供提取指令。定时工作流在运行时没有用户上下文来进行权限检查，因此如果你希望 OpenCode 创建分支或 PR，工作流必须授予 `contents: write` 和 `pull-requests: write` 权限。
 
 ---
 
@@ -176,7 +175,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -190,7 +189,7 @@ jobs:
             - Suggest improvements
 ```
 
-对于 `pull_request` 事件，如果未提供 `prompt`，Bolt 将默认对该 Pull Request 进行审查。
+对于 `pull_request` 事件，如果未提供 `prompt`，OpenCode 将默认对该 Pull Request 进行审查。
 
 ---
 
@@ -232,7 +231,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -251,10 +250,10 @@ jobs:
 
 ## 自定义提示词
 
-覆盖默认提示词，以便为你的工作流自定义 Bolt 的行为。
+覆盖默认提示词，以便为你的工作流自定义 OpenCode 的行为。
 
-```yaml title=".github/workflows/bolt.yml"
-- uses: bolt-builder/bolt-cli/github@latest
+```yaml title=".github/workflows/opencode.yml"
+- uses: anomalyco/opencode/github@latest
   with:
     model: anthropic/claude-sonnet-5-5
     prompt: |
@@ -270,7 +269,7 @@ jobs:
 
 ## 示例
 
-以下是在 GitHub 中使用 Bolt 的一些示例。
+以下是在 GitHub 中使用 OpenCode 的一些示例。
 
 - **解释 Issue**
 
@@ -280,7 +279,7 @@ jobs:
   /opencode explain this issue
   ```
 
-  Bolt 会阅读整个讨论串（包括所有评论），并回复一份清晰的解释。
+  OpenCode 会阅读整个讨论串（包括所有评论），并回复一份清晰的解释。
 
 - **修复 Issue**
 
@@ -290,7 +289,7 @@ jobs:
   /opencode fix this
   ```
 
-  Bolt 会创建一个新分支，实现变更，并提交一个包含所有修改的 PR。
+  OpenCode 会创建一个新分支，实现变更，并提交一个包含所有修改的 PR。
 
 - **审查 PR 并进行修改**
 
@@ -300,18 +299,18 @@ jobs:
   Delete the attachment from S3 when the note is removed /oc
   ```
 
-  Bolt 会实现所请求的变更并将其提交到同一个 PR 中。
+  OpenCode 会实现所请求的变更并将其提交到同一个 PR 中。
 
 - **审查特定代码行**
 
-  在 PR 的 "Files" 选项卡中直接对代码行留下评论。Bolt 会自动检测文件、行号和 diff 上下文，从而提供精准的响应。
+  在 PR 的 "Files" 选项卡中直接对代码行留下评论。OpenCode 会自动检测文件、行号和 diff 上下文，从而提供精准的响应。
 
   ```
   [Comment on specific lines in Files tab]
   /oc add error handling here
   ```
 
-  当你对特定代码行发表评论时，Bolt 会接收到：
+  当你对特定代码行发表评论时，OpenCode 会接收到：
   - 正在审查的具体文件
   - 特定的代码行
   - 周围的 diff 上下文

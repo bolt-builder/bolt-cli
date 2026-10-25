@@ -10,7 +10,7 @@ on:
 jobs:
   sync-locales:
     if: false
-    #if: github.actor != '  "bolt-cli[bot]"
+    #if: github.actor != 'opencode-agent[bot]'
     runs-on: blacksmith-4vcpu-ubuntu-2404
     permissions:
       contents: write
@@ -29,7 +29,7 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Compute changed English docs
@@ -48,15 +48,15 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Install Bolt
+      - name: Install OpenCode
         if: steps.changes.outputs.has_changes == 'true'
-        run: curl -fsSL https://bolt.ai/install | bash
+        run: curl -fsSL https://opencode.ai/install | bash
 
-      - name: Sync locale docs with Bolt
+      - name: Sync locale docs with OpenCode
         if: steps.changes.outputs.has_changes == 'true'
         env:
-          BOLT_API_KEY: ${{ secrets.BOLT_API_KEY }}
-          BOLT_CONFIG_CONTENT: |
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_CONFIG_CONTENT: |
             {
               "permission": {
                 "*": "deny",
@@ -67,7 +67,7 @@ jobs:
               }
             }
         run: |
-          bolt run --agent docs --model opencode/gpt-5.3-codex <<'EOF'
+          opencode run --agent docs --model opencode/gpt-5.3-codex <<'EOF'
             Update localized docs to match the latest English docs changes.
 
             Changed English doc files:
@@ -77,7 +77,7 @@ jobs:
 
             Requirements:
             1. Update all relevant locale docs under packages/web/src/content/docs/<locale>/ so they reflect these English page changes.
-            2. You MUST use the Task tool for translation work and launch subagents with subagent_type `translator` (defined in .bolt/agent/translator.md).
+            2. You MUST use the Task tool for translation work and launch subagents with subagent_type `translator` (defined in .opencode/agent/translator.md).
             3. Do not translate directly in the primary agent. Use translator subagent output as the source for locale text updates.
             4. Run translator subagent Task calls in parallel whenever file/locale translation work is independent.
             5. Use only the minimum tools needed for this task (read/glob, file edits, and translator Task). Do not use shell, web, search, or GitHub tools for translation work.

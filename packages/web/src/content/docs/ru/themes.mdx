@@ -65,7 +65,7 @@ opencode поставляется с несколькими встроенным
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -84,8 +84,8 @@ opencode поддерживает гибкую систему тем на осн
 
 1. **Встроенные темы** – они встроены в двоичный файл.
 2. **Каталог конфигурации пользователя** – определяется в `~/.config/opencode/themes/*.json` или `$XDG_CONFIG_HOME/opencode/themes/*.json`.
-3. **Корневой каталог проекта** – определено в `<project-root>/.bolt/themes/*.json`.
-4. **Текущий рабочий каталог** – определено в `./.bolt/themes/*.json`.
+3. **Корневой каталог проекта** – определено в `<project-root>/.opencode/themes/*.json`.
+4. **Текущий рабочий каталог** – определено в `./.opencode/themes/*.json`.
 
 Если несколько каталогов содержат тему с одинаковым именем, будет использоваться тема из каталога с более высоким приоритетом.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 Для тем проекта:
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ vim .bolt/themes/my-theme.json
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

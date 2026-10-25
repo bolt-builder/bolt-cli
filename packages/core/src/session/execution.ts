@@ -39,8 +39,8 @@ export interface Interface {
   readonly awaitIdle: (sessionID: SessionSchema.ID) => Effect.Effect<void>
 }
 
-/** Routes execution from a Session ID to the runner owned by that Session's Location. */
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/SessionExecution") {}
+/** Routes execution from a Session ID to its selected instance's runner. */
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionExecution") {}
 
 type InterruptReason = "user" | "shutdown"
 

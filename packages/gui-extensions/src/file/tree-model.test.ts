@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { buildFileTreeV2Model, flattenFileTreeV2, flattenLiveFileTreeV2 } from "./file-tree-v2-model"
-import type { FileNode } from "@bolt-ai/sdk/v2"
+import type { FileNode } from "../sdk"
+import { buildFileTreeV2Model, flattenFileTreeV2, flattenLiveFileTreeV2 } from "./tree-model"
 
 describe("buildFileTreeV2Model", () => {
   test("builds a sorted tree and flattens expanded directories", () => {

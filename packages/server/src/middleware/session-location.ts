@@ -1,22 +1,16 @@
-import { Database } from "@bolt-ai/core/database/database"
-import { LocationServiceMap } from "@bolt-ai/core/location-services"
-import { Location } from "@bolt-ai/core/location"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { SessionTable } from "@bolt-ai/core/session/sql"
-import { WorkspaceV2 } from "@bolt-ai/core/workspace"
-import { eq } from "drizzle-orm"
-import { Effect, Layer, Schema } from "effect"
-import { HttpRouter } from "effect/unstable/http"
-import { HttpApiMiddleware } from "effect/unstable/httpapi"
-import { InvalidRequestError, SessionNotFoundError } from "@bolt-ai/protocol/errors"
-import type { LocationServices } from "../location"
+import { Instance } from "@bolt-ai/core/instance/service"
+import { Session } from "@bolt-ai/core/session"
+import { Effect, Layer } from "effect"
+import { HttpRouter } from "effect/http"
+import { HttpApiMiddleware } from "effect/http-api"
+import { LocationNotFoundError, InvalidRequestError, SessionNotFoundError } from "@bolt-ai/protocol/errors"
+import { locationErrors, sessionInfo, type LocationServices } from "../location"
 
 export class SessionLocationMiddleware extends HttpApiMiddleware.Service<
   SessionLocationMiddleware,
   { provides: LocationServices }
->()("@bolt/HttpApiSessionLocation", {
-  error: [InvalidRequestError, SessionNotFoundError],
+>()("@bolt-ai/HttpApiSessionLocation", {
+  error: [InvalidRequestError, SessionNotFoundError, LocationNotFoundError],
 }) {}
 
 export const sessionLocationLayer = Layer.effect(

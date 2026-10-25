@@ -64,7 +64,7 @@ const make = Effect.fn("DesktopCli.resolve")(function* () {
           "run",
           "--cwd",
           development,
-          "--define=OPENCODE_VERSION=process.env.OPENCODE_VERSION",
+          "--define=BOLT_VERSION=process.env.OPENCODE_VERSION",
           "src/index.ts",
         ],
         binary: undefined,

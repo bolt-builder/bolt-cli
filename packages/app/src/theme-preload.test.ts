@@ -20,25 +20,30 @@ beforeEach(() => {
 })
 
 describe("theme preload", () => {
-  test("migrates legacy oc-1 to oc-2 before mount", () => {
-    localStorage.setItem("bolt-theme-id", "oc-1")
-    localStorage.setItem("bolt-theme-css-light", "--background-base:#fff;")
-    localStorage.setItem("bolt-theme-css-dark", "--background-base:#000;")
+  test.each([
+    { stored: undefined, systemDark: false, scheme: "light", background: "#fafafa" },
+    { stored: "dark", systemDark: false, scheme: "dark", background: "#080808" },
+    { stored: "light", systemDark: true, scheme: "light", background: "#fafafa" },
+    { stored: "system", systemDark: true, scheme: "dark", background: "#080808" },
+  ])(
+    "paints the default theme in $scheme for stored scheme $stored (system dark: $systemDark)",
+    ({ stored, systemDark, scheme, background }) => {
+      setSystemDark(systemDark)
 
       if (stored) localStorage.setItem("opencode-color-scheme", stored)
       run()
 
-    expect(document.documentElement.dataset.theme).toBe("oc-2")
-    expect(document.documentElement.dataset.colorScheme).toBe("light")
-    expect(localStorage.getItem("bolt-theme-id")).toBe("oc-2")
-    expect(localStorage.getItem("bolt-theme-css-light")).toBeNull()
-    expect(localStorage.getItem("bolt-theme-css-dark")).toBeNull()
-    expect(document.getElementById("oc-theme-preload")).toBeNull()
-  })
+      expect(document.documentElement.dataset.theme).toBe("oc-2")
+      expect(document.documentElement.dataset.colorScheme).toBe(scheme)
+      expect(document.documentElement.style.backgroundColor).toBe(background)
+    },
+  )
 
-  test("keeps cached css for non-default themes", () => {
-    localStorage.setItem("bolt-theme-id", "nightowl")
-    localStorage.setItem("bolt-theme-css-light", "--background-base:#fff;")
+  test.each([
+    { scheme: undefined, key: "opencode-theme-css-light", css: "--background-base:#fff;", expected: "light" },
+    { scheme: "dark", key: "opencode-theme-css-dark", css: "--background-base:#010203;", expected: "dark" },
+  ])("restores the cached $expected css of a custom theme", ({ scheme, key, css, expected }) => {
+    localStorage.setItem("opencode-theme-id", "nightowl")
 
     if (scheme) localStorage.setItem("opencode-color-scheme", scheme)
     localStorage.setItem(key, css)

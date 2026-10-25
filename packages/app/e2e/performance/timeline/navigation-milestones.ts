@@ -96,37 +96,41 @@ export async function measureNavigationMilestones(
               }
 
               if (!marked.has(`${name}.first`)) {
-                performance.mark(`bolt.navigation.${name}.first`)
+                performance.mark(`opencode.navigation.${name}.first`)
                 marked.add(`${name}.first`)
               }
 
               const streak = (streaks.get(name) ?? 0) + 1
               streaks.set(name, streak)
-              if (streak === 3) performance.mark(`bolt.navigation.${name}.stable`)
+
+              if (streak === 3) performance.mark(`opencode.navigation.${name}.stable`)
             })
             const all = Object.values(current).every(Boolean)
             const allStreak = all ? (streaks.get("all") ?? 0) + 1 : 0
             streaks.set("all", allStreak)
 
             if (all && !marked.has("all.first")) {
-              performance.mark("bolt.navigation.all.first")
+              performance.mark("opencode.navigation.all.first")
               marked.add("all.first")
             }
-            if (allStreak === 3) performance.mark("bolt.navigation.all.stable")
+
+            if (allStreak === 3) performance.mark("opencode.navigation.all.stable")
             sample()
           }, 0)
         })
       }
-      document.addEventListener(
-        "click",
-        (event) => {
-          if (!(event.target instanceof Element) || !event.target.closest(triggerSelector)) return
-          started = performance.now()
-          performance.mark("bolt.navigation.click")
-          sample()
-        },
-        { capture: true, once: true },
-      )
+
+      const start = (event: MouseEvent) => {
+        if (started !== undefined || event.button !== 0) return
+
+        if (!(event.target instanceof Element) || !event.target.closest(triggerSelector)) return
+        started = performance.now()
+        performance.mark("opencode.navigation.start")
+        sample()
+      }
+
+      document.addEventListener("mousedown", start, true)
+      document.addEventListener("click", start, true)
       ;(window as Window & { __navigationMilestones?: NavigationMilestoneProbe }).__navigationMilestones = {
         samples,
         stop: () => {

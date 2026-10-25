@@ -123,26 +123,51 @@ async function publishDistribution(input: {
   await UpdateArtifact.publish(artifact)
 }
 
-await $`mkdir -p ./dist/${pkg.name}/bin`
-await $`cp ./bin/bolt.cjs ./dist/${pkg.name}/bin/bolt`
-await Bun.file(`./dist/${pkg.name}/package.json`).write(
-  JSON.stringify(
-    {
-      name: pkg.name,
-      bin: { bolt: "./bin/bolt" },
-      version,
-      license: pkg.license,
-      repository: { type: "git", url: "git+https://github.com/Bolt-builder/bolt-cli.git" },
-      os: ["darwin", "linux", "win32"],
-      cpu: ["arm64", "x64"],
-      optionalDependencies: binaries,
-    },
-    null,
-    2,
-  ),
-)
+await publishDistribution({
+  root,
+  name: pkg.name,
+  command: "opencode",
+  legacyCommand: "opencode2",
+  binary: "opencode",
+  packagePrefix: "@bolt-ai/cli-",
+  artifact: "cli",
+})
+if (Script.channel !== "latest" && existsSync(path.join(root, "node"))) {
+  await publishDistribution({
+    root: path.join(root, "node"),
+    name: "@bolt-ai/cli-node",
+    command: "opencode2-node",
+    binary: "opencode2-node",
+    packagePrefix: "@bolt-ai/cli-node-",
+    artifact: "cli-node",
+  })
+}
 
-await Promise.all(
-  Object.entries(binaries).map(([name, version]) => publish(`./dist/${name.replace("@bolt-ai/", "")}`, name, version)),
-)
-await publish(`./dist/${pkg.name}`, pkg.name, version)
+if (Script.channel === "latest" && Script.release && !dryRun) {
+  await $`docker buildx build --platform linux/amd64,linux/arm64 --tag ghcr.io/anomalyco/opencode:${Script.version} --push .`
+}
+
+if ((Script.channel === "beta" || Script.channel === "latest") && Script.release) {
+  await $`bun ./script/publish-aur.ts ${dryRun ? ["--dry-run"] : []}`.env({ ...process.env, OPENCODE_CLI_DIST: root })
+  await $`bun ./script/publish-homebrew.ts ${dryRun ? ["--dry-run"] : []}`.env({
+    ...process.env,
+    OPENCODE_CLI_DIST: root,
+  })
+}
+
+async function archive(bin: string, target: string, binary: string, directory: string) {
+  const executable = `${binary}${target.startsWith("windows-") ? ".exe" : ""}`
+  const source = path.join(bin, executable)
+  if (!(await Bun.file(source).exists()) || !Bun.file(source).size) throw new Error(`Missing binary: ${source}`)
+  // GitHub artifact downloads lose execute bits. Fixed timestamps make retries reproducible.
+  await chmod(source, 0o755)
+  await utimes(source, new Date("1980-01-01T00:00:00Z"), new Date("1980-01-01T00:00:00Z"))
+  const extension = target.startsWith("linux-") ? "tar.gz" : "zip"
+  const output = path.join(directory, `${binary}-${target}.${extension}`)
+  await rm(output, { force: true })
+  if (extension === "tar.gz") {
+    await $`tar --mtime=@0 --owner=0 --group=0 --numeric-owner -czf ${output} -C ${bin} ${executable}`
+  }
+  if (extension === "zip") await $`zip -X -q ${output} ${executable}`.cwd(bin)
+  return output
+}

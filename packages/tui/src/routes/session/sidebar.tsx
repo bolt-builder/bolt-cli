@@ -1,9 +1,11 @@
 import { useData } from "../../context/data"
 import { createMemo, Show } from "solid-js"
 import { useTheme } from "../../context/theme"
-import { useTuiConfig } from "../../config"
-import { InstallationChannel, InstallationVersion } from "@bolt-ai/core/installation/version"
-import { usePluginRuntime } from "../../plugin/runtime"
+import { useConfig } from "../../config"
+import { Slot } from "../../plugin/render"
+import { withTimestampedFallback } from "@bolt-ai/util/session-title-fallback"
+import { TextAttributes } from "@opentui/core"
+import "../../component/title-shimmer"
 
 import { getScrollAcceleration } from "../../util/scroll"
 import { SESSION_SIDEBAR_WIDTH } from "../../ui/layout"
@@ -70,11 +72,7 @@ export function Sidebar(props: { sessionID: string }) {
         </scrollbox>
 
         <box flexShrink={0} gap={1} paddingTop={1}>
-          <pluginRuntime.Slot name="sidebar_footer" mode="single_winner" session_id={props.sessionID}>
-            <text fg={theme.textMuted}>
-              <span style={{ fg: theme.success }}>•</span> <b>Bolt</b> <span>{InstallationVersion}</span>
-            </text>
-          </pluginRuntime.Slot>
+          <Slot path="sidebar.footer" input={{ sessionID: props.sessionID }} />
         </box>
       </box>
     </Show>

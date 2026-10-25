@@ -200,7 +200,7 @@ export interface Interface {
   }
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/GitV2") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Git") {}
 
 const layer = Layer.effect(
   Service,

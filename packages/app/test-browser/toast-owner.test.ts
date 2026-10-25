@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test"
 import { createSignal, type JSX } from "solid-js"
-import { showToastV2, toasterV2 } from "@bolt-ai/ui/v2/toast-v2"
+import { showToast, toaster } from "@bolt-ai/ui/toast"
 
 describe("showToast", () => {
   // The toast registry is module state, so each test starts from an empty stack.

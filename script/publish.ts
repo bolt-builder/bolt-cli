@@ -57,53 +57,66 @@ await prepareReleaseFiles()
 
 if (Script.release) await $`bun ./packages/desktop/scripts/publish.ts --dry-run`
 
-// The preview cli, sdk, plugin, and ui packages still publish under the
-// `@bolt-ai` npm scope, which Bolt does not own; publishing them would fail
-// with the bolt-builder token. Re-enable once they are rebranded to a scope we own.
-console.log("\n=== preview cli / sdk / plugin / ui: skipped (@bolt-ai scope not owned) ===\n")
+console.log("\n=== schema ===\n")
+await $`bun ./packages/schema/script/publish.ts`
 
-if (Script.release) {
-  // latest.json signs update artifacts with the Tauri updater key. When
-  // TAURI_SIGNING_PRIVATE_KEY is missing or invalid, skip the desktop updater
-  // feed instead of failing the whole release: the release still ships, the
-  // desktop app just won't see this version via auto-update.
-  const feed = await $`bun ./packages/desktop/scripts/finalize-latest-json.ts`.nothrow()
-  if (feed.exitCode !== 0) {
-    console.warn(feed.stdout.toString())
-    console.warn(feed.stderr.toString())
-    console.warn(
-      "::warning::skipping desktop updater feed: finalize-latest-json failed (missing or invalid TAURI_SIGNING_PRIVATE_KEY?)",
-    )
-  }
-  // latest.yml uses electron-updater's embedded sha512 checksums and needs no signing key.
-  await $`bun ./packages/desktop/scripts/finalize-latest-yml.ts`
-}
+console.log("\n=== codemode ===\n")
+await $`bun ./packages/codemode/script/publish.ts`
+
+console.log("\n=== theme ===\n")
+await $`bun ./packages/theme/script/publish.ts`
+
+console.log("\n=== ai ===\n")
+await $`bun ./packages/ai/script/publish.ts`
+
+console.log("\n=== util ===\n")
+await $`bun ./packages/util/script/publish.ts`
+
+console.log("\n=== protocol ===\n")
+await $`bun ./packages/protocol/script/publish.ts`
+
+console.log("\n=== client ===\n")
+await $`bun ./packages/client/script/publish.ts`
+
+console.log("\n=== cli ===\n")
+await $`bun ./packages/cli/script/publish.ts`
+
+console.log("\n=== plugin ===\n")
+await $`bun ./packages/plugin/script/publish.ts`
+
+console.log("\n=== plugin-browser ===\n")
+await $`bun ./packages/plugin-browser/script/publish.ts`
+
+console.log("\n=== core ===\n")
+await $`bun ./packages/core/script/publish.ts`
+
+console.log("\n=== simulation ===\n")
+await $`bun ./packages/simulation/script/publish.ts`
+
+console.log("\n=== server ===\n")
+await $`bun ./packages/server/script/publish.ts`
+
+console.log("\n=== sdk ===\n")
+await $`bun ./packages/sdk/script/publish.ts`
+
+console.log("\n=== ui ===\n")
+await $`bun ./packages/ui/script/publish.ts`
 
 if (Script.release && !Script.preview) {
-  // When dev already carries the release versions (e.g. a rerun after a
-  // partially failed publish), prepareReleaseFiles leaves the tree clean and
-  // an unconditional `git commit` would fail with "nothing to commit".
-  if (await $`git status --porcelain --untracked-files=no`.text()) await $`git commit -am "release: ${tag}"`
-  // Bare --force-with-lease can never move an existing tag: tags have no
-  // remote-tracking refs, so git rejects the push with "stale info". Pin the
-  // lease to the tag value fetched at the start of this run instead. New tags
-  // get an empty expectation (remote ref must not exist), and re-dispatching a
-  // failed publish moves its own tag, while a tag moved concurrently by
-  // another run still fails the lease.
-  const prior = (await $`git rev-parse --verify refs/tags/${tag}`.nothrow().quiet().text()).trim()
+  if ((await $`git diff --quiet`.nothrow()).exitCode !== 0) await $`git commit -am "release: ${tag}"`
   await $`git tag -d ${tag}`.nothrow()
   await $`git tag ${tag}`
-  await $`git push origin refs/tags/${tag} --force-with-lease=refs/tags/${tag}:${prior} --no-verify`
+  await $`git push origin refs/tags/${tag} --force-with-lease --no-verify`
   await new Promise((resolve) => setTimeout(resolve, 5_000))
   await $`git fetch origin`
   await $`git checkout -B dev origin/dev`
   await prepareReleaseFiles()
-  // [skip ci] keeps this push from re-triggering the publish workflow: dev is
-  // a publish trigger branch, so without it every release spawns a follow-up
-  // publish run that can race the next dispatched release on the tag push.
-  if (await $`git status --porcelain --untracked-files=no`.text())
-    await $`git commit -am "sync release versions for ${tag} [skip ci]"`
-  await $`git push origin HEAD:dev --no-verify`
+  await writeChangelog()
+  if ((await $`git diff --quiet`.nothrow()).exitCode !== 0) {
+    // The release already published this code; a push-triggered dev publish of a version bump is wasted work.
+    await $`git commit -am ${`sync release versions for ${tag} [skip ci]`}`
+    await $`git push origin HEAD:dev --no-verify`
+  }
 }
 
 if (Script.release) {

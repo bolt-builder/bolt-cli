@@ -1,6 +1,5 @@
-import { TextAttributes } from "@opentui/core"
-import { useKeyboard } from "@opentui/solid"
-import type { VcsFileStatus } from "@bolt-ai/sdk/v2"
+import { useKeyboard, useTerminalDimensions } from "@opentui/solid"
+import type { VcsFileStatus } from "@bolt-ai/client"
 import { createMemo, For } from "solid-js"
 import { createStore } from "solid-js/store"
 import { FilePath } from "../ui/file-path"

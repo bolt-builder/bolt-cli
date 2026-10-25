@@ -25,10 +25,7 @@ on:
         required: false
         type: string
 
-# Serialize all publish runs per ref. Keying on dispatch inputs let a
-# push-triggered run (empty inputs) race a dispatched bump run on the same
-# ref, and the loser's --force-with-lease tag push failed with "stale info".
-concurrency: ${{ github.workflow }}-${{ github.ref }}
+concurrency: ${{ github.workflow }}-${{ github.ref }}-${{ (github.ref_name == 'dev' && (inputs.version || inputs.bump) && 'release') || inputs.version || inputs.bump }}
 
 permissions:
   id-token: write
@@ -41,9 +38,11 @@ env:
 jobs:
   version:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    if: github.repository == 'bolt-builder/bolt-cli'
+    if: github.repository == 'anomalyco/opencode'
+    # Versioned releases wait for approval in the release environment, which only allows dev.
+    environment: ${{ (inputs.bump || inputs.version) && 'release' || '' }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           fetch-depth: 0
 
@@ -53,22 +52,21 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
-      - name: Install Bolt
+      - name: Install OpenCode
         if: inputs.bump || inputs.version
-        run: bun i -g bolt-ai
+        run: bun i -g opencode-ai
 
       - id: version
         run: |
           ./script/version.ts
         env:
           GH_TOKEN: ${{ steps.committer.outputs.token }}
-          BOLT_BUMP: ${{ inputs.bump }}
-          BOLT_VERSION: ${{ inputs.version }}
-          BOLT_API_KEY: ${{ secrets.BOLT_API_KEY }}
-          GH_REPO: ${{ (github.ref_name == 'beta' && 'bolt-builder/bolt-cli') || github.repository }}
+          OPENCODE_BUMP: ${{ inputs.bump }}
+          OPENCODE_VERSION: ${{ inputs.version }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
     outputs:
       version: ${{ steps.version.outputs.version }}
       release: ${{ steps.version.outputs.release }}
@@ -76,10 +74,11 @@ jobs:
 
   build-cli:
     needs: version
-    runs-on: ubuntu-latest
-    if: github.repository == 'bolt-builder/bolt-cli'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 30
+    if: github.repository == 'anomalyco/opencode'
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
         with:
           fetch-tags: true
 
@@ -91,45 +90,46 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Build legacy CLI
         if: github.ref_name != 'dev' && github.ref_name != 'beta'
         run: ./packages/opencode/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
         env:
-          BOLT_VERSION: ${{ needs.version.outputs.version }}
-          BOLT_RELEASE: ${{ needs.version.outputs.release }}
-          GH_REPO: ${{ needs.version.outputs.repo }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
 
-      - name: Build man pages
-        run: ./packages/opencode/script/man.ts
+      - name: Build preview CLI
+        id: build
+        run: ./packages/cli/script/build.ts ${{ (github.ref_name == 'beta' && '--sourcemaps') || '' }}
         env:
-          BOLT_VERSION: ${{ needs.version.outputs.version }}
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: bolt-man
-          path: packages/opencode/dist/man/*.1
+          BUN_COMPILE_RELEASE: bun-v1.4.4
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_RELEASE_NOTES: ${{ (github.ref_name == 'dev' && inputs.release_notes) || '' }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ steps.committer.outputs.token }}
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: github.ref_name != 'dev' && github.ref_name != 'beta'
         with:
           name: opencode-cli
           path: |
-            packages/opencode/dist/@bolt-builder/bolt-cli-darwin*
-            packages/opencode/dist/@bolt-builder/bolt-cli-linux*
+            packages/opencode/dist/opencode-darwin*
+            packages/opencode/dist/opencode-linux*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: github.ref_name != 'dev' && github.ref_name != 'beta'
         with:
           name: opencode-cli-windows
-          path: packages/opencode/dist/@bolt-builder/bolt-cli-windows*
+          path: packages/opencode/dist/opencode-windows*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-preview-cli
+          name: opencode-preview-cli-unsigned
           path: packages/cli/dist/cli-*
 
     outputs:
@@ -138,7 +138,8 @@ jobs:
   sign-cli-macos:
     needs: build-cli
     runs-on: macos-26
-    if: github.repository == 'anomalyco/bolt'
+    # Beta publishes only the desktop app, which signs the CLI it bundles.
+    if: github.repository == 'anomalyco/opencode' && github.ref_name != 'beta'
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
@@ -161,9 +162,12 @@ jobs:
             exit 1
           fi
 
-          for name in bolt-darwin-arm64 bolt-darwin-x64 bolt-darwin-x64-baseline; do
-            file="packages/opencode/dist/$name/bin/bolt"
-            chmod +x "$file"
+          found=0
+          for file in packages/cli/dist/cli-darwin-*/bin/opencode; do
+            if [ ! -f "$file" ]; then
+              continue
+            fi
+            found=1
             codesign \
               --force \
               --timestamp \
@@ -175,44 +179,102 @@ jobs:
             codesign --display --requirements - "$file"
           done
 
-      - name: Smoke test signed binary
-        run: ./packages/opencode/dist/bolt-darwin-arm64/bin/bolt --version
-
-      - name: Repack macOS CLI archives
-        working-directory: packages/opencode/dist
-        run: |
-          for name in bolt-darwin-arm64 bolt-darwin-x64 bolt-darwin-x64-baseline; do
-            rm -f "$name.zip"
-            (cd "$name/bin" && zip -r "../../$name.zip" *)
-          done
-
-      - name: Upload signed macOS CLI release assets
-        if: needs.version.outputs.release != ''
-        env:
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
-        run: |
-          gh release upload "v${{ needs.version.outputs.version }}" \
-            packages/opencode/dist/bolt-darwin-arm64.zip \
-            packages/opencode/dist/bolt-darwin-x64.zip \
-            packages/opencode/dist/bolt-darwin-x64-baseline.zip \
-            --clobber \
-            --repo "${{ needs.version.outputs.repo }}"
+          if [ "$found" -eq 0 ]; then
+            echo "No macOS CLI binaries found"
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: opencode-cli-signed-macos
-          path: |
-            packages/opencode/dist/bolt-darwin-arm64
-            packages/opencode/dist/bolt-darwin-x64
-            packages/opencode/dist/bolt-darwin-x64-baseline
-            packages/opencode/dist/bolt-darwin-*.zip
+          name: opencode-preview-cli-macos
+          path: packages/cli/dist/cli-*
+          if-no-files-found: error
+
+  build-node-app-archive:
+    needs: version
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 30
+    if: github.repository == 'anomalyco/opencode' && github.ref_name != 'beta' && !(github.ref_name == 'dev' && (inputs.bump || inputs.version))
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - uses: ./.github/actions/setup-bun
+
+      - name: Build app archive
+        run: bun packages/cli/script/build-node.ts --app-archive-only --app-archive=.cache/app-archive.bin --skip-install
+        env:
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: opencode-node-app-archive
+          path: packages/cli/.cache/app-archive.bin
+          if-no-files-found: error
+
+  build-node-cli:
+    needs:
+      - version
+      - build-node-app-archive
+    if: github.repository == 'anomalyco/opencode' && github.ref_name != 'beta' && !(github.ref_name == 'dev' && (inputs.bump || inputs.version))
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - target: linux-arm64
+            host: blacksmith-4vcpu-ubuntu-2404-arm
+          - target: linux-x64
+            host: blacksmith-4vcpu-ubuntu-2404
+          - target: darwin-arm64
+            host: macos-26
+          - target: windows-arm64
+            host: blacksmith-4vcpu-windows-2025
+            bun_install_flags: --cpu=*
+          - target: windows-x64
+            host: blacksmith-4vcpu-windows-2025
+    runs-on: ${{ matrix.settings.host }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+
+      - uses: ./.github/actions/setup-bun
+        with:
+          install-flags: ${{ matrix.settings.bun_install_flags }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "26.4.0"
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: opencode-node-app-archive
+          path: packages/cli/.cache
+
+      - name: Build
+        run: bun packages/cli/script/build-node.ts --target=${{ matrix.settings.target }} --skip-install --outdir=dist/node --app-archive=.cache/app-archive.bin
+        env:
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_RELEASE_NOTES: ${{ (github.ref_name == 'dev' && inputs.release_notes) || '' }}
+
+      - name: Verify service lifecycle
+        if: matrix.settings.target != 'windows-arm64'
+        working-directory: packages/cli
+        run: bun run script/service-smoke.ts --node
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: opencode-node-cli-${{ matrix.settings.target }}
+          path: packages/cli/dist/node/cli-node-*
           if-no-files-found: error
 
   sign-cli-windows:
     needs:
       - sign-cli-macos
     runs-on: blacksmith-4vcpu-windows-2025
-    if: github.repository == 'bolt-builder/bolt-cli'
+    if: github.repository == 'anomalyco/opencode' && github.ref_name == 'dev'
     env:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -221,29 +283,14 @@ jobs:
       AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE: ${{ secrets.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
       AZURE_TRUSTED_SIGNING_ENDPOINT: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: opencode-cli-windows
-          path: packages/opencode/dist
+          name: opencode-preview-cli-macos
+          path: packages/cli/dist
 
-      - name: Setup git committer
-        id: committer
-        uses: ./.github/actions/setup-git-committer
-        with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
-          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
-
-      # skip signing entirely unless the full Azure Trusted Signing configuration is present
       - name: Azure login
-        if: >-
-          env.AZURE_CLIENT_ID != '' &&
-          env.AZURE_TENANT_ID != '' &&
-          env.AZURE_SUBSCRIPTION_ID != '' &&
-          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
-          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
-          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
@@ -251,21 +298,14 @@ jobs:
           subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
 
       - uses: azure/artifact-signing-action@b443cf8ea4124818d2ea9f043cba29fc3ec47b16 # v1.2.0
-        if: >-
-          env.AZURE_CLIENT_ID != '' &&
-          env.AZURE_TENANT_ID != '' &&
-          env.AZURE_SUBSCRIPTION_ID != '' &&
-          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
-          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
-          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         with:
           endpoint: ${{ env.AZURE_TRUSTED_SIGNING_ENDPOINT }}
           signing-account-name: ${{ env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME }}
           certificate-profile-name: ${{ env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE }}
           files: |
-            ${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-arm64\bin\bolt.exe
-            ${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64\bin\bolt.exe
-            ${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64-baseline\bin\bolt.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\opencode.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\opencode.exe
+            ${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\opencode.exe
           exclude-environment-credential: true
           exclude-workload-identity-credential: true
           exclude-managed-identity-credential: true
@@ -278,19 +318,12 @@ jobs:
           exclude-interactive-browser-credential: true
 
       - name: Verify Windows CLI signatures
-        if: >-
-          env.AZURE_CLIENT_ID != '' &&
-          env.AZURE_TENANT_ID != '' &&
-          env.AZURE_SUBSCRIPTION_ID != '' &&
-          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
-          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
-          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
         shell: pwsh
         run: |
           $files = @(
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-arm64\bin\bolt.exe",
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64\bin\bolt.exe",
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64-baseline\bin\bolt.exe"
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-arm64\bin\opencode.exe",
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64\bin\opencode.exe",
+            "${{ github.workspace }}\packages\cli\dist\cli-windows-x64-baseline\bin\opencode.exe"
           )
 
           foreach ($file in $files) {
@@ -300,40 +333,18 @@ jobs:
             }
           }
 
-      - name: Repack Windows CLI archives
-        working-directory: packages/opencode/dist
-        shell: pwsh
-        run: |
-          Compress-Archive -Path "bolt-cli-windows-arm64\bin\*" -DestinationPath "bolt-cli-windows-arm64.zip" -Force
-          Compress-Archive -Path "bolt-cli-windows-x64\bin\*" -DestinationPath "bolt-cli-windows-x64.zip" -Force
-          Compress-Archive -Path "bolt-cli-windows-x64-baseline\bin\*" -DestinationPath "bolt-cli-windows-x64-baseline.zip" -Force
-
-      - name: Upload signed Windows CLI release assets
-        if: needs.version.outputs.release != ''
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
-        run: |
-          gh release upload "v${{ needs.version.outputs.version }}" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-arm64.zip" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64.zip" `
-            "${{ github.workspace }}\packages\bolt\dist\bolt-cli-windows-x64-baseline.zip" `
-            --clobber `
-            --repo "${{ needs.version.outputs.repo }}"
-
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: opencode-cli-signed-windows
-          path: |
-            packages/opencode/dist/bolt-cli-windows-arm64
-            packages/opencode/dist/bolt-cli-windows-x64
-            packages/opencode/dist/bolt-cli-windows-x64-baseline
+          name: opencode-preview-cli
+          path: packages/cli/dist/cli-*
+          if-no-files-found: error
 
   build-electron:
     # Desktop packaging re-signs the bundled CLI on macOS and Windows, so it starts from the unsigned build.
     needs:
       - version
-    if: github.repository == 'bolt-builder/bolt-cli'
+      - build-cli
+    if: github.repository == 'anomalyco/opencode' && ((github.ref_name == 'dev' && needs.version.outputs.release != '') || github.ref_name == 'beta')
     continue-on-error: false
     env:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -370,25 +381,7 @@ jobs:
             platform_flag: --linux --arm64
     runs-on: ${{ matrix.settings.host }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-
-      - name: Check Apple signing secrets
-        if: runner.os == 'macOS'
-        id: apple_secrets
-        env:
-          CERT_PRESENT: ${{ secrets.APPLE_CERTIFICATE }}
-          API_KEY_PRESENT: ${{ secrets.APPLE_API_KEY_PATH }}
-        run: |
-          if [ -n "$CERT_PRESENT" ]; then
-            echo "has_cert=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_cert=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ -n "$API_KEY_PRESENT" ]; then
-            echo "has_api_key=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_api_key=false" >> "$GITHUB_OUTPUT"
-          fi
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -396,30 +389,22 @@ jobs:
           path: packages/cli/dist
 
       - uses: apple-actions/import-codesign-certs@8f3fb608891dd2244cdab3d69cd68c0d37a7fe93 # v2.0.0
-        if: runner.os == 'macOS' && steps.apple_secrets.outputs.has_cert == 'true'
+        if: runner.os == 'macOS'
         with:
           keychain: build
           p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
           p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
 
       - name: Setup Apple API Key
-        if: runner.os == 'macOS' && steps.apple_secrets.outputs.has_api_key == 'true'
+        if: runner.os == 'macOS'
         run: echo "${{ secrets.APPLE_API_KEY_PATH }}" > $RUNNER_TEMP/apple-api-key.p8
 
       - uses: ./.github/actions/setup-bun
         with:
           install-flags: ${{ matrix.settings.bun_install_flags }}
 
-      # skip signing entirely unless the full Azure Trusted Signing configuration is present
       - name: Azure login
-        if: >-
-          runner.os == 'Windows' &&
-          env.AZURE_CLIENT_ID != '' &&
-          env.AZURE_TENANT_ID != '' &&
-          env.AZURE_SUBSCRIPTION_ID != '' &&
-          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
-          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
-          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
+        if: runner.os == 'Windows'
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
         with:
           client-id: ${{ env.AZURE_CLIENT_ID }}
@@ -451,24 +436,25 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
       - name: Prepare
         run: bun ./scripts/prepare.ts
         working-directory: packages/desktop
         env:
-          BOLT_VERSION: ${{ needs.version.outputs.version }}
-          BOLT_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
-          RUST_TARGET: ${{ matrix.settings.target }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CLI_TARGET: ${{ matrix.settings.target }}
+          OPENCODE_CLI_DIST: ${{ github.workspace }}/packages/cli/dist
 
       - name: Build
         run: bun run build
         working-directory: packages/desktop
         env:
           NODE_OPTIONS: --max-old-space-size=4096
-          BOLT_VERSION: ${{ needs.version.outputs.version }}
-          BOLT_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.WEB_SENTRY_PROJECT }}
@@ -481,34 +467,12 @@ jobs:
 
       - name: Package
         if: needs.version.outputs.release
-        shell: bash
-        run: |
-          if [ -z "$CSC_LINK" ]; then
-            unset CSC_LINK
-            unset CSC_KEY_PASSWORD
-            export CSC_IDENTITY_AUTO_DISCOVERY=false
-          fi
-          # APPLE_API_KEY is a path and always non-empty; a partial notary env
-          # makes electron-builder fail hard instead of skipping notarization.
-          if [ -z "$APPLE_API_KEY_ID" ] || [ -z "$APPLE_API_ISSUER" ]; then
-            unset APPLE_API_KEY APPLE_API_KEY_ID APPLE_API_ISSUER
-          fi
-          # macOS dmgbuild flakes with "hdiutil: couldn't eject - Resource busy" when
-          # Spotlight/XProtect briefly holds the mounted DMG volume; retry up to 3 times.
-          for attempt in 1 2 3; do
-            if npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts; then
-              exit 0
-            fi
-            if [ "$attempt" -lt 3 ]; then
-              echo "::warning::electron-builder package attempt $attempt failed, retrying"
-            fi
-          done
-          echo "::error::electron-builder packaging failed after 3 attempts"
-          exit 1
+        run: npx electron-builder ${{ matrix.settings.platform_flag }} --publish never --config electron-builder.config.ts
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          BOLT_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CLI_TARGET: ${{ matrix.settings.target }}
           GH_TOKEN: ${{ steps.committer.outputs.token }}
           CSC_KEYCHAIN: build.keychain
           APPLE_API_KEY: ${{ runner.temp }}/apple-api-key.p8
@@ -521,7 +485,8 @@ jobs:
         working-directory: packages/desktop
         timeout-minutes: 60
         env:
-          BOLT_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CHANNEL: ${{ (github.ref_name == 'beta' && 'beta') || 'prod' }}
+          OPENCODE_CLI_TARGET: ${{ matrix.settings.target }}
 
       - name: Create macOS .app.tar.gz
         if: runner.os == 'macOS' && needs.version.outputs.release
@@ -529,10 +494,10 @@ jobs:
         run: |
           if [[ "${{ matrix.settings.target }}" == "x86_64-apple-darwin" ]]; then
             APP_DIR="mac"
-            OUT_NAME="bolt-desktop-mac-x64.app.tar.gz"
+            OUT_NAME="opencode-desktop-mac-x64.app.tar.gz"
           elif [[ "${{ matrix.settings.target }}" == "aarch64-apple-darwin" ]]; then
             APP_DIR="mac-arm64"
-            OUT_NAME="bolt-desktop-mac-arm64.app.tar.gz"
+            OUT_NAME="opencode-desktop-mac-arm64.app.tar.gz"
           else
             echo "Unknown macOS target: ${{ matrix.settings.target }}"
             exit 1
@@ -545,20 +510,13 @@ jobs:
           tar -czf "$OUT_NAME" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
 
       - name: Verify signed Windows Electron artifacts
-        if: >-
-          runner.os == 'Windows' &&
-          env.AZURE_CLIENT_ID != '' &&
-          env.AZURE_TENANT_ID != '' &&
-          env.AZURE_SUBSCRIPTION_ID != '' &&
-          env.AZURE_TRUSTED_SIGNING_ENDPOINT != '' &&
-          env.AZURE_TRUSTED_SIGNING_ACCOUNT_NAME != '' &&
-          env.AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE != ''
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $files = @()
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*.exe" | Select-Object -ExpandProperty FullName
           $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\*.exe" | Select-Object -ExpandProperty FullName
-          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\resources\bolt-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+          $files += Get-ChildItem "${{ github.workspace }}\packages\desktop\dist\*unpacked\resources\opencode-cli.exe" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 
           foreach ($file in $files | Select-Object -Unique) {
             $sig = Get-AuthenticodeSignature $file
@@ -569,7 +527,7 @@ jobs:
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: bolt-desktop-${{ matrix.settings.target }}
+          name: opencode-desktop-${{ matrix.settings.target }}
           path: packages/desktop/dist/*
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -587,14 +545,12 @@ jobs:
       - build-node-cli
       - sign-cli-windows
       - build-electron
-    # Publish whatever succeeded: the CLI build is required, but failed
-    # electron/signing legs only skip their own assets instead of blocking the release.
-    if: always() && !cancelled() && needs.version.result == 'success' && needs.build-cli.result == 'success'
+    if: always() && !failure() && !cancelled()
     runs-on: blacksmith-4vcpu-ubuntu-2404
     # Versioned and beta releases wait for approval in the release environment; dev previews do not.
     environment: ${{ needs.version.outputs.release && 'release' || '' }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
       - uses: ./.github/actions/setup-bun
 
@@ -608,51 +564,38 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
-      - name: Setup Blacksmith Builder
-        uses: useblacksmith/setup-docker-builder@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      # CLI artifacts contain bolt-cli-<os>-<arch>/ dirs; restore them under dist/@bolt-builder
-      # to match the layout packages/opencode/script/publish.ts expects.
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: github.ref_name != 'dev' && github.ref_name != 'beta'
         with:
           name: opencode-cli
-          path: packages/opencode/dist/@bolt-builder
-
-      - name: Remove unsigned macOS CLI binaries
-        run: rm -rf packages/opencode/dist/bolt-darwin*
-
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with:
-          name: opencode-cli-signed-macos
           path: packages/opencode/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: github.ref_name != 'dev' && github.ref_name != 'beta'
         with:
           name: opencode-cli-windows
-          path: packages/opencode/dist/@bolt-builder
+          path: packages/opencode/dist
 
-      # Signed binaries may be missing if the signing job failed; fall back to unsigned ones.
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        continue-on-error: true
+        if: github.ref_name != 'dev' && github.ref_name != 'beta'
         with:
           name: opencode-cli-signed-windows
-          path: packages/opencode/dist/@bolt-builder
+          path: packages/opencode/dist
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: github.ref_name != 'beta'
         with:
-          name: bolt-preview-cli
+          name: opencode-preview-cli
           path: packages/cli/dist
 
-      # Desktop artifacts may be partial when some electron matrix legs failed;
-      # download whatever exists and release only those platforms.
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.build-node-cli.result == 'success'
         with:
@@ -662,16 +605,14 @@ jobs:
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.version.outputs.release
-        continue-on-error: true
         with:
           pattern: latest-yml-*
           path: /tmp/latest-yml
 
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         if: needs.version.outputs.release
-        continue-on-error: true
         with:
-          pattern: bolt-desktop-*
+          pattern: opencode-desktop-*
           path: /tmp/desktop
           merge-multiple: true
 
@@ -679,34 +620,36 @@ jobs:
         id: committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.BOLT_APP_ID }}
+          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
           opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
 
-      - name: Upload desktop release assets
-        if: needs.version.outputs.release
-        env:
-          GH_TOKEN: ${{ steps.committer.outputs.token }}
+      - name: Cache apt packages (AUR)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-aur-${{ hashFiles('.github/workflows/publish.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-aur-
+
+      - name: Setup SSH for AUR
         run: |
-          shopt -s nullglob
-          files=(/tmp/desktop/*.{exe,blockmap,dmg,zip,AppImage,deb,rpm} /tmp/desktop/*.app.tar.gz)
-          if (( ${#files[@]} == 0 )); then
-            echo "::warning::No desktop release assets found, skipping desktop upload"
-            exit 0
-          fi
-          gh release upload "v${{ needs.version.outputs.version }}" "${files[@]}" --clobber --repo "${{ needs.version.outputs.repo }}"
+          sudo apt-get update
+          sudo apt-get install -y pacman-package-manager
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AUR_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          git config --global user.email "opencode@sst.dev"
+          git config --global user.name "opencode"
+          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts || true
 
       - run: ./script/publish.ts
         env:
-          # npm auth: setup-node writes ~/.npmrc reading $NODE_AUTH_TOKEN; without this the
-          # placeholder token is used and every npm publish fails with E404.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          BOLT_VERSION: ${{ needs.version.outputs.version }}
-          BOLT_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_VERSION: ${{ needs.version.outputs.version }}
+          OPENCODE_RELEASE: ${{ needs.version.outputs.release }}
+          OPENCODE_RELEASE_NOTES: ${{ (github.ref_name == 'dev' && inputs.release_notes) || '' }}
+          AUR_KEY: ${{ secrets.AUR_KEY }}
           GITHUB_TOKEN: ${{ steps.committer.outputs.token }}
-          GH_REPO: ${{ needs.version.outputs.repo }}
-          # PAT with write access to bolt-builder/homebrew-tap; the publish script
-          # skips the tap update with a warning when unset.
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           NPM_CONFIG_PROVENANCE: false
           LATEST_YML_DIR: /tmp/latest-yml
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}

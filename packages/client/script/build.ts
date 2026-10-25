@@ -1,7 +1,46 @@
 import { NodeFileSystem } from "@effect/platform-node"
-import { compile, emitEffectImported, emitPromise, write } from "@bolt-ai/httpapi-codegen"
-import { ClientApi, endpointNames, groupNames, omitEndpoints } from "../src/contract"
-import { Effect } from "effect"
+import { compile, emitEffectImported, emitEffectShape, emitPromise, write } from "@bolt-ai/httpapi-codegen"
+import { ClientApi, effectOmitEndpoints, groupNames, promiseOmitEndpoints } from "@bolt-ai/protocol/client"
+import { Agent } from "@bolt-ai/schema/agent"
+import { Command } from "@bolt-ai/schema/command"
+import { Config } from "@bolt-ai/schema/config"
+import { Credential } from "@bolt-ai/schema/credential"
+import { Event } from "@bolt-ai/schema/event"
+import { EventLog } from "@bolt-ai/schema/event-log"
+import { FileDiff } from "@bolt-ai/schema/file-diff"
+import { FileSystem } from "@bolt-ai/schema/filesystem"
+import { Form } from "@bolt-ai/schema/form"
+import { Instruction } from "@bolt-ai/schema/instruction"
+import { InstructionEntry } from "@bolt-ai/schema/instruction-entry"
+import { Integration } from "@bolt-ai/schema/integration"
+import { Location } from "@bolt-ai/schema/location"
+import { Mcp } from "@bolt-ai/schema/mcp"
+import { Model } from "@bolt-ai/schema/model"
+import { Money } from "@bolt-ai/schema/money"
+import { Permission } from "@bolt-ai/schema/permission"
+import { PermissionSaved } from "@bolt-ai/schema/permission-saved"
+import { Plugin } from "@bolt-ai/schema/plugin"
+import { Project } from "@bolt-ai/schema/project"
+import { Worktree } from "@bolt-ai/schema/worktree"
+import { AgentAttachment, FileAttachment, Prompt, PromptMention } from "@bolt-ai/schema/prompt"
+import { PromptInput } from "@bolt-ai/schema/prompt-input"
+import { Provider } from "@bolt-ai/schema/provider"
+import { Pty } from "@bolt-ai/schema/pty"
+import { PtyTicket } from "@bolt-ai/schema/pty-ticket"
+import { Question } from "@bolt-ai/schema/question"
+import { Reference } from "@bolt-ai/schema/reference"
+import { AbsolutePath, RelativePath } from "@bolt-ai/schema/schema"
+import { Session } from "@bolt-ai/schema/session"
+import { SessionMessage } from "@bolt-ai/schema/session-message"
+import { SessionInbox } from "@bolt-ai/schema/session-inbox"
+import { Shell } from "@bolt-ai/schema/shell"
+import { Skill } from "@bolt-ai/schema/skill"
+import { Snapshot } from "@bolt-ai/schema/snapshot"
+import { UsageLimits } from "@bolt-ai/schema/usage-limits"
+import { Vcs } from "@bolt-ai/schema/vcs"
+import { WebSearch } from "@bolt-ai/schema/websearch"
+import { Workspace } from "@bolt-ai/schema/workspace"
+import { Effect, Schema } from "effect"
 import { fileURLToPath } from "url"
 
 const promiseContract = compile(ClientApi, { groupNames, omitEndpoints: promiseOmitEndpoints })
@@ -74,9 +113,9 @@ await Effect.runPromise(
         emitEffectShape(effectContract, {
           typeReferences: effectTypeReferences,
           outputTypes: {
-            "events.subscribe": {
-              name: "BoltEventEncoded",
-              import: 'import type { BoltEventEncoded } from "@bolt-ai/protocol/groups/event"',
+            "event.subscribe": {
+              name: "OpenCodeEvent",
+              import: 'import type { OpenCodeEvent } from "@bolt-ai/protocol/groups/event"',
             },
           },
         }),

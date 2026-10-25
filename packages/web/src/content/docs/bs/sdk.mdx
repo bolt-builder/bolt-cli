@@ -18,7 +18,7 @@ Koristite ga za izradu integracija i programsko upravljanje opencode-om.
 Instalirajte SDK sa npm-a:
 
 ```bash
-npm install @bolt-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
@@ -28,9 +28,9 @@ npm install @bolt-ai/sdk
 Kreirajte instancu opencode:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createBolt()
+const { client } = await createOpencode()
 ```
 
 Ovo pokrece i server i klijent
@@ -49,12 +49,12 @@ Ovo pokrece i server i klijent
 
 ## Konfiguracija
 
-Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `bolt.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
+Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `opencode.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const bolt = await createBolt({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,9 +62,9 @@ const bolt = await createBolt({
   },
 })
 
-console.log(`Server running at ${bolt.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-bolt.server.close()
+opencode.server.close()
 ```
 
 ## Samo klijent
@@ -72,9 +72,9 @@ bolt.server.close()
 Ako vec imate pokrenutu opencode instancu, mozete napraviti klijentsku instancu i povezati se na nju:
 
 ```javascript
-import { createBoltClient } from "@bolt-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createBoltClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createBoltClient({
 SDK ukljucuje TypeScript definicije za sve API tipove. Uvezite ih direktno:
 
 ```typescript
-import type { Session, Message, Part } from "@bolt-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 Svi tipovi su generisani iz OpenAPI specifikacije servera i dostupni u <a href={typesUrl}>types datoteci</a>.

@@ -1,25 +1,5 @@
-const logo = {
-  left: [
-    " /$$$$$$$   /$$$$$$  /$$   /$$$$$$$$",
-    "| $$__  $$ /$$__  $$| $$  |__  $$__/",
-    "| $$  \\ $$| $$  \\ $$| $$     | $$   ",
-    "| $$$$$$$ | $$  | $$| $$     | $$   ",
-    "| $$__  $$| $$  | $$| $$     | $$   ",
-    "| $$  \\ $$| $$  | $$| $$     | $$   ",
-    "| $$$$$$$/|  $$$$$$/| $$$$$$$| $$   ",
-    "|_______/  \\______/ |________|__/   ",
-  ],
-  right: [
-    "  /$$$$$$  /$$       /$$$$$$ ",
-    " /$$__  $$| $$      |_  $$_/ ",
-    "| $$  \\__/| $$        | $$   ",
-    "| $$      | $$        | $$   ",
-    "| $$      | $$        | $$   ",
-    "| $$    $$| $$        | $$   ",
-    "|  $$$$$$/| $$$$$$$$ /$$$$$$ ",
-    " \\______/ |________/|______/ ",
-  ],
-}
+import { logo } from "../logo"
+
 const reset = "\x1b[0m"
 const bold = "\x1b[1m"
 const dim = "\x1b[90m"
@@ -52,8 +32,11 @@ export function epilogue(input: { readonly session?: SessionEpilogue; readonly u
   return [
     ...wordmark("  "),
     "",
-    `  ${weak("Session")}${bold}${input.title}${reset}`,
-    `  ${weak("Continue")}${bold}\x1b[34mbolt${reset} -s ${input.sessionID}${reset}`,
-    "",
+    ...(input.updatedVersion
+      ? [`  ${dim}Run ${reset}${bold}opencode${reset}${dim} to use ${reset}${bold}${input.updatedVersion}${reset}`, ""]
+      : []),
+    ...(input.session
+      ? [row("Session", input.session.title), row("Continue", `opencode -s ${input.session.sessionID}`), ""]
+      : []),
   ].join("\n")
 }

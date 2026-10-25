@@ -277,7 +277,8 @@ export function nativePickerPath(path: string) {
 
   return value
 }
-import { getFilename } from "@bolt-ai/core/util/path"
+
+import { getFilename } from "@bolt-ai/util/path"
 import fuzzysort from "fuzzysort"
 import { ServerSDK } from "@/runtime/server/client"
 

@@ -4,7 +4,13 @@ import { FileRoutes } from "@solidjs/start/router"
 import { Suspense } from "solid-js"
 import { Favicon } from "@bolt-ai/ui/favicon"
 import { Font } from "@bolt-ai/ui/font"
-import "@ibm/plex/css/ibm-plex.css"
+// Only IBM Plex Mono is used. The full ibm-plex.css declares 424 faces across every Plex family.
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Regular.css"
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Text.css"
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Medium.css"
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-SemiBold.css"
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Bold.css"
+import "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Italic.css"
 import "./app.css"
 import { LanguageProvider } from "~/context/language"
 import { I18nProvider } from "~/context/i18n"
@@ -13,8 +19,7 @@ import { strip } from "~/lib/language"
 function AppMeta() {
   return (
     <>
-      <Title>Bolt Cli</Title>
-      <Meta name="description" content={i18n.t("app.meta.description")} />
+      <Title>opencode</Title>
       <Favicon />
       <Font />
     </>

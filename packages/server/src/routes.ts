@@ -1,19 +1,42 @@
 import { Database } from "@bolt-ai/core/database/database"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { httpClient } from "@bolt-ai/core/effect/app-node-platform"
+import { V1Migration } from "@bolt-ai/core/database/v1-migration"
+import { App } from "@bolt-ai/core/app"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { Node } from "@bolt-ai/util/effect/app-node"
+import { httpClient } from "@bolt-ai/util/effect/app-node-platform"
 import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { EventV2 } from "@bolt-ai/core/event"
+import { Bus } from "@bolt-ai/core/bus"
+import { EventLogger } from "@bolt-ai/core/event-logger"
+import { FileSystemSearch } from "@bolt-ai/core/filesystem/search"
 import { Credential } from "@bolt-ai/core/credential"
+import { Config } from "@bolt-ai/core/config"
 import { PermissionSaved } from "@bolt-ai/core/permission/saved"
 import { PtyTicket } from "@bolt-ai/core/pty/ticket"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { SessionExecution } from "@bolt-ai/core/session/execution"
+import { PersistentPty } from "@bolt-ai/core/persistent-pty"
+import { Project } from "@bolt-ai/core/project"
+import { Worktree } from "@bolt-ai/core/worktree"
+import { Session } from "@bolt-ai/core/session"
+import { Instance } from "@bolt-ai/core/instance/service"
+import { SessionTransfer } from "@bolt-ai/core/session/transfer"
+import { InstructionEntry } from "@bolt-ai/core/session/instruction-entry"
+import { ShellSelect } from "@bolt-ai/core/shell/select"
+import { Job } from "@bolt-ai/core/job"
+import { Mcp } from "@bolt-ai/core/mcp/index"
+import { Global } from "@bolt-ai/util/global"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { InstructionDiscovery } from "@bolt-ai/core/instruction-discovery"
 import { LocationServiceMap } from "@bolt-ai/core/location-service-map"
-import { SessionExecutionLocal } from "@bolt-ai/core/session/execution/local"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
-import { HttpRouter, HttpServer } from "effect/unstable/http"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
-import { Layer, Option } from "effect"
+import { LocationActivity } from "@bolt-ai/core/location-activity"
+import { ModelsDev } from "@bolt-ai/core/models-dev"
+import { SessionRestart } from "@bolt-ai/core/session/execution/restart"
+import { PluginUpdate } from "@bolt-ai/core/plugin/update"
+import { SdkPlugins } from "@bolt-ai/core/plugin/sdk"
+import { WellKnown } from "@bolt-ai/core/wellknown"
+import { Workspace } from "@bolt-ai/core/workspace"
+import { Watcher } from "@bolt-ai/core/filesystem/watcher"
+import { HttpRouter } from "effect/http"
+import { HttpApiBuilder } from "effect/http-api"
+import { Context, Effect, Layer, Option } from "effect"
 import { Api } from "./api"
 import { ServerAuth } from "./auth"
 import { CorsConfig } from "./cors"
@@ -63,8 +86,8 @@ export function createRoutes(
   overrides: LayerNode.Replacements = [],
 ) {
   return makeRoutes(
-    password
-      ? ServerAuth.Config.configLayer({ username: "bolt", password: Option.some(password) })
+    options.password
+      ? ServerAuth.Config.configLayer({ password: Option.some(options.password) })
       : ServerAuth.Config.layer,
     options,
     serviceURLs,
@@ -72,8 +95,16 @@ export function createRoutes(
   )
 }
 
-export function createEmbeddedRoutes() {
-  return makeRoutes(ServerAuth.Config.configLayer({ username: "bolt", password: Option.none() }))
+type InstanceNode = (
+  replacements: () => LayerNode.Replacements,
+) => LayerNode.Provider<Instance.Service, never, typeof Node.tags.values.global>
+
+export function createEmbeddedRoutes(
+  options: ServerOptions = {},
+  overrides: LayerNode.Replacements = [],
+  instances?: InstanceNode,
+) {
+  return makeRoutes(ServerAuth.Config.configLayer({ password: Option.none() }), options, () => [], overrides, instances)
 }
 
 function makeRoutes<AuthError, AuthServices>(

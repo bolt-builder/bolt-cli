@@ -1,11 +1,10 @@
 import { Button } from "@bolt-ai/ui/button"
 import { useDialog } from "@bolt-ai/ui/context/dialog"
-import { Dialog } from "@bolt-ai/ui/dialog"
+import { Icon } from "@bolt-ai/ui/icon"
 import { IconButton } from "@bolt-ai/ui/icon-button"
-import { ProviderIcon } from "@bolt-ai/ui/provider-icon"
 import { useMutation } from "@tanstack/solid-query"
 import { TextField } from "@bolt-ai/ui/text-field"
-import { showToast } from "@/utils/toast"
+import { showToast } from "@/shell/notifications/toast"
 import { batch, For } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { ExternalLink } from "@/runtime/platform/external-link"
@@ -147,7 +146,7 @@ export function CustomProviderForm(props: { autofocus?: boolean } = {}) {
       <form onSubmit={save} class="px-2.5 pb-6 flex flex-col gap-6">
         <p class="text-14-regular text-text-base">
           {language.t("provider.custom.description.prefix")}
-          <ExternalLink href="https://bolt.ai/docs/providers/#custom-provider" tabIndex={-1}>
+          <ExternalLink href="https://opencode.ai/v2/docs/providers#custom" tabIndex={-1}>
             {language.t("provider.custom.description.link")}
           </ExternalLink>
           {language.t("provider.custom.description.suffix")}

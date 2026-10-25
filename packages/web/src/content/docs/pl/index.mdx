@@ -1,6 +1,6 @@
 ---
 title: Wstęp
-description: Zacznij pracę z bolt.
+description: Zacznij pracę z opencode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
@@ -34,7 +34,7 @@ Aby uzyskać dostęp do opencode w swoim terminalu, będziesz potrzebować:
 Najłatwiej zainstalować opencode za pomocą skryptu instalacyjnego.
 
 ```bash
-curl -fsSL https://bolt.ai/install | bash
+curl -fsSL https://opencode.ai/install | bash
 ```
 
 Możesz też użyć poniższych metod instalacji:
@@ -45,28 +45,28 @@ Możesz też użyć poniższych metod instalacji:
 
       <TabItem label="npm">
       ```bash
-      npm install -g bolt-ai
+      npm install -g opencode-ai
       ```
 
           </TabItem>
 
         <TabItem label="Bun">
         ```bash
-        bun install -g bolt-ai
+        bun install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="pnpm">
         ```bash
-        pnpm install -g bolt-ai
+        pnpm install -g opencode-ai
         ```
 
           </TabItem>
 
         <TabItem label="Yarn">
         ```bash
-        yarn global add bolt-ai
+        yarn global add opencode-ai
         ```
 
       </TabItem>
@@ -79,7 +79,7 @@ Możesz też użyć poniższych metod instalacji:
   brew install anomalyco/tap/opencode
   ```
 
-  > W celu uzyskania najbardziej aktualnej wersji zalecamy korzystanie z bolt. Oficjalna formuła `brew install opencode` jest utrzymywana przez zespół Homebrew i jest aktualizowana.
+  > W celu uzyskania najbardziej aktualnej wersji zalecamy korzystanie z opencode. Oficjalna formuła `brew install opencode` jest utrzymywana przez zespół Homebrew i jest aktualizowana.
 
 - **Korzystanie z Paru na Arch Linux**
 
@@ -91,7 +91,7 @@ Możesz też użyć poniższych metod instalacji:
 #### Windows
 
 :::tip[Zalecane: Uruchamianie w WSL]
-Aby najlepiej wykorzystać działanie w systemie Windows, zalecamy włączenie [Podsystemu Windows dla systemu Linux (WSL)](/docs/windows-wsl). Zapewnia to pełną kompatybilność z funkcjami bolt.
+Aby najlepiej wykorzystać działanie w systemie Windows, zalecamy włączenie [Podsystemu Windows dla systemu Linux (WSL)](/docs/windows-wsl). Zapewnia to pełną kompatybilność z funkcjami opencode.
 :::
 
 - **Używając Chocolatey**
@@ -109,24 +109,24 @@ Aby najlepiej wykorzystać działanie w systemie Windows, zalecamy włączenie [
 - **Przy użyciu NPM**
 
   ```bash
-  npm install -g bolt-ai
+  npm install -g opencode-ai
   ```
 
 - **Używając Mise’a**
 
   ```bash
-  mise use -g github:bolt-builder/bolt-cli
+  mise use -g github:anomalyco/opencode
   ```
 
 - **Korzystanie z Dockera**
 
   ```bash
-  docker run -it --rm ghcr.io/bolt-builder/bolt-cli
+  docker run -it --rm ghcr.io/anomalyco/opencode
   ```
 
 Obecnie pracujemy nad instalacją opencode w systemie Windows za pomocą Bun.
 
-Możesz także pobrać plik binarny z [Releases](https://github.com/Bolt-builder/bolt-cli/releases).
+Możesz także pobrać plik binarny z [Releases](https://github.com/anomalyco/opencode/releases).
 
 ---
 
@@ -134,10 +134,10 @@ Możesz także pobrać plik binarny z [Releases](https://github.com/Bolt-builder
 
 Dzięki opencode możesz korzystać z dowolnego dostawcy LLM, konfigurując jego klucze API.
 
-Jeśli będziesz korzystać z wielu dostawców LLM, zalecamy skorzystanie z [Bolt Zen](/docs/zen).
-Aby uzyskać dostęp do wyselekcjonowanej listy modeli, które zostały zatwierdzone i zweryfikowane przez zespół bolt.
+Jeśli będziesz korzystać z wielu dostawców LLM, zalecamy skorzystanie z [OpenCode Zen](https://opencode.ai/v2/docs/console/).
+Aby uzyskać dostęp do wyselekcjonowanej listy modeli, które zostały zatwierdzone i zweryfikowane przez zespół opencode.
 
-1. Uruchom polecenie `/connect` w TUI, wybierz opencode i przejdź do [bolt.ai/auth](https://bolt.ai/auth).
+1. Uruchom polecenie `/connect` w TUI, wybierz opencode i przejdź do [opencode.ai/auth](https://opencode.ai/auth).
 
    ```txt
    /connect
@@ -166,7 +166,7 @@ Po skonfigurowaniu dostawcy możesz przejść do projektu, nad którym chcesz pr
 cd /path/to/project
 ```
 
-Uruchom bolt.
+Uruchom opencode.
 
 ```bash
 opencode
@@ -322,26 +322,8 @@ Możesz też **przywrócić** zmianę za pomocą polecenia `/redo`.
 
 ---
 
-## Udostępnianie
-
-Rozmowy z opencode można [udostępniać swojemu zespołowi](/docs/share).
-
-```bash frame="none"
-/share
-```
-
-Spowoduje to, że link do bieżącej rozmowy zostanie skopiowany do schowka.
-
-:::note
-Rozmowy nie są ogólnodostępne.
-:::
-
-Oto [przykładowa rozmowa](https://bolt.ai/s/4XP1fce5) z bolt.
-
----
-
 ## Dostosuj
 
-To tyle! Jesteś teraz profesjonalistą w korzystaniu z bolt.
+To tyle! Jesteś teraz profesjonalistą w korzystaniu z opencode.
 
 Aby dostosować go do potrzeb, zalecamy [wybranie motywu](/docs/themes), [dostosowanie skrótów klawiaturowych](/docs/keybinds), [konfigurowanie programów formatujących kod](/docs/formatters), [tworzenie niestandardowych poleceń](/docs/commands) lub zabawę z [konfiguracją opencode](/docs/config).

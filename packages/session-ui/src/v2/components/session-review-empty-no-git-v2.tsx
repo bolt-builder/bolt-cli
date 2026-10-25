@@ -1,6 +1,6 @@
 import { FileIcon } from "@bolt-ai/ui/file-icon"
 import { useI18n } from "@bolt-ai/ui/context/i18n"
-import { ButtonV2 } from "@bolt-ai/ui/v2/button-v2"
+import { Button } from "@bolt-ai/ui/button"
 import "./session-review-v2.css"
 
 export type SessionReviewEmptyNoGitV2Props = {

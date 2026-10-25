@@ -58,7 +58,7 @@ function truncate(value: string, limit: number) {
   return `${(space > limit / 2 ? cut.slice(0, space) : cut).trimEnd()}…`
 }
 
-/** Returns the JSON a stable release build embeds as `OPENCODE_RELEASE_HIGHLIGHTS`, warning about malformed notes. */
+/** Returns the JSON a stable release build embeds as `BOLT_RELEASE_HIGHLIGHTS`, warning about malformed notes. */
 export function embed(notes: string | undefined) {
   if (!notes?.trim()) return
   const result = parse(notes)

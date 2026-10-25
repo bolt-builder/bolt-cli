@@ -1,12 +1,13 @@
 export * as SessionRunner from "./index.js"
 
-import type { LLMError } from "@bolt-ai/llm"
-import { Context, Effect } from "effect"
-import { SessionSchema } from "../schema"
-import type { ContextSnapshotDecodeError, MessageDecodeError } from "../error"
-import { SessionRunnerModel } from "./model"
-import type { SystemContext } from "../../system-context/index"
-import type { ToolOutputStore } from "../../tool-output-store"
+import type { FileSystem } from "../../filesystem.js"
+import type { AIError } from "@bolt-ai/ai/effect"
+import { Context, Data, Effect } from "effect"
+import { SessionSchema } from "../schema.js"
+import type { Promotable } from "../inbox.js"
+import type { AgentNotFoundError, MessageDecodeError, StepFailedError } from "../error.js"
+import { SessionRunnerModel } from "./model.js"
+import type { Instructions } from "../../instructions/index.js"
 
 export type RunError =
   | AIError
@@ -38,4 +39,4 @@ export interface Interface {
   }) => Effect.Effect<DrainResult, RunError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/SessionRunner") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SessionRunner") {}

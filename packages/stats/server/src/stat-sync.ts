@@ -3,6 +3,7 @@ import { ModelStatRepo } from "@bolt-ai/stats-core/domain/model"
 import { R2Sql } from "@bolt-ai/stats-core/r2-sql"
 import { layer as statsLayer } from "@bolt-ai/stats-core/runtime"
 import { syncStats } from "@bolt-ai/stats-core/stat-sync"
+import { syncRange } from "@bolt-ai/stats-core/sync-range"
 import { Cause, Duration, Effect, Layer, Schedule } from "effect"
 
 const SYNC_INTERVAL = "1 hour"

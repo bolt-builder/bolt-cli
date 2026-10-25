@@ -1,5 +1,6 @@
 import { describe, expect } from "bun:test"
 import { Cause, Deferred, Effect, Exit, Fiber, Layer } from "effect"
+import { SessionInbox } from "@bolt-ai/core/session/inbox"
 import { SessionRunCoordinator } from "@bolt-ai/core/session/run-coordinator"
 import { testEffect } from "./lib/effect"
 

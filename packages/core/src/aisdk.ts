@@ -154,36 +154,22 @@ function prepareOptions(model: RuntimeInfo, pkg: string) {
       ].filter((item): item is AbortSignal => item !== undefined && item !== null),
     )
 
-    const runFetch = () =>
-      (typeof customFetch === "function" ? customFetch : fetch)(input, {
-        ...opts,
-        timeout: false,
-      })
-
-    if (
-      (pkg === "@ai-sdk/openai" || pkg === "@ai-sdk/azure" || pkg === "@ai-sdk/amazon-bedrock/mantle") &&
-      opts.body &&
-      opts.method === "POST"
-    ) {
-      // Non-string bodies (FormData, streams) pass through untouched.
-      if (typeof opts.body === "string" && opts.body.length > 0) {
-        try {
-          const body = JSON.parse(opts.body)
-          if (body.store !== true && Array.isArray(body.input)) {
-            for (const item of body.input) {
-              if ("id" in item) delete item.id
-            }
-            opts.body = JSON.stringify(body)
-          }
-        } catch {
-          // Malformed JSON passes through to the underlying fetch for its own error handling.
-        }
+    if (typeof opts.body === "string" && model.body !== undefined) {
+      const decoded = Option.getOrUndefined(decodeJsonRecord(opts.body))
+      if (decoded) {
+        opts.body = JSON.stringify(Provider.mergeOverlay(decoded, model.body))
       }
     }
 
-    const res = await runFetch()
-    if (!chunkAbortCtl || typeof chunkTimeout !== "number") return res
-    return wrapSSE(res, chunkTimeout, chunkAbortCtl)
+    const send: Fetch = isFetch(customFetch) ? customFetch : fetch
+    const middleware = httpMiddleware.getStore()
+    const res = await (
+      middleware
+        ? throughMiddleware(middleware, send, input, { ...opts, timeout: false })
+        : send(input, { ...opts, timeout: false })
+    ).finally(() => clearTimeout(headerTimer))
+    if (timeouts.chunkTimeout === false) return res
+    return wrapSSE(res, timeouts.chunkTimeout, chunks)
   }
 
   return options
@@ -267,7 +253,7 @@ export interface Interface {
   readonly model: (model: RuntimeInfo) => Effect.Effect<LanguageModel, InitError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/AISDK") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/AISDK") {}
 
 export const locationLayer = Layer.effect(
   Service,

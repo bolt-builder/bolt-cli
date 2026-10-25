@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "6a71f50b-d017-433a-86a6-0a2bd249f3a0",
-  "prevIds": ["f14a9b18-8207-487e-a3d3-227e629ba9ad"],
+  "id": "f1f14616-b6a1-483d-87b0-d5b7a9132580",
+  "prevIds": ["76109fbf-f324-4af0-934c-3ae695275099"],
   "ddl": [
     {
       "name": "account_state",
@@ -2247,29 +2247,7 @@
     {
       "columns": [
         {
-          "value": "directory",
-          "isExpression": false
-        },
-        {
-          "value": "time_updated",
-          "isExpression": false
-        },
-        {
-          "value": "id",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "session_directory_time_updated_idx",
-      "entityType": "indexes",
-      "table": "session"
-    },
-    {
-      "columns": [
-        {
-          "value": "session_id",
+          "value": "time_suspended",
           "isExpression": false
         }
       ],

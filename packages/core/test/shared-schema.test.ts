@@ -1,18 +1,15 @@
 import { expect, test } from "bun:test"
 import { Schema } from "effect"
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { Agent } from "@bolt-ai/schema/agent"
+import { Agent } from "@bolt-ai/core/agent"
+import { Session } from "@bolt-ai/core/session"
+import { SessionStore } from "@bolt-ai/core/session/store"
 import { Location } from "@bolt-ai/schema/location"
 import { Model } from "@bolt-ai/schema/model"
-import { AgentAttachment, FileAttachment, Prompt, Source } from "@bolt-ai/schema/prompt"
 import { Provider } from "@bolt-ai/schema/provider"
 import { Project } from "@bolt-ai/schema/project"
-import { ProjectDirectories } from "@bolt-ai/schema/project-directories"
-import { PermissionV1 } from "@bolt-ai/schema/permission-v1"
-import { Session } from "@bolt-ai/schema/session"
-import { SessionInput } from "@bolt-ai/schema/session-input"
+import { Worktree } from "@bolt-ai/schema/worktree"
+import { Prompt } from "@bolt-ai/schema/prompt"
+import { SessionInbox } from "@bolt-ai/schema/session-inbox"
 import { SessionMessage } from "@bolt-ai/schema/session-message"
 import { Workspace } from "@bolt-ai/schema/workspace"
 import { Command } from "@bolt-ai/schema/command"
@@ -22,14 +19,10 @@ import { FileSystem } from "@bolt-ai/schema/filesystem"
 import { Integration } from "@bolt-ai/schema/integration"
 import { LLM } from "@bolt-ai/schema/llm"
 import { Permission } from "@bolt-ai/schema/permission"
-import { Plugin } from "@bolt-ai/schema/plugin"
 import { Pty } from "@bolt-ai/schema/pty"
 import { Reference } from "@bolt-ai/schema/reference"
-import { SessionTodo } from "@bolt-ai/schema/session-todo"
 import { Skill } from "@bolt-ai/schema/skill"
-import { AbsolutePath, DateTimeUtcFromMillis, optional, statics } from "@bolt-ai/schema/schema"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { PluginV2 } from "@bolt-ai/core/plugin"
+import { AbsolutePath, optional, statics } from "@bolt-ai/schema/schema"
 
 test("Core reuses the canonical shared schemas", async () => {
   const schemaAgent = await import("@bolt-ai/schema/agent")
@@ -61,19 +54,17 @@ test("Core reuses the canonical shared schemas", async () => {
     import("@bolt-ai/core/filesystem"),
     import("@bolt-ai/core/integration"),
     import("@bolt-ai/core/location"),
-    import("@bolt-ai/llm"),
+    import("@bolt-ai/ai/effect"),
+    import("@bolt-ai/core/model"),
     import("@bolt-ai/core/permission"),
-    import("@bolt-ai/core/v1/permission"),
-    import("@bolt-ai/core/project/copy"),
+    import("@bolt-ai/core/worktree"),
     import("@bolt-ai/core/pty"),
     import("@bolt-ai/core/project/schema"),
+    import("@bolt-ai/core/provider"),
     import("@bolt-ai/core/reference"),
-    import("@bolt-ai/core/session/input"),
+    import("@bolt-ai/core/session/inbox"),
     import("@bolt-ai/core/session/message"),
-    import("@bolt-ai/core/session/todo"),
-    import("@bolt-ai/core/session/prompt"),
     import("@bolt-ai/core/skill"),
-    import("@bolt-ai/core/v2-schema"),
     import("@bolt-ai/core/schema"),
     import("@bolt-ai/core/workspace"),
   ])

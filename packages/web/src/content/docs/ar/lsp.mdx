@@ -1,15 +1,15 @@
 ---
 title: خوادم LSP
-description: يتكامل Bolt مع خوادم LSP لديك.
+description: يتكامل OpenCode مع خوادم LSP لديك.
 ---
 
-يمكن أن يتكامل Bolt مع خوادم Language Server Protocol (LSP) لاستخدام التشخيصات كملاحظات للوكيل.
+يمكن أن يتكامل OpenCode مع خوادم Language Server Protocol (LSP) لاستخدام التشخيصات كملاحظات للوكيل.
 
 ---
 
 ## المدمجة
 
-يأتي Bolt مع عدة خوادم LSP مدمجة للغات الشائعة:
+يأتي OpenCode مع عدة خوادم LSP مدمجة للغات الشائعة:
 
 | خادم LSP           | الامتدادات                                                          | المتطلبات                                            |
 | ------------------ | ------------------------------------------------------------------- | ---------------------------------------------------- |
@@ -49,7 +49,7 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 تكون ميزة LSP معطلة افتراضيا. عند تفعيلها، تبدأ الخوادم عند اكتشاف أحد امتدادات الملفات المذكورة أعلاه واستيفاء المتطلبات.
 
 :::note
-يمكنك تعطيل تنزيلات خوادم LSP التلقائية عبر ضبط متغير البيئة `BOLT_DISABLE_LSP_DOWNLOAD` على `true`.
+يمكنك تعطيل تنزيلات خوادم LSP التلقائية عبر ضبط متغير البيئة `OPENCODE_DISABLE_LSP_DOWNLOAD` على `true`.
 :::
 
 ---
@@ -73,22 +73,22 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 
 ## الإعداد
 
-يمكنك تفعيل خوادم LSP وتخصيصها عبر قسم `lsp` في إعدادات bolt.
+يمكنك تفعيل خوادم LSP وتخصيصها عبر قسم `lsp` في إعدادات opencode.
 
 لتفعيل جميع خوادم LSP المدمجة، اضبط `lsp` على `true`.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": true
 }
 ```
 
 استخدم كائنا لإبقاء الخوادم المدمجة مفعلة أثناء إعداد التجاوزات أو الخوادم المخصصة.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {}
 }
 ```
@@ -111,9 +111,9 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 
 استخدم الخاصية `env` لضبط متغيرات البيئة عند تشغيل خادم LSP:
 
-```json title="bolt.json" {5-7}
+```json title="opencode.json" {5-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "rust": {
       "env": {
@@ -130,9 +130,9 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 
 استخدم الخاصية `initialization` لتمرير خيارات التهيئة إلى خادم LSP. هذه إعدادات خاصة بالخادم تُرسل أثناء طلب LSP `initialize`:
 
-```json title="bolt.json" {5-9}
+```json title="opencode.json" {5-9}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "initialization": {
@@ -155,18 +155,18 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 
 إذا تم حذف `lsp`، فستكون جميع خوادم LSP معطلة. لتعطيل جميع خوادم LSP بعد أن فعّلها إعداد آخر، اضبط `lsp` على `false`:
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": false
 }
 ```
 
 لتعطيل خادم LSP **بعينه**، اضبط `disabled` على `true`:
 
-```json title="bolt.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "typescript": {
       "disabled": true
@@ -181,9 +181,9 @@ description: يتكامل Bolt مع خوادم LSP لديك.
 
 يمكنك إضافة خوادم LSP مخصصة عبر تحديد الأمر وامتدادات الملفات:
 
-```json title="bolt.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "lsp": {
     "custom-lsp": {
       "command": ["custom-lsp-server", "--stdio"],

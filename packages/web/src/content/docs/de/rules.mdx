@@ -74,7 +74,7 @@ Da diese Datei nicht in Git landet und nicht mit dem Team geteilt wird, eignet s
 
 ### Claude Code-Kompatibilität
 
-Wenn du von Claude Code kommst, unterstuetzt Bolt dessen Dateikonventionen als Fallback:
+Wenn du von Claude Code kommst, unterstuetzt OpenCode dessen Dateikonventionen als Fallback:
 
 - **Projektregeln**: `CLAUDE.md` im Projekt (wenn keine `AGENTS.md` existiert)
 - **Globale Regeln**: `~/.claude/CLAUDE.md` (wenn keine `~/.config/opencode/AGENTS.md` existiert)
@@ -83,9 +83,9 @@ Wenn du von Claude Code kommst, unterstuetzt Bolt dessen Dateikonventionen als F
 Um die Claude-Code-Kompatibilitaet zu deaktivieren, setze eine dieser Umgebungsvariablen:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -105,23 +105,23 @@ Wenn sowohl `AGENTS.md` als auch `CLAUDE.md` existieren, wird nur `AGENTS.md` ve
 
 ## Eigene Anweisungen
 
-Du kannst zusaetzliche Anweisungsdateien in deiner `bolt.json` oder in `~/.config/opencode/bolt.json` angeben.
+Du kannst zusaetzliche Anweisungsdateien in deiner `opencode.json` oder in `~/.config/opencode/opencode.json` angeben.
 So kann dein Team bestehende Regeln wiederverwenden, statt Inhalte in `AGENTS.md` zu duplizieren.
 
 Beispiel:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 Du kannst auch Remote-URLs nutzen, um Regeln aus dem Web zu laden.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -137,13 +137,13 @@ Alle Anweisungsdateien werden mit deinen `AGENTS.md`-Dateien kombiniert.
 opencode parst Datei-Referenzen in `AGENTS.md` nicht automatisch.
 Du erreichst aehnliches Verhalten auf zwei Wegen.
 
-### Mit bolt.json
+### Mit opencode.json
 
-Empfohlen ist das `instructions`-Feld in der `bolt.json`:
+Empfohlen ist das `instructions`-Feld in der `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -186,5 +186,5 @@ Damit kannst du:
 - Sicherstellen, dass Dateien nur bei Bedarf geladen werden
 
 :::tip
-Fuer Monorepos oder gemeinsame Standards ist `bolt.json` mit Glob-Mustern (z. B. `packages/*/AGENTS.md`) oft wartbarer als manuelle Anweisungen.
+Fuer Monorepos oder gemeinsame Standards ist `opencode.json` mit Glob-Mustern (z. B. `packages/*/AGENTS.md`) oft wartbarer als manuelle Anweisungen.
 :::

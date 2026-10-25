@@ -1,13 +1,16 @@
 import { TextField } from "@bolt-ai/ui/text-field"
-import * as Sentry from "@sentry/solid"
+import type { captureException } from "@sentry/solid"
 import { Logo } from "@bolt-ai/ui/logo"
 import { Button } from "@bolt-ai/ui/button"
-import { Component, createSignal, onMount, Show } from "solid-js"
+import { Component, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
-import { usePlatform } from "@/context/platform"
-import { useLanguage } from "@/context/language"
+import { Predicate } from "effect"
+import { Updater } from "@bolt-ai/gui-extensions/updater"
+import { usePlatform } from "@/runtime/platform/platform"
+import { useLanguage } from "@/runtime/i18n/language"
+import { createIpcClients } from "@/runtime/extension/ipc"
 import { Icon } from "@bolt-ai/ui/icon"
-import { errorDescriptionKey } from "./error-description"
+import { errorDescriptionKey, errorStatus } from "./description"
 
 export type InitError = {
   name: unknown
@@ -410,7 +413,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
             <button
               type="button"
               class="flex items-center text-text-interactive-base gap-1"
-              onClick={() => platform.openExternal("https://bolt.ai/desktop-feedback")}
+              onClick={() => platform.openExternal("https://opencode.ai/desktop-feedback")}
             >
               <div>{language.t("error.page.report.discord")}</div>
               <Icon name="discord" class="text-text-interactive-base" />

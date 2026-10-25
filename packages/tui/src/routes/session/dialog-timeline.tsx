@@ -1,7 +1,6 @@
 import { createMemo, onMount } from "solid-js"
 import { useData } from "../../context/data"
 import { DialogSelect, type DialogSelectOption } from "../../ui/dialog-select"
-import type { TextPart } from "@bolt-ai/sdk/v2"
 import { Locale } from "../../util/locale"
 import { DialogMessage } from "./dialog-message"
 import { useDialog } from "../../ui/dialog"

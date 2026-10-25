@@ -18,7 +18,7 @@ Brug den til at bygge integrasjoner og kontrollere opencode programmatisk.
 Installer SDK fra npm:
 
 ```bash
-npm install @bolt-ai/sdk
+npm install @opencode-ai/sdk
 ```
 
 ---
@@ -28,9 +28,9 @@ npm install @bolt-ai/sdk
 Opret en forekomst av opencode:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const { client } = await createBolt()
+const { client } = await createOpencode()
 ```
 
 Dette starter både en server og en klient
@@ -49,12 +49,12 @@ Dette starter både en server og en klient
 
 ## Konfig
 
-Du kan sende et konfigurasjonsobjekt for at tilpasse virkemåten. Forekomsten henter fortsatt din `bolt.json`, men du kan overstyre eller tilføje til konfigurasjon inline:
+Du kan sende et konfigurasjonsobjekt for at tilpasse virkemåten. Forekomsten henter fortsatt din `opencode.json`, men du kan overstyre eller tilføje til konfigurasjon inline:
 
 ```javascript
-import { createBolt } from "@bolt-ai/sdk"
+import { createOpencode } from "@opencode-ai/sdk"
 
-const bolt = await createBolt({
+const opencode = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,19 +62,19 @@ const bolt = await createBolt({
   },
 })
 
-console.log(`Server running at ${bolt.server.url}`)
+console.log(`Server running at ${opencode.server.url}`)
 
-bolt.server.close()
+opencode.server.close()
 ```
 
 ## Kun klient
 
-Hvis du allerede har en kjørende forekomst av bolt, kan du oprete en klientforekomst for at koble til den:
+Hvis du allerede har en kjørende forekomst av opencode, kan du oprete en klientforekomst for at koble til den:
 
 ```javascript
-import { createBoltClient } from "@bolt-ai/sdk"
+import { createOpencodeClient } from "@opencode-ai/sdk"
 
-const client = createBoltClient({
+const client = createOpencodeClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -96,7 +96,7 @@ const client = createBoltClient({
 SDK inkluderer TypeScript-definisjoner for alle API-typer. Importer dem direkte:
 
 ```typescript
-import type { Session, Message, Part } from "@bolt-ai/sdk"
+import type { Session, Message, Part } from "@opencode-ai/sdk"
 ```
 
 Alle typer er generert fra serverens OpenAPI-spesifikasjon og tilgængelig i <a href={typesUrl}>types-filen</a>.

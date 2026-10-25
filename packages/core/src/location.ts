@@ -1,8 +1,8 @@
 import { Context, Effect, Layer } from "effect"
 import { Info, Ref, response } from "@bolt-ai/schema/location"
-import { Project } from "./project"
-import { LayerNode } from "./effect/layer-node"
-import { makeLocationNode, tags } from "./effect/app-node"
+import { Project } from "./project.js"
+import { LayerNode } from "@bolt-ai/util/effect/layer-node"
+import { makeLocationNode, tags } from "@bolt-ai/util/effect/app-node"
 
 export * as Location from "./location.js"
 
@@ -12,7 +12,7 @@ export interface Interface extends Info {
   readonly vcs?: Project.Vcs
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/Location") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Location") {}
 
 export const node = LayerNode.unbound(Service, tags.values.location)
 

@@ -2,12 +2,13 @@ export * as SkillDiscovery from "./discovery.js"
 
 import path from "path"
 import { Context, Effect, Layer, Schedule, Schema } from "effect"
-import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/unstable/http"
-import { FSUtil } from "../fs-util"
-import { Global } from "../global"
-import { makeGlobalNode } from "../effect/app-node"
-import { httpClient } from "../effect/app-node-platform"
-import { AbsolutePath } from "../schema"
+import { HttpClient, HttpClientRequest, HttpClientResponse } from "effect/http"
+import { FSUtil } from "@bolt-ai/util/fs-util"
+import { Global } from "@bolt-ai/util/global"
+import { makeGlobalNode } from "@bolt-ai/util/effect/app-node"
+import { httpClient } from "@bolt-ai/util/effect/app-node-platform"
+import { AbsolutePath } from "../schema.js"
+import { Hash } from "@bolt-ai/util/hash"
 
 const skillConcurrency = 4
 const fileConcurrency = 8
@@ -58,7 +59,7 @@ export interface Interface {
   readonly pull: (url: string) => Effect.Effect<AbsolutePath[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/SkillDiscovery") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/SkillDiscovery") {}
 
 const layer = Layer.effect(
   Service,
@@ -118,7 +119,7 @@ const layer = Layer.effect(
             }
 
             const skillUrl = new URL(`${encodeURIComponent(skill.name)}/`, source)
-            const versionFile = path.join(root, ".bolt-version")
+            const versionFile = path.join(root, ".opencode-version")
             const files = skill.files.map((file) => {
               if (!isSafeRelativePath(file)) return undefined
               let resource: URL
@@ -168,7 +169,7 @@ const layer = Layer.effect(
                     (yield* fs.exists(path.join(staging, "SKILL.md")).pipe(Effect.orDie)) ||
                     (yield* fs.exists(path.join(staging, `${skill.name}.md`)).pipe(Effect.orDie))
                   if (!exists) return
-                  yield* fs.writeFileString(path.join(staging, ".bolt-version"), version)
+                  yield* fs.writeFileString(path.join(staging, ".opencode-version"), version)
                   yield* Effect.uninterruptible(
                     Effect.gen(function* () {
                       const cached = yield* fs.exists(root).pipe(Effect.orDie)

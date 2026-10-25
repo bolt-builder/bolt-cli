@@ -1,6 +1,4 @@
-import "@bolt-ai/ui/styles/tailwind"
-import "@bolt-ai/session-ui/styles"
-import "@bolt-ai/ui/v2/styles/tailwind.css"
+import "../../app/src/index.css"
 
 import { createEffect, onCleanup, onMount } from "solid-js"
 import addonA11y from "@storybook/addon-a11y"
@@ -10,9 +8,10 @@ import { addons } from "storybook/preview-api"
 import { GLOBALS_UPDATED } from "storybook/internal/core-events"
 import { createJSXDecorator, definePreview } from "storybook-solidjs-vite"
 import { DialogProvider } from "@bolt-ai/ui/context/dialog"
-import { MarkedProvider } from "@bolt-ai/ui/context/marked"
 import { ThemeProvider, useTheme, type ColorScheme } from "@bolt-ai/ui/theme"
 import { Font } from "@bolt-ai/ui/font"
+import { LanguageProvider, UiI18nBridge, useLanguage } from "@/runtime/i18n/language"
+import { ExtensionStory } from "./extension"
 
 function resolveScheme(value: unknown): ColorScheme {
   if (value === "light" || value === "dark" || value === "system") return value

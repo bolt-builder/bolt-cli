@@ -1,12 +1,7 @@
 export * as ServerAuth from "./auth"
 
-import { createHash, timingSafeEqual } from "node:crypto"
-import { Config as EffectConfig, Context, Effect, Layer, Option, Redacted } from "effect"
-
-export type Credentials = {
-  password?: string
-  username?: string
-}
+import { Context, Layer, Option, Redacted } from "effect"
+import { createHmac, timingSafeEqual } from "node:crypto"
 
 export type DecodedCredentials = {
   readonly username: string
@@ -18,23 +13,15 @@ export type Info = {
   readonly username: string
 }
 
-export class Config extends Context.Service<Config, Info>()("@bolt/ServerAuthConfig") {
-  static configLayer(input: Info) {
-    return Layer.succeed(this, this.of(input))
+export const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60
+
+export class Config extends Context.Service<Config, Info>()("@bolt-ai/ServerAuthConfig") {
+  static configLayer(input: Pick<Info, "password">) {
+    return Layer.succeed(this, this.of({ ...input, username: "opencode" }))
   }
 
   static get layer() {
-    return Layer.effect(
-      this,
-      Effect.gen(function* () {
-        return Config.of(
-          yield* EffectConfig.all({
-            password: EffectConfig.string("BOLT_SERVER_PASSWORD").pipe(EffectConfig.option),
-            username: EffectConfig.string("BOLT_SERVER_USERNAME").pipe(EffectConfig.withDefault("bolt")),
-          }),
-        )
-      }),
-    )
+    return this.configLayer({ password: Option.none() })
   }
 }
 
@@ -44,27 +31,16 @@ export function required(config: Info) {
 
 // Session tokens issued by pairing links are accepted anywhere the password is.
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  if (Option.isNone(config.password)) return false
-  // Evaluate both comparisons so a username mismatch does not skip the
-  // password hash, which would leak username validity through timing.
-  const username = equals(credentials.username, config.username)
-  const password = equals(Redacted.value(credentials.password), config.password.value)
-  return username && password
+  if (Option.isNone(config.password) || credentials.username !== config.username) return false
+  const password = Redacted.value(credentials.password)
+  return password === config.password.value || verifySession(password, config)
 }
 
-// Constant-time comparison so the password cannot be recovered byte-by-byte
-// through response timing. Hashing first equalizes lengths, which
-// timingSafeEqual requires (and avoids leaking the length itself).
-function equals(a: string, b: string) {
-  const hash = (value: string) => createHash("sha256").update(value).digest()
-  return timingSafeEqual(hash(a), hash(b))
-}
-
-export function header(credentials?: Credentials) {
-  const password = credentials?.password ?? process.env.BOLT_SERVER_PASSWORD
-  if (!password) return undefined
-
-  return `Basic ${Buffer.from(`${credentials?.username ?? process.env.BOLT_SERVER_USERNAME ?? "bolt"}:${password}`).toString("base64")}`
+// Sessions are signed with a key derived from the server password, so rotating the password revokes every session.
+export function issueSession(config: Info, now = Date.now()) {
+  if (Option.isNone(config.password)) return
+  const expires = String(Math.floor(now / 1000) + SESSION_TTL_SECONDS)
+  return `${expires}.${sign(config.password.value, expires)}`
 }
 
 export function verifySession(token: string, config: Info, now = Date.now()) {

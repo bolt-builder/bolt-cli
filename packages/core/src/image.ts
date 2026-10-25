@@ -53,7 +53,7 @@ export interface Interface extends State.Transformable<Editor> {
   >
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/Image") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Image") {}
 
 const layer = Layer.effect(
   Service,

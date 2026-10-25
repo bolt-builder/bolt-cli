@@ -1,14 +1,14 @@
 export * as Reference from "./reference.js"
 
-import { makeLocationNode } from "./effect/app-node"
-import { Context, Effect, Layer, Scope, Types } from "effect"
+import { makeLocationNode } from "@bolt-ai/util/effect/app-node"
+import { Context, Effect, Layer, Scope } from "effect"
 import { Reference } from "@bolt-ai/schema/reference"
-import { Global } from "./global"
-import { EventV2 } from "./event"
-import { Repository } from "./repository"
-import { RepositoryCache } from "./repository-cache"
-import { AbsolutePath } from "./schema"
-import { State } from "./state"
+import { Global } from "@bolt-ai/util/global"
+import { Bus } from "./bus.js"
+import { Repository } from "./repository.js"
+import { RepositoryCache } from "./repository-cache.js"
+import { AbsolutePath } from "./schema.js"
+import { State } from "./state.js"
 
 export const LocalSource = Reference.LocalSource
 export type LocalSource = Reference.LocalSource
@@ -39,7 +39,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly list: () => Effect.Effect<Info[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Reference") {}
+export class Service extends Context.Service<Service, Interface>()("@bolt-ai/Reference") {}
 
 const layer = Layer.effect(
   Service,
