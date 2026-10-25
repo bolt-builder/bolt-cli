@@ -15,7 +15,7 @@
   node_modules ? callPackage ./node_modules.nix { },
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
-  pname = "opencode";
+  pname = "bolt";
   inherit (node_modules) version src;
   inherit node_modules;
 
@@ -63,10 +63,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    install -Dm755 dist/cli-*/bin/opencode $out/bin/opencode
+    install -Dm755 dist/cli-*/bin/bolt $out/bin/bolt
 
     # OpenTUI dlopens Wayland for clipboard images.
-    wrapProgram $out/bin/opencode \
+    wrapProgram $out/bin/bolt \
       --prefix PATH : ${
         lib.makeBinPath (
           [
@@ -79,36 +79,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ wayland ]}
       ''}
 
-    ln -s opencode $out/bin/opencode2
-
     runHook postInstall
   '';
 
   postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
     # v2 dropped the `completion` subcommand; --completions is the global flag.
     # --completions also accepts sh, which emits the same script as bash.
-    # staged to files, substitute below rejects anything that is not a regular file
-    $out/bin/opencode --completions bash > opencode.bash
-    $out/bin/opencode --completions zsh > _opencode
-    $out/bin/opencode --completions fish > opencode.fish
+    $out/bin/bolt --completions bash > bolt.bash
+    $out/bin/bolt --completions zsh > _bolt
+    $out/bin/bolt --completions fish > bolt.fish
 
-    installShellCompletion --cmd opencode \
-      --bash opencode.bash \
-      --fish opencode.fish \
-      --zsh _opencode
+    installShellCompletion --cmd bolt \
+      --bash bolt.bash \
+      --fish bolt.fish \
+      --zsh _bolt
 
-    # OPENCODE_CLI_NAME is a build-time define, so the opencode2 copies are
-    # renamed rather than regenerated. --replace-fail is a global literal
-    # substitution, so any lowercase opencode that later appears in a
-    # description or help text ships as opencode2 in the opencode2 copy.
-    substitute opencode.bash opencode2.bash --replace-fail opencode opencode2
-    substitute _opencode _opencode2 --replace-fail opencode opencode2
-    substitute opencode.fish opencode2.fish --replace-fail opencode opencode2
-
-    installShellCompletion --cmd opencode2 \
-      --bash opencode2.bash \
-      --fish opencode2.fish \
-      --zsh _opencode2
   '';
 
   nativeInstallCheckInputs = [
@@ -125,9 +110,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   meta = {
     description = "The open source coding agent";
-    homepage = "https://opencode.ai";
+    homepage = "https://bolt.ai";
     license = lib.licenses.mit;
-    mainProgram = "opencode";
+    mainProgram = "bolt";
     inherit (node_modules.meta) platforms;
   };
 })

@@ -15,7 +15,7 @@ import { resolveOpencodePty } from "./opencode-pty"
 import { NativeArch } from "../../../script/native-arch"
 
 const dir = path.resolve(import.meta.dirname, "..")
-const binary = "opencode"
+const binary = "bolt"
 const outdir = path.resolve(
   dir,
   process.argv.find((arg) => arg.startsWith("--outdir="))?.slice("--outdir=".length) ?? "dist",
@@ -31,7 +31,7 @@ const requestedTarget = process.argv.find((arg) => arg.startsWith("--target="))?
 const skipInstall = process.argv.includes("--skip-install")
 const skipWebUi = process.argv.includes("--skip-web-ui")
 const solidPlugin = createSolidTransformPlugin()
-const highlights = Script.preview ? undefined : embed(process.env.OPENCODE_RELEASE_NOTES)
+const highlights = Script.preview ? undefined : embed(process.env.BOLT_RELEASE_NOTES)
 const releaseAssets = new Map<string, Promise<Map<string, string>>>()
 
 const allTargets: {
@@ -106,7 +106,7 @@ const pluginRuntimePlugin: BunPlugin = {
     }))
     build.onLoad({ filter: /[/\\]internal[/\\]httpApi(?:Scalar|Swagger)\.js$/ }, () => ({
       contents:
-        'export const css = ""; export const javascript = \'document.body.textContent = "Scalar/Swagger UI assets are not bundled in OpenCode"\'',
+        'export const css = ""; export const javascript = \'document.body.textContent = "Scalar/Swagger UI assets are not bundled in Bolt"\'',
       loader: "js",
     }))
   },

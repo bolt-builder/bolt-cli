@@ -17,6 +17,7 @@ import { EOL, tmpdir } from "node:os"
 import { mkdir, writeFile } from "node:fs/promises"
 import { useRoute, useRouteData } from "../../context/route"
 import { speak } from "../../speak"
+import { useSpeak } from "../../context/speak"
 import { createStore } from "solid-js/store"
 import { useData } from "../../context/data"
 import { SplitBorder } from "../../ui/border"
@@ -629,6 +630,7 @@ export function Session(props: {
   })
   const dialog = useDialog()
   const storage = useStorage()
+  const speaker = useSpeak()
   const [goUpsell, updateGoUpsell] = storage.store<{ lastSeenAt?: number; dontShow?: boolean }>("go-upsell", {
     initial: {},
   })
@@ -1313,6 +1315,19 @@ export function Session(props: {
           .write(route.sessionID)
           .then(() => toast.show({ message: "Session ID copied to clipboard!", variant: "success" }))
           .catch(() => toast.show({ message: "Failed to copy session ID", variant: "error" }))
+        dialog.clear()
+      },
+    },
+    {
+      title: speaker.enabled() ? "Disable speak answers" : "Enable speak answers",
+      id: "session.speak.toggle",
+      group: "Session",
+      run: () => {
+        speaker.toggle()
+        toast.show({
+          message: speaker.enabled() ? "Speak answers enabled" : "Speak answers disabled",
+          variant: "success",
+        })
         dialog.clear()
       },
     },

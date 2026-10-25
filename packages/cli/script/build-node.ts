@@ -30,7 +30,7 @@ const bundleOnly = process.argv.includes("--bundle-only")
 const single = process.argv.includes("--single")
 const skipInstall = process.argv.includes("--skip-install")
 const appArchiveOnly = process.argv.includes("--app-archive-only")
-const highlights = Script.preview ? undefined : embed(process.env.OPENCODE_RELEASE_NOTES)
+const highlights = Script.preview ? undefined : embed(process.env.BOLT_RELEASE_NOTES)
 const requestedArchive = process.argv.find((arg) => arg.startsWith("--app-archive="))?.slice("--app-archive=".length)
 const archivePath = requestedArchive ? path.resolve(dir, requestedArchive) : undefined
 const requested = process.argv.find((arg) => arg.startsWith("--target="))?.slice("--target=".length)

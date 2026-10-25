@@ -101,7 +101,7 @@ stdenv.mkDerivation (finalAttrs: {
     # reports, not the Nix build's name. It reads only .version from the manifest and
     # writes it as opencode-cli.version beside the binary.
     mkdir -p "$OPENCODE_CLI_DIST/$cli_package/bin"
-    cp ${lib.getExe opencode} "$OPENCODE_CLI_DIST/$cli_package/bin/opencode"
+    cp ${lib.getExe bolt} "$OPENCODE_CLI_DIST/$cli_package/bin/bolt"
     # OPENCODE_VERSION is what the bundled CLI prints for --version, so the manifest
     # and the executable cannot drift.
     bun -e 'await Bun.write(process.argv[1], JSON.stringify({ version: process.env.OPENCODE_VERSION }) + "\n")' \

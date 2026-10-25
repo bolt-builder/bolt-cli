@@ -107,6 +107,7 @@ import { DialogVariant } from "./component/dialog-variant"
 import { destroyRenderer, setTerminalTitle } from "./util/renderer"
 import { cliErrorMessage, errorFormat } from "./util/error"
 import { AttentionProvider } from "./context/attention"
+import { SpeakProvider } from "./context/speak"
 import { StorageProvider, useStorage } from "./context/storage"
 import { SessionTerminalsProvider } from "./context/session-terminals"
 import { ClientMcp } from "./context/client-mcp"
@@ -426,6 +427,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                                     <PromptRefProvider>
                                                                       <EditorContextProvider>
                                                                         <AttentionProvider>
+                                                                        <SpeakProvider>
                                                                           <UpdateNotificationProvider
                                                                             updater={input.updater}
                                                                           >
@@ -438,6 +440,7 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                                                                               </PluginProvider>
                                                                             </PanelProvider>
                                                                           </UpdateNotificationProvider>
+                                                                        </SpeakProvider>
                                                                         </AttentionProvider>
                                                                       </EditorContextProvider>
                                                                     </PromptRefProvider>
