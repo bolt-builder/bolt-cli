@@ -16,6 +16,7 @@ import path from "node:path"
 import { EOL, tmpdir } from "node:os"
 import { mkdir, writeFile } from "node:fs/promises"
 import { useRoute, useRouteData } from "../../context/route"
+import { speak } from "../../speak"
 import { createStore } from "solid-js/store"
 import { useData } from "../../context/data"
 import { SplitBorder } from "../../ui/border"
@@ -1312,6 +1313,28 @@ export function Session(props: {
           .write(route.sessionID)
           .then(() => toast.show({ message: "Session ID copied to clipboard!", variant: "success" }))
           .catch(() => toast.show({ message: "Failed to copy session ID", variant: "error" }))
+        dialog.clear()
+      },
+    },
+    {
+      title: "Speak last answer",
+      id: "session.speak",
+      group: "Session",
+      run: () => {
+        const messages = data.session.message.list(route.sessionID)
+        const last = messages.findLast((message) => message.type === "assistant")
+        const text = last
+          ? last.content
+              .flatMap((item) => (item.type === "text" ? [item.text] : []))
+              .join("\n")
+              .trim()
+          : ""
+        if (!text) {
+          toast.show({ message: "Nothing to read aloud yet", variant: "error" })
+        } else {
+          speak.say(text)
+          toast.show({ message: "Reading the last answer aloud", variant: "success" })
+        }
         dialog.clear()
       },
     },
