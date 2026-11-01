@@ -1,15 +1,27 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bolt-ai/schema",
-  "private": true,
+  "name": "@opencode/schema",
+  "version": "2.2.5",
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/schema"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*.ts"
   },
   "scripts": {
     "build": "bun run script/build.ts",
+    "pack": "bun run script/pack.ts",
     "test": "bun test --only-failures",
     "typecheck": "bun check --no-script",
     "typecheck:tsc": "tsc --noEmit"
