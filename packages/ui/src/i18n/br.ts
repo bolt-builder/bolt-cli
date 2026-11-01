@@ -118,12 +118,8 @@ export const dict = {
 
   "dialog.usageExceeded.freeTier.title": "Limite gratuito atingido",
   "dialog.usageExceeded.freeTier.description":
-    "Assine o Bolt Go por $10/mês para ter acesso confiável aos melhores modelos de código aberto.",
+    "Assine o OpenCode Go por $10/mês para ter acesso confiável aos melhores modelos de código aberto.",
   "dialog.usageExceeded.freeTier.actionLabel": "Assinar",
-  "dialog.usageExceeded.accountRateLimit.title": "Limite do Go atingido",
-  "dialog.usageExceeded.accountRateLimit.description":
-    "Limite de uso atingido. Para continuar usando este modelo agora, ative o uso a partir do seu saldo disponível",
-  "dialog.usageExceeded.accountRateLimit.actionLabel": "Abrir configurações",
 
   "ui.sessionTurn.status.delegating": "Delegando trabalho",
   "ui.sessionTurn.status.planning": "Planejando próximos passos",
@@ -248,7 +244,6 @@ export const dict = {
   "ui.question.answer.none": "(sem resposta)",
   "ui.question.review.notAnswered": "(não respondida)",
   "ui.question.multiHint": "Selecione todas que se aplicam",
-  "ui.question.singleHint": "Selecione uma resposta",
   "ui.question.custom.placeholder": "Digite sua resposta…",
 
   "ui.fileSearch.placeholder": "Localizar",
