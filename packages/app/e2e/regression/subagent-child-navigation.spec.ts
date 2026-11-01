@@ -1,11 +1,18 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { expect, test, type Page } from "@playwright/test"
-import { currentSession, mockBoltServer } from "../utils/mock-server"
+import type { OpenCodeEvent, SessionMessageInfo } from "@opencode/client/promise"
+import { timelinePresets } from "@opencode/session-ui/timeline/detail"
+import { expect, test, type Locator, type Page } from "@playwright/test"
+import { expectPath, SERVER, sessionHref } from "../utils/app"
+import { currentSession } from "../utils/mock-server"
+import { assistantMessage, session, sessionID, setupTimeline, textPart, userMessage } from "../utils/timeline"
 import { expectSessionTitle } from "../utils/waits"
 import { mockWorkspace } from "../utils/workspace"
 
-const directory = "C:/Bolt/SubagentNavigation"
-const projectID = "proj_subagent_navigation"
+const directory = "C:/OpenCode/SubagentNavigation"
+
+const projectID = "proj_subagentnavigation"
+
+const serverPort = new URL(SERVER).port
+
 const parentID = "ses_subagent_parent"
 
 const childID = "ses_subagent_child"
@@ -52,12 +59,11 @@ test("keeps the parent title anchored when opening a subagent", async ({ page })
 
     // The title first renders in the loading header, which the timeline replaces once messages arrive.
     // Measuring before then can read the detached heading, whose empty bounds put the start at 0.
-    const agents = page.getByRole("button", { name: "Used 1 Agent", exact: true })
-    await expect(agents).toBeVisible()
+    const card = page.locator(`a[href="${sessionHref(childID)}"]`)
+    await expect(card).toBeVisible()
     const start = await titleInlineStart(page.locator("[data-session-title]").getByRole("heading", { name: parentTitle }))
 
-    await agents.click()
-    await page.locator(`a[href="${sessionHref(childID)}"]`).click()
+    await card.click()
     await expectSessionTitle(page, taskDescription)
 
     const breadcrumb = page.locator('[data-slot="session-title-parent"]')
@@ -130,6 +136,10 @@ test("shows the full ancestor path and navigates to an earlier subagent", async 
   await expect(header.locator('[data-slot="session-title-ancestor"]')).toHaveText([parentTitle, childTitle])
   await expect(header.locator('[data-slot="session-title-parent"]')).toHaveText(grandchildTitle)
   await expect(header.getByRole("heading", { name: greatGrandchildTitle })).toBeVisible()
+  // Project, each ancestor and the title are all split by the same slash.
+  const separators = header.locator('[data-slot="session-title-separator"]')
+  await expect(separators).toHaveCount(4)
+  await expect(separators.locator('[data-component="slash"]')).toHaveCount(4)
 
   await header.getByRole("button", { name: childTitle, exact: true }).click()
   await expect(page).toHaveURL(sessionHref(childID))
@@ -147,20 +157,51 @@ test("keeps the active nested session visible in a narrow desktop header", async
   const separator = header.locator('[data-slot="session-title-ancestors"] + [data-slot="session-title-separator"]')
   await expect(header.locator('[data-slot="session-title-ancestor"]')).toHaveText([parentTitle, childTitle])
   await expect(heading).toBeInViewport()
-  await expect(separator).toBeInViewport()
+  // The header stays one row, so the trail still ends in a separator before the title.
+  await expect(separator).toBeVisible()
   const bounds = await heading.boundingBox()
   expect(bounds).not.toBeNull()
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(820)
 
   await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"))
   await expect(heading).toBeInViewport()
-  await expect(separator).toBeInViewport()
+  await expect(separator).toBeVisible()
 
   const root = header.locator(`[data-slot="session-title-ancestor"][data-session-id="${parentID}"]`)
   await root.focus()
   await expect(root).toBeFocused()
   await root.press("Enter")
   await expect(page).toHaveURL(sessionHref(parentID))
+})
+
+test("restores the project name after closing review in a nested session", async ({ page }) => {
+  await page.setViewportSize({ width: 890, height: 900 })
+  await mockWorkspace(page, {
+    name: "Project with a moderately long display name",
+    directory,
+    sessions: [
+      { id: parentID, title: "Root session outlining repository-wide change analysis and implementation" },
+      { id: childID, parentID, title: "Intermediate agent examining architecture and regression coverage" },
+      { id: grandchildID, parentID: childID, title: "Review repository" },
+    ],
+  })
+  await page.goto(sessionHref(grandchildID))
+  await expect(page.locator("[data-timeline-virtual-content]")).toBeAttached()
+  const header = page.locator("[data-session-title]")
+  const row = header.locator(".session-header-layout")
+  const project = header.locator('[data-slot="session-location-project"]')
+  const review = page.getByRole("button", { name: "Toggle review", exact: true })
+  await expect(project).toBeVisible()
+  const width = await row.evaluate((element) => element.getBoundingClientRect().width)
+  await header.screenshot({ path: test.info().outputPath("nested-header-before-review.png") })
+
+  await review.click()
+  await expect(project).toBeHidden()
+  await review.click()
+  await expect.poll(() => row.evaluate((element) => element.getBoundingClientRect().width)).toBe(width)
+  await expect(project).toBeVisible()
+  await expect(header.getByRole("heading", { name: "Review repository", exact: true })).toBeVisible()
+  await header.screenshot({ path: test.info().outputPath("nested-header-restored.png") })
 })
 
 test("shows parent lineage while the child timeline loads", async ({ page }) => {
@@ -178,7 +219,6 @@ test("shows parent lineage while the child timeline loads", async ({ page }) => 
 
   await page.goto(sessionHref(parentID))
   await expectSessionTitle(page, parentTitle)
-  await page.getByRole("button", { name: "Used 1 Agent", exact: true }).click()
   await page.locator(`a[href="${sessionHref(childID)}"]`).click()
   await Promise.all([requested.promise, expect(page).toHaveURL(sessionHref(childID))])
   await Promise.all([
@@ -203,7 +243,6 @@ test("keeps the parent visible while the child session resolves", async ({ page 
   await page.goto(sessionHref(parentID))
   await expectSessionTitle(page, parentTitle)
 
-  await page.getByRole("button", { name: "Used 1 Agent", exact: true }).click()
   await page.locator(`a[href="${sessionHref(childID)}"]`).click()
   await requested.promise
   await Promise.all([expect(page).toHaveURL(sessionHref(parentID)), expectSessionTitle(page, parentTitle)]).finally(
@@ -272,31 +311,61 @@ test("shows the not found fallback when the viewed session is deleted", async ({
   await expect(page.getByRole("heading", { name: taskDescription })).toHaveCount(0)
 })
 
-async function setup(page: Page, events?: () => EventPayload[]) {
-  await mockBoltServer(page, {
-    directory,
-    project: {
-      id: projectID,
-      worktree: directory,
-      vcs: "git",
-      name: "subagent-navigation",
-      time: { created: 1700000000000, updated: 1700000000000 },
-      sandboxes: [],
-    },
-    provider: {
-      all: [
-        {
-          id: "bolt",
-          name: "Bolt",
-          models: {
-            "claude-opus-4-6": { id: "claude-opus-4-6", name: "Claude Opus 4.6", limit: { context: 200_000 } },
-          },
-        },
+test.describe("session ID links", () => {
+  const target = "ses_0123456789abcdefghijklmnop"
+  const missing = "ses_abcdefghijklmnopqrstuvwxyz"
+
+  test("opens a verified session from agent prose or inline code with the keyboard", async ({ page }) => {
+    await setupTimeline(page, {
+      sessions: [session(), session({ id: target, title: "Linked session" })],
+      tabs: [sessionID, target],
+      messages: [
+        userMessage(),
+        assistantMessage([textPart("prt_session_links", `Visit ${target}.\n\nOr \`${target}\` to see the result.`)]),
       ],
-      connected: ["bolt"],
-      default: { providerID: "bolt", modelID: "claude-opus-4-6" },
-    },
-    sessions: [session(parentID, parentTitle, 1700000000000), childSession()],
+    })
+    // Visit the target so it is known to the shared session cache before checking its references.
+    await page.locator(`[data-titlebar-tab-link][href$="/session/${target}"]`).click()
+    await expectSessionTitle(page, "Linked session")
+    await page.locator(`[data-titlebar-tab-link][href$="/session/${sessionID}"]`).click()
+    await expectSessionTitle(page, "Timeline visual stability")
+    const markdown = page.locator('[data-component="markdown"]').filter({ hasText: "Visit" })
+    await expect(markdown).toHaveAttribute("data-markdown-ready", "")
+    await expect(markdown.getByRole("button", { name: "Linked session", exact: true })).toHaveCount(2)
+    await markdown
+      .locator("p")
+      .filter({ hasText: "Or" })
+      .getByRole("button", { name: "Linked session", exact: true })
+      .press("Enter")
+    await expectPath(page, sessionHref(target))
+    await expect(page.locator(`[data-titlebar-tab-link][href$="/session/${target}"]`)).toContainText("Linked session")
+  })
+
+  test("does not navigate to an ID that is absent from the current server", async ({ page }) => {
+    await setupTimeline(page, {
+      messages: [userMessage(), assistantMessage([textPart("prt_session_missing", `See ${missing}.`)])],
+    })
+    const markdown = page.locator('[data-component="markdown"]').filter({ hasText: `See ${missing}.` })
+    await expect(markdown).toHaveAttribute("data-markdown-ready", "")
+    await expect(markdown.getByRole("button")).toHaveCount(0)
+    await expect(markdown.locator("code")).toHaveText(missing)
+    await expectPath(page, sessionHref(sessionID))
+  })
+})
+
+async function setup(page: Page, events?: () => OpenCodeEvent[], nestedDepth: 0 | 1 | 2 = 0) {
+  await mockWorkspace(page, {
+    name: "SubagentNavigation",
+    sessions: [
+      { id: parentID, title: parentTitle, created: 1700000000000 },
+      { id: childID, title: childTitle, created: 1700000001000, parentID },
+      ...(nestedDepth >= 1
+        ? [{ id: grandchildID, title: grandchildTitle, created: 1700000002000, parentID: childID }]
+        : []),
+      ...(nestedDepth >= 2
+        ? [{ id: greatGrandchildID, title: greatGrandchildTitle, created: 1700000003000, parentID: grandchildID }]
+        : []),
+    ],
     pageMessages: (sessionID) => ({ items: sessionID === parentID ? parentMessages() : [] }),
     events,
     eventRetry: events ? 16 : undefined,
@@ -344,7 +413,6 @@ function titleInlineStart(title: Locator) {
 async function openChildFromParent(page: Page) {
   await page.goto(sessionHref(parentID))
   await expectSessionTitle(page, parentTitle)
-  await page.getByRole("button", { name: "Used 1 Agent", exact: true }).click()
 
   const card = page.locator(`a[href="${sessionHref(childID)}"]`)
   await expect(card).toBeVisible()
@@ -359,41 +427,21 @@ function parentMessages(): SessionMessageInfo[] {
 
   return [
     {
-      info: {
-        id: userID,
-        sessionID: parentID,
-        role: "user",
-        time: { created: 1700000000000 },
-        agent: "build",
-        model: { providerID: "bolt", modelID: "claude-opus-4-6" },
-      },
-      parts: [
-        {
-          id: "prt_user_text_0001",
-          sessionID: parentID,
-          messageID: userID,
-          type: "text",
-          text: "Delegate work to a subagent",
-        },
-      ],
+      id: userID,
+      type: "user",
+      time: { created: 1700000000000 },
+      text: "Delegate work to a subagent",
     },
     {
-      info: {
-        id: assistantID,
-        sessionID: parentID,
-        role: "assistant",
-        time: { created: 1700000001000, completed: 1700000002000 },
-        parentID: userID,
-        modelID: "claude-opus-4-6",
-        providerID: "bolt",
-        mode: "build",
-        agent: "build",
-        path: { cwd: directory, root: directory },
-        cost: 0.01,
-        tokens: { input: 100, output: 200, reasoning: 0, cache: { read: 0, write: 0 } },
-        finish: "stop",
-      },
-      parts: [
+      id: assistantID,
+      type: "assistant",
+      time: { created: 1700000001000, completed: 1700000002000 },
+      model: { id: "claude-opus-4-6", providerID: "opencode" },
+      agent: "build",
+      cost: 0.01,
+      tokens: { input: 100, output: 200, reasoning: 0, cache: { read: 0, write: 0 } },
+      finish: "stop",
+      content: [
         {
           type: "tool",
           id: "call_subagent_0001",
@@ -409,27 +457,4 @@ function parentMessages(): SessionMessageInfo[] {
       ],
     },
   ]
-}
-
-async function configurePage(page: Page) {
-  const server = `http://${process.env.PLAYWRIGHT_SERVER_HOST ?? "127.0.0.1"}:${process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"}`
-  await page.addInitScript(
-    ({ directory, server, sessionId }) => {
-      localStorage.setItem("settings.v3", JSON.stringify({ general: { newLayoutDesigns: true } }))
-      localStorage.setItem(
-        "bolt.global.dat:server",
-        JSON.stringify({
-          projects: { local: [{ worktree: directory, expanded: true }] },
-          lastProject: { local: directory },
-        }),
-      )
-      localStorage.setItem("bolt.window.browser.dat:tabs", JSON.stringify([{ type: "session", server, sessionId }]))
-    },
-    { directory, server, sessionId: parentID },
-  )
-}
-
-function sessionHref(sessionID: string) {
-  const server = `http://${process.env.PLAYWRIGHT_SERVER_HOST ?? "127.0.0.1"}:${process.env.PLAYWRIGHT_SERVER_PORT ?? "4096"}`
-  return `/server/${base64Encode(server)}/session/${sessionID}`
 }
