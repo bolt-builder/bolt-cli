@@ -6,7 +6,7 @@ run-name: "${{ format('release {0}{1}', inputs.bump, inputs.version) }}"
 # - sign-* and publish-* jobs run in the release environment, check out only .github/release/, and run those
 #   scripts on verified artifacts, which they treat as data. They never execute repository code.
 # - plan decides version, channel and npm dist-tag from the event, inputs and ref; only a dispatch with a bump or
-#   version on dev reaches latest.
+#   version on dev reaches latest. Manual feature-branch runs build unsigned artifacts only.
 # .github/release/ and this file are the security boundary for releases.
 
 on:
@@ -14,6 +14,11 @@ on:
     branches: [dev, beta]
   workflow_dispatch:
     inputs:
+      build_only:
+        description: "Build unsigned artifacts only (no signing, tagging or publishing; ignores bump/version)"
+        type: boolean
+        required: false
+        default: false
       bump:
         description: "Bump major, minor, or patch"
         required: false
@@ -51,6 +56,7 @@ jobs:
       channel: ${{ steps.plan.outputs.channel }}
       npm_tag: ${{ steps.plan.outputs.npm_tag }}
       dry_run: ${{ steps.plan.outputs.dry_run }}
+      build_only: ${{ steps.plan.outputs.build_only }}
       cli: ${{ steps.plan.outputs.cli }}
       desktop: ${{ steps.plan.outputs.desktop }}
       node: ${{ steps.plan.outputs.node }}
@@ -69,6 +75,7 @@ jobs:
         run: bash .github/release/plan-release.sh
         env:
           GH_TOKEN: ${{ github.token }} # reads the triggering actor's repository role for stable releases
+          INPUT_BUILD_ONLY: ${{ inputs.build_only }}
           INPUT_BUMP: ${{ inputs.bump }}
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_RELEASE_NOTES: ${{ inputs.release_notes }}
@@ -91,11 +98,13 @@ jobs:
       sha: ${{ steps.tag.outputs.sha || github.sha }}
     steps:
       - name: Check out
+        if: needs.plan.outputs.build_only != 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ssh-key: ${{ secrets.RELEASE_TAG_KEY }}
       - id: tag
         name: Tag
+        if: needs.plan.outputs.build_only != 'true'
         run: bash .github/release/tag-release.sh
         env:
           OPENCODE_RELEASE_NOTES: ${{ inputs.release_notes }}
@@ -342,7 +351,7 @@ jobs:
   # installer is signed next.
   build-desktop-windows-installer:
     needs: [plan, tag, sign-windows]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -384,7 +393,7 @@ jobs:
   # only then builds the zip, dmg and .app.tar.gz from the stapled apps.
   sign-macos:
     needs: [plan, build-npm, build-desktop]
-    if: ${{ !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
     runs-on: macos-26
     timeout-minutes: 90
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
@@ -441,7 +450,7 @@ jobs:
   # Signs the Windows CLI and every executable and native module of the unpacked desktop apps.
   sign-windows:
     needs: [plan, build-npm, build-desktop]
-    if: ${{ !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
     runs-on: windows-2025
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -511,7 +520,7 @@ jobs:
 
   sign-desktop-windows-installer:
     needs: [plan, build-desktop-windows-installer]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
     runs-on: windows-2025
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -545,7 +554,7 @@ jobs:
   # Build provenance for the npm tarballs and Linux archives. No secrets; id-token only for Sigstore.
   publish-attestations:
     needs: [plan, build-npm]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.cli == 'true' && needs.plan.outputs.dry_run != 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.cli == 'true' && needs.plan.outputs.dry_run != 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -566,7 +575,7 @@ jobs:
 
   publish-npm:
     needs: [plan, sign-macos, sign-windows, publish-attestations]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.cli == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.cli == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -593,7 +602,7 @@ jobs:
 
   publish-cli:
     needs: [plan, sign-macos, sign-windows, publish-npm]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.cli == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.cli == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -608,7 +617,7 @@ jobs:
 
   publish-desktop:
     needs: [plan, sign-macos, sign-desktop-windows-installer]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.desktop == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -634,7 +643,7 @@ jobs:
 
   publish-docker:
     needs: [plan, build-docker]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -654,7 +663,7 @@ jobs:
 
   publish-homebrew:
     needs: [plan, sign-macos, sign-windows, publish-cli, publish-github-release]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -671,7 +680,7 @@ jobs:
 
   publish-github-release:
     needs: [plan, tag, sign-macos, sign-windows, sign-desktop-windows-installer, publish-cli, publish-desktop]
-    if: ${{ !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && (needs.plan.outputs.cli == 'true' || needs.plan.outputs.desktop == 'true') }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -695,7 +704,7 @@ jobs:
 
   publish-discord:
     needs: [plan, publish-github-release]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.release == 'true' }}
     runs-on: ubuntu-24.04
     environment: ${{ needs.plan.outputs.dry_run != 'true' && 'release' || '' }}
     permissions:
@@ -712,7 +721,7 @@ jobs:
   # Brings the release commit back to dev. Pushing to dev is blocked by rulesets, so it opens a PR.
   publish-version-pr:
     needs: [plan, tag, publish-npm, publish-cli, publish-desktop, publish-github-release]
-    if: ${{ !cancelled() && !failure() && needs.plan.outputs.channel == 'latest' }}
+    if: ${{ needs.plan.outputs.build_only != 'true' && !cancelled() && !failure() && needs.plan.outputs.channel == 'latest' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: write

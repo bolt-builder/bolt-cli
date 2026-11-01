@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { Schema } from "effect"
 import { createHash } from "node:crypto"
 import fs from "node:fs/promises"
 import os from "node:os"
@@ -291,6 +292,143 @@ test("preview tagging preserves the built tree and refuses to replace an existin
       (await f.run("tag-release.sh", [], { ...env, OPENCODE_VERSION: "0.0.0-dev-124", OPENCODE_DRY_RUN: "true" })).code,
     ).toBe(0)
     expect(await git("ls-remote", "origin", "refs/tags/v0.0.0-dev-124")).toBe("")
+  } finally {
+    await f.close()
+  }
+})
+
+test("manual branch builds cannot enter release stages and existing release gates remain enforced", async () => {
+  const f = await fixture()
+  try {
+    const output = path.join(f.root, "plan-output")
+    const base = {
+      GITHUB_EVENT_NAME: "workflow_dispatch",
+      GITHUB_REF: "refs/heads/coderabbit/fixture",
+      GITHUB_RUN_NUMBER: "123",
+      GITHUB_RUN_ATTEMPT: "1",
+      GITHUB_OUTPUT: output,
+      GITHUB_REPOSITORY: "bolt-builder/bolt-cli",
+      GITHUB_ACTOR: "fixture",
+      INPUT_BUMP: "minor",
+      INPUT_VERSION: "",
+      INPUT_RELEASE_NOTES: "",
+      INPUT_BUILD_ONLY: "false",
+    }
+    const summary = path.join(f.root, "summary")
+    const branch = await f.run("plan-release.sh", [], { ...base, GITHUB_STEP_SUMMARY: summary })
+    expect(branch.code).toBe(0)
+    expect(branch.stdout).toContain("temporary PR version")
+    expect(await Bun.file(summary).text()).toContain("No version bump, tag, signing, or publishing")
+    expect(await Bun.file(output).text()).toContain(
+      "version=0.0.0-pr-123\nchannel=pr\nnpm_tag=pr\ndry_run=true\nbuild_only=true\ncli=true\ndesktop=true\nnode=true\nrelease=true",
+    )
+    await fs.rm(output)
+    const dry = await f.run("plan-release.sh", [], { ...base, GITHUB_REF: "refs/heads/dev", INPUT_BUILD_ONLY: "true" })
+    expect(dry.code).toBe(0)
+    expect(dry.stdout).toContain("temporary PR version")
+    expect(await Bun.file(output).text()).toContain("channel=pr\nnpm_tag=pr\ndry_run=true\nbuild_only=true")
+    await fs.rm(output)
+    const denied = await f.run("plan-release.sh", [], { ...base, GITHUB_REF: "refs/heads/beta" })
+    expect(denied.code).toBe(1)
+    expect(denied.stderr).toContain("cannot publish")
+    expect(await Bun.file(output).exists()).toBe(false)
+    const push = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_EVENT_NAME: "push",
+      GITHUB_REF: "refs/heads/dev",
+      INPUT_BUMP: "",
+      INPUT_BUILD_ONLY: "true",
+    })
+    expect(push.code).toBe(1)
+    expect(push.stderr).toContain("only for manual runs")
+    const preview = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_EVENT_NAME: "push",
+      GITHUB_REF: "refs/heads/dev",
+      INPUT_BUMP: "",
+    })
+    expect(preview.code).toBe(0)
+    expect(await Bun.file(output).text()).toContain("channel=dev\nnpm_tag=dev\ndry_run=false\nbuild_only=false")
+    await fs.rm(output)
+    const missingNotes = await f.run("plan-release.sh", [], { ...base, GITHUB_REF: "refs/heads/dev" })
+    expect(missingNotes.code).toBe(1)
+    expect(missingNotes.stderr).toContain("release notes")
+    await fs.writeFile(path.join(f.dirs.bin, "gh"), '#!/usr/bin/env bash\nprintf "read\\n"\n', { mode: 0o755 })
+    const unauthorized = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_REF: "refs/heads/dev",
+      INPUT_RELEASE_NOTES: "Reviewed fixture notes",
+    })
+    expect(unauthorized.code).toBe(1)
+    expect(unauthorized.stderr).toContain("admin or maintain")
+    expect(await Bun.file(output).exists()).toBe(false)
+    await fs.writeFile(path.join(f.dirs.bin, "gh"), '#!/usr/bin/env bash\nprintf "maintain\n"\n', { mode: 0o755 })
+    await fs.writeFile(path.join(f.dirs.bin, "curl"), '#!/usr/bin/env bash\nprintf "404"\n', { mode: 0o755 })
+    const stable = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_REF: "refs/heads/dev",
+      INPUT_VERSION: "2.3.5",
+      INPUT_RELEASE_NOTES: "Reviewed fixture notes",
+    })
+    expect(stable.code).toBe(0)
+    expect(await Bun.file(output).text()).toContain(
+      "version=2.3.5\nchannel=latest\nnpm_tag=latest\ndry_run=false\nbuild_only=false",
+    )
+    await fs.rm(output)
+    const beta = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_EVENT_NAME: "push",
+      GITHUB_REF: "refs/heads/beta",
+      INPUT_BUMP: "",
+    })
+    expect(beta.code).toBe(0)
+    expect(await Bun.file(output).text()).toContain("channel=beta\nnpm_tag=\ndry_run=false\nbuild_only=false")
+    await fs.rm(output)
+    const pr = await f.run("plan-release.sh", [], {
+      ...base,
+      GITHUB_EVENT_NAME: "pull_request",
+      GITHUB_REF: "refs/pull/420/merge",
+      INPUT_BUMP: "",
+    })
+    expect(pr.code).toBe(0)
+    expect(await Bun.file(output).text()).toContain("channel=pr\nnpm_tag=pr\ndry_run=true\nbuild_only=false")
+
+    const workflow = Schema.decodeUnknownSync(
+      Schema.Struct({
+        jobs: Schema.Record(
+          Schema.String,
+          Schema.Struct({
+            if: Schema.optional(Schema.String),
+            outputs: Schema.optional(Schema.Record(Schema.String, Schema.String)),
+            steps: Schema.optional(Schema.Array(Schema.Struct({ if: Schema.optional(Schema.String) }))),
+          }),
+        ),
+      }),
+    )(Bun.YAML.parse(await Bun.file(path.resolve(release, "../workflows/release.yml")).text()))
+    const jobs = workflow.jobs
+    expect(jobs.plan.outputs?.build_only).toContain("steps.plan.outputs.build_only")
+    expect(jobs.tag.outputs?.sha).toContain("github.sha")
+    expect(jobs.tag.steps?.filter((step) => step.if?.includes("build_only != 'true'"))).toHaveLength(2)
+    for (const name of [
+      "build-desktop-windows-installer",
+      "sign-macos",
+      "sign-windows",
+      "sign-desktop-windows-installer",
+      "publish-attestations",
+      "publish-npm",
+      "publish-cli",
+      "publish-desktop",
+      "publish-docker",
+      "publish-homebrew",
+      "publish-github-release",
+      "publish-discord",
+      "publish-version-pr",
+    ]) {
+      expect(jobs[name].if).toContain("needs.plan.outputs.build_only != 'true'")
+    }
+    for (const name of ["build-cli", "build-node", "build-npm", "build-desktop", "build-docker"]) {
+      expect(jobs[name].if ?? "").not.toContain("build_only != 'true'")
+    }
   } finally {
     await f.close()
   }

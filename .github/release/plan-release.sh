@@ -6,18 +6,37 @@
 #   dispatch on dev with bump/version -> latest   x.y.z               npm tag latest, releasers only, notes required
 #   push or dispatch on beta          -> beta     0.0.0-beta-<run>    desktop only
 #   pull_request                      -> pr       0.0.0-pr-<run>      everything, dry run
+#   dispatch on another branch, or build_only -> pr  0.0.0-pr-<run>  unsigned build artifacts only
 #
 # Releasers are actors with the admin or maintain role on the repository (the releasers team has maintain).
 . "$(dirname "$0")/lib.sh"
 
 versioned=false
 if [ -n "${INPUT_BUMP:-}" ] || [ -n "${INPUT_VERSION:-}" ]; then versioned=true; fi
-case "$GITHUB_EVENT_NAME:$GITHUB_REF:$versioned" in
-  push:refs/heads/dev:false | workflow_dispatch:refs/heads/dev:false) channel="dev" ;;
-  workflow_dispatch:refs/heads/dev:true) channel="latest" ;;
-  push:refs/heads/beta:false | workflow_dispatch:refs/heads/beta:false) channel="beta" ;;
-  pull_request:*:false) channel="pr" ;;
-  *) die "$GITHUB_EVENT_NAME on $GITHUB_REF cannot publish (versioned: $versioned)" ;;
+build_only=false
+if [ "${INPUT_BUILD_ONLY:-false}" = true ]; then
+  [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || die "Build-only mode is available only for manual runs"
+  build_only=true
+fi
+# Feature-branch manual runs build only, even when the UI supplies a bump.
+# Published releases remain limited to their authorized refs.
+case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+  workflow_dispatch:refs/heads/dev | workflow_dispatch:refs/heads/beta) ;;
+  workflow_dispatch:refs/heads/*) build_only=true ;;
+esac
+case "$GITHUB_EVENT_NAME:$GITHUB_REF:$versioned:$build_only" in
+  workflow_dispatch:*:*:true)
+    channel="pr"
+    echo "::notice::Build-only uses a temporary PR version; bump/version inputs do not create a release"
+    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+      printf '%s\n' '## Build only' 'Unsigned artifacts will be built. No version bump, tag, signing, or publishing will occur.' >> "$GITHUB_STEP_SUMMARY"
+    fi
+    ;;
+  push:refs/heads/dev:false:false | workflow_dispatch:refs/heads/dev:false:false) channel="dev" ;;
+  workflow_dispatch:refs/heads/dev:true:false) channel="latest" ;;
+  push:refs/heads/beta:false:false | workflow_dispatch:refs/heads/beta:false:false) channel="beta" ;;
+  pull_request:*:false:false) channel="pr" ;;
+  *) die "$GITHUB_EVENT_NAME on $GITHUB_REF cannot publish (versioned: $versioned). For a branch build, rerun with Build only enabled; releases must run from dev or beta." ;;
 esac
 
 if [ "$channel" = latest ] && [ -z "${INPUT_RELEASE_NOTES//[[:space:]]/}" ]; then
@@ -74,6 +93,7 @@ if [ "$channel" = pr ]; then dry_run=true; fi
   echo "channel=$channel"
   echo "npm_tag=$npm_tag"
   echo "dry_run=$dry_run"
+  echo "build_only=$build_only"
   echo "cli=$cli"
   echo "desktop=$desktop"
   echo "node=$node"
