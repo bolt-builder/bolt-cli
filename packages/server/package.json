@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bolt-ai/server",
-  "version": "1.20.7",  "private": true,
+  "name": "@opencode/server",
+  "version": "2.2.5",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -20,19 +20,24 @@
   },
   "scripts": {
     "build": "bun run script/build.ts",
+    "pack": "bun run script/pack.ts",
     "test": "bun test --only-failures",
     "typecheck": "bun check --no-script -b",
     "typecheck:tsc": "tsc -b",
     "probe:workerd": "bun run script/workerd-probe.ts"
   },
   "dependencies": {
-    "@bolt-ai/core": "workspace:*",
-    "@bolt-ai/protocol": "workspace:*",
-    "drizzle-orm": "catalog:",
+    "@effect/platform-node": "catalog:",
+    "@effect/platform-node-shared": "catalog:",
+    "@opencode/core": "workspace:*",
+    "@opencode/protocol": "workspace:*",
+    "@opencode/schema": "workspace:*",
+    "@opencode/simulation": "workspace:*",
+    "@opencode/util": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {
-    "@opencode-ai/pty": "0.3.1",
+    "@opencode/pty": "0.4.0",
     "@opencode/client": "workspace:*",
     "@opencode/plugin": "workspace:*",
     "@tsconfig/bun": "catalog:",
