@@ -26,7 +26,7 @@ export declare namespace RetentionStatRepo {
 }
 
 export class RetentionStatRepo extends Context.Service<RetentionStatRepo, RetentionStatRepo.Service>()(
-  "@bolt/stats/RetentionStatRepo",
+  "@opencode/stats/RetentionStatRepo",
 ) {
   static readonly layer: Layer.Layer<RetentionStatRepo, never, DrizzleClient> = Layer.effect(
     RetentionStatRepo,
