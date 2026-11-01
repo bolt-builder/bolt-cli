@@ -2,27 +2,63 @@ import path from "path"
 import { measureEditText, type WidthMethod } from "@opentui/core"
 import { onMount } from "solid-js"
 import { createStore, produce, unwrap } from "solid-js/store"
-import type { AgentPart, FilePart, TextPart } from "@bolt-ai/sdk/v2"
+import type { PromptInput } from "@opencode/schema"
+import type { Types } from "effect"
 import { createSimpleContext } from "../context/helper"
 import { useTuiPaths } from "../context/runtime"
 import { appendText, readText, writeText } from "../util/persistence"
 
-export type PromptInfo = {
-  input: string
-  mode?: "normal" | "shell" | "btw"
-  parts: (
-    | Omit<FilePart, "id" | "messageID" | "sessionID">
-    | Omit<AgentPart, "id" | "messageID" | "sessionID">
-    | (Omit<TextPart, "id" | "messageID" | "sessionID"> & {
-        source?: {
-          text: {
-            start: number
-            end: number
-            value: string
-          }
-        }
-      })
-  )[]
+export type PastedText = {
+  text: string
+  source: {
+    start: number
+    end: number
+    text: string
+  }
+}
+
+// `path` is the local file a pasted attachment was read from. It stays in the TUI.
+export type PromptFile = Types.DeepMutable<PromptInput.FileAttachment> & { path?: string }
+
+export type PromptInfo = Types.DeepMutable<Pick<PromptInput.Prompt, "text" | "agents" | "skills">> & {
+  files?: PromptFile[]
+  pasted: PastedText[]
+  mode?: "normal" | "shell"
+}
+
+export type PromptPartRef = {
+  type: "file" | "agent" | "skill" | "pasted"
+  index: number
+}
+
+export const emptyPrompt = (): PromptInfo => ({ text: "", files: [], agents: [], skills: [], pasted: [] })
+
+// Part ranges are textarea offsets, so shift by the measured offset rather than string length.
+export function appendPrompt(prompt: PromptInfo, following: PromptInfo, widthMethod: WidthMethod): PromptInfo {
+  const text = prompt.text ? `${prompt.text}\n\n` : ""
+  const offset = measureEditText(text, { widthMethod })
+  const shift = <T extends { start: number; end: number }>(range: T, by: number) => ({
+    ...range,
+    start: range.start + by,
+    end: range.end + by,
+  })
+  const mentions = <T extends { mention?: { start: number; end: number } }>(
+    items: T[] | undefined,
+    next: T[] | undefined,
+  ) => [
+    ...(items ?? []).map((item) => ({ ...item, mention: item.mention && shift(item.mention, 0) })),
+    ...(next ?? []).map((item) => ({ ...item, mention: item.mention && shift(item.mention, offset) })),
+  ]
+  return {
+    text: text + following.text,
+    files: mentions(prompt.files, following.files),
+    agents: mentions(prompt.agents, following.agents),
+    skills: mentions(prompt.skills, following.skills),
+    pasted: [
+      ...prompt.pasted.map((part) => ({ ...part, source: shift(part.source, 0) })),
+      ...following.pasted.map((part) => ({ ...part, source: shift(part.source, offset) })),
+    ],
+  }
 }
 
 export const MAX_HISTORY_ENTRIES = 50
