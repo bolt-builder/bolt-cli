@@ -27,7 +27,7 @@ if (args.values.check) {
 await generate()
 
 async function generate() {
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-core-migration-"))
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-core-migration-"))
   const incremental = path.join(temporary, "incremental")
   const full = path.join(temporary, "full")
   try {
@@ -61,7 +61,7 @@ async function generate() {
 }
 
 async function check() {
-  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-core-migration-check-"))
+  const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-core-migration-check-"))
   const incremental = path.join(temporary, "incremental")
   const full = path.join(temporary, "full")
   try {
