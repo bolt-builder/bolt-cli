@@ -1,8 +1,8 @@
 export * as PtyTicket from "./ticket.js"
 
-import { WorkspaceV2 } from "../workspace"
-import { PtyTicket } from "@bolt-ai/schema/pty-ticket"
-import { PtyID } from "./schema"
+import type { Workspace } from "@opencode/schema/workspace"
+import { PtyTicket } from "@opencode/schema/pty-ticket"
+import type { Pty } from "@opencode/schema/pty"
 import { Cache, Context, Duration, Effect, Layer } from "effect"
 import { makeGlobalNode } from "@opencode/util/effect/app-node"
 
@@ -32,7 +32,7 @@ export interface Interface {
   consume(input: Scope & { readonly ticket: string }): Effect.Effect<boolean>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/PtyTicket") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/PtyTicket") {}
 
 function stored(scope: Scope): Stored {
   return {
