@@ -6,7 +6,7 @@ import {
   PositiveInt,
   RelativePath,
   statics,
-} from "@bolt-ai/schema/schema"
+} from "@opencode/schema/schema"
 
 export { AbsolutePath, DateTimeUtcFromMillis, NonNegativeInt, optional, PositiveInt, RelativePath, statics }
 
