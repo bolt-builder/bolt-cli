@@ -1,15 +1,16 @@
 import { batch, createMemo, createRoot, onCleanup } from "solid-js"
 import { createStore, reconcile, type SetStoreFunction, type Store } from "solid-js/store"
-import { createSimpleContext } from "@bolt-ai/ui/context"
+import { createSimpleContext } from "@opencode/ui/context"
 import { useParams } from "@solidjs/router"
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { Persist, persisted } from "@/utils/persist"
-import { useServerSDK } from "./server-sdk"
-import type { ServerScope } from "@/utils/server-scope"
-import { createScopedCache } from "@/utils/scoped-cache"
-import { uuid } from "@/utils/uuid"
-import type { SelectedLineRange } from "@/context/file"
-import { useSDK } from "./sdk"
+import { base64Encode } from "@opencode/util/encode"
+import { Persist, persisted } from "@/runtime/persistence/storage"
+import { useServerSDK } from "@/runtime/server/client"
+import type { ServerScope } from "@/runtime/server/scope"
+import { createScopedCache } from "@/runtime/server/scoped-cache"
+import { uuid } from "@opencode/util/uuid"
+import type { SelectedLineRange } from "@/workspaces/files/model"
+import { useWorkspaceLocation } from "@/workspaces/location"
+import { CommentStore, type LineComment } from "./schema"
 
 export type { LineComment } from "./schema"
 
@@ -79,9 +80,12 @@ function group(comments: LineComment[]) {
 }
 
 function createCommentSessionState(store: Store<CommentStore>, setStore: SetStoreFunction<CommentStore>) {
-  const [state, setState] = createStore({
-    focus: null as CommentFocus | null,
-    active: null as CommentFocus | null,
+  const [state, setState] = createStore<{
+    focus: CommentFocus | null
+    active: CommentFocus | null
+  }>({
+    focus: null,
+    active: null,
   })
 
   // Reuse the previous array when contents are unchanged so consumers keep a stable
