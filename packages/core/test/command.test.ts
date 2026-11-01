@@ -3,10 +3,6 @@ import { Command } from "@opencode/core/command"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { Session } from "@opencode/schema/session"
 import { Effect } from "effect"
-import { CommandV2 } from "@bolt-ai/core/command"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(AppNodeBuilder.build(Command.node))
