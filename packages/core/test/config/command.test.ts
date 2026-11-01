@@ -1,16 +1,35 @@
 import fs from "fs/promises"
 import path from "path"
 import { describe, expect } from "bun:test"
-import { Effect, Schema } from "effect"
-import { CommandV2 } from "@bolt-ai/core/command"
-import { Config } from "@bolt-ai/core/config"
-import { ConfigCommandPlugin } from "@bolt-ai/core/config/plugin/command"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { FSUtil } from "@bolt-ai/core/fs-util"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { AbsolutePath } from "@bolt-ai/core/schema"
+import { DateTime, Deferred, Effect, Fiber, Layer, Option, PubSub, Schema, Stream } from "effect"
+import { advance, drain } from "../lib/clock"
+import { Directory, Document, Event, Info } from "@opencode/schema/config"
+import { Session } from "@opencode/core/session"
+import { SessionExecution } from "@opencode/core/session/execution"
+import { Job } from "@opencode/core/job"
+import { SubagentJob } from "@opencode/core/session/subagent-job"
+import { Agent } from "@opencode/core/agent"
+import { SessionInbox } from "@opencode/schema/session-inbox"
+import { SessionMessage } from "@opencode/schema/session-message"
+import { Command } from "@opencode/core/command"
+import { Config } from "@opencode/core/config"
+import { ConfigCommandPlugin } from "@opencode/core/config/plugin/command"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { FSUtil } from "@opencode/util/fs-util"
+import { Bus } from "@opencode/core/bus"
+import { Credential } from "@opencode/core/credential"
+import { WellKnown } from "@opencode/core/wellknown"
+import { Global } from "@opencode/util/global"
+import { AppProcess } from "@opencode/util/process"
+import { Location } from "@opencode/core/location"
+import { Mcp } from "@opencode/core/mcp/index"
+import { AbsolutePath } from "@opencode/core/schema"
+import { ShellSelect } from "@opencode/core/shell/select"
+import { Watcher } from "@opencode/core/filesystem/watcher"
+import { emptyCredentialNode, emptyWellknownNode } from "../fixture/config-nodes"
+import { emptyConfigLayer, emptyMcpLayer, testLocationLayer } from "../fixture/mcp"
+import { location } from "../fixture/location"
 import { tmpdir } from "../fixture/tmpdir"
 import { tempGlobalLayer } from "../fixture/global"
 import { offlineModels } from "../fixture/models"
@@ -69,6 +88,21 @@ describe("ConfigCommandPlugin.Plugin", () => {
       template: "First $1. Rest $2.",
       input: '"alpha beta" gamma delta',
       expected: "First alpha beta. Rest gamma delta.",
+    },
+    {
+      template: "Run awk '{print $0}' on $1.",
+      input: "app.log",
+      expected: "Run awk '{print $0}' on app.log.",
+    },
+    {
+      template: "Run awk '{print $0}'.",
+      input: "app.log",
+      expected: "Run awk '{print $0}'.\n\napp.log",
+    },
+    {
+      template: "First $1. Rest $2.",
+      input: '"$ARGUMENTS" tail',
+      expected: "First $ARGUMENTS. Rest tail.",
     },
     { template: "$ARGUMENTS / $ARGUMENTS", input: "$& $$", expected: "$& $$ / $& $$" },
   ]) {
