@@ -18,13 +18,13 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 
 #### الخيارات
 
-| الخيار          | الوصف                                 | الافتراضي    |
-| --------------- | ------------------------------------- | ------------ |
-| `--port`        | المنفذ الذي يستمع عليه                | `4096`       |
-| `--hostname`    | اسم المضيف الذي يستمع عليه            | `127.0.0.1`  |
-| `--mdns`        | تفعيل اكتشاف mDNS                     | `false`      |
-| `--mdns-domain` | اسم نطاق مخصص لخدمة mDNS              | `bolt.local` |
-| `--cors`        | أصول (Origins) متصفح إضافية مسموح بها | `[]`         |
+| الخيار          | الوصف                                 | الافتراضي        |
+| --------------- | ------------------------------------- | ---------------- |
+| `--port`        | المنفذ الذي يستمع عليه                | `4096`           |
+| `--hostname`    | اسم المضيف الذي يستمع عليه            | `127.0.0.1`      |
+| `--mdns`        | تفعيل اكتشاف mDNS                     | `false`          |
+| `--mdns-domain` | اسم نطاق مخصص لخدمة mDNS              | `opencode.local` |
+| `--cors`        | أصول (Origins) متصفح إضافية مسموح بها | `[]`             |
 
 يمكن تمرير `--cors` عدة مرات:
 
@@ -36,10 +36,10 @@ opencode serve --cors http://localhost:5173 --cors https://app.example.com
 
 ### المصادقة
 
-عيّن `BOLT_SERVER_PASSWORD` لحماية الخادم باستخدام مصادقة HTTP الأساسية. اسم المستخدم افتراضيا هو `opencode`، أو عيّن `BOLT_SERVER_USERNAME` لتغييره. ينطبق ذلك على كل من `opencode serve` و `opencode web`.
+عيّن `OPENCODE_SERVER_PASSWORD` لحماية الخادم باستخدام مصادقة HTTP الأساسية. اسم المستخدم افتراضيا هو `opencode`، أو عيّن `OPENCODE_SERVER_USERNAME` لتغييره. ينطبق ذلك على كل من `opencode serve` و `opencode web`.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---
@@ -65,7 +65,7 @@ BOLT_SERVER_PASSWORD=your-password opencode serve
 
 عند بدء الـ TUI تقوم بتعيين منفذ واسم مضيف عشوائيا. يمكنك بدلا من ذلك تمرير [الخيارات](/docs/cli) `--hostname` و `--port`، ثم استخدامهما للاتصال بخادمها.
 
-يمكن استخدام نقطة النهاية [`/tui`](#tui) للتحكم في الـ TUI عبر الخادم. على سبيل المثال، يمكنك تعبئة الموجّه مسبقا أو تشغيله. يُستخدم هذا الإعداد بواسطة ملحقات Bolt لـ [IDE](/docs/ide).
+يمكن استخدام نقطة النهاية [`/tui`](#tui) للتحكم في الـ TUI عبر الخادم. على سبيل المثال، يمكنك تعبئة الموجّه مسبقا أو تشغيله. يُستخدم هذا الإعداد بواسطة ملحقات OpenCode لـ [IDE](/docs/ide).
 
 ---
 
