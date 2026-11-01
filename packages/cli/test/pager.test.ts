@@ -24,11 +24,21 @@ describe("command", () => {
 
 describe("overflows", () => {
   test("short output fits", () => {
-    expect(Pager.overflows("a\nb\n", 24)).toBe(false)
+    expect(Pager.overflows("a\nb\n", 24, 80)).toBe(false)
   })
 
   test("long output overflows", () => {
     const text = Array.from({ length: 30 }, (_, i) => `line ${i}`).join("\n")
-    expect(Pager.overflows(text, 24)).toBe(true)
+    expect(Pager.overflows(text, 24, 80)).toBe(true)
+  })
+
+  test("counts rows taken by wrapped long lines", () => {
+    const text = `${"x".repeat(200)}\nshort\n`
+    expect(Pager.overflows(text, 4, 80)).toBe(false)
+    expect(Pager.overflows(text, 4, 40)).toBe(true)
+  })
+
+  test("ignores color escapes when measuring width", () => {
+    expect(Pager.overflows(`\x1b[31m${"x".repeat(70)}\x1b[0m\n`, 1, 80)).toBe(false)
   })
 })

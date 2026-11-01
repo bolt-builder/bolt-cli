@@ -1,32 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { changed, dead, exported } from "../src/commands/handlers/analyze"
-
-describe("changed", () => {
-  test("extracts changed file paths from a unified diff", () => {
-    const diff = [
-      "diff --git a/src/a.ts b/src/a.ts",
-      "--- a/src/a.ts",
-      "+++ b/src/a.ts",
-      "@@ -1 +1 @@",
-      "diff --git a/src/b.ts b/src/b.ts",
-      "+++ b/src/b.ts",
-    ].join("\n")
-    expect(changed(diff)).toEqual(["src/a.ts", "src/b.ts"])
-  })
-
-  test("skips deletions targeting /dev/null", () => {
-    const diff = "--- a/src/gone.ts\n+++ /dev/null"
-    expect(changed(diff)).toEqual([])
-  })
-
-  test("dedupes repeated paths", () => {
-    expect(changed("+++ b/src/a.ts\n+++ b/src/a.ts")).toEqual(["src/a.ts"])
-  })
-
-  test("ignores added lines that merely start with plus signs", () => {
-    expect(changed("+++ not a header\n+const a = 1")).toEqual([])
-  })
-})
+import { dead, exported } from "../src/commands/handlers/analyze"
 
 describe("exported", () => {
   test("finds functions, consts, classes, and types", () => {

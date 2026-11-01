@@ -20,6 +20,21 @@ describe("issues", () => {
     expect(found.map((issue) => issue.severity)).toEqual(["major", "minor"])
   })
 
+  test("parses the code-review agent's bracketed severity format", () => {
+    const found = issues(
+      [
+        "src/a.ts:12 — [CRITICAL] leaks a file handle — close it in finally",
+        "src/b.ts:3 — [MAJOR] misses the error branch — handle the failure",
+        "src/c.ts:9 — [MINOR] naming — rename it",
+        "src/d.ts:1 — [NIT] spacing — reformat",
+        "- src/e.ts:4 — [major] list item with a tag — fix it",
+        "",
+        "Verdict: FAIL",
+      ].join("\n"),
+    )
+    expect(found.map((issue) => issue.severity)).toEqual(["critical", "major", "minor", "major"])
+  })
+
   test("ignores prose and the verdict line", () => {
     expect(issues("This is a critical part of the system.\n\nVerdict: PASS")).toEqual([])
   })

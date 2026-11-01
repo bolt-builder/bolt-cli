@@ -34,7 +34,7 @@ const handler = Effect.fn("cli.blast")(function* (input: Runtime.Input<typeof Co
     )
     return ["diff", `${merge.stdout.toString().trim()}..HEAD`]
   })
-  const numstat = yield* run([...range, "--numstat"], { cwd })
+  const numstat = yield* run([...range, "--numstat", "-z"], { cwd })
   if (numstat.exitCode !== 0)
     return yield* Effect.fail(new Error(numstat.stderr.toString().trim() || "git diff failed"))
   const changes = Blast.parse(numstat.stdout.toString())

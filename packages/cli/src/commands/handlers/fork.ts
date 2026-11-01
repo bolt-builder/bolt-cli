@@ -20,6 +20,7 @@ export default Runtime.handler(Commands.commands.fork, (input) =>
         let cursor: string | undefined
         let found = false
         do {
+          // The cursor already carries the first page's order.
           const page = await client.message.list({
             sessionID: input.sessionID,
             limit: 100,

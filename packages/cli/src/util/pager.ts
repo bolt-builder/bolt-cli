@@ -7,9 +7,11 @@ export function command() {
   return "less -R"
 }
 
-/** True when the text has more lines than the terminal can show at once. */
-export function overflows(text: string, rows: number) {
-  return text.split("\n").length - (text.endsWith("\n") ? 1 : 0) > rows
+/** True when the text, with long lines wrapped at the terminal width, needs more rows than the terminal can show. */
+export function overflows(text: string, rows: number, columns: number) {
+  const lines = text.split("\n")
+  if (text.endsWith("\n")) lines.pop()
+  return lines.reduce((total, line) => total + Math.max(1, Math.ceil(Bun.stringWidth(line) / columns)), 0) > rows
 }
 
 /**
@@ -20,7 +22,11 @@ export function overflows(text: string, rows: number) {
 export async function page(text: string) {
   if (!text) return
   const body = text.endsWith("\n") ? text : text + EOL
-  if (!process.stdout.isTTY || process.platform === "win32" || !overflows(body, process.stdout.rows || 24)) {
+  if (
+    !process.stdout.isTTY ||
+    process.platform === "win32" ||
+    !overflows(body, process.stdout.rows || 24, process.stdout.columns || 80)
+  ) {
     process.stdout.write(body)
     return
   }

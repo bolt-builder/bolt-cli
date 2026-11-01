@@ -9,7 +9,8 @@ tag="v$OPENCODE_VERSION"
 if [ "$OPENCODE_CHANNEL" != latest ]; then
   sha=$(git rev-parse HEAD)
   if ! dry_run; then
-    existing=$(git ls-remote origin "refs/tags/$tag" | cut -f1)
+    # An annotated tag lists its own object and then the peeled commit; compare the commit.
+    existing=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | tail -n 1 | cut -f1)
     if [ -n "$existing" ]; then
       [ "$existing" = "$sha" ] || die "Tag $tag already exists at a different commit"
     else

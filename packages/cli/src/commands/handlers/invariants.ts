@@ -90,17 +90,22 @@ export default Runtime.handler(Commands.commands.invariants, (args) =>
       })
     if (args.action === "state") {
       if (args.files.length === 0) return yield* fail("Pass the files you are about to refactor.")
+      const names: string[] = []
       const excerpts: string[] = []
       let totalBytes = 0
       for (const file of args.files) {
-        const target = Bun.file(path.resolve(cwd, file))
+        const absolute = path.resolve(file)
+        const name = path.relative(cwd, absolute)
+        const target = Bun.file(absolute)
         if (!(yield* Effect.promise(() => target.exists()))) return yield* fail(`No such file: ${file}`)
         if (target.size > FILE_LIMIT) return yield* fail(`File exceeds ${FILE_LIMIT} bytes: ${file}`)
-        totalBytes += target.size + Buffer.byteLength(`### ${file}\n\n`) + 2
+        totalBytes += target.size + Buffer.byteLength(`### ${name}\n\n`) + 2
         if (totalBytes > TOTAL_LIMIT)
           return yield* fail(`Selected files exceed the ${TOTAL_LIMIT} byte limit; select fewer files.`)
         const content = yield* Effect.promise(() => target.text())
-        excerpts.push(`### ${file}\n\n${content}`)
+        // Stored next to the repo-root store, so names stay valid when verify runs from another directory.
+        names.push(name)
+        excerpts.push(`### ${name}\n\n${content}`)
       }
       const body = excerpts.join("\n\n")
 
@@ -110,7 +115,7 @@ export default Runtime.handler(Commands.commands.invariants, (args) =>
       if (invariants.length === 0) return yield* fail("The model did not state any invariants.")
 
       fs.mkdirSync(path.dirname(store), { recursive: true })
-      fs.writeFileSync(store, document(args.files, invariants))
+      fs.writeFileSync(store, document(names, invariants))
       println()
       for (const line of invariants) println(`- ${line}`)
       println()

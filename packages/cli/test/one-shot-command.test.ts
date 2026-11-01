@@ -113,7 +113,7 @@ test("ask and commit use disposable V2 sessions, preserve stdout and honor dry r
       return new Response(`Unexpected request: ${request.method} ${url.pathname}`, { status: 500 })
     },
   })
-  const cli = async (args: string[], stdin = "") => {
+  const cli = async (args: string[], stdin = "", directory = cwd) => {
     const child = Bun.spawn(
       [
         process.execPath,
@@ -125,7 +125,7 @@ test("ask and commit use disposable V2 sessions, preserve stdout and honor dry r
         server.url.toString(),
       ],
       {
-        cwd,
+        cwd: directory,
         env: { ...process.env, XDG_STATE_HOME: path.join(cwd, "state") },
         stdin: "pipe",
         stdout: "pipe",
@@ -261,6 +261,11 @@ test("ask and commit use disposable V2 sessions, preserve stdout and honor dry r
     invariantAnswer = "No invariant bullets"
     expect((await cli(["invariants", "state", "refactor.ts"])).code).toBe(1)
     expect(await Bun.file(invariantFile).text()).toBe(savedInvariants)
+    await Bun.write(path.join(cwd, "sub/nested.ts"), "export const nested = 1\n")
+    invariantAnswer = "- Nested stays\n"
+    expect((await cli(["invariants", "state", "nested.ts"], "", path.join(cwd, "sub"))).code).toBe(0)
+    expect(await Bun.file(invariantFile).text()).toContain("Files: sub/nested.ts\n")
+    expect(prompts.at(-1)?.text).toContain("export const nested = 1")
   } finally {
     await server.stop(true)
     await fs.rm(cwd, { recursive: true, force: true })

@@ -29,6 +29,11 @@ beforeEach(async () => {
             { status: 404 },
           )
         const page = url.searchParams.has("cursor")
+        if (page && url.searchParams.has("order"))
+          return Response.json(
+            { _tag: "InvalidCursorError", message: "Cursor cannot be combined with order" },
+            { status: 400 },
+          )
         return Response.json({
           data: (page ? ["msg_c"] : ["msg_a", "msg_b"]).map((id) => ({ id, type: "user", text: "fixture" })),
           cursor: page ? {} : { next: "page2" },
