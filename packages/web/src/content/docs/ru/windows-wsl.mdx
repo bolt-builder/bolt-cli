@@ -5,10 +5,10 @@ description: Запускайте opencode в Windows через WSL.
 
 import { Steps } from "@astrojs/starlight/components"
 
-opencode можно запускать напрямую в Windows, но для лучшего опыта мы рекомендуем [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). WSL дает Linux-среду, которая отлично работает с возможностями bolt.
+opencode можно запускать напрямую в Windows, но для лучшего опыта мы рекомендуем [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). WSL дает Linux-среду, которая отлично работает с возможностями opencode.
 
 :::tip[Почему WSL?]
-WSL дает более высокую производительность файловой системы, полноценную поддержку терминала и совместимость с инструментами разработки, на которые опирается bolt.
+WSL дает более высокую производительность файловой системы, полноценную поддержку терминала и совместимость с инструментами разработки, на которые опирается opencode.
 :::
 
 ---
@@ -26,12 +26,12 @@ WSL дает более высокую производительность фа
    После настройки WSL откройте терминал WSL и установите opencode одним из [способов установки](/docs/).
 
    ```bash
-   curl -fsSL https://bolt.ai/install | bash
+   curl -fsSL https://opencode.ai/install | bash
    ```
 
 3. **Запускайте opencode из WSL**
 
-   Перейдите в каталог проекта (к файлам Windows можно обращаться через `/mnt/c/`, `/mnt/d/` и т.д.) и запустите bolt.
+   Перейдите в каталог проекта (к файлам Windows можно обращаться через `/mnt/c/`, `/mnt/d/` и т.д.) и запустите opencode.
 
    ```bash
    cd /mnt/c/Users/YourName/project
@@ -59,10 +59,10 @@ WSL дает более высокую производительность фа
 :::
 
 :::caution
-При использовании `--hostname 0.0.0.0` задайте `BOLT_SERVER_PASSWORD`, чтобы защитить сервер.
+При использовании `--hostname 0.0.0.0` задайте `OPENCODE_SERVER_PASSWORD`, чтобы защитить сервер.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
+OPENCODE_SERVER_PASSWORD=your-password opencode serve --hostname 0.0.0.0
 ```
 
 :::
