@@ -3,8 +3,10 @@ import os from "os"
 import path from "path"
 import { Effect } from "effect"
 
-export const tmpdir = async () => {
-  const dir = await fs.realpath(await fs.mkdtemp(path.join(osTmpdir(), "bolt-core-test-")))
+type TempDir = { readonly path: string }
+
+export const tmpdir = async (prefix = "opencode-core-test-") => {
+  const dir = await make(prefix)
   return {
     path: dir,
     [Symbol.asyncDispose]() {
