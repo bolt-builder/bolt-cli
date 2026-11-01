@@ -65,7 +65,7 @@ Sistem teması şu kullanıcılar için idealdir:
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Sistem teması şu kullanıcılar için idealdir:
 
 ## Özel temalar
 
-bolt, kullanıcıların kolayca tema oluşturup özelleştirebilmesi için esnek bir JSON tabanlı tema sistemi sunar.
+opencode, kullanıcıların kolayca tema oluşturup özelleştirebilmesi için esnek bir JSON tabanlı tema sistemi sunar.
 
 ---
 
@@ -84,8 +84,8 @@ Temalar birden fazla dizinden şu sırayla yüklenir; daha sonra gelen dizin ön
 
 1. **Yerleşik temalar** - Binary içine gömülüdür
 2. **Kullanıcı yapılandırma dizini** - `~/.config/opencode/themes/*.json` veya `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **Proje kök dizini** - `<project-root>/.bolt/themes/*.json`
-4. **Geçerli çalışma dizini** - `./.bolt/themes/*.json`
+3. **Proje kök dizini** - `<project-root>/.opencode/themes/*.json`
+4. **Geçerli çalışma dizini** - `./.opencode/themes/*.json`
 
 Birden fazla dizinde aynı adlı tema varsa, önceliği daha yüksek dizindeki tema kullanılır.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 Proje özel temalar için:
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ Aşağıda özel bir tema örneği var:
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",
