@@ -2,13 +2,14 @@ import { $ } from "bun"
 import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import { Effect, Layer } from "effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { Global } from "@bolt-ai/core/global"
-import { Location } from "@bolt-ai/core/location"
-import { AbsolutePath, RelativePath } from "@bolt-ai/core/schema"
-import { Snapshot } from "@bolt-ai/core/snapshot"
-import { Hash } from "@bolt-ai/core/util/hash"
+import { Deferred, Effect, Fiber, Layer, Logger } from "effect"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { Git } from "@opencode/core/git"
+import { Global } from "@opencode/util/global"
+import { Location } from "@opencode/core/location"
+import { AbsolutePath, RelativePath } from "@opencode/core/schema"
+import { Snapshot } from "@opencode/core/snapshot"
+import { Hash } from "@opencode/util/hash"
 import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
@@ -92,13 +93,7 @@ describe("Snapshot", () => {
             await fs.mkdir(location, { recursive: true })
             await fs.writeFile(path.join(location, "tracked.txt"), "one\n")
             await fs.writeFile(path.join(project, "outside.txt"), "outside\n")
-            await $`git init`.cwd(project).quiet()
-            await $`git config core.fsmonitor false`.cwd(project).quiet()
-            await $`git config commit.gpgsign false`.cwd(project).quiet()
-            await $`git config user.email test@bolt.test`.cwd(project).quiet()
-            await $`git config user.name Test`.cwd(project).quiet()
-            await $`git add .`.cwd(project).quiet()
-            await $`git commit -m initial`.cwd(project).quiet()
+            await initGit(project)
           })
 
           const layer = snapshotLayer(tmp.path, location)
@@ -400,75 +395,15 @@ describe("Snapshot", () => {
     ),
   )
 
-  testEffect(Layer.empty).live("isolates snapshot indexes by canonical Git worktree", () =>
-    Effect.acquireUseRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) =>
-        Effect.gen(function* () {
-          const project = path.join(tmp.path, "project")
-          const linked = path.join(tmp.path, "linked")
-          yield* Effect.promise(async () => {
-            await fs.mkdir(project)
-            await fs.writeFile(path.join(project, "tracked.txt"), "main\n")
-            await $`git init`.cwd(project).quiet()
-            await $`git config core.fsmonitor false`.cwd(project).quiet()
-            await $`git config commit.gpgsign false`.cwd(project).quiet()
-            await $`git config user.email test@bolt.test`.cwd(project).quiet()
-            await $`git config user.name Test`.cwd(project).quiet()
-            await $`git add .`.cwd(project).quiet()
-            await $`git commit -m initial`.cwd(project).quiet()
-            await $`git worktree add --detach ${linked} HEAD`.cwd(project).quiet()
-          })
-
-          const capture = (directory: string) =>
-            Effect.gen(function* () {
-              const snapshot = yield* Snapshot.Service
-              return yield* snapshot.capture()
-            }).pipe(Effect.provide(snapshotLayer(tmp.path, directory)))
-          expect(yield* capture(project)).toBeDefined()
-          expect(yield* capture(linked)).toBeDefined()
-
-          const projectID = yield* Effect.gen(function* () {
-            return (yield* Location.Service).project.id
-          }).pipe(
-            Effect.provide(
-              AppNodeBuilder.build(Location.boundNode(Location.Ref.make({ directory: AbsolutePath.make(project) }))),
-            ),
-          )
-          expect(
-            yield* Effect.promise(() => fs.stat(path.join(tmp.path, "snapshot", projectID, Hash.fast(project)))),
-          ).toBeDefined()
-          expect(
-            yield* Effect.promise(() => fs.stat(path.join(tmp.path, "snapshot", projectID, Hash.fast(linked)))),
-          ).toBeDefined()
-        }),
-      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
-    ),
-  )
-
-  testEffect(Layer.empty).live("checks out a legacy revert snapshot without removing unrelated files", () =>
-    Effect.acquireUseRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) =>
-        Effect.gen(function* () {
-          const project = path.join(tmp.path, "project")
-          yield* Effect.promise(async () => {
-            await fs.mkdir(project)
-            await fs.writeFile(path.join(project, "tracked.txt"), "one\n")
-            await $`git init`.cwd(project).quiet()
-            await $`git config core.fsmonitor false`.cwd(project).quiet()
-            await $`git config commit.gpgsign false`.cwd(project).quiet()
-            await $`git config user.email test@bolt.test`.cwd(project).quiet()
-            await $`git config user.name Test`.cwd(project).quiet()
-            await $`git add .`.cwd(project).quiet()
-            await $`git commit -m initial`.cwd(project).quiet()
-          })
-
-          yield* Effect.gen(function* () {
-            const snapshot = yield* Snapshot.Service
-            const before = yield* snapshot.capture()
-            expect(before).toBeDefined()
-            if (!before) return
+  testEffect(Layer.empty).live(
+    "isolates snapshot indexes by canonical Git worktree",
+    () =>
+      Effect.acquireUseRelease(
+        Effect.promise(() => tmpdir()),
+        (tmp) =>
+          Effect.gen(function* () {
+            const project = path.join(tmp.path, "project")
+            const linked = path.join(tmp.path, "linked")
             yield* Effect.promise(async () => {
               await fs.mkdir(project)
               await fs.writeFile(path.join(project, "tracked.txt"), "main\n")
