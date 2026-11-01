@@ -1,9 +1,9 @@
 import { Effect, Stream } from "effect"
-import { HttpClient } from "effect/unstable/http"
-import { ClientError, Bolt } from "./generated"
+import { HttpClient } from "effect/http"
+import { ClientError, OpenCode } from "./generated"
 import { Missing } from "./fixture"
 
-export const program = Bolt.make().pipe(
+export const program = OpenCode.make().pipe(
   Effect.map((client) => {
     const health = client.session.health()
     const list = client.session.list()

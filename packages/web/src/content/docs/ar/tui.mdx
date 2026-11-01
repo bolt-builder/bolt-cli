@@ -1,13 +1,13 @@
 ---
 title: TUI
-description: استخدام واجهة المستخدم TUI في Bolt.
+description: استخدام واجهة المستخدم TUI في OpenCode.
 ---
 
 import { Tabs, TabItem } from "@astrojs/starlight/components"
 
-يوفّر Bolt واجهة terminal تفاعلية (TUI) للعمل على مشاريعك باستخدام LLM.
+يوفّر OpenCode واجهة terminal تفاعلية (TUI) للعمل على مشاريعك باستخدام LLM.
 
-يؤدي تشغيل Bolt إلى بدء واجهة TUI للدليل الحالي.
+يؤدي تشغيل OpenCode إلى بدء واجهة TUI للدليل الحالي.
 
 ```bash
 opencode
@@ -57,7 +57,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ## الأوامر
 
-عند استخدام واجهة Bolt في terminal، يمكنك كتابة `/` متبوعة باسم أمر لتنفيذ الإجراءات بسرعة. مثلا:
+عند استخدام واجهة OpenCode في terminal، يمكنك كتابة `/` متبوعة باسم أمر لتنفيذ الإجراءات بسرعة. مثلا:
 
 ```bash frame="none"
 /help
@@ -71,7 +71,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ### connect
 
-أضف موفّرا إلى Bolt. يتيح لك اختيار أحد الموفّرين المتاحين وإضافة مفاتيح API الخاصة بهم.
+أضف موفّرا إلى OpenCode. يتيح لك اختيار أحد الموفّرين المتاحين وإضافة مفاتيح API الخاصة بهم.
 
 ```bash frame="none"
 /connect
@@ -117,7 +117,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ### exit
 
-اخرج من Bolt. _الأسماء المستعارة_: `/quit`, `/q`
+اخرج من OpenCode. _الأسماء المستعارة_: `/quit`, `/q`
 
 ```bash frame="none"
 /exit
@@ -334,8 +334,8 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 ```json title="tui.json"
 {
-  "$schema": "https://bolt.ai/tui.json",
-  "theme": "bolt",
+  "$schema": "https://opencode.ai/tui.json",
+  "theme": "opencode",
   "leader_timeout": 2000,
   "keybinds": {
     "leader": "ctrl+x",
@@ -352,7 +352,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
     "notifications": true,
     "sound": true,
     "volume": 0.4,
-    "sound_pack": "bolt.default",
+    "sound_pack": "opencode.default",
     "sounds": {
       "error": "./sounds/error.mp3"
     }
@@ -360,7 +360,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 }
 ```
 
-هذا منفصل عن `bolt.json`، الذي يضبط سلوك الخادم ووقت التشغيل.
+هذا منفصل عن `opencode.json`، الذي يضبط سلوك الخادم ووقت التشغيل.
 
 يتم دمج `keybinds` مع الاختصارات الافتراضية المدمجة، لذلك لا تحتاج إلا إلى ضبط الاختصارات التي تريد تغييرها.
 
@@ -368,24 +368,24 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 - `theme` - يحدد سمة UI. [اعرف المزيد](/docs/themes).
 - `keybinds` - يخصص اختصارات لوحة المفاتيح. [اعرف المزيد](/docs/keybinds).
-- `leader_timeout` - يتحكم في مدة انتظار Bolt بعد الضغط على leader key. القيمة الافتراضية `2000`.
+- `leader_timeout` - يتحكم في مدة انتظار OpenCode بعد الضغط على leader key. القيمة الافتراضية `2000`.
 - `scroll_acceleration.enabled` - يفعّل تسارع التمرير على نمط macOS لتمرير سلس وطبيعي. عند تفعيله، تزداد سرعة التمرير مع إيماءات التمرير السريعة وتبقى دقيقة للحركات الأبطأ. **يتقدّم هذا الإعداد على `scroll_speed` ويستبدله عند تفعيله.**
 - `scroll_speed` - يتحكم في سرعة تمرير TUI عند استخدام أوامر التمرير (الحد الأدنى: `0.001`، ويدعم القيم العشرية). القيمة الافتراضية `3`. **ملاحظة: يتم تجاهل هذا إذا تم ضبط `scroll_acceleration.enabled` على `true`.**
 - `diff_style` - يتحكم في عرض الفروقات (diff). القيمة `"auto"` تتكيف مع عرض terminal، و`"stacked"` تعرض عمودًا واحدًا دائمًا.
 - `mouse` - يفعّل أو يعطّل التقاط الماوس في TUI (القيمة الافتراضية: `true`). عند تعطيله، يتم الحفاظ على سلوك terminal الأصلي لتحديد النص والتمرير بالماوس.
 - `attention` - يضبط desktop notifications والأصوات في TUI. معطل افتراضيًا.
 
-استخدم `BOLT_TUI_CONFIG` لتحميل مسار إعدادات TUI مخصص.
+استخدم `OPENCODE_TUI_CONFIG` لتحميل مسار إعدادات TUI مخصص.
 
 ### Attention
 
-تجعل ميزة Attention واجهة TUI تنبهك عندما ينتظر Bolt ردًا منك، أو يحتاج إلى الموافقة على permission، أو يواجه session error، أو ينهي session. فعّلها باستخدام `attention.enabled`؛ تشغّل الأحداث المدمجة صوتًا عند حدوثها. لا تُرسل desktop notifications إلا عندما لا تكون نافذة terminal في المقدمة، ولا تُستخدم مع أحداث subagent.
+تجعل ميزة Attention واجهة TUI تنبهك عندما ينتظر OpenCode ردًا منك، أو يحتاج إلى الموافقة على permission، أو يواجه session error، أو ينهي session. فعّلها باستخدام `attention.enabled`؛ تشغّل الأحداث المدمجة صوتًا عند حدوثها. لا تُرسل desktop notifications إلا عندما لا تكون نافذة terminal في المقدمة، ولا تُستخدم مع أحداث subagent.
 
 - `enabled` - يفعّل جميع notifications والأصوات الخاصة بميزة Attention. القيمة الافتراضية `false`.
 - `notifications` - عند تفعيل Attention، يسمح لـ TUI بإرسال desktop notifications عبر terminal. القيمة الافتراضية `true`.
 - `sound` - عند تفعيل Attention، يسمح بتشغيل أصوات التنبيه. القيمة الافتراضية `true`.
 - `volume` - مستوى صوت التنبيهات الافتراضي من `0` إلى `1`. القيمة الافتراضية `0.4`.
-- `sound_pack` - sound pack ID المراد استخدامه. القيمة الافتراضية `bolt.default`.
+- `sound_pack` - sound pack ID المراد استخدامه. القيمة الافتراضية `opencode.default`.
 - `sounds` - يحدد ملفات صوت مخصصة لـ `default` أو `question` أو `permission` أو `error` أو `done` أو `subagent_done`. يمكن أن تكون المسارات مطلقة، أو `file://` URLs، أو نسبية إلى `tui.json`.
 
 ---

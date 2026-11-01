@@ -7,11 +7,7 @@ describe("external URLs", () => {
   test("opens only web and mail URLs externally", () => {
     expect(resolveExternalURL("https://example.com/a?b=c")).toBe("https://example.com/a?b=c")
     expect(resolveExternalURL("http://example.com")).toBe("http://example.com/")
-  })
-
-  test("opens mail links externally", () => {
-    expect(resolveExternalURL("mailto:hello@bolt.ai")).toBe("mailto:hello@bolt.ai")
-  })
+    expect(resolveExternalURL("mailto:hello@opencode.ai")).toBe("mailto:hello@opencode.ai")
 
     for (const url of ["file:///tmp/index.html", "javascript:alert(1)", "data:text/html,hello", "not a url"])
       expect(resolveExternalURL(url)).toBeUndefined()

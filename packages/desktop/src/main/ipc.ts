@@ -1,21 +1,15 @@
-import { execFile } from "node:child_process"
-import { stat } from "node:fs/promises"
-import { basename, join } from "node:path"
-import { app, BrowserWindow, clipboard, dialog, ipcMain, shell } from "electron"
-import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
-import type { DesktopMenuAction } from "@bolt-ai/app/desktop-menu"
-import { parseDesktopNativeBundle, type DesktopNativeBundle } from "@bolt-ai/app/i18n/desktop-native"
+export * as Ipc from "./ipc"
 
 import { app, BrowserWindow, MessageChannelMain } from "electron"
 import { Effect, Layer } from "effect"
 import { RpcServer } from "effect/rpc"
 import { DesktopRpcs } from "../shared/ipc-rpc"
 import { DragCancelEvent, IpcTransportPort } from "../shared/ipc-transport"
-import { Extensions } from "./extension"
+import { Plugins } from "./plugin"
 import { DesktopFiles, openExternalURL } from "./files"
 import { appHandlers } from "./ipc-handlers/app"
 import { eventHandlers } from "./ipc-handlers/events"
-import { extensionHandlers } from "./ipc-handlers/extensions"
+import { pluginHandlers } from "./ipc-handlers/plugins"
 import { fileHandlers } from "./ipc-handlers/files"
 import { menuHandlers } from "./ipc-handlers/menu"
 import { storageHandlers } from "./ipc-handlers/storage"
@@ -27,7 +21,7 @@ import { createMenu, sendMenuCommand } from "./native/menu"
 import { DesktopCli } from "./service/desktop-cli"
 import { getLastFocusedWindow } from "./windows"
 
-const services = Layer.mergeAll(DesktopFiles.layer, Extensions.layer)
+const services = Layer.mergeAll(DesktopFiles.layer, Plugins.layer)
 
 const handlers = Layer.mergeAll(
   appHandlers,
@@ -36,7 +30,7 @@ const handlers = Layer.mergeAll(
   windowHandlers,
   menuHandlers,
   eventHandlers,
-  extensionHandlers,
+  pluginHandlers,
 )
 
 export const layer = RpcServer.layer(DesktopRpcs, { disableFatalDefects: true }).pipe(
@@ -65,6 +59,11 @@ export const registerIpcHandlers = Effect.gen(function* () {
 
   const wire = (win: BrowserWindow) => {
     win.webContents.on("before-input-event", (_event, input) => {
+      // Ctrl+R renames the session in the renderer, so the default menu's Reload must not take it.
+      win.webContents.setIgnoreMenuShortcuts(
+        input.control && !input.meta && !input.shift && !input.alt && input.key.toLowerCase() === "r",
+      )
+
       if (input.type !== "keyDown" || input.key !== "Escape") return
       win.webContents.send(DragCancelEvent)
     })

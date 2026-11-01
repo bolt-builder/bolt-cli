@@ -18,7 +18,7 @@ opencode web
 Isso inicia um servidor local em `127.0.0.1` com uma porta aleatória disponível e abre automaticamente o opencode no seu navegador padrão.
 
 :::caution
-Se `BOLT_SERVER_PASSWORD` não estiver definido, o servidor ficará sem segurança. Isso é aceitável para uso local, mas deve ser configurado para acesso à rede.
+Se `OPENCODE_SERVER_PASSWORD` não estiver definido, o servidor ficará sem segurança. Isso é aceitável para uso local, mas deve ser configurado para acesso à rede.
 :::
 
 :::tip[Usuários do Windows]
@@ -62,7 +62,7 @@ Ative o mDNS para tornar seu servidor descobrível na rede local:
 opencode web --mdns
 ```
 
-Isso define automaticamente o nome do host como `0.0.0.0` e anuncia o servidor como `bolt.local`.
+Isso define automaticamente o nome do host como `0.0.0.0` e anuncia o servidor como `opencode.local`.
 
 Você pode personalizar o nome de domínio mDNS para executar várias instâncias na mesma rede:
 
@@ -80,19 +80,19 @@ opencode web --cors https://example.com
 
 ### Autenticação
 
-Para proteger o acesso, defina uma senha usando a variável de ambiente `BOLT_SERVER_PASSWORD`:
+Para proteger o acesso, defina uma senha usando a variável de ambiente `OPENCODE_SERVER_PASSWORD`:
 
 ```bash
-BOLT_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret opencode web
 ```
 
-O nome de usuário padrão é `opencode`, mas pode ser alterado com `BOLT_SERVER_USERNAME`.
+O nome de usuário padrão é `opencode`, mas pode ser alterado com `OPENCODE_SERVER_USERNAME`.
 
 ---
 
 ## Usando a Interface Web
 
-Uma vez iniciada, a interface web fornece acesso às suas sessões do bolt.
+Uma vez iniciada, a interface web fornece acesso às suas sessões do opencode.
 
 ### Sessões
 
@@ -126,7 +126,7 @@ Isso permite que você use tanto a interface web quanto o terminal simultaneamen
 
 ## Arquivo de Configuração
 
-Você também pode configurar as configurações do servidor no seu arquivo de configuração `bolt.json`:
+Você também pode configurar as configurações do servidor no seu arquivo de configuração `opencode.json`:
 
 ```json
 {

@@ -1,9 +1,8 @@
 // @ts-nocheck
-import { Button } from "@bolt-ai/ui/button"
-import { useDialog } from "@bolt-ai/ui/context/dialog"
+import { Button } from "@opencode/ui/button"
+import { useDialog } from "@opencode/ui/context/dialog"
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query"
-import { mockProviderAuth } from "@/runtime/server/sync"
-import { onCleanup, onMount } from "solid-js"
+import { onMount } from "solid-js"
 import { DialogConnectProvider, useProviderConnectController } from "./dialog"
 
 function ConnectProviderDialogStory() {
@@ -19,8 +18,8 @@ function ConnectProviderDialogStory() {
   )
 }
 
+// The server describes the provider's sign-in methods.
 function ProviderConnectionDialogStory(props) {
-  onCleanup(mockProviderAuth(props.provider, props.methods))
   const dialog = useDialog()
   const controller = useProviderConnectController()
   controller.select(props.provider)
@@ -35,10 +34,10 @@ function ProviderConnectionDialogStory(props) {
   )
 }
 
-function renderConnection(provider, methods) {
+function renderConnection(provider) {
   return () => (
     <QueryClientProvider client={new QueryClient()}>
-      <ProviderConnectionDialogStory provider={provider} methods={methods} />
+      <ProviderConnectionDialogStory provider={provider} />
     </QueryClientProvider>
   )
 }
@@ -57,18 +56,13 @@ export const Picker = {
 }
 
 export const ApiKey = {
-  render: renderConnection("openrouter", [{ type: "key", label: "API key" }]),
+  render: renderConnection("openrouter"),
 }
 
-export const BoltZen = {
-  render: renderConnection("bolt", [{ type: "api", label: "API key" }]),
+export const OpenCodeZen = {
+  render: renderConnection("opencode"),
 }
 
 export const LoginMethods = {
-  render: renderConnection("openai", [
-    { type: "oauth", label: "Sign in with ChatGPT" },
-    { type: "oauth", label: "Codex browser (legacy)" },
-    { type: "oauth", label: "Codex device code (legacy)" },
-    { type: "key", label: "API key" },
-  ]),
+  render: renderConnection("openai"),
 }

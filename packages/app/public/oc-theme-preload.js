@@ -1,15 +1,8 @@
 ;(function () {
-  var key = "bolt-theme-id"
+  var key = "opencode-theme-id"
   var themeId = localStorage.getItem(key) || "oc-2"
 
-  if (themeId === "oc-1") {
-    themeId = "oc-2"
-    localStorage.setItem(key, themeId)
-    localStorage.removeItem("bolt-theme-css-light")
-    localStorage.removeItem("bolt-theme-css-dark")
-  }
-
-  var scheme = localStorage.getItem("bolt-color-scheme") || "system"
+  var scheme = localStorage.getItem("opencode-color-scheme") || "system"
   var isDark = scheme === "dark" || (scheme === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
   var mode = isDark ? "dark" : "light"
 
@@ -23,7 +16,7 @@
 
   if (themeId === "oc-2") return
 
-  var css = localStorage.getItem("bolt-theme-css-" + mode)
+  var css = localStorage.getItem("opencode-theme-css-" + mode)
   if (css) {
     var style = document.createElement("style")
     style.id = "oc-theme-preload"

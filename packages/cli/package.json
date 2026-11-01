@@ -1,9 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bolt-ai/cli",
-  "version": "1.20.7",  "type": "module",
+  "name": "@opencode/cli",
+  "version": "2.2.5",
+  "type": "module",
   "license": "MIT",
   "bin": {
+    "bolt": "./bin/bolt.cjs",
     "opencode": "./bin/opencode.cjs",
     "opencode2": "./bin/opencode2.cjs"
   },
@@ -18,6 +20,8 @@
   "scripts": {
     "build": "bun run script/build.ts",
     "build:node": "bun run script/build-node.ts",
+    "pack": "bun run script/pack.ts",
+    "pack:docker": "chmod +x dist/cli-linux-*-musl/bin/opencode && mkdir -p ../../dist/docker && docker buildx build --platform linux/amd64,linux/arm64 --output type=oci,dest=../../dist/docker/opencode-image.tar .",
     "dev": "bun run src/index.ts",
     "test": "bun test --timeout 30000 --only-failures",
     "typecheck": "bun check --no-script -b",
@@ -28,10 +32,13 @@
     "@clack/core": "1.0.0-alpha.1",
     "@clack/prompts": "1.0.0-alpha.1",
     "@effect/platform-node": "catalog:",
-    "@bolt-ai/core": "workspace:*",
-    "@bolt-ai/sdk": "workspace:*",
-    "@bolt-ai/server": "workspace:*",
-    "@bolt-ai/tui": "workspace:*",
+    "@opencode/client": "workspace:*",
+    "@opencode/plugin": "workspace:*",
+    "@opencode/pty": "0.4.0",
+    "@opencode/schema": "workspace:*",
+    "@opencode/server": "workspace:*",
+    "@opencode/tui": "workspace:*",
+    "@opencode/util": "workspace:*",
     "@opentui/core": "catalog:",
     "@opentui/solid": "catalog:",
     "@opentunnel/client": "0.6.1",
@@ -43,14 +50,12 @@
     "jsonc-parser": "3.3.1",
     "picocolors": "1.1.1",
     "solid-js": "catalog:",
-    "tree-sitter-bash": "0.25.0",
-    "tree-sitter-powershell": "0.25.10",
-    "uqr": "0.1.3",
     "web-tree-sitter": "0.25.10",
     "ws": "8.21.0"
   },
   "devDependencies": {
-    "@bolt-ai/script": "workspace:*",
+    "@opencode/script": "workspace:*",
+    "@opencode/protocol": "workspace:*",
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
     "@typescript/native": "catalog:",
@@ -78,5 +83,10 @@
     "solid-refresh": "0.6.3",
     "vite": "catalog:",
     "vite-plugin-solid": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/cli"
   }
 }

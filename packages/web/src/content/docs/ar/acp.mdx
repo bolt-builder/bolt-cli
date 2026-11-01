@@ -1,9 +1,9 @@
 ---
 title: دعم ACP
-description: استخدم Bolt في أي محرر متوافق مع ACP.
+description: استخدم OpenCode في أي محرر متوافق مع ACP.
 ---
 
-يدعم Bolt بروتوكول [Agent Client Protocol](https://agentclientprotocol.com) أو (ACP)، مما يتيح لك استخدامه مباشرة في المحررات وبيئات التطوير المتكاملة (IDEs) المتوافقة.
+يدعم OpenCode بروتوكول [Agent Client Protocol](https://agentclientprotocol.com) أو (ACP)، مما يتيح لك استخدامه مباشرة في المحررات وبيئات التطوير المتكاملة (IDEs) المتوافقة.
 
 :::tip
 للاطلاع على قائمة بالمحررات والأدوات التي تدعم ACP، راجع [ACP progress report](https://zed.dev/blog/acp-progress-report#available-now).
@@ -15,9 +15,9 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 
 ## الإعداد
 
-لاستخدام Bolt عبر ACP، اضبط محررك ليشغّل الأمر `opencode acp`.
+لاستخدام OpenCode عبر ACP، اضبط محررك ليشغّل الأمر `opencode acp`.
 
-يشغّل هذا الأمر Bolt كعملية فرعية متوافقة مع ACP تتواصل مع محررك عبر JSON-RPC باستخدام stdio.
+يشغّل هذا الأمر OpenCode كعملية فرعية متوافقة مع ACP تتواصل مع محررك عبر JSON-RPC باستخدام stdio.
 
 فيما يلي أمثلة لمحررات شائعة تدعم ACP.
 
@@ -25,16 +25,16 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 
 ### Zed
 
-ثبّت Bolt من [سجل ACP في Zed](https://zed.dev/docs/ai/external-agents#registry) عبر تشغيل `zed: acp registry` من لوحة الأوامر.
+ثبّت OpenCode من [سجل ACP في Zed](https://zed.dev/docs/ai/external-agents#registry) عبر تشغيل `zed: acp registry` من لوحة الأوامر.
 
-لاستخدام ملف Bolt تنفيذي مخصص بدلاً من ذلك، أضفه إلى إعدادات [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
+لاستخدام ملف OpenCode تنفيذي مخصص بدلاً من ذلك، أضفه إلى إعدادات [Zed](https://zed.dev) (`~/.config/zed/settings.json`):
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "type": "custom",
-      "command": "bolt",
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -54,9 +54,9 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
         {
           "agent": {
             "custom": {
-              "name": "Bolt",
+              "name": "OpenCode",
               "command": {
-                "command": "bolt",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -77,7 +77,7 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -85,7 +85,7 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 }
 ```
 
-لفتحه، اختر الوكيل الجديد 'Bolt' من محدد الوكلاء في AI Chat.
+لفتحه، اختر الوكيل الجديد 'OpenCode' من محدد الوكلاء في AI Chat.
 
 ---
 
@@ -96,8 +96,8 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 ```lua
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
@@ -109,11 +109,11 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 ```lua {6-8}
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        BOLT_API_KEY = os.getenv("BOLT_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -124,28 +124,28 @@ ACP بروتوكول مفتوح يوحّد آلية التواصل بين محر
 
 ### CodeCompanion.nvim
 
-لاستخدام Bolt كوكيل ACP في [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim)، أضف التالي إلى إعدادات Neovim:
+لاستخدام OpenCode كوكيل ACP في [CodeCompanion.nvim](https://github.com/olimorris/codecompanion.nvim)، أضف التالي إلى إعدادات Neovim:
 
 ```lua
 require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "bolt",
-        model = "claude-sonnet-4",
+        name = "opencode",
+        model = "claude-sonnet-5-5",
       },
     },
   },
 })
 ```
 
-يضبط هذا الإعداد CodeCompanion لاستخدام Bolt كوكيل ACP للدردشة.
+يضبط هذا الإعداد CodeCompanion لاستخدام OpenCode كوكيل ACP للدردشة.
 
-إذا احتجت إلى تمرير متغيرات البيئة (مثل `BOLT_API_KEY`)، فارجع إلى [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) ضمن توثيق CodeCompanion.nvim للاطلاع على التفاصيل كاملة.
+إذا احتجت إلى تمرير متغيرات البيئة (مثل `OPENCODE_API_KEY`)، فارجع إلى [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key) ضمن توثيق CodeCompanion.nvim للاطلاع على التفاصيل كاملة.
 
 ## الدعم
 
-يعمل Bolt عبر ACP بالطريقة نفسها التي يعمل بها في terminal. جميع الميزات مدعومة:
+يعمل OpenCode عبر ACP بالطريقة نفسها التي يعمل بها في terminal. جميع الميزات مدعومة:
 
 :::note
 بعض أوامر الشرطة المائلة المضمنة مثل `/undo` و`/redo` غير مدعومة حاليا.
@@ -153,7 +153,7 @@ require("codecompanion").setup({
 
 - الأدوات المضمنة (عمليات الملفات، أوامر terminal، إلخ.)
 - الأدوات المخصصة وأوامر الشرطة المائلة
-- خوادم MCP المضبوطة في إعدادات Bolt
+- خوادم MCP المضبوطة في إعدادات OpenCode
 - قواعد خاصة بالمشروع من `AGENTS.md`
 - المنسقات (formatters) والمدققات (linters) المخصصة
 - نظام الوكلاء والأذونات

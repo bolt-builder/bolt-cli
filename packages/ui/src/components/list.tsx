@@ -1,4 +1,4 @@
-import { type FilteredListProps, useFilteredList } from "@bolt-ai/ui/hooks"
+import { type FilteredListProps, useFilteredList } from "@opencode/ui/hooks"
 import { createEffect, For, type JSX, on, Show } from "solid-js"
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
@@ -137,21 +137,6 @@ export function List<T>(props: ListProps<T> & { ref?: (ref: ListRef) => void }) 
       { defer: true },
     ),
   )
-
-  createEffect(() => {
-    const scroll = scrollRef()
-
-    if (!scroll) return
-
-    if (!props.current) return
-    const key = props.key(props.current)
-    requestAnimationFrame(() => {
-      const element = findByKey(scroll, key)
-
-      if (!element) return
-      scrollIntoView(scroll, element, "center")
-    })
-  })
 
   createEffect(() => {
     const all = flat()

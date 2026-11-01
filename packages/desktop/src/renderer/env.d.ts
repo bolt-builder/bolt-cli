@@ -6,8 +6,8 @@ declare global {
   }
 
   interface Window {
-    api: ElectronAPI
-    __BOLT__?: {
+    electron: ElectronNative
+    __OPENCODE__?: {
       deepLinks?: string[]
     }
   }

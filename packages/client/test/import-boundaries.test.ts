@@ -12,7 +12,7 @@ const server = resolve(import.meta.dir, "../../server")
 
 describe("public import boundaries", () => {
   test("isolates each public entrypoint", async () => {
-    const root = await bundleInputs("@bolt-ai/client", "browser")
+    const root = await bundleInputs("@opencode/client", "browser")
 
     expect(within(root.all, effect)).toEqual([])
     expect(within(root.all, schema)).toEqual([])
@@ -20,7 +20,7 @@ describe("public import boundaries", () => {
     expect(within(root.all, core)).toEqual([])
     expect(within(root.all, server)).toEqual([])
 
-    const network = await bundleInputs("@bolt-ai/client/effect", "browser")
+    const network = await bundleInputs("@opencode/client/effect", "browser")
 
     expect(within(network.eager, effect).length).toBeGreaterThan(0)
     expect(within(network.eager, schema).length).toBeGreaterThan(0)

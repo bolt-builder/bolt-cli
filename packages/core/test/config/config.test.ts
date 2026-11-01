@@ -1,20 +1,35 @@
 import path from "path"
 import fs from "fs/promises"
-import { describe, expect } from "bun:test"
-import { Effect, Layer, Schema } from "effect"
-import { FastCheck } from "effect/testing"
-import { Config } from "@bolt-ai/core/config"
-import { ConfigProvider } from "@bolt-ai/core/config/provider"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { ConfigMigrateV1 } from "@bolt-ai/core/v1/config/migrate"
-import { ConfigV1 } from "@bolt-ai/core/v1/config/config"
-import { FSUtil } from "@bolt-ai/core/fs-util"
-import { Global } from "@bolt-ai/core/global"
-import { Location } from "@bolt-ai/core/location"
-import { Policy } from "@bolt-ai/core/policy"
-import { Project } from "@bolt-ai/core/project"
-import { AbsolutePath } from "@bolt-ai/core/schema"
+import { describe, expect, test } from "bun:test"
+import { Arbitrary, Effect, Fiber, Layer, Logger, Schema, Stream } from "effect"
+import { Config } from "@opencode/core/config"
+import { ConfigDiscovery } from "@opencode/core/config/discovery"
+import { ConfigIntegration } from "@opencode/core/config/integration"
+import { Directory, Document, type Entry, Event, Info } from "@opencode/schema/config"
+import { ConfigModel } from "@opencode/schema/config/model"
+import { ConfigProvider } from "@opencode/schema/config/provider"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Credential } from "@opencode/core/credential"
+import { ConfigV1 } from "../fixture/v1-config/config"
+import { ConfigPermissionV1 } from "@opencode/core/v1/config/permission"
+import { ConfigNormalize } from "@opencode/core/config/normalize"
+import { ConfigVariable } from "@opencode/core/config/variable"
+import { FSUtil } from "@opencode/util/fs-util"
+import { Watcher } from "@opencode/core/filesystem/watcher"
+import { Bus } from "@opencode/core/bus"
+import { Global } from "@opencode/util/global"
+import { Location } from "@opencode/core/location"
+import { Project } from "@opencode/core/project"
+import { Provider } from "@opencode/core/provider"
+import { AbsolutePath } from "@opencode/core/schema"
+import { WellKnown } from "@opencode/core/wellknown"
+import { KV } from "@opencode/core/kv"
+import { ManagedPolicy } from "@opencode/core/managed-policy"
+import { Wildcard } from "@opencode/core/util/wildcard"
+import { Integration } from "@opencode/schema/integration"
+import { emptyCredentialNode, emptyWellknownNode } from "../fixture/config-nodes"
 import { location } from "../fixture/location"
 import { tmpdir } from "../fixture/tmpdir"
 import { testEffect } from "../lib/effect"
@@ -202,37 +217,35 @@ describe("Config", () => {
 
   // Filesystem sandboxes deny reads outside the project. Simulate a denied discovery root with a
   // symlink into an unsearchable directory, which makes realpath fail with EACCES.
-  itWithPermissions(
-    "treats unreadable discovery roots as absent",
-    () =>
-      Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
-        Effect.flatMap((tmp) => {
-          const global = path.join(tmp.path, "global")
-          const home = path.join(global, "home")
-          const project = path.join(home, "project")
-          const locked = path.join(tmp.path, "locked")
-          return Effect.promise(async () => {
-            await fs.mkdir(path.join(locked, "agents"), { recursive: true })
-            await fs.mkdir(project, { recursive: true })
-            await fs.writeFile(path.join(project, "opencode.json"), JSON.stringify({ shell: "project" }))
-            await fs.symlink(path.join(locked, "agents"), path.join(home, ".agents"))
-            await fs.symlink(path.join(locked, "agents"), path.join(project, ".opencode"))
-            await fs.chmod(locked, 0o000)
-          }).pipe(
-            Effect.andThen(Effect.addFinalizer(() => Effect.promise(() => fs.chmod(locked, 0o755)))),
-            Effect.andThen(
-              Effect.gen(function* () {
-                const config = yield* Config.Service
-                const entries = yield* config.entries()
-                expect(entries.flatMap((entry) => (entry.type === "document" ? [entry.info.shell] : []))).toEqual([
-                  "project",
-                ])
-              }).pipe(Effect.provide(testLayer(project, global))),
-            ),
-            Effect.scoped,
-          )
-        }),
-      ),
+  itWithPermissions("treats unreadable discovery roots as absent", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) => {
+        const global = path.join(tmp.path, "global")
+        const home = path.join(global, "home")
+        const project = path.join(home, "project")
+        const locked = path.join(tmp.path, "locked")
+        return Effect.promise(async () => {
+          await fs.mkdir(path.join(locked, "agents"), { recursive: true })
+          await fs.mkdir(project, { recursive: true })
+          await fs.writeFile(path.join(project, "opencode.json"), JSON.stringify({ shell: "project" }))
+          await fs.symlink(path.join(locked, "agents"), path.join(home, ".agents"))
+          await fs.symlink(path.join(locked, "agents"), path.join(project, ".opencode"))
+          await fs.chmod(locked, 0o000)
+        }).pipe(
+          Effect.andThen(Effect.addFinalizer(() => Effect.promise(() => fs.chmod(locked, 0o755)))),
+          Effect.andThen(
+            Effect.gen(function* () {
+              const config = yield* Config.Service
+              const entries = yield* config.entries()
+              expect(entries.flatMap((entry) => (entry.type === "document" ? [entry.info.shell] : []))).toEqual([
+                "project",
+              ])
+            }).pipe(Effect.provide(testLayer(project, global))),
+          ),
+          Effect.scoped,
+        )
+      }),
+    ),
   )
 
   it.live("discovers the global config directory once when the project walk reaches it", () =>
@@ -308,9 +321,7 @@ describe("Config", () => {
               ])
               expect(Config.latest(entries, "shell")).toBe("system")
               expect(Config.latest(entries, "username")).toBe("system-user")
-              expect(
-                ManagedPolicy.decision(ManagedPolicy.statements(entries, { statements: [] }), "tool.use", "shell:ls"),
-              ).toBe("deny")
+              expect(ManagedPolicy.decision(ManagedPolicy.statements(entries), "tool.use", "shell:ls")).toBe("deny")
             }).pipe(
               Effect.provide(
                 testLayer(project, global, project, undefined, undefined, emptyCredentialNode, emptyWellknownNode, {
@@ -528,7 +539,7 @@ describe("Config", () => {
                   info: decodeInfo({ policies: [shell("shell:rm*", "allow"), shell("shell:*", "deny")] }),
                 }),
               )
-              const statements = ManagedPolicy.statements(yield* config.entries(), { statements: [] })
+              const statements = ManagedPolicy.statements(yield* config.entries())
               const deciding = (resource: string) =>
                 statements.findLast(
                   (policy) => policy.action === "tool.use" && Wildcard.match(resource, policy.resource),
@@ -541,6 +552,110 @@ describe("Config", () => {
             }).pipe(
               Effect.provide(
                 testLayer(project, global, project, undefined, undefined, emptyCredentialNode, emptyWellknownNode, {
+                  system,
+                }),
+              ),
+            ),
+          ),
+        )
+      }),
+    ),
+  )
+
+  it.live("keeps only the policies of documents from integrations managed policy denies", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) => {
+        const system = path.join(tmp.path, "system")
+        const global = path.join(tmp.path, "global")
+        const project = path.join(tmp.path, "project")
+        const allowed = "org_allowed"
+        const opencode = Integration.ID.make("opencode")
+        const origin = "https://ai.acme.com"
+        const credentialID = Credential.ID.create()
+        let org = "org_personal"
+        const credentialNode = makeGlobalNode({
+          service: Credential.Service,
+          layer: Layer.mock(Credential.Service)({
+            list: () => Effect.succeed([]),
+            get: (id) =>
+              Effect.succeed(
+                new Credential.Info({
+                  id,
+                  integrationID: opencode,
+                  label: "Console",
+                  value: Credential.Key.make({ type: "key", key: "secret", metadata: { orgID: org } }),
+                }),
+              ),
+          }),
+          deps: [],
+        })
+        const entry: WellKnown.Entry = { origin, integrationID: Integration.ID.make(origin), manifest: {} }
+        const wellknownNode = makeGlobalNode({
+          service: WellKnown.Service,
+          layer: Layer.mock(WellKnown.Service)({
+            entries: () => Effect.succeed([entry]),
+            snapshot: () => [entry],
+            cached: () =>
+              Effect.succeed([
+                {
+                  mcp: { servers: { wiki: { type: "remote", url: "https://wiki.acme.com/mcp" } } },
+                  policies: [{ action: "tool.use", resource: "shell:rm*", effect: "deny" }],
+                },
+              ]),
+          }),
+          deps: [],
+        })
+        const supplied = (entries: readonly Entry[]) =>
+          entries.flatMap((entry) =>
+            entry.type === "document" && !entry.path
+              ? [{ servers: Object.keys(entry.info.mcp?.servers ?? {}), policies: entry.info.policies?.length ?? 0 }]
+              : [],
+          )
+        return Effect.promise(() =>
+          fs.mkdir(system, { recursive: true }).then(() =>
+            fs.writeFile(
+              path.join(system, "opencode.json"),
+              JSON.stringify({
+                policies: [
+                  { action: "integration.use", resource: "*", effect: "deny" },
+                  { action: "integration.use", resource: `opencode#${allowed}`, effect: "allow" },
+                ],
+              }),
+            ),
+          ),
+        ).pipe(
+          Effect.andThen(
+            Effect.gen(function* () {
+              const config = yield* Config.Service
+              const install = () =>
+                config.integration!(
+                  opencode,
+                  ConfigIntegration.make({
+                    integrationID: opencode,
+                    connection: { type: "credential", id: credentialID, label: "Console", method: "key" },
+                    organization: org,
+                    info: decodeInfo({
+                      mcp: { servers: { docs: { type: "remote", url: "https://docs.acme.com/mcp" } } },
+                      policies: [{ action: "mcp.use", resource: "github", effect: "deny" }],
+                    }),
+                  }),
+                )
+              yield* install()
+              // The personal account's servers and the denied well-known origin's config are gone; their policies stay.
+              expect(supplied(yield* config.entries())).toEqual([
+                { servers: [], policies: 1 },
+                { servers: [], policies: 1 },
+              ])
+              org = allowed
+              yield* config.integration!(opencode, undefined)
+              yield* install()
+              expect(supplied(yield* config.entries())).toEqual([
+                { servers: ["docs"], policies: 1 },
+                { servers: [], policies: 1 },
+              ])
+            }).pipe(
+              Effect.provide(
+                testLayer(project, global, project, undefined, undefined, credentialNode, wellknownNode, {
                   system,
                 }),
               ),
@@ -787,6 +902,7 @@ describe("Config", () => {
             layer: Layer.succeed(
               Credential.Service,
               Credential.Service.of({
+                lock: () => Effect.die("unused Credential.lock"),
                 all: () => Effect.die("unused Credential.all"),
                 list: () =>
                   Effect.succeed([
@@ -1036,6 +1152,7 @@ describe("Config", () => {
             layer: Layer.succeed(
               Credential.Service,
               Credential.Service.of({
+                lock: () => Effect.die("unused Credential.lock"),
                 all: () => Effect.die("unused Credential.all"),
                 list: () =>
                   Effect.succeed([
@@ -1457,11 +1574,11 @@ describe("Config", () => {
           yield* Effect.promise(() =>
             Promise.all([
               fs.writeFile(
-                path.join(tmp.path, "bolt.json"),
+                path.join(tmp.path, "opencode.json"),
                 JSON.stringify({ $schema: "base", providers: { base: provider } }),
               ),
               fs.writeFile(
-                path.join(tmp.path, "bolt.jsonc"),
+                path.join(tmp.path, "opencode.jsonc"),
                 `{
                   // Later global files override scalar fields while retaining providers.
                   "$schema": "last",
@@ -1477,12 +1594,12 @@ describe("Config", () => {
             expect(documents).toHaveLength(2)
             expect(documents.map((document) => document.type)).toEqual(["document", "document"])
             expect(documents.map((document) => document.info.$schema)).toEqual(["base", "last"])
-            expect(documents[0]).toBeInstanceOf(Config.Document)
-            expect(documents[0]?.path).toBe(path.join(tmp.path, "bolt.json"))
+            expect(documents[0]).toBeInstanceOf(Document)
+            expect(documents[0]?.path).toBe(AbsolutePath.make(path.join(tmp.path, "opencode.json")))
             expect(documents[1]?.info.providers?.last).toBeInstanceOf(ConfigProvider.Info)
 
             yield* Effect.promise(() =>
-              fs.writeFile(path.join(tmp.path, "bolt.jsonc"), JSON.stringify({ $schema: "changed" })),
+              fs.writeFile(path.join(tmp.path, "opencode.jsonc"), JSON.stringify({ $schema: "changed" })),
             )
             expect(
               (yield* config.entries())
@@ -1607,7 +1724,7 @@ describe("Config", () => {
     Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) =>
         Effect.gen(function* () {
-          const file = path.join(tmp.path, "bolt.json")
+          const file = path.join(tmp.path, "opencode.json")
           const contents = JSON.stringify({
             shell: "/bin/zsh",
             providers: { local: provider },
@@ -1633,7 +1750,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 shell: "/bin/bash",
                 model: "anthropic/claude",
@@ -1711,10 +1828,6 @@ describe("Config", () => {
                   sdk: { repository: "github.com/example/sdk", branch: "main" },
                   shorthand: "github.com/example/docs",
                 },
-                plugins: [
-                  "bolt-helicone-session",
-                  { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-                ],
               }),
             ),
           )
@@ -1807,10 +1920,6 @@ describe("Config", () => {
               sdk: { repository: "github.com/example/sdk", branch: "main" },
               shorthand: "github.com/example/docs",
             })
-            expect(documents[0]?.info.plugins).toEqual([
-              "bolt-helicone-session",
-              { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-            ])
           }).pipe(Effect.provide(testLayer(tmp.path)))
         }),
       ),
@@ -1823,7 +1932,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 reference: {
                   local: { path: "../library" },
@@ -1856,7 +1965,7 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
+              path.join(tmp.path, "opencode.json"),
               JSON.stringify({
                 shell: "/bin/zsh",
                 default_agent: "reviewer",
@@ -1877,7 +1986,6 @@ describe("Config", () => {
                     permission: { read: "allow" },
                   },
                 },
-                plugin: ["bolt-helicone-session", ["@my-org/audit-plugin", { endpoint: "https://audit.example.com" }]],
                 skills: { paths: ["./skills"], urls: ["https://example.com/.well-known/skills/"] },
                 references: {
                   docs: { path: "../docs", description: "Use for product documentation", hidden: true },
@@ -1966,10 +2074,6 @@ describe("Config", () => {
               request: { body: { temperature: 0.2 } },
               permissions: [{ action: "read", resource: "*", effect: "allow" }],
             })
-            expect(documents[0]?.info.plugins).toEqual([
-              "bolt-helicone-session",
-              { package: "@my-org/audit-plugin", options: { endpoint: "https://audit.example.com" } },
-            ])
             expect(documents[0]?.info.skills).toEqual(["./skills", "https://example.com/.well-known/skills/"])
             expect(documents[0]?.info.references).toEqual({
               docs: { path: "../docs", description: "Use for product documentation", hidden: true },
@@ -2045,8 +2149,8 @@ describe("Config", () => {
         Effect.gen(function* () {
           yield* Effect.promise(() =>
             Promise.all([
-              fs.writeFile(path.join(tmp.path, "bolt.json"), JSON.stringify({ $schema: "base" })),
-              fs.writeFile(path.join(tmp.path, "bolt.jsonc"), "{ invalid"),
+              fs.writeFile(path.join(tmp.path, "opencode.json"), JSON.stringify({ $schema: "base" })),
+              fs.writeFile(path.join(tmp.path, "opencode.jsonc"), "{ invalid"),
             ]),
           )
           return yield* Effect.gen(function* () {
@@ -2066,45 +2170,8 @@ describe("Config", () => {
     ),
   )
 
-  it.live("loads policy statements in reverse config order", () =>
-    Effect.acquireRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
-    ).pipe(
-      Effect.flatMap((tmp) => {
-        const global = path.join(tmp.path, "global")
-        return Effect.gen(function* () {
-          yield* Effect.promise(async () => {
-            await fs.mkdir(global, { recursive: true })
-            await fs.writeFile(
-              path.join(global, "bolt.json"),
-              JSON.stringify({
-                experimental: { policies: [{ effect: "deny", action: "provider.use", resource: "openai" }] },
-              }),
-            )
-            await fs.writeFile(
-              path.join(tmp.path, "bolt.json"),
-              JSON.stringify({
-                experimental: { policies: [{ effect: "allow", action: "provider.use", resource: "openai" }] },
-              }),
-            )
-          })
-
-          return yield* Effect.gen(function* () {
-            const policy = yield* Policy.Service
-
-            expect(yield* policy.evaluate("provider.use", "openai", "allow")).toBe("deny")
-          }).pipe(Effect.provide(testLayer(tmp.path, global)))
-        })
-      }),
-    ),
-  )
-
-  it.live("loads global, ancestor, and .bolt configuration up to the project boundary", () =>
-    Effect.acquireRelease(
-      Effect.promise(() => tmpdir()),
-      (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
-    ).pipe(
+  it.live("loads global and ancestor configuration across the project boundary", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) => {
         const global = path.join(tmp.path, "global")
         const root = path.join(tmp.path, "repo")
@@ -2118,16 +2185,23 @@ describe("Config", () => {
             await fs.mkdir(globalAgents, { recursive: true })
             await fs.mkdir(globalClaude, { recursive: true })
             await fs.mkdir(directory, { recursive: true })
-            await fs.mkdir(path.join(root, ".bolt"), { recursive: true })
-            await fs.mkdir(path.join(directory, ".bolt"), { recursive: true })
+            await fs.mkdir(path.join(root, ".agents"), { recursive: true })
+            await fs.mkdir(path.join(root, ".claude"), { recursive: true })
+            await fs.mkdir(path.join(root, ".opencode"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".agents"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".claude"), { recursive: true })
+            await fs.mkdir(path.join(directory, ".opencode"), { recursive: true })
             await Promise.all([
-              fs.writeFile(path.join(tmp.path, "bolt.json"), JSON.stringify({ $schema: "outside" })),
-              fs.writeFile(path.join(global, "bolt.json"), JSON.stringify({ $schema: "global" })),
-              fs.writeFile(path.join(root, "bolt.json"), JSON.stringify({ $schema: "root" })),
-              fs.writeFile(path.join(parent, "bolt.jsonc"), JSON.stringify({ $schema: "parent" })),
-              fs.writeFile(path.join(directory, "bolt.json"), JSON.stringify({ $schema: "directory" })),
-              fs.writeFile(path.join(root, ".bolt", "bolt.json"), JSON.stringify({ $schema: "root-dot" })),
-              fs.writeFile(path.join(directory, ".bolt", "bolt.jsonc"), JSON.stringify({ $schema: "directory-dot" })),
+              fs.writeFile(path.join(tmp.path, "opencode.json"), JSON.stringify({ $schema: "outside" })),
+              fs.writeFile(path.join(global, "opencode.json"), JSON.stringify({ $schema: "global" })),
+              fs.writeFile(path.join(root, "opencode.json"), JSON.stringify({ $schema: "root" })),
+              fs.writeFile(path.join(parent, "opencode.jsonc"), JSON.stringify({ $schema: "parent" })),
+              fs.writeFile(path.join(directory, "opencode.json"), JSON.stringify({ $schema: "directory" })),
+              fs.writeFile(path.join(root, ".opencode", "opencode.json"), JSON.stringify({ $schema: "root-dot" })),
+              fs.writeFile(
+                path.join(directory, ".opencode", "opencode.jsonc"),
+                JSON.stringify({ $schema: "directory-dot" }),
+              ),
             ])
           })
 
@@ -2139,8 +2213,8 @@ describe("Config", () => {
 
             expect(entries.filter((entry) => entry.type === "directory").map((entry) => entry.path)).toEqual([
               AbsolutePath.make(global),
-              AbsolutePath.make(path.join(root, ".bolt")),
-              AbsolutePath.make(path.join(directory, ".bolt")),
+              AbsolutePath.make(path.join(root, ".opencode")),
+              AbsolutePath.make(path.join(directory, ".opencode")),
             ])
             expect(compatibility.agents.filter((path) => inFixture(tmp.path, path))).toEqual([
               AbsolutePath.make(globalAgents),
@@ -2169,9 +2243,9 @@ describe("Config", () => {
               "parent",
               "directory",
               "root-dot",
-              AbsolutePath.make(path.join(root, ".bolt")),
+              AbsolutePath.make(path.join(root, ".opencode")),
               "directory-dot",
-              AbsolutePath.make(path.join(directory, ".bolt")),
+              AbsolutePath.make(path.join(directory, ".opencode")),
             ])
           }).pipe(
             Effect.provide(

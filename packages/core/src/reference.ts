@@ -1,14 +1,14 @@
 export * as Reference from "./reference.js"
 
-import { makeLocationNode } from "./effect/app-node"
-import { Context, Effect, Layer, Scope, Types } from "effect"
-import { Reference } from "@bolt-ai/schema/reference"
-import { Global } from "./global"
-import { EventV2 } from "./event"
-import { Repository } from "./repository"
-import { RepositoryCache } from "./repository-cache"
-import { AbsolutePath } from "./schema"
-import { State } from "./state"
+import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { Context, Effect, Layer, Scope } from "effect"
+import { Reference } from "@opencode/schema/reference"
+import { Global } from "@opencode/util/global"
+import { Bus } from "./bus.js"
+import { Repository } from "./repository.js"
+import { RepositoryCache } from "./repository-cache.js"
+import { AbsolutePath } from "./schema.js"
+import { State } from "./state.js"
 
 export const LocalSource = Reference.LocalSource
 export type LocalSource = Reference.LocalSource
@@ -39,7 +39,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly list: () => Effect.Effect<Info[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Reference") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Reference") {}
 
 const layer = Layer.effect(
   Service,
@@ -48,8 +48,8 @@ const layer = Layer.effect(
     const bus = yield* Bus.Service
     const cache = yield* RepositoryCache.Service
     const scope = yield* Scope.Scope
-    const list = (): Info[] =>
-      Array.from(state.get().sources).flatMap(([name, source]) => {
+    const list = (data: Data = state.get()): Info[] =>
+      Array.from(data.sources).flatMap(([name, source]) => {
         const info = {
           name,
           source,
@@ -101,11 +101,12 @@ const layer = Layer.effect(
         list: () => Array.from(editor.sources),
         get: (name) => editor.sources.get(name),
       }),
-      notify: () =>
+      notify: State.changes(list, () =>
         Effect.gen(function* () {
           yield* refresh().pipe(Effect.forkIn(scope))
           yield* bus.publish(Reference.Event.Updated, {})
         }),
+      ),
     })
 
     // Check independently of session activity; the shared cache throttles Git work daily.

@@ -1,5 +1,5 @@
 import fs from "fs/promises"
-import { Flock } from "@bolt-ai/core/util/flock"
+import { Flock } from "@opencode/util/flock"
 
 type Msg = {
   key: string

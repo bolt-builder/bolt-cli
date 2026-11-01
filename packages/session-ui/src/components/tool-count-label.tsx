@@ -1,6 +1,6 @@
 import { createMemo } from "solid-js"
-import { AnimatedNumber } from "@bolt-ai/ui/animated-number"
-import { pluralCategory, pluralKey, useI18n, type UiI18nPluralKey } from "@bolt-ai/ui/context/i18n"
+import { AnimatedNumber } from "@opencode/ui/animated-number"
+import { pluralCategory, pluralKey, useI18n, type UiI18nPluralKey } from "@opencode/ui/context/i18n"
 
 function split(text: string) {
   const match = /{{\s*count\s*}}/.exec(text)

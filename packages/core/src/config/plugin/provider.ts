@@ -7,8 +7,12 @@ import { Document, type Entry } from "@opencode/schema/config"
 import { ConfigProvider } from "@opencode/schema/config/provider"
 import { Money } from "@opencode/schema/money"
 import { Effect } from "effect"
-import { Config } from "../../config"
-import { ModelV2 } from "../../model"
+import { Config } from "../../config.js"
+import { Model } from "../../model.js"
+import { Provider } from "../../provider.js"
+import { Variant } from "../../variant.js"
+import { ConfigIntegration } from "../integration.js"
+import { ConfigEntryObserver } from "./entry-observer.js"
 
 export const Plugin = define({
   id: "opencode.config.provider",
@@ -99,7 +103,9 @@ export const Plugin = define({
         const providerID = definition.providerID
         for (const [id, config] of Object.entries(item.models ?? {})) {
           const source = definition.models.get(id)
-          const inherit = source?.inherit || !models.get(providerID, id)
+          const existing = models.get(providerID, id)
+          const hadVariants = (existing?.variants.length ?? 0) > 0
+          const inherit = source?.inherit || !existing
           overlay(
             models,
             models.provider.get(providerID)?.provider.package,
@@ -118,7 +124,8 @@ export const Plugin = define({
           if (
             config.variants === undefined &&
             config.capabilities?.reasoning === undefined &&
-            (!source?.base || repackaged)
+            // Custom models start without variants, so non-empty variants here came from an earlier transform.
+            ((!source?.base && !hadVariants) || repackaged)
           )
             models.update(providerID, id, (model) => {
               model.variants = [
@@ -213,6 +220,7 @@ function overlay(
       if (item.package !== undefined) model.package = undefined
       if (item.settings?.baseURL !== undefined && model.settings) delete model.settings.baseURL
     }
+    if (config.type !== undefined) model.type = config.type
     if (config.family !== undefined) model.family = config.family
     if (config.name) model.name = config.name
     if (config.modelID !== undefined) model.modelID = config.modelID

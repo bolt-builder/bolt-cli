@@ -1,18 +1,22 @@
 import path from "path"
 import { describe, expect } from "bun:test"
-import { Effect, Layer } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { Integration } from "@bolt-ai/core/integration"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { Location } from "@bolt-ai/core/location"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ModelsDev } from "@bolt-ai/core/models-dev"
-import { ModelsDevPlugin } from "@bolt-ai/core/plugin/models-dev"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { AbsolutePath } from "@bolt-ai/core/schema"
+import { Money } from "@opencode/schema/money"
+import { Context, Effect, Exit, Layer, Scope } from "effect"
+import { TestClock } from "effect/testing"
+import { Integration } from "@opencode/core/integration"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Bus } from "@opencode/core/bus"
+import { Location } from "@opencode/core/location"
+import { Model } from "@opencode/core/model"
+import { ModelsDev } from "@opencode/core/models-dev"
+import { ModelsDevPlugin } from "@opencode/core/plugin/models-dev"
+import { Plugin } from "@opencode/core/plugin"
+import { PluginHost } from "@opencode/core/plugin/host"
+import { ProviderPlugins } from "@opencode/core/plugin/provider"
+import { Provider } from "@opencode/core/provider"
+import { AbsolutePath } from "@opencode/core/schema"
+import { withEnv } from "../fixture/env"
 import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
 import { providerHost, host, integrationHost } from "./host"
@@ -702,15 +706,12 @@ describe("ModelsDevPlugin", () => {
     }),
   )
 
-  it.effect("omits realtime, embedding, and reranking models even when they list text input and output", () =>
+  it.effect("lists non-chat models only by type, so sessions never see them", () =>
     Effect.gen(function* () {
       const integrations = yield* Integration.Service
       const providers = yield* Provider.Service
       const modelState = yield* Model.Service
       const providerID = Provider.ID.make("acme")
-      const ids = ["gpt-5.5", "gpt-audio", "jev-1.13", "gpt-realtime-2.1", "text-embedding-3-large", "rerank-v3.5"].map(
-        (id) => Model.ID.make(id),
-      )
       const model = {
         providerID,
         capabilities: { tools: true, input: ["text"], output: ["text"] },
@@ -721,6 +722,8 @@ describe("ModelsDevPlugin", () => {
         enabled: true,
         limit: { context: 128_000, output: 32_000 },
       } satisfies Omit<Model.Info, "id" | "modelID" | "name">
+      // An unset type means chat; image and decision models list text too, but only chat is offered.
+      const types = { "gpt-5.5": undefined, "gpt-audio": "chat", "jev-1.13": "decision", "gpt-image-2": "image" }
       const snapshot = {
         info: {
           id: providerID,
@@ -729,15 +732,13 @@ describe("ModelsDevPlugin", () => {
           package: "@opencode/ai/providers/openai-compatible",
         },
         environment: [],
-        models: ids.map((id) => ({ ...model, id, modelID: id, name: id })),
-        // gpt-5.5 has no type, which models.dev treats as chat.
-        types: new Map<Model.ID, ModelsDev.CatalogModelType>([
-          [Model.ID.make("gpt-audio"), "chat"],
-          [Model.ID.make("jev-1.13"), "decision"],
-          [Model.ID.make("gpt-realtime-2.1"), "realtime"],
-          [Model.ID.make("text-embedding-3-large"), "embedding"],
-          [Model.ID.make("rerank-v3.5"), "reranking"],
-        ]),
+        models: Object.entries(types).map(([id, type]) => ({
+          ...model,
+          id: Model.ID.make(id),
+          modelID: Model.ID.make(id),
+          name: id,
+          type,
+        })),
       } satisfies ModelsDev.Snapshot
 
       yield* ModelsDevPlugin.effect(
@@ -753,24 +754,53 @@ describe("ModelsDevPlugin", () => {
       )
 
       yield* activate(providers)
-      const listed = yield* Effect.forEach(ids, (id) => modelState.get(providerID, id))
-      expect(listed.flatMap((item) => item?.id ?? [])).toEqual(
-        ["gpt-5.5", "gpt-audio", "jev-1.13"].map((id) => Model.ID.make(id)),
+      const ids = (models: readonly Model.Info[]) => models.map((item) => item.id).sort()
+      expect(ids(yield* modelState.available())).toEqual(["gpt-5.5", "gpt-audio"].map((id) => Model.ID.make(id)))
+      expect(ids(yield* modelState.all())).toEqual(["gpt-5.5", "gpt-audio"].map((id) => Model.ID.make(id)))
+      expect(yield* modelState.get(providerID, Model.ID.make("jev-1.13"))).toBeUndefined()
+      expect(ids(yield* modelState.available(["decision"]))).toEqual([Model.ID.make("jev-1.13")])
+      expect(ids(yield* modelState.available(["image"]))).toEqual([Model.ID.make("gpt-image-2")])
+      expect(ids(yield* modelState.available(["chat", "image", "image"]))).toEqual(
+        ["gpt-5.5", "gpt-audio", "gpt-image-2"].map((id) => Model.ID.make(id)),
       )
+      expect(yield* modelState.available(["embedding"])).toEqual([])
     }),
   )
 
   it.effect("registers key methods for providers with environment variables", () =>
-    Effect.acquireUseRelease(
-      Effect.sync(() => {
-        const previous = {
-          path: Flag.BOLT_MODELS_PATH,
-          disabled: Flag.BOLT_DISABLE_MODELS_FETCH,
-        }
-        Flag.BOLT_MODELS_PATH = path.join(import.meta.dir, "fixtures", "models-dev.json")
-        Flag.BOLT_DISABLE_MODELS_FETCH = true
-        return previous
-      }),
+    Effect.gen(function* () {
+      const integrations = yield* Integration.Service
+      const providers = yield* Provider.Service
+      yield* ModelsDevPlugin.effect(
+        host({
+          provider: providerHost(providers),
+          integration: integrationHost(integrations),
+        }),
+      )
+      expect(yield* integrations.list()).toEqual([
+        Integration.Info.make({
+          id: Integration.ID.make("acme"),
+          name: "Acme",
+          methods: [
+            { type: "key" },
+            {
+              type: "env",
+              names: ["ACME_API_KEY"],
+            },
+          ],
+          connections: [],
+        }),
+      ])
+    }).pipe(Effect.provide(models(path.join(import.meta.dir, "fixtures", "models-dev.json")))),
+  )
+
+  it.effect("preserves provider and model URL templates in the catalog", () =>
+    withEnv(
+      {
+        ACME_HOST: "api.acme.test",
+        ACME_MODEL_PATH: undefined,
+        UNDECLARED_HOST: "private.example",
+      },
       () =>
         Effect.gen(function* () {
           const integrations = yield* Integration.Service
@@ -828,25 +858,6 @@ describe("ModelsDevPlugin", () => {
           expect((yield* modelState.get(providerID, modelID))?.settings?.baseURL).toBe(
             "https://${ACME_HOST}/${ACME_MODEL_PATH}/v1",
           )
-          expect(yield* integrations.list()).toEqual([
-            new Integration.Info({
-              id: Integration.ID.make("acme"),
-              name: "Acme",
-              methods: [
-                { type: "key" },
-                {
-                  type: "env",
-                  names: ["ACME_API_KEY"],
-                },
-              ],
-              connections: [],
-            }),
-          ])
-        }).pipe(Effect.provide(AppNodeBuilder.build(ModelsDev.node))),
-      (previous) =>
-        Effect.sync(() => {
-          Flag.BOLT_MODELS_PATH = previous.path
-          Flag.BOLT_DISABLE_MODELS_FETCH = previous.disabled
         }),
     ),
   )

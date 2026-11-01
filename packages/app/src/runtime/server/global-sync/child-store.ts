@@ -1,13 +1,12 @@
 import { createRoot, createSignal, getOwner, onCleanup, runWithOwner, type Accessor, type Owner } from "solid-js"
 import { createStore, type SetStoreFunction, type Store } from "solid-js/store"
-import { Persist, persisted } from "@/utils/persist"
-import type { VcsInfo } from "@bolt-ai/sdk/v2/client"
+import { Persist, persisted } from "@/runtime/persistence/storage"
+import type { Path } from "@/runtime/server/types"
 import {
   DIR_IDLE_TTL_MS,
   MAX_DIR_STORES,
   type ChildOptions,
   type DirState,
-  type IconCache,
   type MetaCache,
   type ProjectMeta,
   type State,
@@ -16,8 +15,10 @@ import { canDisposeDirectory, pickDirectoriesToEvict } from "./eviction"
 import { useQuery } from "@tanstack/solid-query"
 import { QueryOptionsApi } from "../sync"
 import { directoryKey, type DirectoryKey } from "./utils"
-import { NormalizedProviderListResponse } from "@bolt-ai/session-ui/context"
-import type { ServerScope } from "@/utils/server-scope"
+import type { ServerScope } from "@/runtime/server/scope"
+import type { Data } from "@opencode/client/solid"
+import { normalizeAgentList, normalizeProviderList } from "./utils"
+import { ProjectState, VcsState } from "../persistence"
 
 export function createChildStoreManager(input: {
   owner: Owner
@@ -38,7 +39,6 @@ export function createChildStoreManager(input: {
 }) {
   const children: Record<string, [Store<State>, SetStoreFunction<State>]> = {}
   const metaCache = new Map<string, MetaCache>()
-  const iconCache = new Map<string, IconCache>()
   const lifecycle = new Map<string, DirState>()
   const pins = new Map<string, number>()
   const ownerPins = new WeakMap<object, Set<string>>()
@@ -130,7 +130,6 @@ export function createChildStoreManager(input: {
     }
 
     metaCache.delete(key)
-    iconCache.delete(key)
     lifecycle.delete(key)
     mcpDirectories.delete(key)
     activeDirectories.delete(key)
@@ -189,17 +188,9 @@ export function createChildStoreManager(input: {
       if (!meta) throw new Error(input.translate("error.childStore.persistedProjectMetadataCreateFailed"))
       metaCache.set(key, { store: meta[0], setStore: meta[1], ready: meta[3] })
 
-      const icon = runWithOwner(input.owner, () =>
-        input.persist(Persist.serverWorkspace(input.scope, directory, "icon"), IconState, { value: undefined }),
-      )
-
-      if (!icon) throw new Error(input.translate("error.childStore.persistedProjectIconCreateFailed"))
-      iconCache.set(key, { store: icon[0], setStore: icon[1], ready: icon[3] })
-
       const init = () =>
         createRoot((dispose) => {
           const initialMeta = meta[0].value
-          const initialIcon = icon[0].value
           const [instanceQueriesEnabled, setInstanceQueriesEnabled] = createSignal(false)
 
           const lspQuery = useQuery(() => ({
@@ -210,7 +201,6 @@ export function createChildStoreManager(input: {
           const child = createStore<State>({
             project: "",
             projectMeta: initialMeta,
-            icon: initialIcon,
             get provider_ready() {
               return (
                 input.data.location.provider.list({ directory }) !== undefined &&
@@ -304,11 +294,6 @@ export function createChildStoreManager(input: {
             if (child[0].projectMeta !== initialMeta) return
             child[1]("projectMeta", meta[0].value)
           })
-
-          onPersistedInit(icon[2], () => {
-            if (child[0].icon !== initialIcon) return
-            child[1]("icon", icon[0].value)
-          })
         })
 
       runWithOwner(input.owner, init)
@@ -381,24 +366,11 @@ export function createChildStoreManager(input: {
     setStore("projectMeta", next)
   }
 
-  function projectIcon(directory: string, value: string | undefined) {
-    const key = directoryKey(directory)
-    const [store, setStore] = ensureChild(directory)
-    const cached = iconCache.get(key)
-
-    if (!cached) return
-
-    if (store.icon === value) return
-    cached.setStore("value", value)
-    setStore("icon", value)
-  }
-
   return {
     children,
     ensureChild,
     child,
     projectMeta,
-    projectIcon,
     mark,
     pin,
     unpin,

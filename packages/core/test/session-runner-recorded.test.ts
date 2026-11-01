@@ -1,40 +1,45 @@
-import { HttpRecorder } from "@bolt-ai/http-recorder"
-import { HttpRecorderInternal } from "@bolt-ai/http-recorder/internal"
-import * as OpenAIChat from "@bolt-ai/llm/protocols/openai-chat"
-import { Auth, LLMClient, RequestExecutor } from "@bolt-ai/llm/route"
-import { Database } from "@bolt-ai/core/database/database"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { EventTable } from "@bolt-ai/core/event/sql"
-import { PermissionV2 } from "@bolt-ai/core/permission"
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { Config } from "@bolt-ai/core/config"
-import { Project } from "@bolt-ai/core/project"
-import { ProjectTable } from "@bolt-ai/core/project/sql"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { Snapshot } from "@bolt-ai/core/snapshot"
-import { Prompt } from "@bolt-ai/core/session/prompt"
-import { SessionProjector } from "@bolt-ai/core/session/projector"
-import { SessionExecution } from "@bolt-ai/core/session/execution"
-import { SessionRunCoordinator } from "@bolt-ai/core/session/run-coordinator"
-import { SessionRunner } from "@bolt-ai/core/session/runner"
-import * as SessionRunnerLLM from "@bolt-ai/core/session/runner/llm"
-import { SessionRunnerModel } from "@bolt-ai/core/session/runner/model"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
-import { SessionTable } from "@bolt-ai/core/session/sql"
-import { SessionStore } from "@bolt-ai/core/session/store"
-import { Location } from "@bolt-ai/core/location"
-import { SystemContextRegistry } from "@bolt-ai/core/system-context/registry"
-import { SystemContext } from "@bolt-ai/core/system-context"
-import { SkillGuidance } from "@bolt-ai/core/skill/guidance"
-import { ReferenceGuidance } from "@bolt-ai/core/reference/guidance"
+import { HttpRecorder } from "@opencode/http-recorder"
+import { OpenAIChat } from "@opencode/ai/protocols/openai-chat"
+import { Auth, LLMClient, type LLMClientService, RequestExecutor } from "@opencode/ai/route"
+import { Model } from "@opencode/core/model"
+import { Database } from "@opencode/core/database/database"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNodePlatform } from "@opencode/core/effect/app-node-platform"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Bus } from "@opencode/core/bus"
+import { EventTable } from "@opencode/core/event/sql"
+import { Permission } from "@opencode/core/permission"
+import { Agent } from "@opencode/core/agent"
+import { Config } from "@opencode/core/config"
+import { Project } from "@opencode/core/project"
+import { ProjectTable } from "@opencode/core/project/sql"
+import { AbsolutePath } from "@opencode/core/schema"
+import { Session } from "@opencode/core/session"
+import { Snapshot } from "@opencode/core/snapshot"
+import { SessionProjector } from "@opencode/core/session/projector"
+import { SessionExecution } from "@opencode/core/session/execution"
+import { SessionRunCoordinator } from "@opencode/core/session/run-coordinator"
+import { SessionRunner } from "@opencode/core/session/runner/index"
+import { SessionRunnerLLM } from "@opencode/core/session/runner/llm"
+import { SessionRunnerModel } from "@opencode/core/session/runner/model"
+import { Tool } from "@opencode/core/tool"
+import { SessionTable } from "@opencode/core/session/sql"
+import { SessionStore } from "@opencode/core/session/store"
+import { Location } from "@opencode/core/location"
+import { InstructionBuiltIns } from "@opencode/core/instructions/builtins"
+import { InstructionDiscovery } from "@opencode/core/instruction-discovery"
+import { Instructions } from "@opencode/core/instructions/index"
+import { SkillInstructions } from "@opencode/core/skill/instructions"
+import { ReferenceInstructions } from "@opencode/core/reference/instructions"
+import { McpInstructions } from "@opencode/core/mcp/instructions"
+import { PluginSupervisor } from "@opencode/core/plugin/supervisor"
+import { Plugin } from "@opencode/core/plugin"
+import { PluginHooks } from "@opencode/core/plugin/hooks"
+import { OptimizePlugin } from "@opencode/core/plugin/optimize"
+import { IdentityPlugin } from "@opencode/core/plugin/identity"
 import { describe, expect } from "bun:test"
 import { eq } from "drizzle-orm"
-import { Effect, Layer } from "effect"
+import { Effect, Layer, Option, Tracer } from "effect"
 import path from "node:path"
 import { testEffect } from "./lib/effect"
 import { LocationServiceMap } from "@opencode/core/location-service-map"
@@ -162,7 +167,15 @@ const testLayer = (llmClient: Layer.Layer<LLMClientService>) =>
       SessionExecution.node.replace(execution(llmClient)),
     ],
   )
-const it = testEffect(testLayer(client))
+const spans: Tracer.NativeSpan[] = []
+const tracer = Tracer.make({
+  span(options) {
+    const span = new Tracer.NativeSpan(options)
+    spans.push(span)
+    return span
+  },
+})
+const it = testEffect(testLayer(client).pipe(Layer.provide(Layer.succeed(Tracer.Tracer, tracer))))
 const sessionID = Session.ID.make("ses_runner_recorded")
 
 describe("SessionRunnerLLM recorded", () => {
@@ -238,6 +251,24 @@ describe("SessionRunnerLLM recorded", () => {
         "session.step.streamed.1",
         "session.step.ended.1",
       ])
-    }),
+
+      // The turn is its own trace, every span in it names the session, and the attempt names the model and tokens.
+      const drain = spans.find((span) => span.name === "SessionRunner.drain")
+      expect(drain).toBeDefined()
+      expect(Option.isNone(drain!.parent)).toBe(true)
+      const turn = spans.filter((span) => span.traceId === drain!.traceId)
+      expect(turn.filter((span) => span.attributes.get("session.id") !== sessionID).map((span) => span.name)).toEqual(
+        [],
+      )
+      const attempt = turn.find((span) => span.name === "SessionStep.attempt")
+      expect(Object.fromEntries(attempt?.attributes ?? [])).toMatchObject({
+        "gen_ai.provider.name": "openai",
+        "gen_ai.request.model": "gpt-4o-mini",
+        "gen_ai.response.finish_reasons": ["stop"],
+        "gen_ai.usage.input_tokens": 465,
+        "gen_ai.usage.output_tokens": 2,
+      })
+      expect(attempt?.attributes.get("opencode.llm.first_output_ms")).toBeNumber()
+    }).pipe(Effect.withSpan("fixture.request")),
   )
 })

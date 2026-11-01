@@ -1,17 +1,14 @@
 /// <reference lib="webworker" />
 
-import { ShikiStreamTokenizer } from "@shikijs/stream"
-import { createMarkdownParser } from "@bolt-ai/ui/context/marked-parser"
-import { BoltTheme } from "@bolt-ai/ui/context/marked-theme"
+import { codeToTokens, isSupportedLanguage, LiveTokenizer, type ThemedToken } from "@pierre/highlights"
+import { createMarkdownParser } from "@opencode/ui/context/marked-parser"
+import { OpenCodeTheme } from "@opencode/ui/context/highlight-theme"
 import {
-  bundledLanguages,
-  createHighlighter,
-  getTokenStyleObject,
-  stringifyTokenStyle,
-  type BundledLanguage,
-  type ThemedToken,
-} from "shiki"
-import type { MarkdownToken, MarkdownWorkerRequest, MarkdownWorkerResponse } from "./markdown-worker-protocol"
+  diffProjectionBlocks,
+  type MarkdownToken,
+  type MarkdownWorkerRequest,
+  type MarkdownWorkerResponse,
+} from "./markdown-worker-protocol"
 import { createLatestWorkerQueue } from "./markdown-worker-queue"
 import { project, type Projection } from "./markdown-stream"
 
@@ -37,13 +34,6 @@ const projectQueue = createLatestWorkerQueue<Extract<MarkdownWorkerRequest, { ty
   run: runProject,
   supersede: (request) => post({ type: "superseded", id: request.id, key: request.key }),
   dispose: (key) => void projections.delete(key),
-})
-const parser = createMarkdownParser(async (code, language) => {
-  const instance = await getHighlighter()
-  const name = language in bundledLanguages ? language : "text"
-  if (!instance.getLoadedLanguages().includes(name))
-    await instance.loadLanguage(bundledLanguages[name as BundledLanguage])
-  return instance.codeToHtml(code, { lang: name as BundledLanguage, theme: "Bolt", tabindex: false })
 })
 
 self.onmessage = (event: MessageEvent<MarkdownWorkerRequest>) => {
@@ -79,9 +69,15 @@ async function parse(request: Extract<MarkdownWorkerRequest, { type: "parse" }>)
 
 async function runProject(request: Extract<MarkdownWorkerRequest, { type: "project" }>) {
   try {
-    const projection = project(projections.get(request.key), request.text, request.live)
+    const previous = projections.get(request.key)
+    const projection = project(previous, request.text, request.live)
     projections.set(request.key, projection)
-    post({ type: "project", id: request.id, key: request.key, projection })
+    post({
+      type: "project",
+      id: request.id,
+      key: request.key,
+      ...diffProjectionBlocks(previous?.blocks, projection.blocks),
+    })
   } catch (error) {
     post({
       type: "error",
@@ -99,8 +95,8 @@ async function highlight(request: Extract<MarkdownWorkerRequest, { type: "highli
     const lang = isSupportedLanguage(language) ? language : "text"
 
     if (request.complete) {
-      const result = instance.codeToTokens(request.text, { lang: language as BundledLanguage, theme: "Bolt" })
-      streams.delete(request.key)
+      const result = codeToTokens(request.text, { lang, theme: OpenCodeTheme })
+      closeStream(request.key)
       post({
         type: "highlight",
         id: request.id,
@@ -120,14 +116,18 @@ async function highlight(request: Extract<MarkdownWorkerRequest, { type: "highli
 
     const previous = streams.get(request.key)
     const reset = !previous || previous.language !== language || !request.text.startsWith(previous.source)
-    const stream = reset
-      ? {
-          language,
-          source: "",
-          tokenizer: new ShikiStreamTokenizer({ highlighter: instance, lang: language, theme: "Bolt" }),
-        }
-      : previous
-    const result = await stream.tokenizer.enqueue(request.text.slice(stream.source.length))
+
+    if (reset) closeStream(request.key)
+
+    const stream =
+      reset || !previous
+        ? { language, source: "", tokenizer: new LiveTokenizer({ lang, theme: OpenCodeTheme }) }
+        : previous
+
+    // Lines before the last are final because a lexer only carries state forward; the last line can still grow.
+    const start = stream.tokenizer.lineCount - 1
+    const end = { line: start, character: stream.tokenizer.getLineLength(start) }
+    stream.tokenizer.applyEdits([{ range: { start: end, end }, newText: request.text.slice(stream.source.length) }])
     stream.source = request.text
     streams.set(request.key, stream)
 
@@ -161,8 +161,9 @@ async function highlight(request: Extract<MarkdownWorkerRequest, { type: "highli
   }
 }
 
-function getHighlighter() {
-  return (highlighter ??= createHighlighter({ themes: [BoltTheme], langs: [] }))
+function closeStream(key: string) {
+  streams.get(key)?.tokenizer.dispose()
+  streams.delete(key)
 }
 
 function post(response: MarkdownWorkerResponse) {
@@ -174,11 +175,7 @@ function token(value: ThemedToken): MarkdownToken {
 
   return [
     value.content,
-    [
-      value.color && `color:${value.color}`,
-      fontStyle & 1 && "font-style:italic",
-      fontStyle & 2 && "font-weight:bold",
-    ]
+    [value.color && `color:${value.color}`, fontStyle & 1 && "font-style:italic", fontStyle & 2 && "font-weight:bold"]
       .filter(Boolean)
       .join(";"),
   ]

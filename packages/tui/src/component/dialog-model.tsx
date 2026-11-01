@@ -105,22 +105,6 @@ function DialogConnectedModels(props: {
     const favorites = connected() ? (newDesigns() ? favoritesAtOpen : local.model.favorite()) : []
     const recents = local.model.recent()
 
-    const autoOption =
-      needle.length === 0
-        ? [
-            {
-              value: undefined as { providerID: string; modelID: string } | undefined,
-              title: "Auto",
-              description: "Cheapest available model",
-              category: showExtra() ? "Auto" : undefined,
-              onSelect: () => {
-                local.model.clear()
-                dialog.clear()
-              },
-            },
-          ]
-        : []
-
     function toOptions(items: typeof favorites, category: string) {
       if (!showSections) return []
       return items.flatMap((item) => {
@@ -135,8 +119,8 @@ function DialogConnectedModels(props: {
             releaseDate: model.time.released,
             description: provider?.name ?? model.providerID,
             category,
-            disabled: provider.id === "bolt" && model.id.includes("-nano"),
-            footer: model.cost?.input === 0 && provider.id === "bolt" ? "Free" : undefined,
+            footer: trailing(model, isFavorite(item)),
+            detail: newDesigns() ? () => <ModelDetail model={model} usage={usage(model)} /> : undefined,
             onSelect: () => {
               props.onSelect(model.providerID, model.id)
             },
@@ -153,28 +137,26 @@ function DialogConnectedModels(props: {
       "Recent",
     )
 
-    const providerOptions = pipe(
-      sync.data.provider,
-      sortBy(
-        (provider) => provider.id !== "bolt",
-        (provider) => provider.name,
-      ),
-      flatMap((provider) =>
-        pipe(
-          provider.models,
-          entries(),
-          filter(([_, info]) => info.status !== "deprecated"),
-          filter(([_, info]) => (props.providerID ? info.providerID === props.providerID : true)),
-          map(([model, info]) => ({
-            value: { providerID: provider.id, modelID: model },
-            title: info.name ?? model,
-            releaseDate: info.release_date,
-            description: favorites.some((item) => item.providerID === provider.id && item.modelID === model)
-              ? "(Favorite)"
-              : undefined,
-            category: connected() ? provider.name : undefined,
-            disabled: provider.id === "bolt" && model.includes("-nano"),
-            footer: info.cost?.input === 0 && provider.id === "bolt" ? "Free" : undefined,
+    const modelOptions = sortModelOptions(
+      models()
+        .filter((model) => model.status !== "deprecated")
+        .filter((model) => (props.providerID ? model.providerID === props.providerID : true))
+        .map((model) => {
+          const provider = providers().get(model.providerID)
+          const value = { providerID: model.providerID, modelID: model.id }
+          // Users with nothing connected can only favorite models in the free picker (new designs); this picker keeps them unavailable.
+          const favorite = connected() && isFavorite(value)
+          return {
+            value,
+            providerID: model.providerID,
+            providerName: provider?.name ?? model.providerID,
+            title: model.name,
+            releaseDate: model.time.released,
+            description: newDesigns() ? undefined : favorite ? "(Favorite)" : undefined,
+            category: connected() ? (freeGroup(model) ? "Free" : (provider?.name ?? model.providerID)) : undefined,
+            footer: trailing(model, favorite),
+            free: isFreeModel(model),
+            detail: newDesigns() ? () => <ModelDetail model={model} usage={usage(model)} /> : undefined,
             onSelect() {
               props.onSelect(model.providerID, model.id)
             },

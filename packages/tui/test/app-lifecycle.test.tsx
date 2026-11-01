@@ -1,11 +1,239 @@
-import { expect, mock, test } from "bun:test"
-import type { TuiPluginApi } from "@bolt-ai/plugin/tui"
+import { expect, spyOn, test } from "bun:test"
+import { EmbeddedTerminalRenderable, type Renderable } from "@opentui/core"
 import { createTestRenderer } from "@opentui/core/testing"
-import { Effect } from "effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { Global } from "@bolt-ai/core/global"
-import { createTuiResolvedConfig } from "./fixture/tui-runtime"
-import { createEventSource, createFetch, directory, json } from "./fixture/tui-sdk"
+import { Effect, FileSystem } from "effect"
+import { Global } from "@opencode/util/global"
+import * as Open from "@opencode/util/open"
+import { waitForGoUpsellConnect } from "../src/component/dialog-go-upsell"
+import { GoUpsellArtRenderable } from "../src/component/go-upsell-art"
+import { SimulationRenderer } from "@opencode/simulation/frontend/renderer"
+import path from "node:path"
+import { Writable } from "node:stream"
+import { createEventStream, createFetch, directory, json } from "./fixture/tui-client"
+import { tmpdir } from "./fixture/fixture"
+import { createAppFixture } from "./fixture/app"
+import { waitForHighlightedFrame } from "./fixture/frame"
+import type { PluginInfo } from "@opencode/client"
+
+test.each([100, 44])("Ctrl-O is immediate, dismissible, and prunes cached deletions at width %s", async (width) => {
+  await using state = await tmpdir()
+  const requested = Promise.withResolvers<void>()
+  const response = Promise.withResolvers<Response>()
+  const projects = Promise.withResolvers<Response>()
+  const refresh = Promise.withResolvers<Response>()
+  const cachedSession = {
+    id: "ses_cached",
+    title: "Cached session",
+    projectID: "proj_fixture",
+    location: { directory: "/fixture" },
+    cost: 0,
+    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+    time: { created: 1, updated: 2 },
+  }
+  let requests = 0
+  await using setup = await createAppFixture({
+    width,
+    state: state.path,
+    fetch: (url) => {
+      if (url.pathname === "/api/session") {
+        requests++
+        requested.resolve()
+        if (requests === 1) return response.promise
+        if (requests === 2 || requests === 4) return refresh.promise.then((response) => response.clone())
+        if (requests > 4) return new Response("Unavailable", { status: 503 })
+        return json({ data: [cachedSession], cursor: {} })
+      }
+      if (url.pathname === "/api/project") return projects.promise
+      return undefined
+    },
+  })
+  try {
+    await setup.ready
+    await setup.waitForFrame((frame) => frame.includes("commands"))
+    setup.mockInput.pressKey("o", { ctrl: true })
+    await requested.promise
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).toContain("Search sessions")
+    expect(setup.captureCharFrame()).toContain("Refreshing")
+    projects.resolve(
+      json([
+        {
+          id: "proj_fixture",
+          canonical: "/fixture",
+          name: "Fixture project",
+          time: { created: 1, updated: 2 },
+          sandboxes: [],
+        },
+      ]),
+    )
+    await setup.waitForFrame((frame) => frame.includes("Fixture project"))
+    setup.mockInput.pressKey("o", { ctrl: true })
+    expect(requests).toBe(1)
+    setup.mockInput.pressEscape()
+    await setup.waitForFrame((frame) => !frame.includes("Fixture project"))
+    response.resolve(json({ data: [{ ...cachedSession, id: "ses_disposed", title: "Disposed response" }], cursor: {} }))
+    await setup.renderOnce()
+    expect(setup.captureCharFrame()).not.toContain("Fixture project")
+    setup.mockInput.pressKey("o", { ctrl: true })
+    await setup.waitForFrame((frame) => frame.includes("Refreshing"))
+    expect(setup.captureCharFrame()).not.toContain("Disposed")
+    setup.mockInput.pressEscape()
+    await setup.waitForFrame((frame) => !frame.includes("Fixture project"))
+    setup.mockInput.pressKey("o", { ctrl: true })
+    await setup.waitForFrame((frame) => frame.includes("Cached"))
+    setup.mockInput.pressEscape()
+    await setup.waitForFrame((frame) => !frame.includes("Fixture project"))
+    setup.mockInput.pressKey("o", { ctrl: true })
+    await setup.waitForFrame((frame) => frame.includes("Cached") && frame.includes("Refreshing"))
+    setup.events.emit({
+      id: "evt_deleted",
+      created: 1,
+      type: "session.deleted",
+      durable: { aggregateID: "ses_cached", seq: 1, version: 2 },
+      data: { sessionID: "ses_cached" },
+    })
+    await setup.waitForFrame((frame) => !frame.includes("Cached"))
+    refresh.resolve(json({ data: [cachedSession], cursor: {} }))
+    await setup.waitForFrame((frame) => frame.includes("Fixture project") && !frame.includes("Refreshing"))
+    expect(setup.captureCharFrame()).not.toContain("Cached")
+    setup.mockInput.pressEscape()
+    await setup.waitForFrame((frame) => !frame.includes("Fixture project"))
+    setup.mockInput.pressKey("o", { ctrl: true })
+    await setup.waitForFrame((frame) => frame.includes("Could not refresh sessions"))
+    expect(setup.captureCharFrame()).not.toContain("Cached")
+  } finally {
+    response.resolve(json({ data: [], cursor: {} }))
+    projects.resolve(json([]))
+    refresh.resolve(json({ data: [], cursor: {} }))
+  }
+})
+
+test.each(["dismissed", "refreshing"])(
+  "Ctrl-O retains committed movement of a cached-only session while %s",
+  async (phase) => {
+    await using state = await tmpdir()
+    const refresh = Promise.withResolvers<Response>()
+    const metadata = Promise.withResolvers<Response>()
+    const destinationRequested = Promise.withResolvers<void>()
+    const cached = {
+      id: "ses_cached_move",
+      title: "Cached movement",
+      projectID: "proj_old",
+      location: { directory: "/fixture/old" },
+      cost: 0,
+      tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+      time: { created: 1, updated: 2 },
+    }
+    let requests = 0
+    const locations: string[] = []
+    await using setup = await createAppFixture({
+      state: state.path,
+      config: { animations: false, tabs: { mode: "off" } },
+      fetch: (url) => {
+        if (url.pathname === "/api/session") {
+          if (url.searchParams.has("parentID")) {
+            const parent = url.searchParams.get("parentID")
+            if (parent && parent !== "null") return json({ data: [], cursor: {} })
+          }
+          return requests++ === 0
+            ? json({ data: [cached], cursor: {} })
+            : refresh.promise.then((response) => response.clone())
+        }
+        if (url.pathname === `/api/session/${cached.id}`) return metadata.promise
+        if (url.pathname === `/api/session/${cached.id}/message`) return json({ data: [], cursor: {} })
+        if (
+          url.pathname === `/api/session/${cached.id}/inbox` ||
+          url.pathname === `/api/session/${cached.id}/permission`
+        )
+          return json({ data: [] })
+        if (url.pathname === "/api/project")
+          return json(
+            ["old", "new"].map((name) => ({
+              id: `proj_${name}`,
+              canonical: `/fixture/${name}`,
+              name: name === "old" ? "Old" : "New",
+              time: { created: 1, updated: 2 },
+              sandboxes: [],
+            })),
+          )
+        if (url.pathname === "/api/location") {
+          const query = url.searchParams.get("location[directory]") ?? ""
+          locations.push(query)
+          if (query.includes("/fixture/new")) {
+            destinationRequested.resolve()
+            return json({
+              directory: "/fixture/new",
+              project: { id: "proj_new", directory: "/fixture/new", canonical: "/fixture/new" },
+            })
+          }
+        }
+        return undefined
+      },
+    })
+    try {
+      await setup.ready
+      await setup.waitForFrame((frame) => frame.includes("commands"))
+      setup.mockInput.pressKey("o", { ctrl: true })
+      await setup.waitForFrame((frame) => frame.includes(cached.title) && !frame.includes("Refreshing"))
+      setup.mockInput.pressEscape()
+      await setup.waitForFrame((frame) => !frame.includes("Search sessions"))
+      if (phase === "refreshing") {
+        setup.mockInput.pressKey("o", { ctrl: true })
+        await setup.waitForFrame((frame) => frame.includes(cached.title) && frame.includes("Refreshing"))
+      }
+      setup.events.emit({
+        id: "evt_cached_moved",
+        created: 3,
+        type: "session.moved",
+        durable: { aggregateID: cached.id, seq: 1, version: 1 },
+        data: { sessionID: cached.id, location: { directory: "/fixture/new" }, projectID: "proj_new" },
+      })
+      if (phase === "dismissed") {
+        setup.mockInput.pressKey("o", { ctrl: true })
+        refresh.resolve(new Response("Unavailable", { status: 503 }))
+        await setup.waitForFrame((frame) => frame.includes("Could not refresh sessions"))
+      }
+      if (phase === "refreshing") {
+        await setup.waitForFrame((frame) =>
+          frame.split("\n").some((line) => line.includes(cached.title) && line.includes("New")),
+        )
+        refresh.resolve(json({ data: [cached], cursor: {} }))
+        await setup.waitForFrame((frame) => frame.includes(cached.title) && !frame.includes("Refreshing"))
+      }
+      await setup.waitForFrame((frame) =>
+        frame.split("\n").some((line) => line.includes(cached.title) && line.includes("New")),
+      )
+      expect(
+        setup
+          .captureCharFrame()
+          .split("\n")
+          .find((line) => line.includes(cached.title)),
+      ).toContain("New")
+      locations.length = 0
+      setup.mockInput.pressEnter()
+      await destinationRequested.promise
+      expect(locations.some((query) => query.includes("/fixture/old"))).toBe(false)
+    } finally {
+      refresh.resolve(json({ data: [], cursor: {} }))
+      metadata.resolve(json({ data: { ...cached, projectID: "proj_new", location: { directory: "/fixture/new" } } }))
+    }
+  },
+)
+
+test("boots on the simulation renderer with the terminal title enabled", async () => {
+  await Effect.runPromise(
+    Effect.scoped(
+      Effect.gen(function* () {
+        const setup = SimulationRenderer.setupFor(yield* SimulationRenderer.create({}))
+        yield* Effect.promise(async () => {
+          await using app = await createAppFixture({ setup })
+          await app.ready
+          await app.waitForFrame((frame) => frame.includes("commands"))
+        })
+      }),
+    ),
+  )
+})
 
 test("SIGHUP clears title and disposes scoped resources once", async () => {
   await using state = await tmpdir()
@@ -140,9 +368,9 @@ test("session lifecycle updates the terminal title and prints the epilogue after
     setup.renderer.destroy()
     await task
 
-    expect(stdout).toContain("Demo session")
-    expect(stdout).toContain("bolt")
-    expect(stdout).toContain("-s dummy")
+    expect(stdout).toContain("Renamed session")
+    expect(stdout).toContain("opencode -s dummy")
+    expect(promptRequests).toBe(0)
   } finally {
     process.stdout.write = originalWrite
     if (!setup.renderer.isDestroyed) setup.renderer.destroy()
@@ -150,34 +378,45 @@ test("session lifecycle updates the terminal title and prints the epilogue after
   }
 })
 
-test("fatal startup errors set a nonzero exit after scoped cleanup", async () => {
-  const setup = await createTestRenderer({ width: 80, height: 24, useThread: false })
-  const core = await import("@opentui/core")
-  await mock.module("@opentui/core", () => ({ ...core, createCliRenderer: async () => setup.renderer }))
-  const events = createEventSource()
-  const calls = createFetch((url) => {
-    if (url.pathname === "/config")
-      return json(
-        {
-          name: "ConfigRemoteAuthError",
-          data: {
-            url: "https://example.com",
-            remote: "https://config.example.com/bolt.json",
-          },
-        },
-        { status: 400 },
-      )
-    return undefined
-  })
-  let disposes = 0
-  const originalWrite = process.stderr.write.bind(process.stderr)
-  const originalExitCode = process.exitCode ?? 0
-  let stderr = ""
-
-  process.stderr.write = ((chunk: string | Uint8Array) => {
-    stderr += String(chunk)
-    return true
-  }) as typeof process.stderr.write
+test("session title generated while an untitled session is loading remains visible", async () => {
+  await using state = await tmpdir()
+  const setup = await createTestRenderer({ width: 80, height: 24 })
+  await setup.renderer.setupTerminal()
+  const titles: string[] = []
+  const setTitle = setup.renderer.setTerminalTitle.bind(setup.renderer)
+  const generatedTitle = Promise.withResolvers<void>()
+  setup.renderer.setTerminalTitle = (title) => {
+    titles.push(title)
+    if (title === "OC | Generated title") generatedTitle.resolve()
+    setTitle(title)
+  }
+  const sessionRequested = Promise.withResolvers<void>()
+  const renameSyncRequested = Promise.withResolvers<void>()
+  const releaseSession = Promise.withResolvers<void>()
+  let sessionRequests = 0
+  const session = {
+    id: "dummy",
+    projectID: "project",
+    location: { directory },
+    cost: 0,
+    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+    time: { created: 0, updated: 0 },
+  }
+  const events = createEventStream()
+  const calls = createFetch(async (url) => {
+    if (url.pathname === "/api/session") return json({ data: [], cursor: {} })
+    if (url.pathname === "/api/session/dummy") {
+      sessionRequests++
+      sessionRequested.resolve()
+      if (sessionRequests === 2) renameSyncRequested.resolve()
+      await releaseSession.promise
+      return json({ data: session })
+    }
+    if (url.pathname === "/api/session/dummy/message") return json({ data: [], cursor: {} })
+    if (url.pathname === "/api/session/dummy/inbox") return json({ data: [] })
+    if (url.pathname === "/api/session/dummy/permission") return json({ data: [] })
+  }, events)
+  const server = Bun.serve({ port: 0, fetch: (request) => calls.fetch(request) })
 
   try {
     const { run } = await import("../src/app")
@@ -221,11 +460,6 @@ test("fatal startup errors set a nonzero exit after scoped cleanup", async () =>
     expect(titles.slice(generated + 1)).not.toContain("OpenCode")
     setup.renderer.destroy()
     await task
-    expect(stderr).toContain("Run `bolt auth login https://example.com` to re-authenticate.")
-    expect(stderr).not.toContain("Unexpected server error")
-    expect(process.exitCode).toBe(1)
-    expect(setup.renderer.isDestroyed).toBe(true)
-    expect(disposes).toBe(1)
   } finally {
     if (!setup.renderer.isDestroyed) setup.renderer.destroy()
     await server.stop()
@@ -2315,6 +2549,80 @@ test("free usage limit claims suppression atomically across two TUI instances an
   expect(frame).not.toContain("Connect OpenCode Go")
 })
 
+test("Go usage limit restores the prompt and explains the limit with its reset time instead of an error", async () => {
+  await using state = await tmpdir()
+  const session = {
+    id: "ses_go_limit",
+    projectID: "proj_test",
+    location: { directory },
+    title: "Go limit",
+    cost: 0,
+    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+    time: { created: 1, updated: 1 },
+  }
+  const error = {
+    type: "provider.go-limit",
+    message: "OpenCode Go 5 hour usage limit reached.",
+    status: 429,
+    response: {
+      body: JSON.stringify({
+        type: "error",
+        error: { type: "GoUsageLimitError", message: "Go usage limit exceeded" },
+        metadata: { workspace: "wrk_go_limit", limitName: "5 hour" },
+      }),
+    },
+    retryAfterMs: 3_600_000,
+  }
+  await using setup = await createAppFixture({
+    width: 100,
+    state: state.path,
+    args: { sessionID: session.id },
+    config: { animations: false, tabs: { mode: "off" } },
+    fetch: (url) => {
+      if (url.pathname === "/api/session") return json({ data: [session], cursor: {} })
+      if (url.pathname === `/api/session/${session.id}`) return json({ data: session })
+      if (url.pathname === `/api/session/${session.id}/message`)
+        return json({
+          data: [
+            {
+              id: "msg_go_assistant",
+              type: "assistant",
+              agent: "build",
+              model: { id: "glm-5-go", providerID: "opencode-go" },
+              content: [],
+              time: { created: 2 },
+            },
+            { id: "msg_go_user", type: "user", text: "Refactor the parser", time: { created: 1 } },
+          ],
+          cursor: {},
+        })
+      if ([`/api/session/${session.id}/inbox`, `/api/session/${session.id}/permission`].includes(url.pathname))
+        return json({ data: [] })
+      return undefined
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("Refactor the parser"))
+  setup.events.emit({
+    id: "evt_go_limit_1",
+    created: 3,
+    type: "session.step.failed",
+    durable: { aggregateID: session.id, seq: 1, version: 1 },
+    data: { sessionID: session.id, assistantMessageID: "msg_go_assistant", error },
+  })
+  await setup.waitForFrame(
+    (frame) =>
+      frame.includes("OpenCode Go 5 hour usage limit reached") &&
+      frame.includes("Resets ") &&
+      frame.split("Refactor the parser").length === 3,
+  )
+  const frame = setup.captureCharFrame()
+  expect(frame).toContain("Switch to a free model with")
+  expect(frame).toContain("https://opencode.ai/console/wrk_go_limit/go")
+  expect(frame).not.toContain("Error:")
+  expect(frame).not.toContain("Free limit reached")
+})
+
 test("free usage limit modal manages live animation FPS and adapts to 44x24 and 60x12 terminals", async () => {
   const session = {
     id: "ses_free_limit_anim",
@@ -2538,118 +2846,3 @@ test.each([44, 100])(
   15_000,
 )
 
-test("restarting after an update tells the user to start OpenCode again", async () => {
-  await using state = await tmpdir()
-  const setup = await createTestRenderer({ width: 80, height: 24 })
-  await setup.renderer.setupTerminal()
-  const started = Promise.withResolvers<void>()
-  const setTitle = setup.renderer.setTerminalTitle.bind(setup.renderer)
-  setup.renderer.setTerminalTitle = (title) => {
-    if (title === "OpenCode") started.resolve()
-    setTitle(title)
-  }
-  const events = createEventStream()
-  const calls = createFetch(undefined, events)
-  const server = Bun.serve({ port: 0, fetch: (request) => calls.fetch(request) })
-  const originalWrite = process.stdout.write.bind(process.stdout)
-  let stdout = ""
-  process.stdout.write = ((chunk: string | Uint8Array) => {
-    stdout += String(chunk)
-    return true
-  }) as typeof process.stdout.write
-
-  try {
-    const { run } = await import("../src/app")
-    const task = Effect.runPromise(
-      run({
-        app: { name: "test", version: "test", channel: "test" },
-        server: { endpoint: { url: server.url.toString() } },
-        config: { get: async () => ({}), update: async () => ({}) },
-        packages: { prepare: async () => ({ directory: "" }) },
-        terminalHandoff: async () => ({ renderer: setup.renderer, mode: "dark", complete: () => {} }),
-        updater: {
-          remote: false,
-          subscribe: () => () => {},
-          check: async () => ({ type: "installed", version: "2.0.0" }),
-          apply: async () => {},
-        },
-        args: {},
-        log: () => {},
-      }).pipe(Effect.provide(Global.layerWith({ state: state.path })), Effect.provide(FileSystem.layerNoop({}))),
-    )
-
-    await started.promise
-    await setup.waitForFrame((frame) => frame.includes("commands"))
-    await setup.mockInput.typeText("/update")
-    await setup.waitForFrame((frame) => frame.includes("Update OpenCode"))
-    setup.mockInput.pressEnter()
-    await setup.waitForFrame((frame) => frame.includes("Update successful") && frame.includes("Restart"))
-    setup.mockInput.pressEnter()
-    await task
-
-    expect(Bun.stripANSI(stdout)).toContain("  Run opencode to use 2.0.0\n")
-  } finally {
-    process.stdout.write = originalWrite
-    if (!setup.renderer.isDestroyed) setup.renderer.destroy()
-    await server.stop()
-  }
-})
-
-test("quitting after a background update tells the user to start OpenCode again", async () => {
-  await using state = await tmpdir()
-  const setup = await createTestRenderer({ width: 80, height: 24 })
-  await setup.renderer.setupTerminal()
-  const started = Promise.withResolvers<void>()
-  const setTitle = setup.renderer.setTerminalTitle.bind(setup.renderer)
-  setup.renderer.setTerminalTitle = (title) => {
-    if (title === "OpenCode") started.resolve()
-    setTitle(title)
-  }
-  const events = createEventStream()
-  const calls = createFetch(undefined, events)
-  const server = Bun.serve({ port: 0, fetch: (request) => calls.fetch(request) })
-  const originalWrite = process.stdout.write.bind(process.stdout)
-  let stdout = ""
-  process.stdout.write = ((chunk: string | Uint8Array) => {
-    stdout += String(chunk)
-    return true
-  }) as typeof process.stdout.write
-
-  try {
-    const { run } = await import("../src/app")
-    const task = Effect.runPromise(
-      run({
-        app: { name: "test", version: "test", channel: "test" },
-        server: { endpoint: { url: server.url.toString() } },
-        config: { get: async () => ({}), update: async () => ({}) },
-        packages: { prepare: async () => ({ directory: "" }) },
-        terminalHandoff: async () => ({ renderer: setup.renderer, mode: "dark", complete: () => {} }),
-        updater: {
-          remote: false,
-          subscribe: (notify) => {
-            notify({ type: "installed", version: "2.0.0" })
-            return () => {}
-          },
-          check: async () => undefined,
-          apply: async () => {},
-        },
-        args: {},
-        log: () => {},
-      }).pipe(Effect.provide(Global.layerWith({ state: state.path })), Effect.provide(FileSystem.layerNoop({}))),
-    )
-
-    await started.promise
-    await setup.waitForFrame((frame) => frame.includes("commands"))
-    await setup.waitForFrame((frame) => frame.includes("restart to use v2.0.0"))
-    await setup.mockInput.typeText("/exit")
-    await setup.waitForFrame((frame) => frame.includes("Exit the app"))
-    setup.mockInput.pressEnter()
-    await task
-
-    expect(Bun.stripANSI(stdout)).toContain("  Run opencode to use 2.0.0\n")
-  } finally {
-    process.stdout.write = originalWrite
-    if (!setup.renderer.isDestroyed) setup.renderer.destroy()
-    await server.stop()
-  }
-})

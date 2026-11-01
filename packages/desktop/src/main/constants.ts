@@ -1,8 +1,6 @@
 import { app } from "electron"
 
-type Channel = "dev" | "beta" | "prod"
-const raw = import.meta.env.BOLT_CHANNEL
-export const CHANNEL: Channel = raw === "dev" || raw === "beta" || raw === "prod" ? raw : "dev"
+type Channel = "local" | "dev" | "beta" | "prod"
 
 const raw = import.meta.env.OPENCODE_CHANNEL
 

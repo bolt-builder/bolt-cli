@@ -1,11 +1,6 @@
 import { CliRenderEvents, SyntaxStyle, type TerminalColors } from "@opentui/core"
 import { useRenderer } from "@opentui/solid"
 import {
-  DEFAULT_THEMES,
-  type Theme,
-  addTheme,
-  allThemes,
-  generateSubtleSyntax,
   generateSyntax,
   resolveThemeDocument,
   themeModes,
@@ -28,12 +23,42 @@ import { createComponentTheme, type ComponentTheme } from "../theme/component"
 import { createEffect, createMemo, createSignal, onCleanup, onMount, type Accessor, type ParentProps } from "solid-js"
 import { createStore, produce } from "solid-js/store"
 import { createSimpleContext } from "./helper"
-import { useKV } from "./kv"
-import { useTuiConfig } from "../config"
-import { Global } from "@bolt-ai/core/global"
-import { Glob } from "@bolt-ai/core/util/glob"
-import { readFile } from "node:fs/promises"
-import path from "node:path"
+import { useConfig, useNewDesigns } from "../config"
+import { useStorageOptional } from "./storage"
+import { DevTools } from "../devtools"
+import { configDirectories } from "../util/config-directories"
+
+const themePerformance = DevTools.register({ id: "theme-performance", title: "Theme performance" })
+export type ThemeError = { name: string; error: Error }
+type ThemeErrorHandler = (event: ThemeError) => void
+
+function createThemeErrors() {
+  let handler: ThemeErrorHandler | undefined
+  let pending: ThemeError | undefined
+
+  return {
+    emit(name: string, cause: unknown) {
+      const event = { name, error: cause instanceof Error ? cause : new Error(String(cause)) }
+      if (handler) {
+        handler(event)
+        return
+      }
+      pending = event
+    },
+    onError(next: ThemeErrorHandler) {
+      handler = next
+      if (pending) {
+        next(pending)
+        pending = undefined
+      }
+      return () => {
+        if (handler === next) handler = undefined
+      }
+    },
+  }
+}
+
+const themeErrors = createThemeErrors()
 
 export type ThemeSource = Readonly<{
   discover(): Promise<Record<string, unknown>>
@@ -42,12 +67,7 @@ export type ThemeSource = Readonly<{
 
 export const createThemeSource = (config: string): ThemeSource => ({
   async discover() {
-    const directories = [Global.Path.config]
-    for (let current = process.cwd(); ; current = path.dirname(current)) {
-      directories.push(path.join(current, ".bolt"))
-      if (path.dirname(current) === current) break
-    }
-    return discoverThemes(directories)
+    return discoverThemes(configDirectories(config, process.cwd()))
   },
   subscribeRefresh(refresh) {
     process.on("SIGUSR2", refresh)
@@ -93,7 +113,7 @@ type ThemeContextValue = {
 const [store, setStore] = createStore<State>({
   mode: "dark",
   lock: undefined,
-  active: "bolt",
+  active: "opencode",
   ready: false,
 })
 const [themeSources, setThemeSources] = createSignal(allThemes())
@@ -116,8 +136,7 @@ const themeContext = createSimpleContext({
         const mode = lock ?? renderer.themeMode ?? props.mode
         draft.mode = mode
         draft.lock = lock
-        const active = config.theme ?? kv.get("theme", "bolt")
-        draft.active = typeof active === "string" ? active : "bolt"
+        draft.active = config.theme?.name ?? "opencode"
         draft.ready = false
       }),
     )
@@ -144,7 +163,7 @@ const themeContext = createSimpleContext({
         .then((themes) => {
           setCustomThemes(themes)
         })
-        .catch(() => setStore("active", "bolt"))
+        .catch(() => setStore("active", "opencode"))
     }
 
     onMount(() => {
@@ -182,26 +201,21 @@ const themeContext = createSimpleContext({
       renderer.clearPaletteCache()
       void renderer
         .getPalette({ size: 16 })
-        .then((colors: TerminalColors) => {
-          if (!colors.palette[0]) {
-            if (hasResolvedSystemTheme) return
-            setSystemTheme(undefined)
-            if (store.active === "system") setStore("active", "bolt")
-            return
-          }
-          const next = store.lock ?? terminalMode(colors) ?? mode
-          if (store.mode !== next) setStore("mode", next)
-          const signature = JSON.stringify(colors)
-          hasResolvedSystemTheme = true
-          if (store.themes.system && systemThemeSignature === signature && systemThemeMode === next) return
-          systemThemeSignature = signature
-          systemThemeMode = next
-          setSystemTheme(generateSystem(colors, next))
+        .then((colors) => {
+          if (disposed || !usablePalette(colors)) return
+          palette = colors
+          const mode = store.lock ?? terminalMode(colors) ?? store.mode
+          if (store.mode !== mode) setStore("mode", mode)
+          applyPalette()
+          void cache?.[1]((draft) => {
+            draft.colors = colors
+          }).catch(() => {})
         })
-        .catch(() => {
-          if (hasResolvedSystemTheme) return
-          setSystemTheme(undefined)
-          if (store.active === "system") setStore("active", "bolt")
+        .catch(() => {})
+        .finally(() => {
+          probing = false
+          if (disposed || (!retry && !queued)) return
+          refreshPalette()
         })
     }
 
@@ -285,21 +299,13 @@ const themeContext = createSimpleContext({
       const sources = available()
       const name = sources[store.active] ? store.active : "opencode"
       try {
-        return loadTheme(sources[name], name, store.mode)
+        return loadTheme(sources[name], name, store.mode, newDesigns())
       } catch (error) {
         if (name === "opencode") throw error
         themeErrors.emit(name, error)
         setStore("active", "opencode")
-        return loadTheme(sources.opencode, "opencode", store.mode)
+        return loadTheme(sources.opencode, "opencode", store.mode, newDesigns())
       }
-
-      return (
-        resolveTheme(store.themes.bolt, store.mode) || {
-          background: { r: 0, g: 0, b: 0, a: 255 },
-          text: { r: 255, g: 255, b: 255, a: 255 },
-          textMuted: { r: 128, g: 128, b: 128, a: 255 },
-        }
-      )
     })
     const modes = () => selected().modes
     const mode = () => selected().mode
@@ -308,19 +314,13 @@ const themeContext = createSimpleContext({
     themePerformance.set("Init", `${(performance.now() - initStarted).toFixed(2)} ms`)
     const current = createComponentTheme(tokens)
 
-    const defaultTheme = () => resolveTheme(store.themes.bolt, store.mode)
+    createEffect(() => renderer.setBackgroundColor(tokens().background.base))
 
-    createEffect(() => renderer.setBackgroundColor(values().background))
-
-    const syntax = createSyntaxStyleMemo(() => generateSyntax(values() ?? defaultTheme()))
-    const subtleSyntax = createSyntaxStyleMemo(() => generateSubtleSyntax(values() ?? defaultTheme()))
-
-    return {
-      theme: new Proxy({} as Theme, {
-        get(_target, prop: keyof Theme) {
-          return values()[prop]
-        },
-      }),
+    const currentSyntax = createSyntaxStyleMemo(() => generateSyntax(tokens(), renderer.nativeScene))
+    const service: Themes = {
+      current,
+      currentTokens: tokens,
+      currentSyntax,
       get selected() {
         return store.active
       },
@@ -392,8 +392,8 @@ function usablePalette(colors: TerminalColors | undefined): colors is TerminalCo
   )
 }
 
-function loadTheme(source: ThemeDocumentSource, name: string, requested: "dark" | "light") {
-  const document = parseTheme(source, name)
+function loadTheme(source: ThemeDocumentSource, name: string, requested: "dark" | "light", newDesigns: boolean) {
+  const document = parseTheme(source, name, { newDesigns })
   const modes = themeModes(document)
   const mode = modes.includes(requested) ? requested : (modes[0] ?? requested)
   return { modes, mode, theme: resolveThemeDocument(document, mode) }

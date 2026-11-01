@@ -1,12 +1,12 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
+import type { OpenCodeEvent } from "@opencode/client/promise"
 import { expect, test, type Page } from "@playwright/test"
-import { mockBoltServer } from "../utils/mock-server"
+import { SERVER, sessionHref } from "../utils/app"
 import { installSseTransport } from "../utils/sse-transport"
 import { expectSessionTitle } from "../utils/waits"
 import { mockWorkspace, type WorkspaceInput } from "../utils/workspace"
 
-const directory = "C:/Bolt/RequestDocks"
-const projectID = "proj_request_docks"
+const directory = "C:/OpenCode/RequestDocks"
+
 const sessionID = "ses_request_docks"
 
 const title = "Request dock regression"
@@ -210,6 +210,67 @@ test("shows a pending permission dock", async ({ page }) => {
   await expect(page.locator('[data-component="composer"]')).toBeVisible()
 })
 
+test("loads a running subagent's question without polling idle subagents on every update", async ({ page }) => {
+  const runningID = "ses_request_running_subagent"
+  const idleIDs = Array.from({ length: 20 }, (_, index) => `ses_request_idle_${index}`)
+
+  const workspace = await mockWorkspace(page, {
+    name: "RequestDocks",
+    directory,
+    sessions: [
+      { id: sessionID, title },
+      { id: runningID, title: "Running subagent", parentID: sessionID },
+      ...idleIDs.map((id) => ({ id, title: id, parentID: sessionID })),
+    ],
+    seed: { tabs: [sessionID] },
+    // The mock reports a Session with a pending form as running.
+    forms: [
+      {
+        id: "frm_subagent_question",
+        sessionID: runningID,
+        title: "Questions",
+        metadata: { kind: "question" },
+        fields: [{ key: "q0", type: "string", title: "Direction", description: "Which way should the subagent go?" }],
+      },
+    ],
+  })
+
+  // Idle subagents whose worktrees were deleted; a failed read is retried on its next sync.
+  await page.route(/\/api\/session\/ses_request_idle_\d+\/form$/, (route) =>
+    route.fulfill({ status: 404, json: { message: "Location not found" } }),
+  )
+
+  const forms: string[] = []
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname
+
+    if (request.method() === "GET" && path.startsWith("/api/session/") && path.endsWith("/form")) forms.push(path)
+  })
+
+  await page.goto(sessionHref(sessionID))
+  await expectSessionTitle(page, title)
+  await expect(
+    page.locator('[data-component="dock-prompt"][data-kind="question"]').getByText("Which way should the subagent go?"),
+  ).toBeVisible()
+
+  // Every session update used to re-request the forms of the whole subagent tree.
+  await workspace.push(
+    [...idleIDs, sessionID].map(
+      (id, index) =>
+        // SAFETY: the fixture event matches the generated OpenCodeEvent shape for its type.
+        ({
+          id: `evt_request_rename_${index}`,
+          created: index + 2,
+          type: "session.renamed",
+          durable: { aggregateID: id, seq: 1, version: 1 },
+          data: { sessionID: id, title: id === sessionID ? "Renamed request docks" : `${id} renamed` },
+        }) as OpenCodeEvent,
+    ),
+  )
+  await expect(page.getByRole("heading", { name: "Renamed request docks", exact: true })).toBeVisible()
+  expect(forms.toSorted()).toEqual([`/api/session/${runningID}/form`, `/api/session/${sessionID}/form`].toSorted())
+})
+
 test("restores the draft caret before typing after a request dock closes", async ({ page }) => {
   const transport = await installSseTransport(page, { server: SERVER, retry: 20 })
   await mockServer(page, { forms: [] })
@@ -281,57 +342,6 @@ test("restores the draft caret before typing after a request dock closes", async
   await expect(editor).toHaveText(`${draft.slice(0, cursor)}x${draft.slice(cursor)}`)
 })
 
-async function mockServer(
-  page: Page,
-  requests: {
-    permissions?: unknown[] | (() => unknown[])
-    questions?: unknown[] | (() => unknown[])
-  },
-) {
-  await mockBoltServer(page, {
-    protocol: "v2",
-    directory,
-    project: {
-      id: projectID,
-      worktree: directory,
-      vcs: "git",
-      name: "request-docks",
-      time: { created: 1700000000000, updated: 1700000000000 },
-      sandboxes: [],
-    },
-    provider: {
-      all: [
-        {
-          id: "bolt",
-          name: "Bolt",
-          models: {
-            "claude-opus-4-6": {
-              id: "claude-opus-4-6",
-              name: "Claude Opus 4.6",
-              limit: { context: 200_000 },
-            },
-          },
-        },
-      ],
-      connected: ["bolt"],
-      default: { providerID: "bolt", modelID: "claude-opus-4-6" },
-    },
-    sessions: [
-      {
-        id: sessionID,
-        slug: "request-docks",
-        projectID,
-        directory,
-        title,
-        version: "dev",
-        time: { created: 1700000000000, updated: 1700000000000 },
-      },
-    ],
-    pageMessages: () => ({ items: [] }),
-    permissions: requests.permissions,
-    questions: requests.questions,
-  })
-  await page.addInitScript(() => {
-    localStorage.setItem("settings.v3", JSON.stringify({ general: { newLayoutDesigns: true } }))
-  })
+function mockServer(page: Page, requests: Pick<WorkspaceInput, "sessionPermissions" | "onPermissionReply" | "forms">) {
+  return mockWorkspace(page, { name: "RequestDocks", directory, sessions: [{ id: sessionID, title }], ...requests })
 }

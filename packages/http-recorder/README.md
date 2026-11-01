@@ -1,4 +1,4 @@
-# @bolt-ai/http-recorder
+# @opencode/http-recorder
 
 Record real Effect HTTP and WebSocket traffic once, then replay it from deterministic JSON cassettes.
 
@@ -9,8 +9,8 @@ Use it for provider integrations, retries, polling, multi-step flows, and any te
 ## Install
 
 ```sh
-bun add effect@4.0.0-beta.74
-bun add -d @bolt-ai/http-recorder@beta @effect/vitest vitest
+bun add effect@4.0.0-beta.107
+bun add -d @opencode/http-recorder @effect/vitest@4.0.0-beta.107 vitest@^4
 ```
 
 The package supports Node.js 22+ and Bun. It is not intended for browsers, workers, or Deno.
@@ -30,8 +30,8 @@ Effect `4.0.0-beta.107` currently contains unresolved symbols in its published d
 ```ts
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Schema } from "effect"
-import { HttpClient, HttpClientRequest } from "effect/unstable/http"
-import { HttpRecorder } from "@bolt-ai/http-recorder"
+import { HttpClient, HttpClientRequest } from "effect/http"
+import { HttpRecorder } from "@opencode/http-recorder"
 
 const User = Schema.Struct({
   id: Schema.Number,
@@ -112,8 +112,8 @@ Real applications often select WebSocket URLs inside domain services. Effect rep
 import { NodeSocket } from "@effect/platform-node"
 import { it } from "@effect/vitest"
 import { Effect, Layer } from "effect"
-import { Socket } from "effect/unstable/socket"
-import { HttpRecorder } from "@bolt-ai/http-recorder"
+import { Socket } from "effect/socket"
+import { HttpRecorder } from "@opencode/http-recorder"
 
 const roundTrip = Effect.fn("Echo.roundTrip")(function* (url: string, message: string) {
   const socket = yield* Socket.makeWebSocket(url)

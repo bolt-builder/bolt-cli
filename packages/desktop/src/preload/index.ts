@@ -1,6 +1,12 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron"
-import type { ElectronAPI, WslServersEvent } from "./types"
-import type { UpdaterState } from "@bolt-ai/app/updater"
+import {
+  DragCancelEvent,
+  IpcTransportPort,
+  WindowSnapshotChannel,
+  storageSnapshotNames,
+  type WindowSnapshot,
+} from "../shared/ipc-transport"
+import { windowBootstrapFromArguments } from "../shared/window-bootstrap"
 
 ipcRenderer.on(IpcTransportPort, (event) => {
   const port = event.ports[0]
@@ -21,6 +27,6 @@ contextBridge.exposeInMainWorld("electron", {
   windowID: bootstrap.id,
   bootstrap,
   storageSnapshot: snapshot.then((snapshot) => snapshot.storage),
-  extensions: snapshot.then((snapshot) => snapshot.extensions),
+  plugins: snapshot.then((snapshot) => snapshot.plugins),
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
 })

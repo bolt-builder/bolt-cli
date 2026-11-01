@@ -1,6 +1,5 @@
-import type { Event } from "@bolt-ai/sdk/v2"
-import type { TuiAttentionSoundName, TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
+import { Plugin } from "@opencode/plugin/tui"
+import type { AttentionSoundName } from "@opencode/plugin/tui/context"
 
 function notify(
   context: Plugin.Context,
@@ -17,6 +16,19 @@ function notify(
     notification: isSubagent ? false : { when: "blurred" },
     sound: { name: sound, when: "always" },
   })
+}
+
+// Only direct children: a grandchild reports to its own parent, so waiting on it could mean no sound at all. Running
+// shells don't count, or a session with a dev server running would never play one.
+function hasRunningChild(context: Plugin.Context, sessionID: string) {
+  return context.data.session
+    .family(sessionID)
+    .some(
+      (child) =>
+        child !== sessionID &&
+        context.data.session.get(child)?.parentID === sessionID &&
+        context.data.session.status(child) === "running",
+    )
 }
 
 export default Plugin.define({
@@ -57,7 +69,12 @@ export default Plugin.define({
       }),
       context.data.on("permission.replied", (event) => permissions.delete(event.data.requestID)),
       context.data.on("session.execution.started", (event) => started(event.data.sessionID)),
-      context.data.on("session.execution.succeeded", (event) => ended(event.data.sessionID)),
+      context.data.on("session.execution.succeeded", (event) => {
+        // A running subagent's report wakes the session again, so it isn't done yet. Subagent sounds stay as they were.
+        const session = context.data.session.get(event.data.sessionID)
+        if (!session?.parentID && hasRunningChild(context, event.data.sessionID)) return
+        ended(event.data.sessionID)
+      }),
       context.data.on("session.execution.interrupted", (event) => ended(event.data.sessionID)),
       context.data.on("session.execution.failed", (event) => {
         const sessionID = event.data.sessionID
@@ -67,7 +84,7 @@ export default Plugin.define({
           return
         }
         errored.add(sessionID)
-        if (event.data.error.type !== "provider.free-limit") {
+        if (event.data.error.type !== "provider.free-limit" && event.data.error.type !== "provider.go-limit") {
           notify(context, sessionID, event.data.error.message, "error")
           context.ui.toast.show({
             sessionID,

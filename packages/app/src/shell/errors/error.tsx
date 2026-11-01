@@ -1,15 +1,18 @@
-import { TextField } from "@bolt-ai/ui/text-field"
-import * as Sentry from "@sentry/solid"
-import { Logo } from "@bolt-ai/ui/logo"
-import { Button } from "@bolt-ai/ui/button"
-import { Component, createSignal, onMount, Show } from "solid-js"
+import { TextField } from "@opencode/ui/text-field"
+import type { captureException } from "@sentry/solid"
+import { Logo } from "@opencode/ui/logo"
+import { Button } from "@opencode/ui/button"
+import { Component, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { createStore } from "solid-js/store"
-import { usePlatform } from "@/context/platform"
-import { useLanguage } from "@/context/language"
-import { Icon } from "@bolt-ai/ui/icon"
-import { errorDescriptionKey } from "./error-description"
+import { Predicate } from "effect"
+import { Updater } from "@opencode/plugin/gui/updater"
+import { usePlatform } from "@/runtime/platform/platform"
+import { useLanguage } from "@/runtime/i18n/language"
+import { createIpcClients } from "@/runtime/plugin/ipc"
+import { Icon } from "@opencode/ui/icon"
+import { errorDescriptionKey, errorStatus } from "./description"
 
-export type InitError = {
+type InitError = {
   name: unknown
   data: object
 }
@@ -286,9 +289,9 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
       .catch(() => undefined)
   })
 
-  // A crash can take the extension root down with the app, so the page reaches the updater's
+  // A crash can take the plugin root down with the app, so the page reaches the updater's
   // main-process Ipc over the bridge itself.
-  const ipcs = createIpcClients(platform.extensions)
+  const ipcs = createIpcClients(platform.plugins)
   onCleanup(ipcs.dispose)
   const updater = () => ipcs.typed(Updater)
 
@@ -410,7 +413,7 @@ export const ErrorPage: Component<ErrorPageProps> = (props) => {
             <button
               type="button"
               class="flex items-center text-text-interactive-base gap-1"
-              onClick={() => platform.openExternal("https://bolt.ai/desktop-feedback")}
+              onClick={() => platform.openExternal("https://opencode.ai/desktop-feedback")}
             >
               <div>{language.t("error.page.report.discord")}</div>
               <Icon name="discord" class="text-text-interactive-base" />

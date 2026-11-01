@@ -1,9 +1,11 @@
 import { createEffect, createMemo, createSignal, on, onCleanup, Show } from "solid-js"
-import type { SessionStatus } from "@bolt-ai/sdk/v2/client"
-import { useI18n } from "@bolt-ai/ui/context/i18n"
-import { Card } from "@bolt-ai/ui/card"
-import { Tooltip } from "@bolt-ai/ui/tooltip"
-import { Spinner } from "@bolt-ai/ui/spinner"
+import type { SessionStatus } from "@opencode/client/promise"
+import { useI18n } from "@opencode/ui/context/i18n"
+import { Card } from "@opencode/ui/card"
+import { Icon } from "@opencode/ui/icon"
+import { TextShimmer } from "@opencode/ui/text-shimmer"
+import { Tooltip } from "@opencode/ui/tooltip"
+import { SessionErrorMessage } from "./session-error"
 
 export function SessionRetry(props: { status: SessionStatus; show?: boolean }) {
   const i18n = useI18n()
@@ -64,7 +66,12 @@ export function SessionRetry(props: { status: SessionStatus; show?: boolean }) {
           <div class="flex w-full items-start gap-2">
             <Icon name="outline-hexagonal-warning" class="shrink-0 text-v2-state-fg-danger" />
             <div class="min-w-0 flex-1">
-              <Tooltip appearance="standard" value={retry()?.message ?? ""} placement="top">
+              <Tooltip
+                appearance="large"
+                contentClass="max-w-80 break-words"
+                value={retry()?.message ?? ""}
+                placement="top"
+              >
                 <div data-slot="session-turn-retry-message" class="cursor-help truncate">
                   <SessionErrorMessage message={message()} />
                 </div>

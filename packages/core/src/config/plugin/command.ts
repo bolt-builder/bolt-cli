@@ -5,12 +5,16 @@ import { Info, type Entry } from "@opencode/schema/config"
 import { ConfigCommand } from "@opencode/schema/config/command"
 import { AppProcess } from "@opencode/util/process"
 import path from "path"
-import { Effect, Option, Schema } from "effect"
-import { Config } from "../../config"
-import { FSUtil } from "../../fs-util"
-import { ModelV2 } from "../../model"
-import { ConfigCommand } from "../command"
-import { ConfigMarkdown } from "../markdown"
+import { Effect, Option, PubSub, Schema, Stream } from "effect"
+import { ChildProcess } from "effect/process"
+import { Agent } from "../../agent.js"
+import { Config } from "../../config.js"
+import { Location } from "../../location.js"
+import { Session } from "../../session.js"
+import { SubagentJob } from "../../session/subagent-job.js"
+import { ShellSelect } from "../../shell/select.js"
+import { FSUtil } from "@opencode/util/fs-util"
+import { ConfigMarkdown } from "../markdown.js"
 
 const decodeCommand = Schema.decodeUnknownOption(ConfigCommand.Info)
 
@@ -51,11 +55,9 @@ export const Plugin = define({
       Stream.runForEach(notify),
       Effect.forkScoped({ startImmediately: true }),
     )
-    yield* ctx.event.subscribe().pipe(
-      Stream.filter((event) => event.type === "config.updated"),
-      Stream.runForEach(notify),
-      Effect.forkScoped({ startImmediately: true }),
-    )
+    yield* ctx.event
+      .subscribe({ types: ["config.updated"] })
+      .pipe(Stream.runForEach(notify), Effect.forkScoped({ startImmediately: true }))
     const updates = yield* PubSub.subscribe(changes)
     yield* Stream.fromSubscription(updates).pipe(
       Stream.debounce("100 millis"),
@@ -191,14 +193,14 @@ function evaluateTemplate(
     const args = parseArguments(input)
     const placeholders = template.match(placeholderRegex) ?? []
     const last = Math.max(0, ...placeholders.map((item) => Number(item.slice(1))))
-    const expanded = template.replaceAll(placeholderRegex, (_, index) => {
+    const withArguments = template.replaceAll(argumentRegex, (match, index) => {
+      if (match === "$ARGUMENTS") return input
       const position = Number(index)
       const argIndex = position - 1
       if (argIndex >= args.length) return ""
       if (position === last) return args.slice(argIndex).join(" ")
       return args[argIndex]
     })
-    const withArguments = expanded.replaceAll("$ARGUMENTS", () => input)
     const text =
       placeholders.length === 0 && !template.includes("$ARGUMENTS") && input.trim()
         ? `${withArguments}\n\n${input}`.trim()
@@ -237,6 +239,7 @@ function parseArguments(input: string) {
 }
 
 const argsRegex = /(?:\[Image\s+\d+\]|"[^"]*"|'[^']*'|[^\s"']+)/gi
-const placeholderRegex = /\$(\d+)/g
+const placeholderRegex = /\$([1-9]\d*)/g
+const argumentRegex = /\$(?:ARGUMENTS|([1-9]\d*))/g
 const quoteTrimRegex = /^["']|["']$/g
 const shellRegex = /!`([^`]+)`/g

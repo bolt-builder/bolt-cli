@@ -1,4 +1,4 @@
-import type { HttpRecorder } from "@bolt-ai/http-recorder"
+import type { HttpRecorder } from "@opencode/http-recorder"
 import { describe } from "bun:test"
 import { Effect } from "effect"
 import type { LanguageModel } from "../src/effect.js"

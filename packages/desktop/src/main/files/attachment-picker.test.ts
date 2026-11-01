@@ -22,26 +22,17 @@ describe("attachment size limit", () => {
     expect(() => assertAttachmentBudget([{ size: MAX_ATTACHMENT_BYTES }, { size: 1 }])).toThrow("20 MB limit")
   })
 
-  test("reads an approved file through a bounded buffer", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bolt-attachment-"))
+  test("reads an approved file and rejects an oversized one before allocating its contents", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "opencode-attachment-"))
     const file = join(directory, "example.txt")
     const oversized = join(directory, "oversized.txt")
 
     try {
       await writeFile(file, "lorem ipsum")
-      expect(new TextDecoder().decode(await readAttachment(file))).toBe("lorem ipsum")
-    } finally {
-      await rm(directory, { recursive: true, force: true })
-    }
-  })
-
-  test("rejects an oversized file before allocating its contents", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bolt-attachment-"))
-    const file = join(directory, "oversized.txt")
-    try {
-      await writeFile(file, "")
-      await truncate(file, MAX_ATTACHMENT_BYTES + 1)
-      await expect(readAttachment(file)).rejects.toThrow("20 MB limit")
+      expect(new TextDecoder().decode(await run(readAttachment(file)))).toBe("lorem ipsum")
+      await writeFile(oversized, "")
+      await truncate(oversized, MAX_ATTACHMENT_BYTES + 1)
+      await expect(run(readAttachment(oversized))).rejects.toThrow("20 MB limit")
     } finally {
       await rm(directory, { recursive: true, force: true })
     }

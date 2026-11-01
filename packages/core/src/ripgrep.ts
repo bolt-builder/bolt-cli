@@ -1,14 +1,13 @@
 export * as Ripgrep from "./ripgrep.js"
 
-import fs from "node:fs"
-import path from "node:path"
 import { Context, Effect, Fiber, Layer, Schema, Stream } from "effect"
-import { ChildProcess } from "effect/unstable/process"
-import { Entry, Match } from "@bolt-ai/schema/filesystem"
-import { makeGlobalNode } from "./effect/app-node"
-import { AppProcess, collectStream, waitForAbort } from "./process"
-import { NonNegativeInt, PositiveInt, RelativePath } from "./schema"
-import { RipgrepBinary } from "./ripgrep/binary"
+import { ChildProcess } from "effect/process"
+import { Entry, Match } from "@opencode/schema/filesystem"
+import { makeLocationNode } from "@opencode/util/effect/app-node"
+import { collectStream, waitForAbort } from "@opencode/util/process"
+import { Environment } from "./environment/index.js"
+import { NonNegativeInt, PositiveInt, RelativePath } from "./schema.js"
+import { RipgrepBinary } from "./ripgrep/binary.js"
 
 /**
  * Small core-owned ripgrep execution adapter. It deliberately exposes raw
@@ -19,62 +18,7 @@ import { RipgrepBinary } from "./ripgrep/binary"
 
 const ERROR_BYTES = 8 * 1024
 const MAX_SUBMATCHES = 100
-
-// Extra agent-only ignore rules: .boltignore uses .gitignore syntax and hides
-// committed files from search without touching .gitignore. It lives at the
-// repository root only. Ripgrep resolves --ignore-file patterns relative to
-// its working directory, so when a search starts below the root the process
-// runs from the root instead (with the walk confined to the requested
-// directory) to keep root-anchored rules like `/src/generated/` correctly
-// scoped. User globs and output paths are translated between the two bases.
-function boltignore(cwd: string) {
-  const base = root(cwd)
-  const file = path.join(base, ".boltignore")
-  if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) return { cwd, args: [], search: ".", prefix: "" }
-  const search = path.relative(base, cwd)
-  return {
-    cwd: base,
-    args: [`--ignore-file=${file}`],
-    search: search || ".",
-    prefix: search ? `${search.replaceAll("\\", "/")}/` : "",
-  }
-}
-
-function root(cwd: string) {
-  let dir = cwd
-  while (true) {
-    if (fs.existsSync(path.join(dir, ".git"))) return dir
-    const parent = path.dirname(dir)
-    if (parent === dir) return cwd
-    dir = parent
-  }
-}
-
-// Whether a .boltignore governs this directory. Search backends without
-// ignore-file support (fff) must fall back to ripgrep when this is true.
-export function ignored(cwd: string) {
-  return fs.statSync(path.join(root(cwd), ".boltignore"), { throwIfNoEntry: false })?.isFile() === true
-}
-
-// -g globs follow .gitignore rules relative to the ripgrep working directory:
-// slash-less globs match basenames at any depth and survive re-basing, while
-// globs with a non-trailing slash are anchored and must be re-anchored onto
-// the search directory.
-function reroot(glob: string, prefix: string): string {
-  if (!prefix) return glob
-  if (glob.startsWith("!")) return `!${reroot(glob.slice(1), prefix)}`
-  if (glob.startsWith("/")) return `/${prefix}${glob.slice(1)}`
-  if (glob.slice(0, -1).includes("/")) return prefix + glob
-  return glob
-}
-
-// Normalizes a ripgrep output path and re-bases it from the process working
-// directory back onto the requested search cwd.
-function rebase(line: string, prefix: string) {
-  const normalized = line.replace(/^(?:\.[\\/])+/u, "").replaceAll("\\", "/")
-  const stripped = prefix && normalized.startsWith(prefix) ? normalized.slice(prefix.length) : normalized
-  return stripped.replace(/^\/+/u, "")
-}
+const MAX_LINE_CHARS = 2_000
 
 const RawMatch = Schema.Struct({
   type: Schema.Literal("match"),
@@ -143,7 +87,7 @@ export interface Interface {
   readonly grep: (input: GrepInput) => Effect.Effect<readonly Match[], Error | InvalidPatternError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Ripgrep") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Ripgrep") {}
 
 const failure = (message: string, cause?: unknown) => new Error({ message, cause })
 
@@ -219,23 +163,23 @@ const layer = Layer.effect(
     }
 
     return Service.of({
-      glob: (input) => {
-        const scoped = boltignore(input.cwd)
-        return run<string>({
-          cwd: scoped.cwd,
+      glob: (input) =>
+        run<string>({
+          cwd: input.cwd,
           limit: input.limit,
           signal: input.signal,
           args: [
             "--no-config",
             "--files",
-            ...scoped.args,
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
-            `--glob=${reroot(input.pattern, scoped.prefix)}`,
+            `--glob=${input.pattern}`,
+            // Positive globs override rg's hidden-file filter; exclude before applying the result limit.
+            ...(input.hidden ? [] : ["--glob=!**/.*"]),
             "--glob=!**/.git/**",
-            scoped.search,
+            ".",
           ],
-          parse: (line) => Effect.succeed(rebase(line, scoped.prefix)),
+          parse: (line) => Effect.succeed(normalizePath(line)),
         }).pipe(
           Effect.map((result) =>
             result.map((relative) =>
@@ -246,57 +190,48 @@ const layer = Layer.effect(
             ),
           ),
           Effect.catchTag("Ripgrep.InvalidPatternError", (cause) => Effect.fail(failure(cause.message, cause))),
-        )
-      },
-      find: (input) => {
-        const scoped = boltignore(input.cwd)
-        return run<Entry>({
-          cwd: scoped.cwd,
+        ),
+      find: (input) =>
+        run<Entry>({
+          cwd: input.cwd,
           limit: input.limit,
           signal: input.signal,
           args: [
             "--no-config",
             "--files",
-            ...scoped.args,
             ...(input.hidden ? ["--hidden"] : []),
             ...(input.follow ? ["--follow"] : []),
-            ...(input.pattern === "*" ? [] : [`--glob=${reroot(input.pattern, scoped.prefix)}`]),
+            ...(input.pattern === "*" ? [] : [`--glob=${input.pattern}`]),
+            ...(input.exclude ?? []).map((pattern) => `--glob=!${pattern}`),
             "--glob=!**/.git/**",
-            scoped.search,
+            ".",
           ],
-          parse: (line) =>
-            Effect.succeed(
+          parse: (line) => {
+            const relative = normalizePath(line)
+            return Effect.succeed(
               Entry.make({
-                path: RelativePath.make(rebase(line, scoped.prefix)),
+                path: RelativePath.make(relative),
                 type: "file",
               }),
-            ),
+            )
+          },
           onItem: input.onEntry,
-        }).pipe(
-          Effect.map((result) => result.items),
-          Effect.catchTag("Ripgrep.InvalidPatternError", (cause) => Effect.fail(failure(cause.message, cause))),
-        )
-      },
-      grep: (input) => {
-        const scoped = boltignore(input.cwd)
-        const target =
-          input.file && path.isAbsolute(input.file) ? input.file : path.join(scoped.search, input.file ?? ".")
-        return run<RawMatchData>({
-          cwd: scoped.cwd,
-          limit: input.limit,
-          signal: input.signal,
-          pattern: input.pattern,
+        }).pipe(Effect.catchTag("Ripgrep.InvalidPatternError", (cause) => Effect.fail(failure(cause.message, cause)))),
+      grep: (input) =>
+        run<RawMatchData>({
+          ...input,
           args: [
             "--no-config",
             "--json",
             "--hidden",
             "--no-messages",
-            ...scoped.args,
-            ...(input.include ? [`--glob=${reroot(input.include, scoped.prefix)}`] : []),
+            ...(input.literal ? ["--fixed-strings"] : []),
+            ...(input.caseSensitive === false ? ["--ignore-case"] : []),
+            ...(input.include ? [`--glob=${input.include}`] : []),
             "--glob=!**/.git/**",
             "--",
             input.pattern,
-            target,
+            input.file ?? ".",
           ],
           parse: (line) =>
             decodeJsonRecord(line).pipe(
@@ -307,6 +242,12 @@ const layer = Layer.effect(
                 return Schema.decodeUnknownEffect(RawMatch)(json).pipe(
                   Effect.map((match) => ({
                     ...match.data,
+                    lines: {
+                      text:
+                        match.data.lines.text.length > MAX_LINE_CHARS
+                          ? Buffer.from(match.data.lines.text.slice(0, MAX_LINE_CHARS), "utf8").toString() + "..."
+                          : match.data.lines.text,
+                    },
                     path: { text: normalizePath(match.data.path.text) },
                     submatches: match.data.submatches.slice(0, MAX_SUBMATCHES),
                   })),
@@ -316,16 +257,15 @@ const layer = Layer.effect(
             ),
         }).pipe(
           Effect.map((result) =>
-            result.items.map((match) => {
-              const relative = rebase(match.path.text, scoped.prefix)
-              return Match.make({
+            result.map((match) =>
+              Match.make({
                 entry: Entry.make({
                   path: RelativePath.make(match.path.text),
                   type: "file",
                 }),
                 line: match.line_number,
                 offset: match.absolute_offset,
-                text: match.lines.text.length > 2_000 ? match.lines.text.slice(0, 2_000) + "..." : match.lines.text,
+                text: match.lines.text,
                 submatches: match.submatches.map((submatch) => ({
                   text: submatch.match.text,
                   start: submatch.start,
@@ -334,8 +274,7 @@ const layer = Layer.effect(
               }),
             ),
           ),
-        )
-      },
+        ),
     })
   }),
 )

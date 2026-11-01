@@ -1,33 +1,33 @@
 ---
 title: GitLab
-description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
+description: استخدم OpenCode في مشكلات GitLab وطلبات الدمج.
 ---
 
-يتكامل Bolt مع سير عمل GitLab لديك عبر خط أنابيب GitLab CI/CD أو عبر GitLab Duo.
+يتكامل OpenCode مع سير عمل GitLab لديك عبر خط أنابيب GitLab CI/CD أو عبر GitLab Duo.
 
-في كلتا الحالتين، سيعمل Bolt على مشغّلات GitLab لديك.
+في كلتا الحالتين، سيعمل OpenCode على مشغّلات GitLab لديك.
 
 ---
 
 ## GitLab CI
 
-يعمل Bolt ضمن خط أنابيب GitLab عادي. يمكنك دمجه في الخط كمكوّن [CI](https://docs.gitlab.com/ee/ci/components/).
+يعمل OpenCode ضمن خط أنابيب GitLab عادي. يمكنك دمجه في الخط كمكوّن [CI](https://docs.gitlab.com/ee/ci/components/).
 
-هنا نستخدم مكوّن CI/CD أنشأه المجتمع لـ Bolt — [nagyv/gitlab-opencode](https://gitlab.com/nagyv/gitlab-opencode).
+هنا نستخدم مكوّن CI/CD أنشأه المجتمع لـ OpenCode — [nagyv/gitlab-opencode](https://gitlab.com/nagyv/gitlab-opencode).
 
 ---
 
 ### الميزات
 
-- **استخدام إعدادات مخصّصة لكل مهمة**: يمكنك إعداد Bolt باستخدام دليل إعدادات مخصّص، مثل `./config/#custom-directory`، لتفعيل الوظائف أو تعطيلها في كل تشغيل لـ Bolt.
-- **إعداد بسيط**: يقوم مكوّن CI بإعداد Bolt في الخلفية؛ كل ما عليك هو إنشاء إعدادات Bolt والمطالبة (prompt) الأولية.
+- **استخدام إعدادات مخصّصة لكل مهمة**: يمكنك إعداد OpenCode باستخدام دليل إعدادات مخصّص، مثل `./config/#custom-directory`، لتفعيل الوظائف أو تعطيلها في كل تشغيل لـ OpenCode.
+- **إعداد بسيط**: يقوم مكوّن CI بإعداد OpenCode في الخلفية؛ كل ما عليك هو إنشاء إعدادات OpenCode والمطالبة (prompt) الأولية.
 - **مرن**: يدعم مكوّن CI عدة مُدخلات لتخصيص سلوكه.
 
 ---
 
 ### الإعداد
 
-1. احفظ JSON مصادقة Bolt كمتغيرات بيئة CI من نوع File ضمن **Settings** > **CI/CD** > **Variables**. تأكد من تعيينها على "Masked and hidden".
+1. احفظ JSON مصادقة OpenCode كمتغيرات بيئة CI من نوع File ضمن **Settings** > **CI/CD** > **Variables**. تأكد من تعيينها على "Masked and hidden".
 2. أضف ما يلي إلى ملف `.gitlab-ci.yml`.
 
    ```yaml title=".gitlab-ci.yml"
@@ -35,7 +35,7 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
      - component: $CI_SERVER_FQDN/nagyv/gitlab-opencode/opencode@2
        inputs:
          config_dir: ${CI_PROJECT_DIR}/opencode-config
-         auth_json: $BOLT_AUTH_JSON # The variable name for your Bolt authentication JSON
+         auth_json: $OPENCODE_AUTH_JSON # The variable name for your OpenCode authentication JSON
          command: optional-custom-command
          message: "Your prompt here"
    ```
@@ -46,23 +46,23 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
 
 ## GitLab Duo
 
-يتكامل Bolt مع سير عمل GitLab لديك.
-اذكر `@opencode` في تعليق، وسينفّذ Bolt المهام ضمن خط أنابيب GitLab CI لديك.
+يتكامل OpenCode مع سير عمل GitLab لديك.
+اذكر `@opencode` في تعليق، وسينفّذ OpenCode المهام ضمن خط أنابيب GitLab CI لديك.
 
 ---
 
 ### الميزات
 
-- **فرز المشكلات**: اطلب من Bolt النظر في مشكلة وشرحها لك.
-- **الإصلاح والتنفيذ**: اطلب من Bolt إصلاح مشكلة أو تنفيذ ميزة.
+- **فرز المشكلات**: اطلب من OpenCode النظر في مشكلة وشرحها لك.
+- **الإصلاح والتنفيذ**: اطلب من OpenCode إصلاح مشكلة أو تنفيذ ميزة.
   سيُنشئ فرعًا جديدًا ويرفع طلب دمج بالتغييرات.
-- **آمن**: يعمل Bolt على مشغّلات GitLab لديك.
+- **آمن**: يعمل OpenCode على مشغّلات GitLab لديك.
 
 ---
 
 ### الإعداد
 
-يعمل Bolt ضمن خط أنابيب GitLab CI/CD لديك، وإليك ما ستحتاجه لإعداده:
+يعمل OpenCode ضمن خط أنابيب GitLab CI/CD لديك، وإليك ما ستحتاجه لإعداده:
 
 :::tip
 اطّلع على [**وثائق GitLab**](https://docs.gitlab.com/user/duo_agent_platform/agent_assistant/) للحصول على تعليمات محدّثة.
@@ -83,15 +83,15 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
     image: node:22-slim
     commands:
       - echo "Installing opencode"
-      - npm install --global bolt-ai
+      - npm install --global opencode-ai
       - echo "Installing glab"
-      - export GITLAB_TOKEN=$GITLAB_TOKEN_BOLT
+      - export GITLAB_TOKEN=$GITLAB_TOKEN_OPENCODE
       - apt-get update --quiet && apt-get install --yes curl wget gpg git && rm --recursive --force /var/lib/apt/lists/*
       - curl --silent --show-error --location "https://raw.githubusercontent.com/upciti/wakemeops/main/assets/install_repository" | bash
       - apt-get install --yes glab
       - echo "Configuring glab"
       - echo $GITLAB_HOST
-      - echo "Creating Bolt auth configuration"
+      - echo "Creating OpenCode auth configuration"
       - mkdir --parents ~/.local/share/opencode
       - |
         cat > ~/.local/share/opencode/auth.json << EOF
@@ -103,13 +103,13 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
         }
         EOF
       - echo "Configuring git"
-      - git config --global user.email "bolt@gitlab.com"
-      - git config --global user.name "Bolt"
+      - git config --global user.email "opencode@gitlab.com"
+      - git config --global user.name "OpenCode"
       - echo "Testing glab"
       - glab issue list
-      - echo "Running Bolt"
+      - echo "Running OpenCode"
       - |
-        bolt run "
+        opencode run "
         You are an AI assistant helping with GitLab operations.
 
         Context: $AI_FLOW_CONTEXT
@@ -146,7 +146,7 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
         fi
     variables:
       - ANTHROPIC_API_KEY
-      - GITLAB_TOKEN_BOLT
+      - GITLAB_TOKEN_OPENCODE
       - GITLAB_HOST
     ```
 
@@ -158,7 +158,7 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
 
 ### أمثلة
 
-فيما يلي بعض الأمثلة على كيفية استخدام Bolt في GitLab.
+فيما يلي بعض الأمثلة على كيفية استخدام OpenCode في GitLab.
 
 :::tip
 يمكنك ضبطه لاستخدام عبارة تشغيل مختلفة عن `@opencode`.
@@ -172,7 +172,7 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
   @opencode explain this issue
   ```
 
-  سيقرأ Bolt المشكلة ويرد بشرح واضح.
+  سيقرأ OpenCode المشكلة ويرد بشرح واضح.
 
 - **إصلاح مشكلة**
 
@@ -182,7 +182,7 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
   @opencode fix this
   ```
 
-  سيُنشئ Bolt فرعًا جديدًا، وينفّذ التغييرات، ويفتح طلب دمج بالتغييرات.
+  سيُنشئ OpenCode فرعًا جديدًا، وينفّذ التغييرات، ويفتح طلب دمج بالتغييرات.
 
 - **مراجعة طلبات الدمج**
 
@@ -192,4 +192,4 @@ description: استخدم Bolt في مشكلات GitLab وطلبات الدمج.
   @opencode review this merge request
   ```
 
-  سيُراجع Bolt طلب الدمج ويقدّم ملاحظات.
+  سيُراجع OpenCode طلب الدمج ويقدّم ملاحظات.

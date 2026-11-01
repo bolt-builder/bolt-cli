@@ -1,4 +1,4 @@
-import { Resource } from "@bolt-ai/console-resource"
+import { Resource } from "@opencode/console-resource"
 
 async function login() {
   const url = Resource.SALESFORCE_INSTANCE_URL.value.replace(/\/$/, "")

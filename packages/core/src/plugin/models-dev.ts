@@ -1,5 +1,6 @@
-import { define } from "./internal"
-import type { ModelV2Info } from "@bolt-ai/sdk/v2/types"
+import { define } from "@opencode/plugin/effect/plugin"
+import { Integration } from "@opencode/schema/integration"
+import { Provider } from "@opencode/schema/provider"
 import { Effect, Stream } from "effect"
 import { Bus } from "../bus.js"
 import { Model } from "../model.js"
@@ -28,10 +29,6 @@ const BEDROCK_PROFILE_ONLY_IDS = [
   "writer.palmyra-x4-v1:0",
   "writer.palmyra-x5-v1:0",
 ]
-
-// models.dev lists text input and output for these, but realtime models only run live voice sessions, and embedding
-// and reranking models return vectors and scores, so none of them can answer a chat request.
-const NON_CHAT_TYPES: readonly ModelsDev.CatalogModelType[] = ["realtime", "embedding", "reranking"]
 
 export const ModelsDevPlugin = define({
   id: "opencode.models.dev",
@@ -99,8 +96,8 @@ function snapshots(data: readonly ModelsDev.Snapshot[]) {
       models: provider.models.filter(
         (model) =>
           model.status !== "deprecated" &&
-          Model.supportsText(model) &&
-          !NON_CHAT_TYPES.includes(provider.types?.get(model.id) ?? "chat") &&
+          // Non-chat models are kept for lookups; the Model service never offers them for sessions.
+          ((model.type ?? "chat") !== "chat" || Model.supportsText(model)) &&
           !(
             provider.info.id === Provider.ID.amazonBedrock &&
             BEDROCK_PROFILE_ONLY_IDS.includes(model.modelID ?? model.id)

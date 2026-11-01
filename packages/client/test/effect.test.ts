@@ -1,7 +1,17 @@
 import { expect, test } from "bun:test"
-import { DateTime, Effect, Stream } from "effect"
-import { HttpClient, HttpClientResponse } from "effect/unstable/http"
-import { AbsolutePath, Agent, Location, Model, Bolt, Prompt, Session, SessionMessage } from "../src/effect"
+import { Context, DateTime, Effect, Stream } from "effect"
+import { HttpClient, HttpClientResponse } from "effect/http"
+import {
+  AbsolutePath,
+  Agent,
+  Event,
+  Location,
+  Model,
+  OpenCode,
+  Prompt,
+  Session,
+  SessionMessage,
+} from "../src/effect/index"
 
 const synced = { type: "log.synced" as const, aggregateID: "ses_test", seq: Event.Seq.make(1) }
 
@@ -57,8 +67,8 @@ test("session.get returns the decoded Effect projection", async () => {
     Effect.succeed(HttpClientResponse.fromWeb(request, Response.json(session))),
   )
   const result = await Effect.gen(function* () {
-    const client = yield* Bolt.make({ baseUrl: "http://localhost:3000" })
-    return yield* client.sessions.get({ sessionID: Session.ID.make("ses_test") })
+    const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
+    return yield* client.session.get({ sessionID: Session.ID.make("ses_test") })
   }).pipe(Effect.provideService(HttpClient.HttpClient, httpClient), Effect.runPromise)
 
   expect(DateTime.toEpochMillis(result.time.created)).toBe(1_717_171_717_000)
@@ -82,13 +92,15 @@ test("session instructions methods use the public HTTP contract", async () => {
   })
   const result = await Effect.gen(function* () {
     const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
-    const listed = yield* client.session.instructions.entry.list({ sessionID: Session.ID.make("ses_test") })
-    yield* client.session.instructions.entry.put({
+    const listed = yield* client.experimental.session.instructions.entry.list({
+      sessionID: Session.ID.make("ses_test"),
+    })
+    yield* client.experimental.session.instructions.entry.put({
       sessionID: Session.ID.make("ses_test"),
       key: "review-notes",
       value: instructions[0].value,
     })
-    yield* client.session.instructions.entry.remove({
+    yield* client.experimental.session.instructions.entry.remove({
       sessionID: Session.ID.make("ses_test"),
       key: "review-notes",
     })
@@ -129,8 +141,8 @@ test("event.subscribe exposes and decodes the native Effect event stream", async
     ),
   )
   const events = await Effect.gen(function* () {
-    const client = yield* Bolt.make({ baseUrl: "http://localhost:3000" })
-    return yield* client.events.subscribe().pipe(Stream.runCollect)
+    const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
+    return yield* client.event.subscribe().pipe(Stream.runCollect)
   }).pipe(Effect.provideService(HttpClient.HttpClient, httpClient), Effect.runPromise)
 
   expect(Array.from(events).map((event) => event.type)).toEqual(["server.connected", "session.model.selected"])
@@ -174,8 +186,8 @@ test("event.subscribe terminates on Effect protocol decode failures", async () =
     ),
   )
   const error = await Effect.gen(function* () {
-    const client = yield* Bolt.make({ baseUrl: "http://localhost:3000" })
-    return yield* client.events.subscribe().pipe(Stream.runCollect, Effect.flip)
+    const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
+    return yield* client.event.subscribe().pipe(Stream.runCollect, Effect.flip)
   }).pipe(Effect.provideService(HttpClient.HttpClient, httpClient), Effect.runPromise)
 
   expect(error._tag).toBe("ClientError")
@@ -233,10 +245,10 @@ test("session methods retain decoded Effect inputs and outputs", async () => {
     )
   })
   const result = await Effect.gen(function* () {
-    const client = yield* Bolt.make({ baseUrl: "http://localhost:3000" })
-    const page = yield* client.sessions.list({ limit: 10 })
-    const active = yield* client.sessions.active()
-    const created = yield* client.sessions.create({
+    const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
+    const page = yield* client.session.list({ limit: 10 })
+    const active = yield* client.session.active()
+    const created = yield* client.session.create({
       location: Location.Ref.make({ directory: AbsolutePath.make("/tmp/project") }),
     })
     yield* client.session.view({
@@ -254,9 +266,9 @@ test("session methods retain decoded Effect inputs and outputs", async () => {
       resume: false,
     })
     yield* client.session.compact({ sessionID: Session.ID.make("ses_test") })
-    yield* client.session.wait({ sessionID: Session.ID.make("ses_test") })
+    yield* client.experimental.session.wait({ sessionID: Session.ID.make("ses_test") })
     const context = yield* client.session.context({ sessionID: Session.ID.make("ses_test") })
-    const log = yield* client.session
+    const log = yield* client.experimental.session
       .log({ sessionID: Session.ID.make("ses_test"), after: Event.Seq.make(0) })
       .pipe(Stream.runCollect)
     const interrupted = yield* client.session.interrupt({ sessionID: Session.ID.make("ses_test") })
@@ -303,12 +315,10 @@ test("session.log retains the typed SessionNotFoundError", async () => {
     ),
   )
   const error = await Effect.gen(function* () {
-    const client = yield* Bolt.make({ baseUrl: "http://localhost:3000" })
-    return yield* client.sessions
-      .history({
-        sessionID: Session.ID.make("ses_missing"),
-      })
-      .pipe(Effect.flip)
+    const client = yield* OpenCode.make({ baseUrl: "http://localhost:3000" })
+    return yield* client.experimental.session
+      .log({ sessionID: Session.ID.make("ses_missing") })
+      .pipe(Stream.runCollect, Effect.flip)
   }).pipe(Effect.provideService(HttpClient.HttpClient, httpClient), Effect.runPromise)
 
   expect(error._tag).toBe("SessionNotFoundError")

@@ -1,9 +1,9 @@
 import { For, Show } from "solid-js"
-import type { PermissionRequest } from "@bolt-ai/sdk/v2"
-import { Button } from "@bolt-ai/ui/button"
-import { DockPrompt } from "@bolt-ai/session-ui/dock-prompt"
-import { Icon } from "@bolt-ai/ui/icon"
-import { useLanguage } from "@/context/language"
+import type { PermissionRequest } from "@opencode/client/promise"
+import { Button } from "@opencode/ui/button"
+import { DockPrompt } from "@opencode/session-ui/dock-prompt"
+import { Icon } from "@opencode/ui/icon"
+import { useLanguage } from "@/runtime/i18n/language"
 
 export function SessionPermissionDock(props: {
   request: PermissionRequest
@@ -66,7 +66,7 @@ export function SessionPermissionDock(props: {
           <span data-slot="permission-spacer" aria-hidden="true" />
           <div data-slot="permission-patterns">
             <For each={props.request.resources}>
-              {(pattern) => <code class="text-12-regular text-text-base break-all">{pattern}</code>}
+              {(pattern) => <code class="text-text-base break-all">{pattern}</code>}
             </For>
           </div>
         </div>

@@ -1,5 +1,5 @@
 {
-  description = "Bolt development flake";
+  description = "OpenCode development flake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -38,12 +38,11 @@
             };
           in
           rec {
-            bolt = final.callPackage ./nix/bolt.nix {
+            opencode = final.callPackage ./nix/opencode.nix {
               inherit node_modules;
             };
-            opencode = bolt;
-            bolt-desktop = final.callPackage ./nix/desktop.nix {
-              inherit bolt;
+            opencode-desktop = final.callPackage ./nix/desktop.nix {
+              inherit opencode;
             };
           };
       };
@@ -56,13 +55,12 @@
           };
         in
         rec {
-          default = bolt;
-          bolt = pkgs.callPackage ./nix/bolt.nix {
+          default = opencode;
+          opencode = pkgs.callPackage ./nix/opencode.nix {
             inherit node_modules;
           };
-          opencode = bolt;
-          bolt-desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit bolt;
+          opencode-desktop = pkgs.callPackage ./nix/desktop.nix {
+            inherit opencode;
           };
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {

@@ -31,32 +31,11 @@ O opencode é de código aberto e não armazena nenhum de seus códigos ou dados
 
 Isso significa que, enquanto você estiver usando um provedor em quem confia, ou um gateway de IA interno, você pode usar o opencode com segurança.
 
-A única ressalva aqui é o recurso opcional `/share`.
-
----
-
-#### Compartilhando conversas
-
-Se um usuário habilitar o recurso `/share`, a conversa e os dados associados a ela são enviados para o serviço que usamos para hospedar essas páginas de compartilhamento em bolt.ai.
-
-Os dados são atualmente servidos através da rede de borda do nosso CDN e são armazenados em cache na borda perto de seus usuários.
-
-Recomendamos que você desative isso para seu teste.
-
-```json title="bolt.json"
-{
-  "$schema": "https://bolt.ai/config.json",
-  "share": "disabled"
-}
-```
-
-[Saiba mais sobre compartilhamento](/docs/share).
-
 ---
 
 ### Propriedade do código
 
-**Você possui todo o código produzido pelo bolt.** Não há restrições de licenciamento ou reivindicações de propriedade.
+**Você possui todo o código produzido pelo opencode.** Não há restrições de licenciamento ou reivindicações de propriedade.
 
 ---
 
@@ -116,7 +95,7 @@ O opencode Enterprise é para organizações que desejam garantir que seu códig
 <details>
 <summary>Como posso começar com o opencode Enterprise?</summary>
 
-Basta começar com um teste interno com sua equipe. O bolt, por padrão, não armazena seu código ou dados de contexto, facilitando o início.
+Basta começar com um teste interno com sua equipe. O opencode, por padrão, não armazena seu código ou dados de contexto, facilitando o início.
 
 Depois, **<a href={email}>entre em contato conosco</a>** para discutir opções de preços e implementação.
 
@@ -139,7 +118,7 @@ Sim. O opencode não armazena seu código ou dados de contexto. Todo o processam
 <details>
 <summary>Podemos usar nosso próprio registro NPM privado?</summary>
 
-O opencode suporta registros npm privados através do suporte nativo do arquivo `.npmrc` do Bun. Se sua organização usa um registro privado, como JFrog Artifactory, Nexus ou similar, certifique-se de que os desenvolvedores estejam autenticados antes de executar o bolt.
+O opencode suporta registros npm privados através do suporte nativo do arquivo `.npmrc` do Bun. Se sua organização usa um registro privado, como JFrog Artifactory, Nexus ou similar, certifique-se de que os desenvolvedores estejam autenticados antes de executar o opencode.
 
 Para configurar a autenticação com seu registro privado:
 
@@ -151,7 +130,7 @@ Isso cria `~/.npmrc` com os detalhes de autenticação. O opencode irá automati
 capturar isso.
 
 :::caution
-Você deve estar logado no registro privado antes de executar o bolt.
+Você deve estar logado no registro privado antes de executar o opencode.
 :::
 
 Alternativamente, você pode configurar manualmente um arquivo `.npmrc`:

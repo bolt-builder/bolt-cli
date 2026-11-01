@@ -176,42 +176,14 @@ function buildExit(input: SplashWriterInput, ctx: ScrollbackRenderContext): Scro
   const left = input.theme.left
   const right = input.theme.right
   const leftShadow = input.theme.leftShadow
-  let height = 1
-
-  if (kind === "entry") {
-    const mark = go.right.slice(1)
-    const top = 1
-    const body_left = (mark[0]?.length ?? 0) + 2
-
-    for (let i = 0; i < mark.length; i += 1) {
-      draw(lines, mark[i] ?? "", {
-        left: 0,
-        top: top + i,
-        fg: left,
-        shadow: leftShadow,
-      })
-    }
-
-    push(lines, body_left, top, "Bolt", right, undefined, TextAttributes.BOLD)
-    if (input.detail) {
-      push(
-        lines,
-        body_left,
-        top + 1,
-        Locale.truncateMiddle(input.detail, Math.max(1, width - body_left)),
-        left,
-        undefined,
-      )
-    }
-    height = top + mark.length
-  }
-
-  if (kind === "exit") {
-    const mark = go.right.slice(1)
-    const top = 1
-    const body_left = (mark[0]?.length ?? 0) + 2
-    const session = "Session  "
-    const label = "Continue "
+  const mark = input.mono ? ["[O]"] : go.right.slice(1)
+  const top = 1
+  const body_left = (mark[0]?.length ?? 0) + 2
+  const session = "Session  "
+  const label = "Continue "
+  const command = `opencode mini -s ${meta.session_id}`
+  const wide = body_left + stringWidth(label + command) <= width
+  const commandHeight = wide ? 1 : Math.ceil(stringWidth(command) / width)
 
   if (wide) {
     for (let i = 0; i < mark.length; i += 1) {
@@ -227,18 +199,7 @@ function buildExit(input: SplashWriterInput, ctx: ScrollbackRenderContext): Scro
       push(lines, body_left, top, session, left)
       push(lines, body_left + session.length, top, meta.title, right, undefined, TextAttributes.BOLD)
     }
-
-    push(lines, body_left, top + 1, label, left, undefined, TextAttributes.DIM)
-    push(
-      lines,
-      body_left + label.length,
-      top + 1,
-      `bolt --mini -s ${meta.session_id}`,
-      right,
-      undefined,
-      TextAttributes.BOLD,
-    )
-    height = top + mark.length
+    push(lines, body_left, top + 1, label, left)
   }
 
   const height = top + (wide ? Math.max(mark.length, 2) : commandHeight)

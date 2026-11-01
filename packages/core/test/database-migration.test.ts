@@ -3,32 +3,15 @@ import { $ } from "bun"
 import { fileURLToPath } from "url"
 import path from "path"
 import { SqliteClient } from "@effect/sql-sqlite-bun"
-import { EffectDrizzleSqlite } from "@bolt-ai/effect-drizzle-sqlite"
-import { Effect, Layer } from "effect"
-import { eq, inArray, sql } from "drizzle-orm"
-import { DatabaseMigration } from "@bolt-ai/core/database/migration"
-import { migrations } from "@bolt-ai/core/database/migration.gen"
-import workspaceNameMigration from "@bolt-ai/core/database/migration/20260410174513_workspace-name"
-import sessionUsageMigration from "@bolt-ai/core/database/migration/20260510033149_session_usage"
-import normalizeStoragePathsMigration from "@bolt-ai/core/database/migration/20260601010001_normalize_storage_paths"
-import sessionMessageProjectionOrderMigration from "@bolt-ai/core/database/migration/20260603040000_session_message_projection_order"
-import eventSourcedSessionInputMigration from "@bolt-ai/core/database/migration/20260604172448_event_sourced_session_input"
-import contextEpochAgentMigration from "@bolt-ai/core/database/migration/20260605042240_add_context_epoch_agent"
-import simplifyIntegrationCredentialsMigration from "@bolt-ai/core/database/migration/20260611192811_lush_chimera"
-import simplifySessionInputMigration from "@bolt-ai/core/database/migration/20260622202450_simplify_session_input"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { ProjectV2 } from "@bolt-ai/core/project"
-import { ProjectTable } from "@bolt-ai/core/project/sql"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionSchema } from "@bolt-ai/core/session/schema"
-import { SessionTable } from "@bolt-ai/core/session/sql"
-import sessionMetadataMigration from "@bolt-ai/core/database/migration/20260511173437_session-metadata"
-import type { SqlClient as SqlClientService } from "effect/unstable/sql/SqlClient"
-import { Database } from "@bolt-ai/core/database/database"
-import { SessionProjector } from "@bolt-ai/core/session/projector"
-import { SessionV1 } from "@bolt-ai/core/v1/session"
+import { EffectDrizzleSqlite } from "@opencode/core/database/drizzle"
+import { Deferred, Effect, Fiber, Layer } from "effect"
+import { Reactivity } from "effect/reactivity"
+import { SqlClient, Statement } from "effect/sql"
+import { sql } from "drizzle-orm"
+import { DatabaseMigration } from "@opencode/core/database/migration"
+import { migrations } from "@opencode/core/database/migration.gen"
+import workspaceNameMigration from "@opencode/core/database/migration/20260410174513_workspace-name"
+import { Database } from "@opencode/core/database/database"
 import { tmpdir } from "./fixture/tmpdir"
 import legacyCredentialsMigration from "@opencode/core/database/migration/20260805200742_import_legacy_credentials"
 import worktreeMigration from "@opencode/core/database/migration/20260812213948_worktree"
@@ -38,6 +21,7 @@ import executionClaimsMigration from "@opencode/core/database/migration/20260811
 import sessionInboxMigration from "@opencode/core/database/migration/20260812181746_session_inbox"
 import sessionViewedStateMigration from "@opencode/core/database/migration/20260819222447_session_viewed_state"
 import azureCliCredentialMigration from "@opencode/core/database/migration/20261007190000_azure_cli_external_credential"
+import dropSessionPendingMigration from "@opencode/core/database/migration/20261025154125_drop_session_pending"
 import { Global } from "@opencode/util/global"
 
 const run = <A, E>(
@@ -74,6 +58,7 @@ const parkedClient = (arrived: Deferred.Deferred<void>, gate: Deferred.Deferred<
           executeRaw: (query, params) => park(query, connection.executeRaw(query, params)),
         }),
         compiler: Statement.makeCompilerSqlite(),
+        driver: client.driver,
         spanAttributes: [],
       })
     }),
@@ -204,7 +189,7 @@ describe("DatabaseMigration", () => {
         )
         expect(
           yield* db.get(sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'session_pending'`),
-        ).toEqual({ name: "session_pending" })
+        ).toBeUndefined()
         expect(yield* db.get(sql`SELECT count(*) AS count FROM migration`)).toEqual({ count: migrations.length })
       }),
     )
@@ -228,6 +213,21 @@ describe("DatabaseMigration", () => {
           idle_outcome: null,
         })
         expect(yield* db.get(sql`SELECT count(*) AS count FROM migration`)).toEqual({ count: 1 })
+      }),
+    )
+  })
+
+  test("drops the unused session_pending table and its indexes", async () => {
+    await run(
+      Effect.gen(function* () {
+        const db = yield* makeDb
+        yield* db.run(sql`CREATE TABLE session_pending (id text PRIMARY KEY, session_id text NOT NULL)`)
+        yield* db.run(sql`CREATE INDEX session_pending_session_delivery_seq_idx ON session_pending (session_id)`)
+        yield* db.run(sql`INSERT INTO session_pending VALUES ('pending', 'session')`)
+
+        yield* DatabaseMigration.applyOnly(db, [dropSessionPendingMigration])
+
+        expect(yield* db.all(sql`SELECT name FROM sqlite_master WHERE name LIKE 'session_pending%'`)).toEqual([])
       }),
     )
   })

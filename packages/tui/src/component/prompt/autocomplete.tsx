@@ -1,16 +1,32 @@
-import { measureEditText, type BoxRenderable, type TextareaRenderable, type ScrollBoxRenderable } from "@opentui/core"
+import {
+  measureEditText,
+  type RGBA,
+  type BoxRenderable,
+  type TextareaRenderable,
+  type ScrollBoxRenderable,
+} from "@opentui/core"
 import { pathToFileURL } from "node:url"
 import fuzzysort from "fuzzysort"
 import path from "path"
 import { firstBy } from "remeda"
-import { createMemo, createResource, createEffect, onMount, onCleanup, Index, Show, createSignal } from "solid-js"
+import {
+  createMemo,
+  createResource,
+  createEffect,
+  onMount,
+  onCleanup,
+  Index,
+  Show,
+  createSignal,
+  type JSX,
+} from "solid-js"
 import { createStore } from "solid-js/store"
 import { useEditorContext } from "../../context/editor"
 import { useClient } from "../../context/client"
 import { useData } from "../../context/data"
 import { getScrollAcceleration } from "../../util/scroll"
 import { useTuiPaths } from "../../context/runtime"
-import { useConfig } from "../../config"
+import { useConfig, useNewDesigns } from "../../config"
 import { useLocation } from "../../context/location"
 import { useTheme } from "../../context/theme"
 import { SplitBorder } from "../../ui/border"
@@ -18,41 +34,14 @@ import { useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
 import type { PromptInfo, PromptPartRef } from "../../prompt/history"
 import { useFrecency } from "../../prompt/frecency"
-import { useBindings, useCommandSlashes, useOpencodeModeStack } from "../../keymap"
-import { displayCharAt, mentionTriggerIndex } from "../../prompt/display"
-import type { FileSystemEntry } from "@bolt-ai/sdk/v2"
-
-function removeLineRange(input: string) {
-  const hashIndex = input.lastIndexOf("#")
-  return hashIndex !== -1 ? input.substring(0, hashIndex) : input
-}
-
-function extractLineRange(input: string) {
-  const hashIndex = input.lastIndexOf("#")
-  if (hashIndex === -1) {
-    return { baseQuery: input }
-  }
-
-  const baseName = input.substring(0, hashIndex)
-  const linePart = input.substring(hashIndex + 1)
-  const lineMatch = linePart.match(/^(\d+)(?:-(\d*))?$/)
-
-  if (!lineMatch) {
-    return { baseQuery: baseName }
-  }
-
-  const startLine = Number(lineMatch[1])
-  const endLine = lineMatch[2] && startLine < Number(lineMatch[2]) ? Number(lineMatch[2]) : undefined
-
-  return {
-    lineRange: {
-      baseName,
-      startLine,
-      endLine,
-    },
-    baseQuery: baseName,
-  }
-}
+import { Keymap, type KeymapCommand } from "../../context/keymap"
+import { mentionTriggerIndex, slashTriggerIndex } from "../../prompt/display"
+import type { FileSystemEntry } from "@opencode/client"
+import { Skill } from "@opencode/schema/skill"
+import { stringWidth } from "../../util/string-width"
+import { parseFileLineRange, stripFileLineRange } from "../../prompt/parse"
+import { moveSelection, reconcileSelectionWindow, revealSelectionOffset } from "../../ui/select-controller"
+import { directoryAutocomplete, slashArgumentAutocomplete } from "../../prompt/directory-completion"
 
 export type AutocompleteRef = {
   onInput: (value: string) => void
@@ -109,6 +98,7 @@ export function Autocomplete(props: {
   const dimensions = useTerminalDimensions()
   const frecency = useFrecency()
   const config = useConfig().data
+  const newDesigns = useNewDesigns()
   const paths = useTuiPaths()
   const location = useLocation()
   const [store, setStore] = createStore({
@@ -576,11 +566,6 @@ export function Autocomplete(props: {
       return [...nonFileOptions, ...fileOptions]
     }
 
-    if (files.loading && prev && prev.length > 0) {
-      return prev
-    }
-
-    const query = store.visible + removeLineRange(searchValue)
     const fuzziedNonFiles = fuzzysort
       .go(stripFileLineRange(searchValue), nonFileOptions, {
         keys: [
@@ -603,12 +588,6 @@ export function Autocomplete(props: {
         },
       })
       .map((arr) => arr.obj)
-      // Rank an exact name match first so `/compact` selects it over `/compact-view`.
-      // Stable sort preserves fuzzy order for everything else; aliases don't count.
-      .sort(
-        (a, b) =>
-          Number((b.value ?? b.display).trimEnd() === query) - Number((a.value ?? a.display).trimEnd() === query),
-      )
 
     return [...fuzziedNonFiles, ...fileOptions].slice(0, 10)
   })
@@ -837,9 +816,7 @@ export function Autocomplete(props: {
             // Typed text before the trigger
             props.input().cursorOffset <= store.index ||
             // There is a space between the trigger and the cursor
-            /\s/.test(props.input().getTextRange(store.index, props.input().cursorOffset)) ||
-            // "/<command>" is not the sole content
-            (store.visible === "/" && /^\S+\s+\S+\s*$/.test(value))
+            props.input().getTextRange(store.index, props.input().cursorOffset).match(/\s/)
           ) {
             hide()
           }
@@ -849,10 +826,10 @@ export function Autocomplete(props: {
         // Check if autocomplete should reopen (e.g., after backspace deleted a space)
         if (offset === 0) return
 
-        // Check for "/" at position 0 - reopen slash commands
-        if (value.startsWith("/") && !/\s/.test(value.slice(0, offset))) {
-          show("/")
-          setStore("index", 0)
+        const slash = slashTriggerIndex(beforeCursor, renderer.widthMethod)
+        if (slash === 0) {
+          show("command")
+          setStore("index", slash)
           return
         }
 
@@ -889,6 +866,8 @@ export function Autocomplete(props: {
     return "No matching files, agents, or references"
   })
   const emptyError = createMemo(() => store.visible === "reference" && !files.loading && visibleFiles().failed)
+  // The scrollbox paints this under the classic design; new designs paint it per row.
+  const rowBackground = () => (newDesigns() ? theme.background.raised.high : undefined)
   const labels = {
     skill: "skill",
     agent: "agent",
@@ -904,6 +883,8 @@ export function Autocomplete(props: {
       width={position().width}
       zIndex={100}
       {...SplitBorder}
+      // Under new designs each row draws its own left rail so the selected row can show the selection bar.
+      border={newDesigns() ? ["right"] : SplitBorder.border}
       borderColor={theme.border.base}
     >
       <scrollbox
@@ -912,7 +893,8 @@ export function Autocomplete(props: {
           scroll = r
           scroll.verticalScrollBar.on("change", syncSelectionWindow)
         }}
-        backgroundColor={theme.background.raised.high}
+        // Under new designs rows paint the background themselves so the rail cell stays transparent like the border.
+        backgroundColor={newDesigns() ? undefined : theme.background.raised.high}
         height={height()}
         scrollbarOptions={{ visible: false }}
         scrollAcceleration={scrollAcceleration()}
@@ -920,9 +902,22 @@ export function Autocomplete(props: {
         <Index
           each={options()}
           fallback={
-            <box paddingLeft={1} paddingRight={1}>
-              <text fg={emptyError() ? theme.text.feedback.error.base : theme.text.muted}>{emptyMessage()}</text>
-            </box>
+            <AutocompleteRail enabled={newDesigns()}>
+              <box
+                paddingLeft={1}
+                paddingRight={1}
+                flexGrow={newDesigns() ? 1 : undefined}
+                backgroundColor={rowBackground()}
+              >
+                {/* Under new designs the 1-row popup keeps the message on one line, so it never scrolls past the rail. */}
+                <text
+                  fg={emptyError() ? theme.text.feedback.error.base : theme.text.muted}
+                  wrapMode={newDesigns() ? "none" : undefined}
+                >
+                  {newDesigns() ? Locale.truncate(emptyMessage(), Math.max(1, position().width - 4)) : emptyMessage()}
+                </text>
+              </box>
+            </AutocompleteRail>
           }
         >
           {(option, index) => {
@@ -940,61 +935,89 @@ export function Autocomplete(props: {
               return action !== undefined && action.id === confirming()
             }
             return (
-              <box
-                paddingLeft={1}
-                paddingRight={1}
-                backgroundColor={
+              <AutocompleteRail
+                enabled={newDesigns()}
+                color={
                   confirmingAction()
-                    ? theme.background.action.destructive.focused
+                    ? theme.text.feedback.error.base
                     : index === store.selected
-                      ? theme.background.action.primary.focused
+                      ? theme.text.formfield.focused
                       : undefined
                 }
-                flexDirection="row"
-                onMouseMove={() => moveTo(index)}
-                onMouseDown={() => moveTo(index)}
-                onMouseUp={() => select()}
               >
-                <text
-                  fg={
+                <box
+                  paddingLeft={1}
+                  paddingRight={1}
+                  flexGrow={newDesigns() ? 1 : undefined}
+                  backgroundColor={
                     confirmingAction()
-                      ? theme.text.action.destructive.focused
+                      ? theme.background.action.destructive.focused
                       : index === store.selected
-                        ? theme.text.action.primary.focused
-                        : theme.text.base
+                        ? theme.background.action.primary.focused
+                        : rowBackground()
                   }
-                  flexShrink={0}
-                  wrapMode="none"
+                  flexDirection="row"
+                  onMouseMove={() => moveTo(index)}
+                  onMouseDown={() => moveTo(index)}
+                  onMouseUp={() => select()}
                 >
-                  {Locale.truncateMiddle(
-                    confirmingAction() ? (destructive()?.confirm ?? "") : option().display,
-                    contentWidth(),
-                  )}
-                </text>
-                <Show when={!confirmingAction() && option().description}>
                   <text
-                    fg={index === store.selected ? theme.text.action.primary.focused : theme.text.muted}
-                    wrapMode="none"
-                    flexShrink={1}
-                    minWidth={0}
-                  >
-                    {" " + option().description?.replace(/\s+/g, " ").trim()}
-                  </text>
-                </Show>
-                <Show when={!confirmingAction() && label()}>
-                  <box flexGrow={1} minWidth={2} />
-                  <text
+                    fg={
+                      confirmingAction()
+                        ? theme.text.action.destructive.focused
+                        : index === store.selected
+                          ? theme.text.action.primary.focused
+                          : theme.text.base
+                    }
                     flexShrink={0}
-                    fg={index === store.selected ? theme.text.action.primary.focused : theme.text.muted}
+                    wrapMode="none"
                   >
-                    {label()}
+                    {Locale.truncateMiddle(
+                      confirmingAction() ? (destructive()?.confirm ?? "") : option().display,
+                      contentWidth(),
+                    )}
                   </text>
-                </Show>
-              </box>
+                  <Show when={!confirmingAction() && option().description}>
+                    <text
+                      fg={index === store.selected ? theme.text.action.primary.focused : theme.text.muted}
+                      wrapMode="none"
+                      flexShrink={1}
+                      minWidth={0}
+                    >
+                      {" " + option().description?.replace(/\s+/g, " ").trim()}
+                    </text>
+                  </Show>
+                  <Show when={!confirmingAction() && label()}>
+                    <box flexGrow={1} minWidth={2} />
+                    <text
+                      flexShrink={0}
+                      fg={index === store.selected ? theme.text.action.primary.focused : theme.text.muted}
+                    >
+                      {label()}
+                    </text>
+                  </Show>
+                </box>
+              </AutocompleteRail>
             )
           }}
         </Index>
       </scrollbox>
     </box>
+  )
+}
+
+// Under new designs the popup's left border is drawn per row, so the selected row's segment
+// becomes the selection bar, matching dialog rows. `color` overrides the border color.
+function AutocompleteRail(props: { enabled: boolean; color?: RGBA; children: JSX.Element }) {
+  const theme = useTheme()
+  return (
+    <Show when={props.enabled} fallback={props.children}>
+      <box flexDirection="row">
+        <text width={1} flexShrink={0} fg={props.color ?? theme.border.base}>
+          ┃
+        </text>
+        {props.children}
+      </box>
+    </Show>
   )
 }

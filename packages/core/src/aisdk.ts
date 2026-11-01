@@ -30,10 +30,9 @@ import {
   type ToolDefinition,
   type UsageInput,
 } from "@opencode/ai/effect"
-import { Auth, Endpoint, RequestExecutor, type AnyRoute, type HttpMiddleware } from "@opencode/ai/route"
-import { ProviderShared } from "@opencode/ai/protocols/shared"
-import { isRecord } from "@opencode/ai/utils/record"
-import { Cause, Context, Effect, Layer, Option, Schema, Scope, Stream } from "effect"
+import { Auth, Endpoint, ProviderShared, RequestExecutor, type AnyRoute, type HttpMiddleware } from "@opencode/ai/route"
+import { isRecord } from "@opencode/util/record"
+import { Cause, Context, Effect, Layer, Option, Schema, Scope, Stream, Struct } from "effect"
 import { makeParser } from "effect/encoding/Sse"
 import { HttpClientRequest, HttpClientResponse } from "effect/http"
 import { AsyncLocalStorage } from "node:async_hooks"
@@ -122,19 +121,16 @@ function wrapSSE(res: Response, ms: number, ctl: AbortController) {
 
 function prepareOptions(model: RuntimeInfo, pkg: string) {
   const projected = mapBodyToProviderOptions(model, pkg)
+  const settings = model.settings ?? {}
   const options: Record<string, unknown> = {
     name: model.canonical ?? model.providerID,
-    ...(model.settings ?? {}),
+    ...Provider.nativeSettings(settings),
     headers: model.headers,
     body: projected.body,
   }
 
-  const customFetch = options.fetch
-  const timeouts = Provider.timeouts(options)
-  delete options.headerTimeout
-  delete options.chunkTimeout
-  delete options.compaction
-  delete options.transport
+  const customFetch = settings.fetch
+  const timeouts = Provider.timeouts(settings)
   options.fetch = async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
     const opts = { ...(init ?? {}) }
     // A plain AbortSignal.timeout would keep running into the body stream, so the header limit uses
@@ -154,36 +150,22 @@ function prepareOptions(model: RuntimeInfo, pkg: string) {
       ].filter((item): item is AbortSignal => item !== undefined && item !== null),
     )
 
-    const runFetch = () =>
-      (typeof customFetch === "function" ? customFetch : fetch)(input, {
-        ...opts,
-        timeout: false,
-      })
-
-    if (
-      (pkg === "@ai-sdk/openai" || pkg === "@ai-sdk/azure" || pkg === "@ai-sdk/amazon-bedrock/mantle") &&
-      opts.body &&
-      opts.method === "POST"
-    ) {
-      // Non-string bodies (FormData, streams) pass through untouched.
-      if (typeof opts.body === "string" && opts.body.length > 0) {
-        try {
-          const body = JSON.parse(opts.body)
-          if (body.store !== true && Array.isArray(body.input)) {
-            for (const item of body.input) {
-              if ("id" in item) delete item.id
-            }
-            opts.body = JSON.stringify(body)
-          }
-        } catch {
-          // Malformed JSON passes through to the underlying fetch for its own error handling.
-        }
+    if (typeof opts.body === "string" && model.body !== undefined) {
+      const decoded = Option.getOrUndefined(decodeJsonRecord(opts.body))
+      if (decoded) {
+        opts.body = JSON.stringify(Provider.mergeOverlay(decoded, model.body))
       }
     }
 
-    const res = await runFetch()
-    if (!chunkAbortCtl || typeof chunkTimeout !== "number") return res
-    return wrapSSE(res, chunkTimeout, chunkAbortCtl)
+    const send: Fetch = isFetch(customFetch) ? customFetch : fetch
+    const middleware = httpMiddleware.getStore()
+    const res = await (
+      middleware
+        ? throughMiddleware(middleware, send, input, { ...opts, timeout: false })
+        : send(input, { ...opts, timeout: false })
+    ).finally(() => clearTimeout(headerTimer))
+    if (timeouts.chunkTimeout === false) return res
+    return wrapSSE(res, timeouts.chunkTimeout, chunks)
   }
 
   return options
@@ -267,7 +249,7 @@ export interface Interface {
   readonly model: (model: RuntimeInfo) => Effect.Effect<LanguageModel, InitError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/AISDK") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/AISDK") {}
 
 export const locationLayer = Layer.effect(
   Service,
@@ -467,24 +449,16 @@ function providerOptionKey(packageName: string | undefined, providerID: Provider
   return providerID
 }
 
-function requestSettings(settings: Readonly<Record<string, unknown>> | undefined) {
+function requestSettings(settings: Provider.Settings | undefined) {
   if (settings === undefined) return undefined
-  const result = Object.fromEntries(
-    Object.entries(settings).filter(
-      ([key]) =>
-        ![
-          "apiKey",
-          "authToken",
-          "baseURL",
-          "chunkTimeout",
-          "compaction",
-          "fetch",
-          "headerTimeout",
-          "timeout",
-          "transport",
-        ].includes(key),
-    ),
-  )
+  // These configure the SDK provider when it is created, not each request.
+  const result = Struct.omit(Provider.nativeSettings(settings), [
+    "accessToken",
+    "apiKey",
+    "authToken",
+    "baseURL",
+    "fetch",
+  ])
   return Object.keys(result).length === 0 ? undefined : result
 }
 

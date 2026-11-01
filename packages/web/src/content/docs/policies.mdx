@@ -1,11 +1,15 @@
 ---
 title: Policies
-description: Control which configured resources Bolt may use.
+description: Control which configured resources OpenCode may use.
 ---
 
-Policies control whether Bolt may perform an action on a named resource. This feature is experimental and is configured with the `experimental.policies` array in `bolt.json`.
+:::caution[Requires OpenCode 2]
+Policies are not enforced in OpenCode 1. The examples on this page require OpenCode 2. In OpenCode 1, use [`disabled_providers`](/docs/config#disabled-providers) or [`enabled_providers`](/docs/config#enabled-providers) to control provider availability. See the [OpenCode 2 policies documentation](https://opencode.ai/v2/docs/policies/) for current usage.
+:::
 
-Policies are separate from [permissions](/docs/permissions). Permissions control what tools can do during a session, while policies control whether Bolt may use a resource such as an LLM provider.
+Policies control whether OpenCode may perform an action on a named resource. This OpenCode 2 feature is experimental and is configured with the `experimental.policies` array in `opencode.json`.
+
+Policies are separate from [permissions](/docs/permissions). Permissions control what tools can do during a session, while policies control whether OpenCode may use a resource such as an LLM provider.
 
 ---
 
@@ -19,9 +23,9 @@ Each policy statement has three fields:
 
 For example, deny use of the `openai` provider:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "experimental": {
     "policies": [
       {
@@ -40,7 +44,7 @@ A provider denied by policy is not available for model selection or model use, e
 
 ## Available Policies
 
-Bolt currently supports one policy action:
+OpenCode currently supports one policy action:
 
 | Action         | Resource                      | Description                           |
 | -------------- | ----------------------------- | ------------------------------------- |
@@ -54,9 +58,9 @@ More policy actions may be added in the future.
 
 The `resource` field supports wildcard matching. Use `*` to match zero or more characters and `?` to match one character.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "experimental": {
     "policies": [
       {
@@ -79,9 +83,9 @@ When multiple statements match, the last matching statement wins. Put broad rule
 
 For example, allow only Anthropic:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "experimental": {
     "policies": [
       {
@@ -111,7 +115,7 @@ In OpenCode 2, use policies instead of the older `disabled_providers` and `enabl
 
 To replace `disabled_providers`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
   "experimental": {
     "policies": [
@@ -124,7 +128,7 @@ To replace `disabled_providers`:
 
 To replace `enabled_providers`, deny all providers first and allow the selected providers after it:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
   "experimental": {
     "policies": [

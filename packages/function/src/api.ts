@@ -11,7 +11,7 @@ export default new Hono()
    * Used by the GitHub action to get GitHub installation access token given the OIDC token
    */
   .post("/exchange_github_app_token", async (c) => {
-    const EXPECTED_AUDIENCE = "bolt-github-action"
+    const EXPECTED_AUDIENCE = "opencode-github-action"
     const GITHUB_ISSUER = "https://token.actions.githubusercontent.com"
     const JWKS_URL = `${GITHUB_ISSUER}/.well-known/jwks`
 

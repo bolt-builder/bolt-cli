@@ -1,9 +1,9 @@
 ---
 title: ปลั๊กอิน
-description: เขียนปลั๊กอินของคุณเองเพื่อขยาย Bolt
+description: เขียนปลั๊กอินของคุณเองเพื่อขยาย OpenCode
 ---
 
-ปลั๊กอินช่วยให้คุณสามารถขยาย Bolt ได้โดยเชื่อมโยงกับเหตุการณ์ต่างๆ และปรับแต่งลักษณะการทำงาน คุณสามารถสร้างปลั๊กอินเพื่อเพิ่มคุณสมบัติใหม่ บูรณาการกับบริการภายนอก หรือแก้ไขการทำงานเริ่มต้นของ Bolt
+ปลั๊กอินช่วยให้คุณสามารถขยาย OpenCode ได้โดยเชื่อมโยงกับเหตุการณ์ต่างๆ และปรับแต่งลักษณะการทำงาน คุณสามารถสร้างปลั๊กอินเพื่อเพิ่มคุณสมบัติใหม่ บูรณาการกับบริการภายนอก หรือแก้ไขการทำงานเริ่มต้นของ OpenCode
 
 ตัวอย่างเช่น ลองดู [ปลั๊กอิน](/docs/ecosystem#ปลั๊กอิน) ที่สร้างโดยชุมชน
 
@@ -19,7 +19,7 @@ description: เขียนปลั๊กอินของคุณเอง�
 
 วางไฟล์ JavaScript หรือ TypeScript ในไดเร็กทอรีปลั๊กอิน
 
-- `.bolt/plugins/` - ​​ปลั๊กอินระดับโครงการ
+- `.opencode/plugins/` - ​​ปลั๊กอินระดับโครงการ
 - `~/.config/opencode/plugins/` - ​​ปลั๊กอินทั่วโลก
 
 ไฟล์ในไดเร็กทอรีเหล่านี้จะถูกโหลดโดยอัตโนมัติเมื่อเริ่มต้นระบบ
@@ -30,10 +30,10 @@ description: เขียนปลั๊กอินของคุณเอง�
 
 ระบุแพ็คเกจ npm ในไฟล์ปรับแต่งของคุณ
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
-  "plugin": ["bolt-helicone-session", "bolt-wakatime", "@my-org/custom-plugin"]
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-helicone-session", "opencode-wakatime", "@my-org/custom-plugin"]
 }
 ```
 
@@ -55,10 +55,10 @@ description: เขียนปลั๊กอินของคุณเอง�
 
 ปลั๊กอินถูกโหลดจากทุกแหล่งและ hooks ทั้งหมดทำงานตามลำดับ ลำดับการโหลดคือ:
 
-1. การกำหนดค่าส่วนกลาง (`~/.config/opencode/bolt.json`)
-2. การกำหนดค่าโครงการ (`bolt.json`)
+1. การกำหนดค่าส่วนกลาง (`~/.config/opencode/opencode.json`)
+2. การกำหนดค่าโครงการ (`opencode.json`)
 3. ไดเร็กทอรีปลั๊กอินสากล (`~/.config/opencode/plugins/`)
-4. ไดเรกทอรีปลั๊กอินโครงการ (`.bolt/plugins/`)
+4. ไดเรกทอรีปลั๊กอินโครงการ (`.opencode/plugins/`)
 
 แพ็กเกจ npm ที่ซ้ำกันซึ่งมีชื่อและเวอร์ชันเดียวกันจะถูกโหลดหนึ่งครั้ง อย่างไรก็ตาม ทั้งปลั๊กอินในเครื่องและปลั๊กอิน npm ที่มีชื่อคล้ายกันจะโหลดแยกกัน
 
@@ -75,7 +75,7 @@ description: เขียนปลั๊กอินของคุณเอง�
 
 ปลั๊กอินท้องถิ่นและเครื่องมือแบบกำหนดเองสามารถใช้แพ็คเกจ npm ภายนอกได้ เพิ่ม `package.json` ลงในไดเร็กทอรี config ของคุณด้วยการอ้างอิงที่คุณต้องการ
 
-```json title=".bolt/package.json"
+```json title=".opencode/package.json"
 {
   "dependencies": {
     "shescape": "^2.1.0"
@@ -83,9 +83,9 @@ description: เขียนปลั๊กอินของคุณเอง�
 }
 ```
 
-Bolt รัน `bun install` เมื่อเริ่มต้นเพื่อติดตั้งสิ่งเหล่านี้ ปลั๊กอินและเครื่องมือของคุณสามารถนำเข้าได้
+OpenCode รัน `bun install` เมื่อเริ่มต้นเพื่อติดตั้งสิ่งเหล่านี้ ปลั๊กอินและเครื่องมือของคุณสามารถนำเข้าได้
 
-```ts title=".bolt/plugins/my-plugin.ts"
+```ts title=".opencode/plugins/my-plugin.ts"
 import { escape } from "shescape"
 
 export const MyPlugin = async (ctx) => {
@@ -103,7 +103,7 @@ export const MyPlugin = async (ctx) => {
 
 ### โครงสร้างพื้นฐาน
 
-```js title=".bolt/plugins/example.js"
+```js title=".opencode/plugins/example.js"
 export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
   console.log("Plugin initialized!")
 
@@ -128,7 +128,7 @@ export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
 สำหรับปลั๊กอิน TypeScript คุณสามารถนำเข้าประเภทจากแพ็คเกจปลั๊กอินได้:
 
 ```ts title="my-plugin.ts" {1}
-import type { Plugin } from "@bolt-ai/plugin"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const MyPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
   return {
@@ -215,13 +215,13 @@ export const MyPlugin: Plugin = async ({ project, client, $, directory, worktree
 
 ส่งการแจ้งเตือนเมื่อมีเหตุการณ์บางอย่างเกิดขึ้น:
 
-```js title=".bolt/plugins/notification.js"
+```js title=".opencode/plugins/notification.js"
 export const NotificationPlugin = async ({ project, client, $, directory, worktree }) => {
   return {
     event: async ({ event }) => {
       // Send notification on session completion
       if (event.type === "session.idle") {
-        await $`osascript -e 'display notification "Session completed!" with title "bolt"'`
+        await $`osascript -e 'display notification "Session completed!" with title "opencode"'`
       }
     },
   }
@@ -231,7 +231,7 @@ export const NotificationPlugin = async ({ project, client, $, directory, worktr
 เรากำลังใช้ `osascript` เพื่อเรียกใช้ AppleScript บน macOS ที่นี่เราใช้มันเพื่อส่งการแจ้งเตือน
 
 :::note
-หากคุณใช้แอปเดสก์ท็อป Bolt แอปสามารถส่งการแจ้งเตือนของระบบโดยอัตโนมัติเมื่อมีการตอบกลับพร้อมหรือเมื่อเซสชันเกิดข้อผิดพลาด
+หากคุณใช้แอปเดสก์ท็อป OpenCode แอปสามารถส่งการแจ้งเตือนของระบบโดยอัตโนมัติเมื่อมีการตอบกลับพร้อมหรือเมื่อเซสชันเกิดข้อผิดพลาด
 :::
 
 ---
@@ -240,7 +240,7 @@ export const NotificationPlugin = async ({ project, client, $, directory, worktr
 
 ป้องกันไม่ให้ opencode อ่านไฟล์ `.env`:
 
-```javascript title=".bolt/plugins/env-protection.js"
+```javascript title=".opencode/plugins/env-protection.js"
 export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
   return {
     "tool.execute.before": async (input, output) => {
@@ -258,7 +258,7 @@ export const EnvProtection = async ({ project, client, $, directory, worktree })
 
 แทรกตัวแปรสภาพแวดล้อมลงในการดำเนินการ shell ทั้งหมด (เครื่องมือ AI และ terminal ผู้ใช้):
 
-```javascript title=".bolt/plugins/inject-env.js"
+```javascript title=".opencode/plugins/inject-env.js"
 export const InjectEnvPlugin = async () => {
   return {
     "shell.env": async (input, output) => {
@@ -275,8 +275,8 @@ export const InjectEnvPlugin = async () => {
 
 ปลั๊กอินยังสามารถเพิ่มเครื่องมือที่กำหนดเองให้กับ opencode:
 
-```ts title=".bolt/plugins/custom-tools.ts"
-import { type Plugin, tool } from "@bolt-ai/plugin"
+```ts title=".opencode/plugins/custom-tools.ts"
+import { type Plugin, tool } from "@opencode-ai/plugin"
 
 export const CustomToolsPlugin: Plugin = async (ctx) => {
   return {
@@ -314,7 +314,7 @@ export const CustomToolsPlugin: Plugin = async (ctx) => {
 
 ใช้ `client.app.log()` แทน `console.log` สำหรับการบันทึกแบบมีโครงสร้าง:
 
-```ts title=".bolt/plugins/my-plugin.ts"
+```ts title=".opencode/plugins/my-plugin.ts"
 export const MyPlugin = async ({ client }) => {
   await client.app.log({
     body: {
@@ -327,7 +327,7 @@ export const MyPlugin = async ({ client }) => {
 }
 ```
 
-ระดับ: `debug`, `info`, `warn`, `error` ดู[SDKเอกสารประกอบ](https://bolt.ai/docs/sdk)สำหรับรายละเอียด
+ระดับ: `debug`, `info`, `warn`, `error` ดู[SDKเอกสารประกอบ](https://opencode.ai/docs/sdk)สำหรับรายละเอียด
 
 ---
 
@@ -335,8 +335,8 @@ export const MyPlugin = async ({ client }) => {
 
 ปรับแต่งบริบทที่รวมไว้เมื่อมีการกระชับเซสชัน:
 
-```ts title=".bolt/plugins/compaction.ts"
-import type { Plugin } from "@bolt-ai/plugin"
+```ts title=".opencode/plugins/compaction.ts"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const CompactionPlugin: Plugin = async (ctx) => {
   return {
@@ -359,8 +359,8 @@ Include any state that should persist across compaction:
 
 คุณยังสามารถแทนที่พรอมต์การกระชับข้อมูลทั้งหมดได้โดยตั้งค่า `output.prompt`:
 
-```ts title=".bolt/plugins/custom-compaction.ts"
-import type { Plugin } from "@bolt-ai/plugin"
+```ts title=".opencode/plugins/custom-compaction.ts"
+import type { Plugin } from "@opencode-ai/plugin"
 
 export const CustomCompactionPlugin: Plugin = async (ctx) => {
   return {

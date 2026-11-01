@@ -1,11 +1,11 @@
 import { type ComponentProps, createMemo, onMount, Show, splitProps } from "solid-js"
 import { createStore } from "solid-js/store"
-import { Card, CardDescription } from "@bolt-ai/ui/card"
-import { Collapsible } from "@bolt-ai/ui/collapsible"
-import { Icon } from "@bolt-ai/ui/icon"
-import { IconButton } from "@bolt-ai/ui/icon-button"
-import { Tooltip } from "@bolt-ai/ui/tooltip"
-import { useI18n } from "@bolt-ai/ui/context/i18n"
+import { Card, CardDescription } from "@opencode/ui/card"
+import { Collapsible } from "@opencode/ui/collapsible"
+import { Icon } from "@opencode/ui/icon"
+import { IconButton } from "@opencode/ui/icon-button"
+import { Tooltip } from "@opencode/ui/tooltip"
+import { useI18n } from "@opencode/ui/context/i18n"
 
 export interface ToolErrorCardProps extends Omit<ComponentProps<typeof Card>, "children" | "variant"> {
   tool: string
@@ -120,7 +120,7 @@ export function ToolErrorCard(props: ToolErrorCardProps) {
 
   const copyButton = () => (
     <Tooltip
-      appearance="standard"
+      appearance="compact"
       value={copied() ? i18n.t("ui.message.copied") : i18n.t("ui.toolErrorCard.copyError")}
       placement="top"
       gutter={4}
@@ -140,7 +140,7 @@ export function ToolErrorCard(props: ToolErrorCardProps) {
   )
 
   return (
-    <Card {...rest} data-kind="tool-error-card" data-open={open() ? "true" : "false"} variant="error">
+    <Card {...rest} data-kind="tool-error-card" data-tool={split.tool} data-open={open() ? "true" : "false"} variant="error">
       <Collapsible class="tool-collapsible" data-open={open() ? "true" : "false"} open={open()} onOpenChange={setOpen}>
         <Collapsible.Trigger>
           <div data-component="tool-trigger">

@@ -2,30 +2,38 @@ import { describe, expect } from "bun:test"
 import { $ } from "bun"
 import fs from "fs/promises"
 import path from "path"
-import { Effect, Layer, Stream } from "effect"
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { asc, eq } from "drizzle-orm"
-import { Database } from "@bolt-ai/core/database/database"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { EventTable } from "@bolt-ai/core/event/sql"
-import { Location } from "@bolt-ai/core/location"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProjectV2 } from "@bolt-ai/core/project"
-import { ProjectTable } from "@bolt-ai/core/project/sql"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { SessionV1 } from "@bolt-ai/core/v1/session"
-import { Prompt } from "@bolt-ai/core/session/prompt"
-import { SessionProjector } from "@bolt-ai/core/session/projector"
-import { SessionExecution } from "@bolt-ai/core/session/execution"
-import { SessionInput } from "@bolt-ai/core/session/input"
-import { SessionEvent } from "@bolt-ai/core/session/event"
-import { SessionTable } from "@bolt-ai/core/session/sql"
-import { SessionStore } from "@bolt-ai/core/session/store"
-import { WorkspaceV2 } from "@bolt-ai/core/workspace"
+import { DateTime, Effect, Layer, Stream } from "effect"
+import { TestClock } from "effect/testing"
+import { Money } from "@opencode/schema/money"
+import { Shell } from "@opencode/schema/shell"
+import { Skill } from "@opencode/schema/skill"
+import { Agent } from "@opencode/core/agent"
+import { and, asc, eq } from "drizzle-orm"
+import { Database } from "@opencode/core/database/database"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Hash } from "@opencode/util/hash"
+import { Bus } from "@opencode/core/bus"
+import { EventTable } from "@opencode/core/event/sql"
+import { Instructions } from "@opencode/core/instructions/index"
+import { Location } from "@opencode/core/location"
+import { Model } from "@opencode/core/model"
+import { Project } from "@opencode/core/project"
+import { ProjectTable } from "@opencode/core/project/sql"
+import { Provider } from "@opencode/core/provider"
+import { AbsolutePath, RelativePath } from "@opencode/core/schema"
+import { Session } from "@opencode/core/session"
+import { SessionMessage } from "@opencode/core/session/message"
+import { SessionProjector } from "@opencode/core/session/projector"
+import { SessionExecution } from "@opencode/core/session/execution"
+import { SessionInbox } from "@opencode/core/session/inbox"
+import { InstructionEntry } from "@opencode/core/session/instruction-entry"
+import { SessionEvent } from "@opencode/core/session/event"
+import { SessionTable } from "@opencode/core/session/sql"
+import { SessionStore } from "@opencode/core/session/store"
+import { SessionTransfer } from "@opencode/core/session/transfer"
+import { Workspace } from "@opencode/core/workspace"
+import { Expected } from "./lib/session-message"
 import { testEffect } from "./lib/effect"
 import { LocationServiceMap } from "@opencode/core/location-service-map"
 import { initGit } from "./fixture/git"
@@ -238,7 +246,7 @@ describe("Session.create", () => {
         })
         expect(aliasAdopted).toMatchObject({
           projectID: project.id,
-          location: aliased,
+          location: nested,
           subpath: RelativePath.make("packages/app"),
         })
         // Adoption is a project-domain fact; the session log records nothing new.
@@ -340,6 +348,19 @@ describe("Session.create", () => {
 
       expect(second.id).not.toBe(first.id)
       expect((yield* session.list()).data).toHaveLength(2)
+    }),
+  )
+
+  it.effect("stores a trailing-slash directory in the same session list", () =>
+    Effect.gen(function* () {
+      const session = yield* Session.Service
+
+      const created = yield* session.create({ location: { directory: AbsolutePath.make("/project/") } })
+
+      expect(created.location.directory).toBe(location.directory)
+      expect((yield* session.list({ directory: location.directory })).data.map((item) => item.id)).toEqual([
+        created.id,
+      ])
     }),
   )
 
@@ -1417,6 +1438,7 @@ describe("SessionTransfer", () => {
             time: {
               ...template.time,
               updated: DateTime.makeUnsafe(100),
+              busy: DateTime.makeUnsafe(120),
               idle: DateTime.makeUnsafe(200),
               viewed: DateTime.makeUnsafe(150),
             },
@@ -1458,6 +1480,7 @@ describe("SessionTransfer", () => {
       })
       expect(imported.time).toMatchObject({
         updated: DateTime.makeUnsafe(1_000),
+        busy: DateTime.makeUnsafe(120),
         idle: DateTime.makeUnsafe(200),
         viewed: DateTime.makeUnsafe(150),
       })
@@ -1467,7 +1490,11 @@ describe("SessionTransfer", () => {
       ])
       expect(yield* Bus.latestSequence(db, sessionID)).toBe(2)
       const exported = yield* transfer.export({ sessionID })
-      expect(exported.info.time).toMatchObject({ idle: DateTime.makeUnsafe(200), viewed: DateTime.makeUnsafe(150) })
+      expect(exported.info.time).toMatchObject({
+        busy: DateTime.makeUnsafe(120),
+        idle: DateTime.makeUnsafe(200),
+        viewed: DateTime.makeUnsafe(150),
+      })
       expect(exported.messages).toEqual(messages)
       const sanitized = yield* transfer.export({ sessionID, sanitize: true })
       expect(sanitized.info.time).toMatchObject({ idle: DateTime.makeUnsafe(200), viewed: DateTime.makeUnsafe(150) })
@@ -1506,7 +1533,7 @@ describe("SessionTransfer", () => {
     }),
   )
 
-  it.effect("clamps an imported viewed watermark to its idle transition", () =>
+  it.effect("clamps imported busy and viewed watermarks to their idle transition", () =>
     Effect.gen(function* () {
       const session = yield* Session.Service
       const transfer = yield* SessionTransfer.Service
@@ -1519,6 +1546,7 @@ describe("SessionTransfer", () => {
             outcome: "succeeded",
             time: {
               ...template.time,
+              busy: DateTime.makeUnsafe(300),
               idle: DateTime.makeUnsafe(200),
               viewed: DateTime.makeUnsafe(250),
             },
@@ -1528,7 +1556,11 @@ describe("SessionTransfer", () => {
         location,
       })
 
-      expect(imported.time).toMatchObject({ idle: DateTime.makeUnsafe(200), viewed: DateTime.makeUnsafe(200) })
+      expect(imported.time).toMatchObject({
+        busy: DateTime.makeUnsafe(200),
+        idle: DateTime.makeUnsafe(200),
+        viewed: DateTime.makeUnsafe(200),
+      })
       expect(imported.outcome).toBe("succeeded")
     }),
   )

@@ -1,4 +1,4 @@
-import type { UserMessage } from "@bolt-ai/sdk/v2"
+import type { SessionMessageUser } from "@opencode/client/promise"
 import { useLocation, useNavigate } from "@solidjs/router"
 import { createEffect, createMemo, onCleanup, onMount } from "solid-js"
 import { messageIdFromHash } from "./message-id-from-hash"
@@ -100,12 +100,14 @@ export const useSessionHashScroll = (input: {
     cancel()
 
     if (input.currentMessageId() !== message.id) input.setActiveMessage(message)
-    input.revealMessage?.(message.id)
+    // A mounted prompt is close enough to glide to; any other is first brought in by the virtualizer.
+    const mounted = behavior === "smooth" ? document.getElementById(input.anchor(message.id)) : null
 
-    if (seek(message.id, behavior)) {
-      updateHash(message.id)
+    if (mounted) scrollToElement(mounted, behavior)
 
-      return
+    if (!mounted) {
+      input.revealMessage?.(message.id)
+      seek(message.id, behavior)
     }
 
     updateHash(message.id)

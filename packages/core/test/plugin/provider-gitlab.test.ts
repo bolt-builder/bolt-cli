@@ -1,12 +1,18 @@
-import { AISDK } from "@bolt-ai/core/aisdk"
-import { describe, expect, mock } from "bun:test"
+import { AISDK } from "@opencode/core/aisdk"
+import { beforeEach, describe, expect, mock } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
-import { PluginHost } from "@bolt-ai/core/plugin/host"
-import { GitLabPlugin } from "@bolt-ai/core/plugin/provider/gitlab"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { TestClock } from "effect/testing"
+import type { WorkflowDiscoveryConfig, WorkflowDiscoveryOptions, WorkflowDiscoveryResult } from "gitlab-ai-provider"
+import { Credential } from "@opencode/core/credential"
+import { Integration } from "@opencode/core/integration"
+import { Location } from "@opencode/core/location"
+import { Model } from "@opencode/core/model"
+import { Plugin } from "@opencode/core/plugin"
+import { PluginHost } from "@opencode/core/plugin/host"
+import { GitLabPlugin } from "@opencode/core/plugin/provider/gitlab"
+import { Provider } from "@opencode/core/provider"
+import { withEnv } from "../fixture/env"
+import { drain } from "../lib/clock"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -146,6 +152,30 @@ describe("GitLabPlugin", () => {
         yield* drain
         expect(discoverWorkflowModels).toHaveBeenCalledTimes(1)
         expect(discoverWorkflowModels.mock.calls[0]![0].getHeaders()).toEqual({ Authorization: "Bearer access-token" })
+      }),
+    ),
+  )
+
+  it.effect("sends requests to the instance an OAuth login was issued against", () =>
+    withEnv({ GITLAB_TOKEN: undefined }, () =>
+      Effect.gen(function* () {
+        const fixture = yield* discoveryFixture
+        yield* fixture.credentials.create({
+          integrationID,
+          value: {
+            type: "oauth",
+            methodID: Integration.MethodID.make("oauth"),
+            access: "access-token",
+            refresh: "refresh-token",
+            expires: 0,
+            metadata: { instanceUrl: "https://self-managed.gitlab.example", clientID: "client" },
+          },
+        })
+        yield* addPlugin()
+        yield* drain
+        expect((yield* fixture.providers.get(providerID))?.settings).toEqual({
+          instanceUrl: "https://self-managed.gitlab.example",
+        })
       }),
     ),
   )

@@ -1,12 +1,16 @@
 export * as Credential from "./credential.js"
 
-import { asc, eq } from "drizzle-orm"
-import { Context, Effect, Layer, Schema } from "effect"
-import { Credential } from "@bolt-ai/schema/credential"
-import { Integration } from "@bolt-ai/schema/integration"
-import { Database } from "./database/database"
-import { makeGlobalNode } from "./effect/app-node"
-import { CredentialTable } from "./credential/sql"
+import { asc, desc, eq } from "drizzle-orm"
+import { Cause, Context, Effect, Fiber, Layer, Schema } from "effect"
+import { Credential } from "@opencode/schema/credential"
+import { CredentialLegacy } from "@opencode/schema/credential-legacy"
+import { Integration } from "@opencode/schema/integration"
+import { Database } from "./database/database.js"
+import { Bus } from "./bus.js"
+import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { EffectFlock } from "@opencode/util/effect-flock"
+import { CredentialTable } from "./credential/sql.js"
+import { ErrorSummary } from "./util/error-summary.js"
 
 export const ID = Credential.ID
 export type ID = Credential.ID
@@ -39,6 +43,11 @@ export interface Interface {
   readonly list: (integrationID: Integration.ID) => Effect.Effect<Info[]>
   /** Returns one stored credential by ID. */
   readonly get: (id: ID) => Effect.Effect<Info | undefined>
+  /** Concurrent callers for the same credential share the running operation's result, including failures. */
+  readonly lock: (
+    id: ID,
+    operation: Effect.Effect<OAuth | undefined, unknown>,
+  ) => Effect.Effect<OAuth | undefined, unknown>
   /**
    * Creates a credential for an integration and returns the new record. The new credential becomes the
    * integration's selection unless `activate` is false and the integration already has a credential.
@@ -58,13 +67,16 @@ export interface Interface {
   readonly remove: (id: ID) => Effect.Effect<void>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Credential") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Credential") {}
 
 const layer = Layer.effect(
   Service,
   Effect.gen(function* () {
     const db = (yield* Database.Service).db
     const bus = yield* Bus.Service
+    const flock = yield* EffectFlock.Service
+    const scope = yield* Effect.scope
+    const pending = new Map<ID, Fiber.Fiber<OAuth | undefined, unknown>>()
     // Rows written before v2.1 may carry the old key credential shape.
     const decode = Schema.decodeUnknownSync(CredentialLegacy.Value)
     const stored = (row: typeof CredentialTable.$inferSelect) => {
@@ -83,14 +95,30 @@ const layer = Layer.effect(
       })
 
     return Service.of({
-      all: Effect.fn("Credential.all")(() =>
+      lock: Effect.fn("Credential.lock")((id, operation) =>
+        Effect.uninterruptibleMask((restore) =>
+          Effect.gen(function* () {
+            const current = pending.get(id)
+            if (current) return yield* restore(Fiber.join(current))
+            // The global scope owns the operation, not the first Session or Location waiting for it.
+            // The file lock extends this to other processes sharing the database.
+            const fiber = yield* operation.pipe(
+              flock.withLock(`credential-refresh:${id}`),
+              Effect.ensuring(Effect.sync(() => pending.delete(id))),
+              Effect.forkIn(scope),
+            )
+            pending.set(id, fiber)
+            return yield* restore(Fiber.join(fiber))
+          }),
+        ),
+      ),
+      all: () =>
         db
           .select()
           .from(CredentialTable)
           .orderBy(asc(CredentialTable.active), asc(CredentialTable.time_created), asc(CredentialTable.id))
           .all()
           .pipe(Effect.orDie, Effect.map(storedRows)),
-      ),
       list: Effect.fn("Credential.list")((integrationID) =>
         db
           .select()
@@ -324,4 +352,4 @@ const layer = Layer.effect(
   }),
 )
 
-export const node = makeGlobalNode({ service: Service, layer, deps: [Database.node, Bus.node] })
+export const node = makeGlobalNode({ service: Service, layer, deps: [Database.node, Bus.node, EffectFlock.node] })

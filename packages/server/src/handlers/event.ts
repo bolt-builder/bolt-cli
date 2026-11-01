@@ -1,26 +1,14 @@
-import { EventV2 } from "@bolt-ai/core/event"
-import { BoltEvent } from "@bolt-ai/protocol/groups/event"
-import { Effect, Schema, Stream } from "effect"
-import { HttpServerResponse } from "effect/unstable/http"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
-import * as Sse from "effect/unstable/encoding/Sse"
+import { Event } from "@opencode/schema/event"
+import { Effect, Stream } from "effect"
+import { HttpServerResponse } from "effect/http"
+import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
-
-const subscriberCapacity = 256
-
-function eventData(data: unknown): Sse.Event {
-  return {
-    _tag: "Event",
-    event: "message",
-    id: undefined,
-    data: JSON.stringify(Schema.encodeUnknownSync(BoltEvent)(data)),
-  }
-}
+import { EventFeed } from "../event-feed"
 
 export const EventHandler = HttpApiBuilder.group(Api, "server.event", (handlers) =>
   Effect.gen(function* () {
     const feed = yield* EventFeed.Service
-    return handlers.handleRaw("event.subscribe", () =>
+    return handlers.handleRaw("event.subscribe", (ctx) =>
       Effect.gen(function* () {
         const connected = {
           id: Event.ID.create(),
@@ -28,7 +16,9 @@ export const EventHandler = HttpApiBuilder.group(Api, "server.event", (handlers)
           data: {},
         } as const
         const output = Stream.unwrap(
-          feed.subscribe.pipe(Effect.map((live) => Stream.make(EventFeed.frame(connected)).pipe(Stream.concat(live)))),
+          feed
+            .subscribe(ctx.query.types)
+            .pipe(Effect.map((live) => Stream.make(EventFeed.frame(connected)).pipe(Stream.concat(live)))),
         )
         const heartbeat = Stream.tick("15 seconds").pipe(Stream.map(() => ": heartbeat\n\n"))
         return HttpServerResponse.stream(

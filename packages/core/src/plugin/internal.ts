@@ -1,41 +1,122 @@
 export * as PluginInternal from "./internal.js"
 
-import { makeLocationNode } from "../effect/app-node"
-import { httpClient } from "../effect/app-node-platform"
-import type { PluginContext } from "@bolt-ai/plugin/v2/effect"
-import { Effect, Layer, Scope } from "effect"
-import { AgentV2 } from "../agent"
-import { Catalog } from "../catalog"
-import { CommandV2 } from "../command"
-import { Config } from "../config"
-import { ConfigAgentPlugin } from "../config/plugin/agent"
-import { ConfigCommandPlugin } from "../config/plugin/command"
-import { ConfigExternalPlugin } from "../config/plugin/external"
-import { ConfigProviderPlugin } from "../config/plugin/provider"
-import { ConfigReferencePlugin } from "../config/plugin/reference"
-import { ConfigSkillPlugin } from "../config/plugin/skill"
-import { EventV2 } from "../event"
-import { FileSystem } from "../filesystem"
-import { FSUtil } from "../fs-util"
-import { Global } from "../global"
-import { Integration } from "../integration"
-import { Location } from "../location"
-import { ModelsDev } from "../models-dev"
-import { Npm } from "../npm"
-import { PluginV2 } from "../plugin"
-import { Reference } from "../reference"
-import { SkillV2 } from "../skill"
-import { State } from "../state"
-import { FetchHttpClient, HttpClient } from "effect/unstable/http"
-import { AgentPlugin } from "./agent"
-import { CommandPlugin } from "./command"
-import { ModelsDevPlugin } from "./models-dev"
-import { ProviderPlugins } from "./provider"
-import { SkillPlugin } from "./skill"
-import { VariantPlugin } from "./variant"
+import { LLMClient } from "@opencode/ai/effect"
+import type { Plugin } from "@opencode/plugin/effect/plugin"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { httpClient } from "@opencode/util/effect/app-node-platform"
+import { AppProcess } from "@opencode/util/process"
+import { Context, Effect, Scope } from "effect"
+import { HttpClient } from "effect/http"
+import { Agent } from "../agent.js"
+import { Artifact } from "../artifact.js"
+import { Model } from "../model.js"
+import { Provider } from "../provider.js"
+import { Command } from "../command.js"
+import { Config } from "../config.js"
+import { Credential } from "../credential.js"
+import { llmClient } from "../effect/app-node-platform.js"
+import { ConfigAgentPlugin } from "../config/plugin/agent.js"
+import { ConfigCommandPlugin } from "../config/plugin/command.js"
+import { ConfigCompactionPlugin } from "../config/plugin/compaction.js"
+import { ConfigFormatterPlugin } from "../config/plugin/formatter.js"
+import { ConfigImagePlugin } from "../config/plugin/image.js"
+import { ConfigInstructionPlugin } from "../config/plugin/instruction.js"
+import { ConfigLocationWatcherPlugin } from "../config/plugin/location-watcher.js"
+import { ConfigMcpPlugin } from "../config/plugin/mcp.js"
+import { ConfigProviderPlugin } from "../config/plugin/provider.js"
+import { ConfigPolicyPlugin } from "../config/plugin/policy.js"
+import { ConfigReferencePlugin } from "../config/plugin/reference.js"
+import { ConfigShellPlugin } from "../config/plugin/shell.js"
+import { ConfigSnapshotPlugin } from "../config/plugin/snapshot.js"
+import { ConfigSkillPlugin } from "../config/plugin/skill.js"
+import { ConfigCompatibilityPlugin } from "../config/plugin/compatibility.js"
+import { ConfigToolOutputPlugin } from "../config/plugin/tool-output.js"
+import { ConfigWebSearchPlugin } from "../config/plugin/websearch.js"
+import { ConfigWorktreePlugin } from "../config/plugin/worktree.js"
+import { Worktree } from "../worktree.js"
+import { WorktreeStrategies } from "../worktree/strategies.js"
+import { Bus } from "../bus.js"
+import { Environment } from "../environment/index.js"
+import { FileAccess } from "../file-access.js"
+import { FileMutation } from "../file-mutation.js"
+import { Formatter } from "../formatter.js"
+import { Generate } from "../generate.js"
+import { Form } from "../form.js"
+import { FileSystem } from "../filesystem.js"
+import { LocationWatcherPolicy } from "../filesystem/location-watcher-policy.js"
+import { FSUtil } from "@opencode/util/fs-util"
+import { Global } from "@opencode/util/global"
+import { Image } from "../image.js"
+import { InstructionDiscovery } from "../instruction-discovery.js"
+import { Integration } from "../integration.js"
+import { Job } from "../job.js"
+import { KV } from "../kv.js"
+import { Location } from "../location.js"
+import { ModelsDev } from "../models-dev.js"
+import { Mcp } from "../mcp/index.js"
+import { Npm } from "@opencode/util/npm"
+import { Permission } from "../permission.js"
+import { Reference } from "../reference.js"
+import { WebSearch } from "../websearch.js"
+import { Ripgrep } from "../ripgrep.js"
+import { Schedule } from "../schedule.js"
+import { Session } from "../session.js"
+import { SessionCompaction } from "../session/compaction.js"
+import { SessionInstructions } from "../session/instructions.js"
+import { SubagentJob } from "../session/subagent-job.js"
+import { SharedCache } from "../shared-cache.js"
+import { Shell } from "../shell.js"
+import { ShellSelect } from "../shell/select.js"
+import { Snapshot } from "../snapshot.js"
+import { Skill } from "../skill.js"
+import { SkillDiscovery } from "../skill/discovery.js"
+import { Watcher } from "../filesystem/watcher.js"
+import { PatchTool } from "../tool/plugin/patch.js"
+import { EditTool } from "../tool/plugin/edit.js"
+import { GlobTool } from "../tool/plugin/glob.js"
+import { GrepTool } from "../tool/plugin/grep.js"
+import { ImageGenerateTool } from "../tool/plugin/image-generate.js"
+import { McpResourceTools } from "../tool/plugin/mcp-resource.js"
+import { OpenCodeTools } from "../tool/plugin/opencode.js"
+import { QuestionTool } from "../tool/plugin/question.js"
+import { ReadToolFileSystem } from "../tool/read-filesystem.js"
+import { ReadTool } from "../tool/plugin/read.js"
+import { ArtifactTools } from "../tool/plugin/artifact.js"
+import { ScheduleTools } from "../tool/plugin/schedule.js"
+import { ShellTool } from "../tool/plugin/shell.js"
+import { SkillTool } from "../tool/plugin/skill.js"
+import { SubagentTool } from "../tool/plugin/subagent.js"
+import { TodoTool } from "../tool/plugin/todo.js"
+import { Tool } from "../tool.js"
+import { ToolOutput } from "../tool-output.js"
+import { WebFetchTool } from "../tool/plugin/webfetch.js"
+import { WebSearchTool } from "../tool/plugin/websearch.js"
+import { WellKnown } from "../wellknown.js"
+import { WriteTool } from "../tool/plugin/write.js"
+import { AgentPlugin } from "./agent.js"
+import BrowserPlugin from "@opencode/plugin-browser"
+import { CommandPlugin } from "./command.js"
+import { IdentityPlugin } from "./identity.js"
+import { PlanPlugin } from "./plan.js"
+import { GoalPlugin } from "./goal.js"
+import { ModelsDevPlugin } from "./models-dev.js"
+import { McpCodeModeDefaultsPlugin } from "./mcp-codemode-defaults.js"
+import { ProviderPlugins } from "./provider.js"
+import { DynamicProviderPlugin } from "./provider/dynamic.js"
+import { OpencodePlugin } from "./provider/opencode.js"
+import { WebSearchPlugins } from "./websearch/index.js"
+import { SkillPlugin } from "./skill.js"
+import { VcsHgPlugin } from "./vcs/hg.js"
+import { ToolInputRepairPlugin } from "./tool-input-repair.js"
+import { OptimizePlugin } from "./optimize.js"
+import { VcsGitPlugin } from "./vcs/git.js"
+import { VerbosityPlugin } from "./verbosity.js"
+import { WarmingPlugin } from "./warming.js"
+import { WellKnownPlugin } from "../wellknown/plugin.js"
 
 const services = [
   Agent.Service,
+  Artifact.Service,
   AppProcess.Service,
   Provider.Service,
   Model.Service,
@@ -47,6 +128,7 @@ const services = [
   FileAccess.Service,
   FileMutation.Service,
   Formatter.Service,
+  Generate.Service,
   LocationWatcherPolicy.Service,
   FileSystem.Service,
   FSUtil.Service,
@@ -59,7 +141,6 @@ const services = [
   KV.Service,
   LLMClient.Service,
   Location.Service,
-  ManagedPolicy.Service,
   ModelsDev.Service,
   Mcp.Service,
   Npm.Service,
@@ -69,10 +150,12 @@ const services = [
   Reference.Service,
   WebSearch.Service,
   Ripgrep.Service,
+  Schedule.Service,
   Session.Service,
   SessionCompaction.Service,
   SessionInstructions.Service,
   SubagentJob.Service,
+  SharedCache.Service,
   Shell.Service,
   ShellSelect.Service,
   Snapshot.Service,
@@ -90,6 +173,7 @@ export type Requirements = Context.Service.Identifier<(typeof services)[number]>
 
 export const requirements = LayerNode.group([
   Agent.node,
+  Artifact.node,
   AppProcess.node,
   Provider.node,
   Model.node,
@@ -101,6 +185,7 @@ export const requirements = LayerNode.group([
   FileAccess.node,
   FileMutation.node,
   Formatter.node,
+  Generate.node,
   LocationWatcherPolicy.node,
   FileSystem.node,
   FSUtil.node,
@@ -113,7 +198,6 @@ export const requirements = LayerNode.group([
   KV.node,
   llmClient,
   Location.node,
-  ManagedPolicy.node,
   ModelsDev.node,
   Mcp.node,
   Npm.node,
@@ -123,10 +207,12 @@ export const requirements = LayerNode.group([
   Reference.node,
   WebSearch.node,
   Ripgrep.node,
+  Schedule.node,
   Session.node,
   SessionCompaction.node,
   SessionInstructions.node,
   SubagentJob.node,
+  SharedCache.node,
   Shell.node,
   ShellSelect.node,
   Snapshot.node,
@@ -152,6 +238,7 @@ const pre = [
   AgentPlugin.Plugin,
   PlanPlugin.Plugin,
   CommandPlugin.Plugin,
+  GoalPlugin.Plugin,
   SkillPlugin.Plugin,
   VcsHgPlugin.Plugin,
   ModelsDevPlugin,
@@ -165,10 +252,13 @@ const pre = [
   EditTool.Plugin,
   GlobTool.Plugin,
   GrepTool.Plugin,
+  ImageGenerateTool.Plugin,
   OpenCodeTools.Plugin,
   McpResourceTools.Plugin,
   QuestionTool.Plugin,
   ReadTool.Plugin,
+  ArtifactTools.Plugin,
+  ScheduleTools.Plugin,
   ShellTool.Plugin,
   SkillTool.Plugin,
   SubagentTool.Plugin,
@@ -195,6 +285,8 @@ const post = [
   ConfigCompatibilityPlugin.Plugin,
   ConfigSkillPlugin.Plugin,
   ConfigProviderPlugin.Plugin,
+  // Run the dynamic npm SDK loader after SDK, instance, and external plugins register their `sdk` hooks.
+  DynamicProviderPlugin,
   ConfigWebSearchPlugin.Plugin,
   ConfigPolicyPlugin.Plugin,
 ] as const satisfies readonly InternalPlugin[]

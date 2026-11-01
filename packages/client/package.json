@@ -1,9 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bolt-ai/client",
-  "private": true,
+  "name": "@opencode/client",
+  "version": "2.2.5",
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anomalyco/opencode.git",
+    "directory": "packages/client"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": "./src/promise/index.ts",
     "./promise": "./src/promise/index.ts",
@@ -16,16 +27,17 @@
     "./mcp": "./src/mcp.ts"
   },
   "scripts": {
-    "build": "bun run script/build-package.ts",
-    "generate": "bun run script/build.ts",
+    "build": "bun run script/build.ts",
+    "pack": "bun run script/pack.ts",
+    "generate": "bun run script/generate.ts",
     "check:generated": "bun run generate && git diff --exit-code -- src/promise/generated src/effect/generated src/effect/api",
     "test": "bun test --timeout 5000",
     "typecheck": "bun check --no-script",
     "typecheck:tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "@bolt-ai/schema": "workspace:*",
-    "@bolt-ai/protocol": "workspace:*"
+    "@opencode/schema": "workspace:*",
+    "@opencode/protocol": "workspace:*"
   },
   "peerDependencies": {
     "effect": "catalog:",
@@ -41,9 +53,8 @@
   },
   "devDependencies": {
     "@effect/platform-node": "catalog:",
-    "@bolt-ai/core": "workspace:*",
-    "@bolt-ai/httpapi-codegen": "workspace:*",
-    "@bolt-ai/server": "workspace:*",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@opencode/httpapi-codegen": "workspace:*",
     "@tsconfig/bun": "catalog:",
     "@types/bun": "catalog:",
     "@typescript/native": "catalog:",

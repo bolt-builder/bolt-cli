@@ -3,9 +3,9 @@ title: السمات
 description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 ---
 
-مع Bolt يمكنك الاختيار من بين عدة سمات مدمجة، أو استخدام سمة تتكيّف مع سمة terminal لديك، أو تعريف سمة مخصصة خاصة بك.
+مع OpenCode يمكنك الاختيار من بين عدة سمات مدمجة، أو استخدام سمة تتكيّف مع سمة terminal لديك، أو تعريف سمة مخصصة خاصة بك.
 
-افتراضيًا، يستخدم Bolt سمتنا `opencode`.
+افتراضيًا، يستخدم OpenCode سمتنا `opencode`.
 
 ---
 
@@ -23,7 +23,7 @@ description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 
 ## السمات المدمجة
 
-يأتي Bolt مع عدة سمات مدمجة.
+يأتي OpenCode مع عدة سمات مدمجة.
 
 | الاسم                  | الوصف                                                                       |
 | ---------------------- | --------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 
 سمة النظام مناسبة للمستخدمين الذين:
 
-- يريدون أن يطابق Bolt مظهر terminal لديهم
+- يريدون أن يطابق OpenCode مظهر terminal لديهم
 - يستخدمون مخططات ألوان مخصصة لـ terminal
 - يفضلون مظهرًا متسقًا عبر جميع تطبيقات terminal
 
@@ -63,9 +63,9 @@ description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 
 يمكنك اختيار سمة بفتح منتقي السمات باستخدام الأمر `/theme`. أو يمكنك تحديدها في [الضبط](/docs/config).
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 
 ## سمات مخصصة
 
-يدعم Bolt نظام سمات مرنًا قائمًا على JSON يتيح للمستخدمين إنشاء السمات وتخصيصها بسهولة.
+يدعم OpenCode نظام سمات مرنًا قائمًا على JSON يتيح للمستخدمين إنشاء السمات وتخصيصها بسهولة.
 
 ---
 
@@ -84,8 +84,8 @@ description: اختر سمة مدمجة أو عرّف سمة خاصة بك.
 
 1. **السمات المدمجة** - تكون مضمنة داخل الملف التنفيذي
 2. **مجلد ضبط المستخدم** - معرّف في `~/.config/opencode/themes/*.json` أو `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **مجلد جذر المشروع** - معرّف في `<project-root>/.bolt/themes/*.json`
-4. **مجلد العمل الحالي** - معرّف في `./.bolt/themes/*.json`
+3. **مجلد جذر المشروع** - معرّف في `<project-root>/.opencode/themes/*.json`
+4. **مجلد العمل الحالي** - معرّف في `./.opencode/themes/*.json`
 
 إذا احتوت عدة مجلدات على سمة بالاسم نفسه، فستُستخدم السمة من المجلد ذي الأولوية الأعلى.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 وللسمات الخاصة بالمشروع:
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ vim .bolt/themes/my-theme.json
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

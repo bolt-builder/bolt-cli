@@ -1,5 +1,5 @@
 /// <reference path="../env.d.ts" />
-import { tool } from "@bolt-ai/plugin"
+import { tool } from "@opencode/plugin"
 async function githubFetch(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`https://api.github.com${endpoint}`, {
     ...options,
@@ -24,7 +24,7 @@ interface PR {
 export default tool({
   description: `Use this tool to search GitHub pull requests by title and description.
 
-This tool searches PRs in the bolt-builder/bolt-cli repository and returns LLM-friendly results including:
+This tool searches PRs in the anomalyco/opencode repository and returns LLM-friendly results including:
 - PR number and title
 - Author
 - State (open/closed/merged)
@@ -39,7 +39,7 @@ Use the query parameter to search for keywords that might appear in PR titles or
   },
   async execute(args) {
     const owner = "anomalyco"
-    const repo = "bolt"
+    const repo = "opencode"
 
     const page = Math.floor(args.offset / args.limit) + 1
     const searchQuery = encodeURIComponent(`${args.query} repo:${owner}/${repo} type:pr state:open`)

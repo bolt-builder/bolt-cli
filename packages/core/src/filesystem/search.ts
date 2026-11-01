@@ -5,19 +5,19 @@ import path from "path"
 import { Clock, Context, Deferred, Duration, Effect, Layer, Scope } from "effect"
 import { Fff } from "#fff"
 import fuzzysort from "fuzzysort"
-import { Entry, Match } from "@bolt-ai/schema/filesystem"
-import type { FileSystem } from "../filesystem"
-import { FSUtil } from "../fs-util"
-import { Location } from "../location"
-import { Ripgrep } from "../ripgrep"
-import { RelativePath } from "../schema"
-import { Flag } from "../flag/flag"
+import { FileSystem } from "@opencode/schema/filesystem"
+import { Location } from "../location.js"
+import { Ripgrep } from "../ripgrep.js"
+import { RelativePath } from "../schema.js"
+import { Protected } from "./protected.js"
 
 export interface Interface {
   readonly find: (input: FileSystem.FindInput) => Effect.Effect<FileSystem.Entry[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/FileSystem/Search") {}
+export interface Options {
+  readonly fff?: boolean
+}
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/FileSystem/Search") {}
 
@@ -218,16 +218,7 @@ export const makeFffLayer = (create: CreatePicker) =>
     }),
   )
 
-// fff has no ignore-file support, so repos governed by a .boltignore must use
-// the ripgrep backend to keep hidden files out of glob/find/grep results.
-const layer = Layer.unwrap(
-  Effect.gen(function* () {
-    if (Flag.BOLT_DISABLE_FFF || !Fff.available()) return ripgrepLayer
-    const location = yield* Location.Service
-    if (Ripgrep.ignored(location.directory)) return ripgrepLayer
-    return fffLayer
-  }),
-)
+export const fffLayer = makeFffLayer(Fff.create)
 
 const layer = (options?: Options) =>
   Layer.unwrap(

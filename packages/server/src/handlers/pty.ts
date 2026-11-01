@@ -1,21 +1,22 @@
-import { Pty } from "@bolt-ai/core/pty"
-import { PtyProtocol } from "@bolt-ai/core/pty/protocol"
-import { PtyTicket } from "@bolt-ai/core/pty/ticket"
-import { Location } from "@bolt-ai/core/location"
+import { Pty } from "@opencode/core/pty"
+import { PtyProtocol } from "@opencode/core/pty/protocol"
+import { PtyTicket } from "@opencode/core/pty/ticket"
+import { Location } from "@opencode/core/location"
+import { LocationServiceMap } from "@opencode/core/location-service-map"
 import { Effect, Queue } from "effect"
 import { HttpServerRequest, HttpServerResponse } from "effect/http"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
 import { Socket } from "effect/socket"
 import { Api } from "../api"
 import { CorsConfig, isAllowedRequestOrigin } from "../cors"
-import { ForbiddenError, PtyNotFoundError } from "@bolt-ai/protocol/errors"
+import { ForbiddenError, PtyNotFoundError } from "@opencode/protocol/errors"
 import {
   PTY_CONNECT_TICKET_QUERY,
   PTY_CONNECT_TOKEN_HEADER,
   PTY_CONNECT_TOKEN_HEADER_VALUE,
-} from "@bolt-ai/protocol/groups/pty"
-import { response } from "../location"
-import { PtyEnvironment } from "../pty-environment"
+} from "@opencode/protocol/groups/pty"
+import { locationErrors, requestRef, response } from "../location"
+import { holdLocation, type Outbound, runPtySocket } from "./pty-socket"
 
 const notFound = (ptyID: Pty.ID) => new PtyNotFoundError({ ptyID, message: `PTY session not found: ${ptyID}` })
 
@@ -136,6 +137,7 @@ export const PtyHandler = HttpApiBuilder.group(Api, "server.pty", (handlers) =>
             const socket = yield* Effect.orDie(ctx.request.upgrade)
             // TODO: Integrate graceful-shutdown socket tracking before clients migrate to this route.
             const outbox = yield* Queue.unbounded<Outbound>()
+            yield* holdLocation(outbox)
             const attachment = yield* pty
               .attach(ctx.params.ptyID, {
                 cursor,
@@ -172,7 +174,7 @@ export const PtyHandler = HttpApiBuilder.group(Api, "server.pty", (handlers) =>
               detach: () => attachment?.detach(),
             })
             return HttpServerResponse.empty()
-          }).pipe(Effect.provide(locations.get(ref)), locationErrors)
+          }).pipe(Effect.scoped, Effect.provide(locations.get(ref)), locationErrors)
         }),
       )
   }),

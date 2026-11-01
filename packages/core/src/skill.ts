@@ -3,15 +3,11 @@ export * as Skill from "./skill.js"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { FSUtil } from "@opencode/util/fs-util"
 import path from "path"
-import { Context, Effect, Layer, Schema, Types } from "effect"
-import { Skill } from "@bolt-ai/schema/skill"
-import { AgentV2 } from "./agent"
-import { ConfigMarkdown } from "./config/markdown"
-import { FSUtil } from "./fs-util"
-import { PermissionV2 } from "./permission"
-import { AbsolutePath } from "./schema"
-import { SkillDiscovery } from "./skill/discovery"
-import { State } from "./state"
+import { Context, Effect, Layer, Types } from "effect"
+import { Skill } from "@opencode/schema/skill"
+import { Bus } from "./bus.js"
+import { Permission } from "./permission.js"
+import { State } from "./state.js"
 
 export const DirectorySource = Skill.DirectorySource
 export type DirectorySource = Skill.DirectorySource
@@ -94,7 +90,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly list: () => Effect.Effect<Info[]>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Skill") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Skill") {}
 
 const layer = Layer.effect(
   Service,
@@ -121,7 +117,10 @@ const layer = Layer.effect(
           editor.skills.delete(ID.make(id))
         },
       }),
-      notify: () => bus.publish(Skill.Event.Updated, {}).pipe(Effect.asVoid),
+      notify: State.changes(
+        (data) => Array.from(data.skills.values()),
+        () => bus.publish(Skill.Event.Updated, {}).pipe(Effect.asVoid),
+      ),
     })
 
     return Service.of({

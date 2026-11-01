@@ -17,8 +17,6 @@ import { ThemeContextProvider, useTheme } from "../context/theme"
 import { InputRenderable, MouseButton, Renderable, RGBA, TextAttributes } from "@opentui/core"
 import { createStore } from "solid-js/store"
 import { useToast } from "./toast"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { useBindings, useOpencodeModeStack } from "../keymap"
 import { useClipboard } from "../context/clipboard"
 import { useConfig, useNewDesigns } from "../config"
 import { copy, copyOnSelectRelease } from "../util/selection"
@@ -98,7 +96,7 @@ export function DialogHeader(
     closeLabel?: string
     onClose?: () => void
     gap?: number
-    /** Faint line below the title. Shown only under the "new-designs" experiment. */
+    /** Muted line below the title. Shown only under the "new-designs" experiment. */
     description?: string
   }>,
 ) {
@@ -114,7 +112,7 @@ export function DialogHeader(
       )}
       {props.children}
       <text
-        fg={newDesigns() ? theme.text.faint : theme.text.muted}
+        fg={theme.text.muted}
         flexShrink={0}
         onMouseUp={() => (props.onClose ?? dialog.clear)()}
       >
@@ -126,7 +124,7 @@ export function DialogHeader(
     <Show when={newDesigns() && props.description} fallback={row()}>
       <box>
         {row()}
-        <text fg={theme.text.faint} wrapMode="word">
+        <text fg={theme.text.muted} wrapMode="word">
           {props.description}
         </text>
       </box>
@@ -299,7 +297,7 @@ function DialogFooterItem(props: { action: DialogFooterAction; variant: "primary
         onMouseOut={() => setHovered(false)}
         onMouseUp={trigger}
       >
-        <text>{label(theme.text.faint)}</text>
+        <text>{label(theme.text.muted)}</text>
       </box>
     </Show>
   )
@@ -460,14 +458,16 @@ export function DialogProvider(props: ParentProps) {
         position="absolute"
         zIndex={3000}
         onMouseDown={(evt: { button: number; preventDefault(): void; stopPropagation(): void }) => {
-          if (!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT) return
+          if (copyOnSelectEnabled()) return
           if (evt.button !== MouseButton.RIGHT) return
 
           if (!copy(renderer, toast, clipboard)) return
           evt.preventDefault()
           evt.stopPropagation()
         }}
-        onMouseUp={!Flag.BOLT_EXPERIMENTAL_DISABLE_COPY_ON_SELECT ? copySelection : undefined}
+        onMouseUp={
+          copyOnSelectEnabled() ? (event) => copyOnSelectRelease(event, renderer, toast, clipboard) : undefined
+        }
       >
         <Show when={value.stack.length}>
           <Dialog onClose={() => value.clear()} size={value.size} centered={value.centered}>

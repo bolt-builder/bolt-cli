@@ -1,20 +1,12 @@
 /** @jsxImportSource @opentui/solid */
+import type { KeymapCommand } from "@opencode/plugin/tui/context"
+import { useKeymap } from "@opentui/keymap/solid"
 import { testRender } from "@opentui/solid"
 import { expect, test } from "bun:test"
-import { onCleanup } from "solid-js"
-import { TuiKeybind } from "../src/config/keybind"
-import { getOpencodeModeStack, BOLT_BASE_MODE, OpencodeKeymapProvider, registerOpencodeKeymap } from "../src/keymap"
-
-function createResolvedKeymapConfig(input: TuiKeybind.KeybindOverrides = {}) {
-  const keybinds = TuiKeybind.parse(input)
-  return {
-    keybinds: createBindingLookup(TuiKeybind.toBindingConfig(keybinds), {
-      commandMap: TuiKeybind.CommandMap,
-      bindingDefaults: TuiKeybind.bindingDefaults(),
-    }),
-    leader_timeout: 2000,
-  }
-}
+import { createSignal } from "solid-js"
+import { ConfigProvider } from "../src/config"
+import { Keymap } from "../src/context/keymap"
+import { createTuiResolvedConfig } from "./fixture/tui-runtime"
 
 test("legacy page key aliases compile as page keys", async () => {
   let read = () => ({ up: "", down: "" })
@@ -31,41 +23,7 @@ test("legacy page key aliases compile as page keys", async () => {
       up: shortcuts.get("session.page.up") ?? "",
       down: shortcuts.get("session.page.down") ?? "",
     })
-    const offBase = keymap.registerLayer({
-      mode: BOLT_BASE_MODE,
-      commands: [{ name: "model.list", run() {} }],
-      bindings: config.keybinds.gather("test.base", ["model.list"]),
-    })
-    const activeCounts = () =>
-      Object.fromEntries(
-        Array.from(
-          keymap.getCommandBindings({
-            visibility: "active",
-            commands: ["session.list", "session.new", "session.page.up", "session.first", "model.list"],
-          }),
-          ([command, bindings]) => [command, bindings.length],
-        ),
-      )
-
-    counts.base = activeCounts()
-    const popQuestion = getOpencodeModeStack(keymap).push("question")
-    counts.question = activeCounts()
-    popQuestion()
-    const popAutocomplete = getOpencodeModeStack(keymap).push("autocomplete")
-    counts.autocomplete = activeCounts()
-    popAutocomplete()
-
-    onCleanup(() => {
-      offBase()
-      offGlobal()
-      offKeymap()
-    })
-
-    return (
-      <OpencodeKeymapProvider keymap={keymap}>
-        <box />
-      </OpencodeKeymapProvider>
-    )
+    return <box />
   }
 
   const app = await testRender(() => (
@@ -140,6 +98,106 @@ test("returns every formatted command shortcut", async () => {
   ))
   try {
     expect(read()).toEqual(["x", "y"])
+  } finally {
+    app.renderer.destroy()
+  }
+})
+
+test("re-registered commands keep their opencode object until its data changes", async () => {
+  const [title, setTitle] = createSignal("Demo")
+  const [description, setDescription] = createSignal<string | undefined>("Runs the demo")
+  const [version, setVersion] = createSignal(0)
+  let opencode = () => undefined as KeymapCommand | undefined
+  let command = () => undefined as KeymapCommand | undefined
+
+  function Harness() {
+    const keymap = useKeymap()
+    const commands = Keymap.useCommands()
+    Keymap.createLayer(() => ({
+      commands: [
+        {
+          id: "demo.command",
+          title: title(),
+          ...(description() === undefined ? {} : { description: description() }),
+          palette: true,
+          suggested: version() >= 0,
+          run() {},
+        },
+      ],
+    }))
+    opencode = () =>
+      keymap.getCommandEntries({ visibility: "registered" }).find((entry) => entry.command.name === "demo.command")
+        ?.command.opencode
+    command = () => commands().find((item) => item.id === "demo.command")
+    return <box />
+  }
+
+  const app = await testRender(() => (
+    <ConfigProvider config={createTuiResolvedConfig()}>
+      <Keymap.Provider>
+        <Harness />
+      </Keymap.Provider>
+    </ConfigProvider>
+  ))
+  try {
+    const first = opencode()
+    setVersion(1)
+    expect(opencode()).toBe(first)
+
+    setTitle("Renamed")
+    expect(opencode()).not.toBe(first)
+    expect(command()?.title).toBe("Renamed")
+
+    setDescription(undefined)
+    expect(command()?.description).toBeUndefined()
+  } finally {
+    app.renderer.destroy()
+  }
+})
+
+test("re-registered commands keep inline slash objects until their fields change", async () => {
+  const [aliases, setAliases] = createSignal(["d"])
+  const [version, setVersion] = createSignal(0)
+  let registered = () => undefined as { opencode?: unknown; slash?: unknown } | undefined
+  let command = () => undefined as KeymapCommand | undefined
+
+  function Harness() {
+    const keymap = useKeymap()
+    const commands = Keymap.useCommands()
+    Keymap.createLayer(() => ({
+      commands: [
+        {
+          id: "demo.slash",
+          title: "Demo",
+          suggested: version() >= 0,
+          slash: { name: "demo", aliases: aliases(), arguments: true },
+          run() {},
+        },
+      ],
+    }))
+    registered = () =>
+      keymap.getCommandEntries({ visibility: "registered" }).find((entry) => entry.command.name === "demo.slash")
+        ?.command
+    command = () => commands().find((item) => item.id === "demo.slash")
+    return <box />
+  }
+
+  const app = await testRender(() => (
+    <ConfigProvider config={createTuiResolvedConfig()}>
+      <Keymap.Provider>
+        <Harness />
+      </Keymap.Provider>
+    </ConfigProvider>
+  ))
+  try {
+    const first = registered()
+    setVersion(1)
+    expect(registered()?.opencode).toBe(first?.opencode)
+    expect(registered()?.slash).toBe(first?.slash)
+
+    setAliases(["d", "dm"])
+    expect(registered()?.opencode).not.toBe(first?.opencode)
+    expect(command()?.slash?.aliases).toEqual(["d", "dm"])
   } finally {
     app.renderer.destroy()
   }

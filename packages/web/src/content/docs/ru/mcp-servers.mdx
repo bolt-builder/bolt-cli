@@ -3,7 +3,7 @@ title: MCP-серверы
 description: Добавьте локальные и удаленные инструменты MCP.
 ---
 
-Вы можете добавить внешние инструменты в bolt, используя _Model Context Protocol_ или MCP. opencode поддерживает как локальные, так и удаленные серверы.
+Вы можете добавить внешние инструменты в opencode, используя _Model Context Protocol_ или MCP. opencode поддерживает как локальные, так и удаленные серверы.
 
 После добавления инструменты MCP автоматически становятся доступными для LLM наряду со встроенными инструментами.
 
@@ -23,11 +23,11 @@ description: Добавьте локальные и удаленные инст�
 
 ## Включение
 
-Вы можете определить серверы MCP в своем [opencode Config](https://bolt.ai/docs/config/) в разделе `mcp`. Добавьте каждому MCP уникальное имя. Вы можете обратиться к этому MCP по имени при запросе LLM.
+Вы можете определить серверы MCP в своем [opencode Config](https://opencode.ai/docs/config/) в разделе `mcp`. Добавьте каждому MCP уникальное имя. Вы можете обратиться к этому MCP по имени при запросе LLM.
 
-```jsonc title="bolt.jsonc" {6}
+```jsonc title="opencode.jsonc" {6}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "name-of-mcp-server": {
       // ...
@@ -50,9 +50,9 @@ description: Добавьте локальные и удаленные инст�
 
 Чтобы включить определенный сервер из удаленной конфигурации вашей организации, добавьте его в локальную конфигурацию с помощью `enabled: true`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "jira": {
       "type": "remote",
@@ -71,9 +71,9 @@ description: Добавьте локальные и удаленные инст�
 
 Добавьте локальные серверы MCP с помощью `type` в `"local"` внутри объекта MCP.
 
-```jsonc title="bolt.jsonc" {15}
+```jsonc title="opencode.jsonc" {15}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-local-mcp-server": {
       "type": "local",
@@ -92,9 +92,9 @@ description: Добавьте локальные и удаленные инст�
 
 Например, вот как можно добавить тестовый сервер [`@modelcontextprotocol/server-everything`](https://www.npmjs.com/package/@modelcontextprotocol/server-everything) MCP.
 
-```jsonc title="bolt.jsonc"
+```jsonc title="opencode.jsonc"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "mcp_everything": {
       "type": "local",
@@ -130,9 +130,9 @@ use the mcp_everything tool to add the number 3 and 4
 
 Добавьте удаленные серверы MCP, установив для `type` значение `"remote"`.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-remote-mcp": {
       "type": "remote",
@@ -177,9 +177,9 @@ opencode автоматически обрабатывает аутентифи�
 
 Для большинства серверов MCP с поддержкой OAuth не требуется никакой специальной настройки. Просто настройте удаленный сервер:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-oauth-server": {
       "type": "remote",
@@ -197,9 +197,9 @@ opencode автоматически обрабатывает аутентифи�
 
 Если у вас есть учетные данные клиента от поставщика сервера MCP, вы можете их настроить:
 
-```json title="bolt.json" {7-11}
+```json title="opencode.json" {7-11}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-oauth-server": {
       "type": "remote",
@@ -246,9 +246,9 @@ opencode mcp logout my-oauth-server
 
 Если вы хотите отключить автоматический OAuth для сервера (например, для серверов, которые вместо этого используют ключи API), установите для `oauth` значение `false`:
 
-```json title="bolt.json" {7}
+```json title="opencode.json" {7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-api-key-server": {
       "type": "remote",
@@ -291,7 +291,7 @@ opencode mcp debug my-oauth-server
 
 ## Управление
 
-Ваши MCP доступны в виде инструментов opencode наряду со встроенными инструментами. Таким образом, вы можете управлять ими через конфигурацию bolt, как и любым другим инструментом.
+Ваши MCP доступны в виде инструментов opencode наряду со встроенными инструментами. Таким образом, вы можете управлять ими через конфигурацию opencode, как и любым другим инструментом.
 
 ---
 
@@ -299,9 +299,9 @@ opencode mcp debug my-oauth-server
 
 Это означает, что вы можете включать или отключать их глобально.
 
-```json title="bolt.json" {14}
+```json title="opencode.json" {14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-mcp-foo": {
       "type": "local",
@@ -320,9 +320,9 @@ opencode mcp debug my-oauth-server
 
 Мы также можем использовать шаблон glob, чтобы отключить все соответствующие MCP.
 
-```json title="bolt.json" {14}
+```json title="opencode.json" {14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-mcp-foo": {
       "type": "local",
@@ -350,9 +350,9 @@ opencode mcp debug my-oauth-server
 1. Отключите его как инструмент глобально.
 2. В вашей [конфигурации агента](/docs/agents#tools) включите сервер MCP в качестве инструмента.
 
-```json title="bolt.json" {11, 14-18}
+```json title="opencode.json" {11, 14-18}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "my-mcp": {
       "type": "local",
@@ -404,9 +404,9 @@ opencode mcp debug my-oauth-server
 
 Добавьте [сервер Sentry MCP](https://mcp.sentry.dev) для взаимодействия с вашими проектами и проблемами Sentry.
 
-```json title="bolt.json" {4-8}
+```json title="opencode.json" {4-8}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "sentry": {
       "type": "remote",
@@ -437,9 +437,9 @@ Show me the latest unresolved issues in my project. use sentry
 
 Добавьте [сервер Context7 MCP](https://github.com/upstash/context7) для поиска в документах.
 
-```json title="bolt.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "context7": {
       "type": "remote",
@@ -451,9 +451,9 @@ Show me the latest unresolved issues in my project. use sentry
 
 Если вы зарегистрировали бесплатную учетную запись, вы можете использовать свой ключ API и получить более высокие ограничения скорости.
 
-```json title="bolt.json" {7-9}
+```json title="opencode.json" {7-9}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "context7": {
       "type": "remote",
@@ -486,9 +486,9 @@ When you need to search docs, use `context7` tools.
 
 Добавьте сервер MCP [Grep от Vercel](https://grep.app) для поиска по фрагментам кода на GitHub.
 
-```json title="bolt.json" {4-7}
+```json title="opencode.json" {4-7}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "gh_grep": {
       "type": "remote",

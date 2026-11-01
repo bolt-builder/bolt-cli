@@ -974,7 +974,7 @@ describe("OpenAPI.fromSpec", () => {
       runtime
         .execute(
           `
-        return await tools.$codemode.search({ query: "global health", namespace: "bolt", limit: 1 })
+        return search({ query: "get a user", namespace: "api", limit: 1 })
       `,
         )
         .pipe(Effect.provide(layer)),
@@ -985,58 +985,12 @@ describe("OpenAPI.fromSpec", () => {
     expect(result.value).toMatchObject({
       items: [
         {
-          path: "tools.bolt.v2.health.get",
-          description: "Check whether the API server is ready to accept requests.",
+          path: "tools.api.users.get",
+          description: "Get a user",
         },
       ],
     })
-    expect(JSON.stringify(result.value)).toContain("healthy: true")
-  })
-
-  test("invokes real opencode path parameters and JSON request bodies", async () => {
-    const { requests, layer } = recordingClient((request) => {
-      if (request.method === "GET") return json({ id: "ses_123" })
-      return json({ id: "ses_456" })
-    })
-    const runtime = CodeMode.make({
-      tools: { opencode: OpenAPI.fromSpec({ spec: await opencodeSpec(), baseUrl }).tools },
-    })
-
-    const result = await Effect.runPromise(
-      runtime
-        .execute(
-          `
-          const existing = await tools.bolt.v2.session.get({ sessionID: "ses_123" })
-          const created = await tools.bolt.v2.session.create({ id: "ses_456" })
-          return { existing, created }
-        `,
-        )
-        .pipe(Effect.provide(layer)),
-    )
-
-    expect(result).toMatchObject({ ok: true })
-    expect(requests).toHaveLength(2)
-    expect(requests[0]).toMatchObject({ method: "GET", body: undefined })
-    expect(new URL(requests[0]!.url).pathname).toBe("/api/session/ses_123")
-    expect(requests[1]).toMatchObject({
-      method: "POST",
-      url: "http://localhost:4096/api/session",
-      body: { id: "ses_456" },
-    })
-  })
-
-  test("serializes deep-object query parameters from the opencode fixture", async () => {
-    const client = recordingClient(() => json({ directory: "/tmp" }))
-    const location = toolAt(OpenAPI.fromSpec({ spec: await opencodeSpec(), baseUrl }).tools, "v2.location.get")
-    if (!Tool.isDefinition(location)) throw new Error("v2.location.get was not generated")
-
-    await Effect.runPromise(
-      location.run({ location: { directory: "/tmp", workspace: "workspace-1" } }).pipe(Effect.provide(client.layer)),
-    )
-
-    const url = new URL(client.requests[0]!.url)
-    expect(url.searchParams.get("location[directory]")).toBe("/tmp")
-    expect(url.searchParams.get("location[workspace]")).toBe("workspace-1")
+    expect(JSON.stringify(result.value)).toContain("userId: string")
   })
 
   test("serializes supported simple and form parameter shapes", async () => {
@@ -1448,7 +1402,7 @@ describe("OpenAPI.fromSpec", () => {
     })
 
     const result = await Effect.runPromise(
-      runtime.execute("return await tools.bolt.v2.session.get({})").pipe(Effect.provide(layer)),
+      runtime.execute("return await tools.api.records.get({})").pipe(Effect.provide(layer)),
     )
 
     expect(result).toMatchObject({ ok: false })

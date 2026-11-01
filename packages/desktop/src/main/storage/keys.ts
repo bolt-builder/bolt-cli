@@ -1,8 +1,14 @@
-export const SETTINGS_STORE = "bolt.settings"
-export const DEFAULT_SERVER_URL_KEY = "defaultServerUrl"
+export const SETTINGS_STORE = "opencode.settings"
+
 export const FIRST_LAUNCH_ONBOARDING_COMPLETE_KEY = "firstLaunchOnboardingComplete"
 
 export const PINCH_ZOOM_ENABLED_KEY = "pinchZoomEnabled"
+
+export const ZOOM_LEVEL_KEY = "zoomLevel"
+
+export const SPELLCHECK_ENABLED_KEY = "spellcheckEnabled"
+
+export const SPELLCHECK_LANGUAGES_KEY = "spellcheckLanguages"
 
 export const BACKGROUND_COLOR_KEY = "backgroundColor"
 

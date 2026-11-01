@@ -1,5 +1,5 @@
-import { Provider } from "@bolt-ai/schema/provider"
-import { Location } from "@bolt-ai/schema/location"
+import { Provider } from "@opencode/schema/provider"
+import { Location } from "@opencode/schema/location"
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
 import { ProviderNotFoundError, ServiceUnavailableError } from "../errors.js"

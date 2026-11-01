@@ -1,6 +1,6 @@
 ---
 title: Rules
-description: Set custom instructions for bolt.
+description: Set custom instructions for opencode.
 ---
 
 You can provide custom instructions to opencode by creating an `AGENTS.md` file. This is similar to Cursor's rules. It contains instructions that will be included in the LLM's context to customize its behavior for your specific project.
@@ -9,7 +9,7 @@ You can provide custom instructions to opencode by creating an `AGENTS.md` file.
 
 ## Initialize
 
-To create a new `AGENTS.md` file, you can run the `/init` command in bolt.
+To create a new `AGENTS.md` file, you can run the `/init` command in opencode.
 
 :::tip
 You should commit your project's `AGENTS.md` file to Git.
@@ -76,7 +76,7 @@ Since this isn't committed to Git or shared with your team, we recommend using t
 
 ### Claude Code Compatibility
 
-For users migrating from Claude Code, Bolt supports Claude Code's file conventions as fallbacks:
+For users migrating from Claude Code, OpenCode supports Claude Code's file conventions as fallbacks:
 
 - **Project rules**: `CLAUDE.md` in your project directory (used if no `AGENTS.md` exists)
 - **Global rules**: `~/.claude/CLAUDE.md` (used if no `~/.config/opencode/AGENTS.md` exists)
@@ -85,9 +85,9 @@ For users migrating from Claude Code, Bolt supports Claude Code's file conventio
 To disable Claude Code compatibility, set one of these environment variables:
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -106,22 +106,22 @@ The first matching file wins in each category. For example, if you have both `AG
 
 ## Custom Instructions
 
-You can specify custom instruction files in your `bolt.json` or the global `~/.config/opencode/bolt.json`. This allows you and your team to reuse existing rules rather than having to duplicate them to AGENTS.md.
+You can specify custom instruction files in your `opencode.json` or the global `~/.config/opencode/opencode.json`. This allows you and your team to reuse existing rules rather than having to duplicate them to AGENTS.md.
 
 Example:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 You can also use remote URLs to load instructions from the web.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -136,13 +136,13 @@ All instruction files are combined with your `AGENTS.md` files.
 
 While opencode doesn't automatically parse file references in `AGENTS.md`, you can achieve similar functionality in two ways:
 
-### Using bolt.json
+### Using opencode.json
 
-The recommended approach is to use the `instructions` field in `bolt.json`:
+The recommended approach is to use the `instructions` field in `opencode.json`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -184,5 +184,5 @@ This approach allows you to:
 - Ensure opencode loads files only when needed for the specific task
 
 :::tip
-For monorepos or projects with shared standards, using `bolt.json` with glob patterns (like `packages/*/AGENTS.md`) is more maintainable than manual instructions.
+For monorepos or projects with shared standards, using `opencode.json` with glob patterns (like `packages/*/AGENTS.md`) is more maintainable than manual instructions.
 :::

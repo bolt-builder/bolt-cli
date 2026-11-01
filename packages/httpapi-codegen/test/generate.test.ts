@@ -393,6 +393,187 @@ describe("HttpApiCodegen.generate", () => {
     expect(contract.groups[0]?.endpoints[0]?.operation).toMatchObject({ group: "sessions", name: "get" })
   })
 
+  test("nests namespaced endpoints and merges them with a group of the same name", async () => {
+    const source = HttpApi.make("test")
+      .add(
+        HttpApiGroup.make("server.session")
+          .add(HttpApiEndpoint.get("get", "/session", { success: Schema.String }))
+          .add(HttpApiEndpoint.get("stats", "/experimental/session/stats", { success: Schema.String })),
+      )
+      .add(
+        HttpApiGroup.make("server.experimental").add(
+          HttpApiEndpoint.get("read", "/experimental/terminal", { success: Schema.String }).annotateMerge(
+            OpenApi.annotations({ identifier: "server.experimental.terminal.read" }),
+          ),
+        ),
+      )
+    const contract = compileContract(source, {
+      groupNames: { "server.session": "session", "server.experimental": "experimental" },
+      namespace: (endpoint) => (endpoint.path.startsWith("/experimental/") ? "experimental" : undefined),
+    })
+
+    expect(contract.groups.map((group) => [group.identifier, group.path])).toEqual([
+      ["session", ["session"]],
+      ["experimental.session", ["experimental", "session"]],
+      ["experimental", ["experimental"]],
+    ])
+
+    const paths: Array<string> = []
+    await using emitted = await emittedModule(emitPromise(contract))
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async (input: RequestInfo | URL) => {
+        paths.push(new URL(input instanceof Request ? input.url : input).pathname)
+        return Response.json("ok")
+      },
+    })
+    expect(Object.keys(client)).toEqual(["session", "experimental"])
+    expect(Object.keys(client.session)).toEqual(["get"])
+    expect(Object.keys(client.experimental)).toEqual(["session", "terminal"])
+    expect(await client.session.get()).toBe("ok")
+    expect(await client.experimental.session.stats()).toBe("ok")
+    expect(await client.experimental.terminal.read()).toBe("ok")
+    expect(paths).toEqual(["/session", "/experimental/session/stats", "/experimental/terminal"])
+
+    expect(emitEffect(contract).files.find((file) => file.path === "client.ts")?.content).toContain(
+      '"experimental": { ...adaptGroupExperimental(raw["experimental"]), "session": adaptGroupExperimentalSession(raw["experimental.session"]) }',
+    )
+    const imported = emitEffectImported(contract, { module: "@example/api", api: "Api" })
+    expect(imported.files.find((file) => file.path === "client.ts")?.content).toContain(
+      '"experimental": { ...adaptGroupExperimental(raw["server.experimental"]), "session": adaptGroupExperimentalSession(raw["server.session"]) }',
+    )
+    // A projection rebuilds the split group under its client name, so the raw client is keyed by that name.
+    const projected = emitEffectImported(contract, {
+      module: "@example/api",
+      endpoints: { "session.get": "Get", "experimental.session.stats": "Stats", "experimental.read": "Read" },
+    }).files.find((file) => file.path === "client.ts")?.content
+    expect(projected).toContain('HttpApiGroup.make("experimental.session").add(Stats)')
+    expect(projected).toContain('const adaptGroupExperimentalSession = (raw: RawClient["experimental.session"])')
+    expect(projected).toContain(
+      '"experimental": { ...adaptGroupExperimental(raw["experimental"]), "session": adaptGroupExperimentalSession(raw["experimental.session"]) }',
+    )
+    expect(projected).not.toContain('raw["server.')
+    const shape = emitEffectShape(contract).files.find((file) => file.path === "api.ts")?.content
+    expect(shape).toContain('readonly "session": SessionApi<E>')
+    expect(shape).toContain(
+      'readonly "experimental": ExperimentalApi<E> & {\nreadonly "session": ExperimentalSessionApi<E>\n}',
+    )
+  })
+
+  test("rejects a namespaced group that collides with a method in the namespace", () => {
+    const source = HttpApi.make("test")
+      .add(
+        HttpApiGroup.make("experimental").add(
+          HttpApiEndpoint.get("read", "/experimental/session", { success: Schema.String }).annotateMerge(
+            OpenApi.annotations({ identifier: "experimental.session.read" }),
+          ),
+        ),
+      )
+      .add(
+        HttpApiGroup.make("session").add(
+          HttpApiEndpoint.get("stats", "/experimental/stats", { success: Schema.String }),
+        ),
+      )
+
+    expect(() => compileContract(source, { namespace: () => "experimental" })).toThrow(
+      "Client name collision: experimental.session",
+    )
+  })
+
+  test("keeps pre-namespace paths and type names as deprecated aliases", async () => {
+    const source = HttpApi.make("test")
+      .add(
+        HttpApiGroup.make("server.session")
+          .add(HttpApiEndpoint.get("get", "/session", { success: Schema.String }))
+          .add(
+            HttpApiEndpoint.get("stats", "/experimental/session/:sessionID/stats", {
+              params: { sessionID: Schema.String },
+              success: Schema.String,
+            }),
+          ),
+      )
+      .add(
+        HttpApiGroup.make("server.generate").add(
+          HttpApiEndpoint.post("text", "/experimental/generate/text", {
+            payload: Schema.Struct({ prompt: Schema.String }),
+            success: Schema.String,
+          }),
+        ),
+      )
+    const options = {
+      groupNames: { "server.session": "session", "server.generate": "generate" },
+      namespace: (endpoint: HttpApiEndpoint.Top) =>
+        endpoint.path.startsWith("/experimental/") ? "experimental" : undefined,
+    }
+    expect(compileContract(source, options).aliases).toBeUndefined()
+    expect(
+      emitPromise(compileContract(source, options))
+        .files.map((file) => file.content)
+        .join(""),
+    ).not.toContain("@deprecated")
+
+    const contract = compileContract(source, { ...options, aliases: true })
+    expect(contract.aliases?.map((alias) => [alias.from.join("."), alias.to.join(".")])).toEqual([
+      ["session.stats", "experimental.session.stats"],
+      ["generate.text", "experimental.generate.text"],
+    ])
+
+    const paths: Array<string> = []
+    const promise = emitPromise(contract)
+    await using emitted = await emittedModule(promise)
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async (input: RequestInfo | URL) => {
+        paths.push(new URL(input instanceof Request ? input.url : input).pathname)
+        return Response.json("ok")
+      },
+    })
+    expect(Object.keys(client)).toEqual(["session", "experimental", "generate"])
+    expect(Object.keys(client.session)).toEqual(["get", "stats"])
+    expect(client.session.stats).toBe(client.experimental.session.stats)
+    expect(client.generate.text).toBe(client.experimental.generate.text)
+    expect(await client.session.stats({ sessionID: "a" })).toBe("ok")
+    expect(paths).toEqual(["/experimental/session/a/stats"])
+    const promiseFile = (path: string) => promise.files.find((file) => file.path === path)?.content
+    expect(promiseFile("client.ts")).toContain(
+      "/** @deprecated Use `client.experimental.generate.text`. Removed in the next minor. */",
+    )
+    expect(promiseFile("types.ts")).toContain(
+      "/** @deprecated Use `ExperimentalSessionStatsInput`. Removed in the next minor. */\nexport type SessionStatsInput = ExperimentalSessionStatsInput",
+    )
+
+    const shape = emitEffectShape(contract).files.find((file) => file.path === "api.ts")?.content
+    // The alias joins the interface of the group still at its old path, so code typed against SessionApi compiles.
+    expect(shape).toContain(
+      'export interface SessionApi<E = never> {\nreadonly "get": SessionGetOperation<E>\n\n/** @deprecated Use `client.experimental.session.stats`. Removed in the next minor. */\nreadonly "stats": ExperimentalSessionStatsOperation<E>\n}',
+    )
+    expect(shape).toContain("export type SessionStatsOperation<E = never> = ExperimentalSessionStatsOperation<E>")
+    expect(shape).toContain("export type GenerateApi<E = never> = ExperimentalGenerateApi<E>")
+    expect(shape).toContain(
+      '/** @deprecated Use `client.experimental.generate`. Removed in the next minor. */\nreadonly "generate": {',
+    )
+    expect(emitEffect(contract).files.find((file) => file.path === "client.ts")?.content).toContain(
+      'return { ...client, "session": { ...client.session, ',
+    )
+  })
+
+  test("rejects an alias that collides with a client path", () => {
+    const source = HttpApi.make("test").add(
+      HttpApiGroup.make("session")
+        .add(HttpApiEndpoint.get("stats", "/session/stats", { success: Schema.String }))
+        .add(
+          HttpApiEndpoint.get("experimentalStats", "/experimental/session/stats", {
+            success: Schema.String,
+          }).annotateMerge(OpenApi.annotations({ identifier: "experimental.session.stats" })),
+        ),
+    )
+    const namespace = (endpoint: HttpApiEndpoint.Top) =>
+      endpoint.path.startsWith("/experimental/") ? "experimental" : undefined
+
+    expect(() => compileContract(source, { namespace })).not.toThrow()
+    expect(() => compileContract(source, { namespace, aliases: true })).toThrow("Client alias collision: session.stats")
+  })
+
   test("derives nested paths from OpenAPI operation IDs", () => {
     const source = HttpApi.make("test").add(
       HttpApiGroup.make("server.session").add(
@@ -786,6 +967,28 @@ describe("HttpApiCodegen.generate", () => {
     expect(types).not.toContain("Referenced1")
   })
 
+  test("emits flat Promise input field types", () => {
+    const output = emitPromise(
+      compileContract(
+        api(
+          HttpApiEndpoint.get("subscribe", "/session/:id/event", {
+            params: { id: Schema.String },
+            query: Schema.Struct({
+              types: Schema.optional(Schema.ArrayEnsure(Schema.Literals(["created", "deleted"]))),
+              cursor: Schema.optionalKey(Schema.String),
+            }).annotate({ identifier: "SubscribeQuery" }),
+            success: Schema.String,
+          }),
+        ),
+      ),
+    )
+    const types = output.files.find((file) => file.path === "types.ts")?.content
+
+    expect(types).toContain(
+      'export type SessionSubscribeInput = { readonly "id": string; readonly "types"?: ReadonlyArray<"created" | "deleted"> | undefined; readonly "cursor"?: string | undefined }',
+    )
+  })
+
   test("inlines shared anonymous Promise wire types", () => {
     const Shared = Schema.Struct({ value: Schema.String })
     const output = emitPromise(
@@ -961,26 +1164,19 @@ describe("HttpApiCodegen.generate", () => {
         ),
       ),
     )
-    const directory = await mkdtemp(join(tmpdir(), "bolt-httpapi-codegen-"))
+    await using emitted = await emittedModule(output)
+    let request: Request | undefined
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com/base?tenant=one#fragment",
+      fetch: async (input: RequestInfo | URL) => {
+        request = input instanceof Request ? input : new Request(input)
+        return Response.json({ data: "hello" })
+      },
+    })
 
-    try {
-      await Promise.all(output.files.map((file) => Bun.write(join(directory, file.path), file.content)))
-      const generated = await import(`${join(directory, "index.ts")}?t=${crypto.randomUUID()}`)
-      let request: Request | undefined
-      const client = generated.Bolt.make({
-        baseUrl: "https://example.com",
-        fetch: async (input: RequestInfo | URL) => {
-          request = input instanceof Request ? input : new Request(input)
-          return Response.json({ data: "hello" })
-        },
-      })
-
-      expect(await client.session.get({ sessionID: "a/b" })).toBe("hello")
-      expect(request?.method).toBe("GET")
-      expect(request?.url).toBe("https://example.com/session/a%2Fb")
-    } finally {
-      await rm(directory, { recursive: true, force: true })
-    }
+    expect(await client.session.get({ sessionID: "a/b" })).toBe("hello")
+    expect(request?.method).toBe("GET")
+    expect(request?.url).toBe("https://example.com/base/session/a%2Fb")
   })
 
   test("maps an emitted no-content response to undefined", async () => {
@@ -994,15 +1190,14 @@ describe("HttpApiCodegen.generate", () => {
         ),
       ),
     )
-    const directory = await mkdtemp(join(tmpdir(), "bolt-httpapi-codegen-"))
+    await using emitted = await emittedModule(output)
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async () => new Response(null, { status: 204 }),
+    })
 
-    try {
-      await Promise.all(output.files.map((file) => Bun.write(join(directory, file.path), file.content)))
-      const generated = await import(`${join(directory, "index.ts")}?t=${crypto.randomUUID()}`)
-      const client = generated.Bolt.make({
-        baseUrl: "https://example.com",
-        fetch: async () => new Response(null, { status: 204 }),
-      })
+    expect(await client.session.interrupt({ sessionID: "session" })).toBeUndefined()
+  })
 
   test("executes an emitted binary wildcard GET through fetch", async () => {
     const output = emitPromise(
@@ -1046,19 +1241,23 @@ describe("HttpApiCodegen.generate", () => {
         ),
       ),
     )
-    const directory = await mkdtemp(join(tmpdir(), "bolt-httpapi-codegen-"))
+    await using emitted = await emittedModule(output)
+    let request: Request | undefined
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+        request = input instanceof Request ? input : new Request(input, init)
+        return Response.json({ data: "admitted" })
+      },
+    })
 
-    try {
-      await Promise.all(output.files.map((file) => Bun.write(join(directory, file.path), file.content)))
-      const generated = await import(`${join(directory, "index.ts")}?t=${crypto.randomUUID()}`)
-      let request: Request | undefined
-      const client = generated.Bolt.make({
-        baseUrl: "https://example.com",
-        fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
-          request = input instanceof Request ? input : new Request(input, init)
-          return Response.json({ data: "admitted" })
-        },
-      })
+    expect(await client.session.prompt({ sessionID: "session", resume: true, traceID: "trace", prompt: "hello" })).toBe(
+      "admitted",
+    )
+    expect(request?.url).toBe("https://example.com/session/session?resume=true")
+    expect(request?.headers.get("traceID")).toBe("trace")
+    expect(await request?.json()).toEqual({ prompt: "hello" })
+  })
 
   test("serializes an opaque union payload as the direct JSON body", async () => {
     const output = emitPromise(
@@ -1127,22 +1326,16 @@ describe("HttpApiCodegen.generate", () => {
         ),
       ),
     )
-    const directory = await mkdtemp(join(tmpdir(), "bolt-httpapi-codegen-"))
+    await using emitted = await emittedModule(output)
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async () => Response.json({ _tag: "Missing", message: "gone" }, { status: 404 }),
+    })
 
-    try {
-      await Promise.all(output.files.map((file) => Bun.write(join(directory, file.path), file.content)))
-      const generated = await import(`${join(directory, "index.ts")}?t=${crypto.randomUUID()}`)
-      const client = generated.Bolt.make({
-        baseUrl: "https://example.com",
-        fetch: async () => Response.json({ _tag: "Missing", message: "gone" }, { status: 404 }),
-      })
-
-      const error = await client.session.get({ sessionID: "missing" }).catch((cause: unknown) => cause)
-      expect(error).toEqual({ _tag: "Missing", message: "gone" })
-      expect(generated.isMissing(error)).toBeTrue()
-    } finally {
-      await rm(directory, { recursive: true, force: true })
-    }
+    const error = await client.session.get({ sessionID: "missing" }).catch((cause: unknown) => cause)
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toMatchObject({ name: "Missing", message: "gone", _tag: "Missing" })
+    expect(emitted.module.isMissing(error)).toBeTrue()
   })
 
   test("iterates an emitted SSE stream lazily without reconnecting", async () => {
@@ -1158,42 +1351,35 @@ describe("HttpApiCodegen.generate", () => {
         ),
       ),
     )
-    const directory = await mkdtemp(join(tmpdir(), "bolt-httpapi-codegen-"))
+    await using emitted = await emittedModule(output)
+    let requests = 0
+    let url: string | undefined
+    const client = emitted.module.OpenCode.make({
+      baseUrl: "https://example.com",
+      fetch: async (input: RequestInfo | URL) => {
+        requests++
+        url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+        const encoder = new TextEncoder()
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode('data: {"type":"ready","count":"1"}\r'))
+              controller.enqueue(encoder.encode("\n\r\n"))
+              controller.close()
+            },
+          }),
+          { headers: { "content-type": "text/event-stream" } },
+        )
+      },
+    })
+    const events = client.session.subscribe({ after: 2 })
 
-    try {
-      await Promise.all(output.files.map((file) => Bun.write(join(directory, file.path), file.content)))
-      const generated = await import(`${join(directory, "index.ts")}?t=${crypto.randomUUID()}`)
-      let requests = 0
-      let url: string | undefined
-      const client = generated.Bolt.make({
-        baseUrl: "https://example.com",
-        fetch: async (input: RequestInfo | URL) => {
-          requests++
-          url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
-          const encoder = new TextEncoder()
-          return new Response(
-            new ReadableStream({
-              start(controller) {
-                controller.enqueue(encoder.encode('data: {"type":"ready","count":"1"}\r'))
-                controller.enqueue(encoder.encode("\n\r\n"))
-                controller.close()
-              },
-            }),
-            { headers: { "content-type": "text/event-stream" } },
-          )
-        },
-      })
-      const events = client.session.subscribe({ after: 2 })
-
-      expect(requests).toBe(0)
-      const received = []
-      for await (const event of events) received.push(event)
-      expect(received).toEqual([{ type: "ready", count: "1" }])
-      expect(requests).toBe(1)
-      expect(url).toBe("https://example.com/event?after=2")
-    } finally {
-      await rm(directory, { recursive: true, force: true })
-    }
+    expect(requests).toBe(0)
+    const received = []
+    for await (const event of events) received.push(event)
+    expect(received).toEqual([{ type: "ready", count: "1" }])
+    expect(requests).toBe(1)
+    expect(url).toBe("https://example.com/event?after=2")
   })
 
   test("preserves public group and endpoint identifiers exactly", () => {

@@ -4,11 +4,12 @@ import path from "path"
 import os from "os"
 import { Cause, Effect, Exit } from "effect"
 import { testEffect } from "../lib/effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EffectFlock } from "@bolt-ai/core/util/effect-flock"
-import { Global } from "@bolt-ai/core/global"
-import { Hash } from "@bolt-ai/core/util/hash"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { EffectFlock } from "@opencode/util/effect-flock"
+import { Global } from "@opencode/util/global"
+import { Hash } from "@opencode/util/hash"
+import { runLockWorker, spawnLockWorker, stopLockWorker, waitForFile } from "../fixture/lock-worker"
+import { tmpdir } from "../fixture/tmpdir"
 
 function lock(dir: string, key: string) {
   return path.join(dir, Hash.fast(key) + ".lock")

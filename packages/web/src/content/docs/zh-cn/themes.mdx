@@ -3,9 +3,9 @@ title: 主题
 description: 选择内置主题或定义您自己的主题。
 ---
 
-通过 Bolt，您可以从多个内置主题中进行选择，使用能自动适配终端主题的主题，或者定义您自己的自定义主题。
+通过 OpenCode，您可以从多个内置主题中进行选择，使用能自动适配终端主题的主题，或者定义您自己的自定义主题。
 
-默认情况下，Bolt 使用我们自己的 `opencode` 主题。
+默认情况下，OpenCode 使用我们自己的 `opencode` 主题。
 
 ---
 
@@ -23,7 +23,7 @@ description: 选择内置主题或定义您自己的主题。
 
 ## 内置主题
 
-Bolt 自带多个内置主题。
+OpenCode 自带多个内置主题。
 
 | 名称                   | 描述                                                                |
 | ---------------------- | ------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ Bolt 自带多个内置主题。
 
 系统主题适合以下用户：
 
-- 希望 Bolt 与终端的外观保持一致
+- 希望 OpenCode 与终端的外观保持一致
 - 使用了自定义终端配色方案
 - 偏好所有终端应用程序拥有统一的视觉风格
 
@@ -65,7 +65,7 @@ Bolt 自带多个内置主题。
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Bolt 自带多个内置主题。
 
 ## 自定义主题
 
-Bolt 支持灵活的基于 JSON 的主题系统，让用户可以轻松创建和自定义主题。
+OpenCode 支持灵活的基于 JSON 的主题系统，让用户可以轻松创建和自定义主题。
 
 ---
 
@@ -84,8 +84,8 @@ Bolt 支持灵活的基于 JSON 的主题系统，让用户可以轻松创建和
 
 1. **内置主题** — 嵌入在二进制文件中
 2. **用户配置目录** — 定义在 `~/.config/opencode/themes/*.json` 或 `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **项目根目录** — 定义在 `<project-root>/.bolt/themes/*.json`
-4. **当前工作目录** — 定义在 `./.bolt/themes/*.json`
+3. **项目根目录** — 定义在 `<project-root>/.opencode/themes/*.json`
+4. **当前工作目录** — 定义在 `./.opencode/themes/*.json`
 
 如果多个目录包含同名主题，将使用优先级较高的目录中的主题。
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 创建项目级主题：
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ vim .bolt/themes/my-theme.json
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",

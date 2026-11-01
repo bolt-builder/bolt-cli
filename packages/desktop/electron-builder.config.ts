@@ -1,26 +1,20 @@
-import { execFile } from "node:child_process"
-import { readdir, stat } from "node:fs/promises"
+import { copyFile, readdir, stat } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { promisify } from "node:util"
 
-import type { CustomMacSignOptions } from "app-builder-lib"
 import { Arch, type Configuration } from "electron-builder"
 import { NativeArch } from "../../script/native-arch"
-import { CLI_BINARIES, getCurrentCli, nodePtyPackage } from "./scripts/utils"
-
-const execFileAsync = promisify(execFile)
+import { DESKTOP_NATIVE_ENGLISH } from "@opencode/app/i18n/desktop-native"
+import { CLI_BINARIES, getCurrentCli, nodePtyPackage } from "./script/utils"
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url))
 
-const rootDir = path.resolve(packageDir, "../..")
+// The Electron 42 packaging update briefly installed Linux launchers/icons under
+// "opencode-desktop". Keep that hidden desktop entry around so existing GNOME/KDE
+// pins still resolve after the canonical app id changes back to ai.opencode.desktop.
+const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "opencode-desktop.desktop")
 
-const signScript = path.join(rootDir, "script", "sign-windows.ps1")
-// Upstream's Electron 42 packaging update briefly installed Linux launchers/icons under
-// a "<name>-desktop" entry. Keep that hidden desktop entry around so GNOME/KDE
-// pins against it still resolve alongside the canonical app id com.boltbuilder.bolt.
-const legacyDesktopEntry = path.join(packageDir, "resources", "linux", "bolt-desktop.desktop")
-const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/bolt-desktop.desktop`
+const legacyDesktopEntryFpm = `${legacyDesktopEntry}=/usr/share/applications/opencode-desktop.desktop`
 
 // rpmbuild adds /usr/lib/.build-id links for every ELF file. The bundled Electron
 // binaries are byte-identical across apps on the same Electron version, so those
@@ -32,29 +26,13 @@ const rpmNoBuildIdLinksFpm = "--rpm-rpmbuild-define=_build_id_links none"
 const metainfoFpm = (appId: string) =>
   `${path.join(packageDir, "resources", `${appId}.metainfo.xml`)}=/usr/share/metainfo/${appId}.metainfo.xml`
 
-async function signWindows(configuration: { path: string }) {
-  if (process.platform !== "win32") return
+// Dev and beta package every commit, so they trade about 5% (deb) and 17% (rpm) larger files for xz -1, which
+// compresses the payload about 3x faster than the deb default (-3) and 5x faster than the rpm default (-9).
+const previewCompressionFpm = (target: "deb" | "rpm") => [`--${target}-compression-level`, "1"]
 
-  if (process.env.GITHUB_ACTIONS !== "true") return
+function resolveChannel() {
+  const raw = process.env.OPENCODE_CHANNEL
 
-  await execFileAsync(
-    "pwsh",
-    ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", signScript, configuration.path],
-    { cwd: rootDir, windowsHide: true },
-  )
-}
-
-// Without a Developer ID identity electron-builder skips signing entirely and
-// Gatekeeper reports the quarantined download as "damaged". Falling back to
-// electron-builder's native ad-hoc signing (identity "-") keeps the bundle seal
-// valid, applies the entitlements per component, and gives users the bypassable
-// "unidentified developer" dialog instead. Only applies when CI has explicitly
-// disabled identity discovery because the certificate secret is absent; non-mac
-// hosts are guarded inside electron-builder, which skips mac signing entirely.
-const identity = !process.env.CSC_LINK && process.env.CSC_IDENTITY_AUTO_DISCOVERY === "false" ? "-" : undefined
-
-const channel = (() => {
-  const raw = process.env.BOLT_CHANNEL
   if (raw === "dev" || raw === "beta" || raw === "prod") return raw
 
   if (raw === "latest") return "prod"
@@ -63,93 +41,27 @@ const channel = (() => {
 }
 
 const APP_IDS = {
-  dev: "com.boltbuilder.bolt.dev",
-  beta: "com.boltbuilder.bolt.beta",
-  prod: "com.boltbuilder.bolt",
+  dev: "ai.opencode.desktop.dev",
+  beta: "ai.opencode.desktop.beta",
+  prod: "ai.opencode.desktop",
 } as const
 
-const getBase = (appId: string): Configuration => ({
-  artifactName: "bolt-desktop-${os}-${arch}.${ext}",
-  directories: {
-    output: "dist",
-    buildResources: "resources",
-  },
-  // Linux launchers are .desktop files, so this is the desktop file name,
-  // not just the app id. For prod, app id "com.boltbuilder.bolt" becomes
-  // "com.boltbuilder.bolt.desktop".
-  // https://developer.gnome.org/documentation/guidelines/maintainer/integrating.html
-  // https://www.electron.build/docs/linux/
-  extraMetadata: {
-    desktopName: `${appId}.desktop`,
-  },
-  files: ["out/**/*", "resources/**/*", "!resources/bolt-cli*"],
-  extraResources: [
-    ...(channel === "dev"
-      ? [
-          {
-            from: "resources/",
-            to: "",
-            filter: ["bolt-cli*"],
-          },
-        ]
-      : []),
-    {
-      from: "native/",
-      to: "native/",
-      filter: ["index.js", "index.d.ts", "build/Release/mac_window.node", "swift-build/**"],
-    },
-  ],
-  mac: {
-    category: "public.app-category.developer-tools",
-    icon: `resources/icons/icon.icns`,
-    identity,
-    hardenedRuntime: true,
-    gatekeeperAssess: false,
-    entitlements: "resources/entitlements.plist",
-    entitlementsInherit: "resources/entitlements.plist",
-    // Apple only notarizes Developer ID signed apps; ad-hoc builds must skip
-    // notarization or electron-builder fails looking for notary credentials.
-    notarize: identity !== "-",
-    target: ["dmg", "zip"],
-  },
-  dmg: {
-    sign: true,
-  },
-  protocols: {
-    name: "Bolt",
-    schemes: ["bolt"],
-  },
-  win: {
-    icon: `resources/icons/icon.ico`,
-    signtoolOptions: {
-      sign: signWindows,
-    },
-    target: ["nsis"],
-    verifyUpdateCodeSignature: false,
-  },
-  nsis: {
-    oneClick: true,
-    perMachine: false,
-    installerIcon: `resources/icons/icon.ico`,
-    installerHeaderIcon: `resources/icons/icon.ico`,
-  },
-  linux: {
-    icon: `resources/icons`,
-    category: "Development",
-    executableName: appId,
-    desktop: {
-      entry: {
-        // Match the installed .desktop file and hicolor icon basename so
-        // Linux shells can associate the running Electron window with its launcher.
-        StartupWMClass: appId,
-      },
-    },
-    target: ["AppImage", "deb", "rpm"],
-  },
-})
+// libappimage (used by AppImageLauncher) resolves the .desktop entry inside an
+// AppImage by globbing `*.desktop` at the squashfs root. If the main
+// executable itself ends in `.desktop` (prod appId `ai.opencode.desktop`), the
+// ELF binary matches the glob and is parsed as a desktop entry, so
+// integration fails with `Malformed desktop entry: Unexpected char '\x7f' at 0`
+// (0x7F is the first byte of the ELF magic).
+// https://github.com/anomalyco/opencode/issues/51867
+// Strip a trailing `.desktop` so the executable can never collide with the
+// desktop-entry glob. Beta/dev appIds end in `.beta`/`.dev` and are unaffected.
+function linuxExecutableName(appId: string): string {
+  return appId.replace(/\.desktop$/, "")
+}
 
 const getBase = (appId: string): Configuration => {
   const target = getCurrentCli()
+  const desktopName = `${appId}.desktop`
 
   return {
     artifactName: "opencode-desktop-${os}-${arch}.${ext}",
@@ -162,9 +74,10 @@ const getBase = (appId: string): Configuration => {
     // "ai.opencode.desktop.desktop".
     // https://developer.gnome.org/documentation/guidelines/maintainer/integrating.html
     // https://www.electron.build/docs/linux/
-    extraMetadata: {
-      desktopName: `${appId}.desktop`,
-    },
+    // Release builds take their version from OPENCODE_VERSION instead of rewriting package.json.
+    extraMetadata: process.env.OPENCODE_VERSION
+      ? { desktopName, version: process.env.OPENCODE_VERSION }
+      : { desktopName },
     files: [
       "out/**/*",
       "resources/**/*",
@@ -198,7 +111,7 @@ const getBase = (appId: string): Configuration => {
     afterPack: async (context) => {
       const arch = Arch[context.arch]
 
-      // The --arm64 flag picks Electron while OPENCODE_CLI_TARGET picks the CLI and node-pty, so they can disagree.
+      // The --arm64 flag picks Electron while OPENCODE_TARGET picks the CLI and node-pty, so they can disagree.
       if (arch !== "x64" && arch !== "arm64") throw new Error(`Unsupported desktop architecture: ${arch}`)
 
       if (arch !== target.cpu) throw new Error(`Packaging ${arch} Electron with the ${target.target} CLI`)
@@ -212,6 +125,11 @@ const getBase = (appId: string): Configuration => {
       const version = path.join(path.dirname(cli), "opencode-cli.version")
 
       if ((await stat(version)).size === 0) throw new Error(`Bundled CLI version must be a non-empty file: ${version}`)
+
+      // With an Icon Composer mac.icon, electron-builder bundles the ICNS that actool generates as the pre-macOS 26
+      // fallback. That one tops out at 256px and draws a light ring around the squircle, so ship ours instead.
+      if (context.electronPlatformName === "darwin")
+        await copyFile(path.join(packageDir, "resources/icons/icon.icns"), path.join(resources, "icon.icns"))
 
       if (context.electronPlatformName !== "win32") return
 
@@ -242,17 +160,16 @@ const getBase = (appId: string): Configuration => {
       category: "public.app-category.developer-tools",
       icon: `resources/icons/icon.icns`,
       extendInfo: {
+        NSMicrophoneUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.microphoneUsage"],
+        // The CLI server and its terminals run as children of the app, so macOS asks for their access to
+        // these protected locations in the app's name. The prompt shows the description (#56479).
+        NSDocumentsFolderUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.documentsFolderUsage"],
+        NSDesktopFolderUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.desktopFolderUsage"],
+        NSDownloadsFolderUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.downloadsFolderUsage"],
+        NSNetworkVolumesUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.networkVolumesUsage"],
+        NSRemovableVolumesUsageDescription: DESKTOP_NATIVE_ENGLISH["desktop.removableVolumesUsage"],
         NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac: true,
       },
-      hardenedRuntime: true,
-      gatekeeperAssess: false,
-      entitlements: "resources/entitlements.plist",
-      entitlementsInherit: "resources/entitlements.plist",
-      sign: async (options) => {
-        const { sign } = await import("app-builder-lib/out/codeSign/macCodeSign")
-        await sign(macSignOptions(options))
-      },
-      notarize: true,
       target: ["dmg", "zip"],
     },
     protocols: {
@@ -261,9 +178,6 @@ const getBase = (appId: string): Configuration => {
     },
     win: {
       icon: `resources/icons/icon.ico`,
-      signtoolOptions: {
-        sign: signWindows,
-      },
       target: ["nsis"],
       verifyUpdateCodeSignature: false,
     },
@@ -304,9 +218,17 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "Bolt Dev",
-        deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "bolt-dev", fpm: [metainfoFpm(appId)] },
+        productName: "OpenCode Dev",
+        publish: {
+          provider: "generic",
+          url: "https://opencode.ai/update/api/dev/desktop/opencode/",
+          channel: "latest",
+        },
+        deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
+        rpm: {
+          packageName: "opencode-dev",
+          fpm: [rpmNoBuildIdLinksFpm, ...previewCompressionFpm("rpm"), metainfoFpm(appId)],
+        },
       }
     }
 
@@ -314,11 +236,18 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "Bolt Beta",
-        protocols: { name: "Bolt Beta", schemes: ["bolt"] },
-        publish: { provider: "github", owner: "bolt-builder", repo: "bolt-cli", channel: "latest" },
-        deb: { fpm: [metainfoFpm(appId)] },
-        rpm: { packageName: "bolt-beta", fpm: [metainfoFpm(appId)] },
+        productName: "OpenCode Beta",
+        protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
+        publish: {
+          provider: "generic",
+          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
+          channel: "latest",
+        },
+        deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
+        rpm: {
+          packageName: "opencode-beta",
+          fpm: [rpmNoBuildIdLinksFpm, ...previewCompressionFpm("rpm"), metainfoFpm(appId)],
+        },
       }
     }
 
@@ -326,11 +255,20 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "Bolt",
-        protocols: { name: "Bolt", schemes: ["bolt"] },
-        publish: { provider: "github", owner: "bolt-builder", repo: "bolt-cli", channel: "latest" },
+        productName: "OpenCode",
+        protocols: { name: "OpenCode", schemes: ["opencode"] },
+        // An Icon Composer package compiles to Assets.car, which macOS 26 and later draw the app icon from
+        // (Dock, Finder, system dialogs and the system icon styles). Older macOS keeps using the ICNS.
+        mac: { ...base.mac, icon: "resources/icons/icon.icon" },
+        // The DMG volume icon would otherwise use the same actool-generated ICNS.
+        dmg: { icon: "resources/icons/icon.icns" },
+        publish: {
+          provider: "generic",
+          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
+          channel: "latest",
+        },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
-        rpm: { packageName: "bolt", fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
+        rpm: { packageName: "opencode", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId), legacyDesktopEntryFpm] },
       }
     }
   }

@@ -1,10 +1,7 @@
 export * as Question from "./question.js"
 
 import { Schema } from "effect"
-import { define, inventory } from "./event"
-import { ascending } from "./identifier"
-import { SessionID } from "./session-id"
-import { optional, statics } from "./schema"
+import { optional } from "./schema.js"
 
 const Option = Schema.Struct({
   label: Schema.String.annotate({ description: "Display text (1-5 words, concise)" }),

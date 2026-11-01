@@ -16,28 +16,6 @@ export function datetime(input: number): string {
   return `${localTime} · ${localDate}`
 }
 
-export function todayTimeOrDateTime(input: number): string {
-  const date = new Date(input)
-  const now = new Date()
-  const isToday =
-    date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth() && date.getDate() === now.getDate()
-
-  if (isToday) {
-    return time(input)
-  } else {
-    return datetime(input)
-  }
-}
-
-export function relative(input: number): string {
-  const diff = Math.max(0, Date.now() - input)
-  if (diff < 60000) return "now"
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d`
-  return new Date(input).toLocaleDateString()
-}
-
 export function number(num: number): string {
   // 999950+ would round to "1000.0K"
   if (num >= 999950) {
@@ -48,27 +26,7 @@ export function number(num: number): string {
   return num.toString()
 }
 
-export function duration(input: number) {
-  if (input < 1000) {
-    return `${input}ms`
-  }
-  if (input < 60000) {
-    return `${(input / 1000).toFixed(1)}s`
-  }
-  if (input < 3600000) {
-    const minutes = Math.floor(input / 60000)
-    const seconds = Math.floor((input % 60000) / 1000)
-    return `${minutes}m ${seconds}s`
-  }
-  if (input < 86400000) {
-    const hours = Math.floor(input / 3600000)
-    const minutes = Math.floor((input % 3600000) / 60000)
-    return `${hours}h ${minutes}m`
-  }
-  const days = Math.floor(input / 86400000)
-  const hours = Math.floor((input % 86400000) / 3600000)
-  return `${days}d ${hours}h`
-}
+export { duration } from "@opencode/util/duration"
 
 export function truncate(str: string, len: number): string {
   if (str.length <= len) return str
@@ -109,11 +67,13 @@ export function truncateLeft(str: string, len: number): string {
 }
 
 export function truncateMiddle(str: string, maxLength: number = 35): string {
+  if (maxLength <= 0) return ""
   if (str.length <= maxLength) return str
 
   const ellipsis = "…"
   const keepStart = Math.ceil((maxLength - ellipsis.length) / 2)
   const keepEnd = Math.floor((maxLength - ellipsis.length) / 2)
+  if (keepEnd <= 0) return str.slice(0, keepStart) + ellipsis
 
   return str.slice(0, keepStart) + ellipsis + str.slice(-keepEnd)
 }

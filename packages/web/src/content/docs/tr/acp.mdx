@@ -3,7 +3,7 @@ title: ACP Desteği
 description: opencode'u ACP uyumlu herhangi bir editörde kullanın.
 ---
 
-bolt, [Agent Client Protocol](https://agentclientprotocol.com) veya (ACP) dosyalarını destekleyerek onu doğrudan uyumlu editörlerde ve IDE'lerde kullanmanızı sağlar.
+opencode, [Agent Client Protocol](https://agentclientprotocol.com) veya (ACP) dosyalarını destekleyerek onu doğrudan uyumlu editörlerde ve IDE'lerde kullanmanızı sağlar.
 
 :::tip
 ACP'yi destekleyen editörlerin ve araçların listesi için [ACP progress report](https://zed.dev/blog/acp-progress-report#available-now)'e bakın.
@@ -25,16 +25,16 @@ Aşağıda ACP'yi destekleyen popüler düzenleyicilere ilişkin örnekler veril
 
 ### Zed
 
-Komut Paleti’nde `zed: acp registry` komutunu çalıştırarak Bolt’u [Zed ACP Kayıt Defteri](https://zed.dev/docs/ai/external-agents#registry) üzerinden yükleyin.
+Komut Paleti’nde `zed: acp registry` komutunu çalıştırarak OpenCode’u [Zed ACP Kayıt Defteri](https://zed.dev/docs/ai/external-agents#registry) üzerinden yükleyin.
 
-Bunun yerine özel bir Bolt çalıştırılabilir dosyası kullanmak için [Zed](https://zed.dev) yapılandırmanıza (`~/.config/zed/settings.json`) ekleyin:
+Bunun yerine özel bir OpenCode çalıştırılabilir dosyası kullanmak için [Zed](https://zed.dev) yapılandırmanıza (`~/.config/zed/settings.json`) ekleyin:
 
 ```json title="~/.config/zed/settings.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "type": "custom",
-      "command": "bolt",
+      "command": "opencode",
       "args": ["acp"]
     }
   }
@@ -54,9 +54,9 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
         {
           "agent": {
             "custom": {
-              "name": "Bolt",
+              "name": "OpenCode",
               "command": {
-                "command": "bolt",
+                "command": "opencode",
                 "args": ["acp"]
               }
             }
@@ -77,7 +77,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 ```json title="acp.json"
 {
   "agent_servers": {
-    "Bolt": {
+    "OpenCode": {
       "command": "/absolute/path/bin/opencode",
       "args": ["acp"]
     }
@@ -85,7 +85,7 @@ Açmak için **Komut Paleti**'ndeki `agent: new thread` eylemini kullanın.
 }
 ```
 
-Açmak için AI Chat agent seçicisindeki yeni 'Bolt' ajanını kullanın.
+Açmak için AI Chat agent seçicisindeki yeni 'OpenCode' ajanını kullanın.
 
 ---
 
@@ -96,8 +96,8 @@ Açmak için AI Chat agent seçicisindeki yeni 'Bolt' ajanını kullanın.
 ```lua
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" }
     }
   }
@@ -109,11 +109,11 @@ Ortam değişkenlerini iletmeniz gerekiyor:
 ```lua {6-8}
 {
   acp_providers = {
-    ["bolt"] = {
-      command = "bolt",
+    ["opencode"] = {
+      command = "opencode",
       args = { "acp" },
       env = {
-        BOLT_API_KEY = os.getenv("BOLT_API_KEY")
+        OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY")
       }
     }
   }
@@ -131,8 +131,8 @@ require("codecompanion").setup({
   interactions = {
     chat = {
       adapter = {
-        name = "bolt",
-        model = "claude-sonnet-4",
+        name = "opencode",
+        model = "claude-sonnet-5-5",
       },
     },
   },
@@ -141,11 +141,11 @@ require("codecompanion").setup({
 
 Bu yapılandırma, CodeCompanion'ı opencode'u sohbet için ACP ajanı olarak kullanacak şekilde ayarlar.
 
-Ortam değişkenlerini (`BOLT_API_KEY` gibi) iletmeniz gerekiyorsa, tüm ayrıntılar için CodeCompanion.nvim belgelerindeki [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key)'ye bakın.
+Ortam değişkenlerini (`OPENCODE_API_KEY` gibi) iletmeniz gerekiyorsa, tüm ayrıntılar için CodeCompanion.nvim belgelerindeki [Configuring Adapters: Environment Variables](https://codecompanion.olimorris.dev/getting-started#setting-an-api-key)'ye bakın.
 
 ## Destek
 
-bolt, terminalde olduğu gibi ACP aracılığıyla aynı şekilde çalışır. Tüm özellikler desteklenir:
+opencode, terminalde olduğu gibi ACP aracılığıyla aynı şekilde çalışır. Tüm özellikler desteklenir:
 
 :::note
 `/undo` ve `/redo` gibi bazı yerleşik slash komutları şu anda desteklenmemektedir.

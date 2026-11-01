@@ -1,15 +1,15 @@
 ---
 title: Formatierer
-description: Bolt verwendet sprachspezifische Formatierer.
+description: OpenCode verwendet sprachspezifische Formatierer.
 ---
 
-Bolt formatiert Dateien automatisch, nachdem sie mit sprachspezifischen Formatierern geschrieben oder bearbeitet wurden. Dadurch wird sichergestellt, dass der generierte Code dem Codestil Ihres Projekts entspricht.
+OpenCode formatiert Dateien automatisch, nachdem sie mit sprachspezifischen Formatierern geschrieben oder bearbeitet wurden. Dadurch wird sichergestellt, dass der generierte Code dem Codestil Ihres Projekts entspricht.
 
 ---
 
 ## Integriert
 
-Bolt verfügt über mehrere integrierte Formatierer für gängige Sprachen und Frameworks. Nachfolgend finden Sie eine Liste der Formatierer, unterstützten Dateierweiterungen und benötigten Befehle oder Konfigurationsoptionen.
+OpenCode verfügt über mehrere integrierte Formatierer für gängige Sprachen und Frameworks. Nachfolgend finden Sie eine Liste der Formatierer, unterstützten Dateierweiterungen und benötigten Befehle oder Konfigurationsoptionen.
 
 | Formatierer          | Erweiterungen                                                                                            | Anforderungen                                                                                              |
 | -------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
@@ -39,13 +39,13 @@ Bolt verfügt über mehrere integrierte Formatierer für gängige Sprachen und F
 | oxfmt (Experimental) | .js, .jsx, .ts, .tsx                                                                                     | `oxfmt`-Abhängigkeit in `package.json` und einer [experimental env variable flag](/docs/cli/#experimental) |
 | Ormolu               | .hs                                                                                                      | `ormolu`-Befehl verfügbar                                                                                  |
 
-Wenn Ihr Projekt auch `prettier` in Ihrem `package.json` hat, wird Bolt automatisch verwendet.
+Wenn Ihr Projekt auch `prettier` in Ihrem `package.json` hat, wird OpenCode automatisch verwendet.
 
 ---
 
 ## Funktionsweise
 
-Wenn Bolt eine Datei schreibt oder bearbeitet, geschieht Folgendes:
+Wenn OpenCode eine Datei schreibt oder bearbeitet, geschieht Folgendes:
 
 1. Überprüft die Dateierweiterung anhand aller aktivierten Formatierer.
 2. Führt den entsprechenden Formatierungsbefehl für die Datei aus.
@@ -57,11 +57,11 @@ Dieser Prozess findet im Hintergrund statt und stellt sicher, dass Ihr Codestile
 
 ## Konfiguration
 
-Sie können Formatierer über den Abschnitt `formatter` in Ihrer Bolt-Konfiguration anpassen.
+Sie können Formatierer über den Abschnitt `formatter` in Ihrer OpenCode-Konfiguration anpassen.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {}
 }
 ```
@@ -83,18 +83,18 @@ Schauen wir uns einige Beispiele an.
 
 Um **alle** Formatierer global zu deaktivieren, setzen Sie `formatter` auf `false`:
 
-```json title="bolt.json" {3}
+```json title="opencode.json" {3}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": false
 }
 ```
 
 Um einen **bestimmten** Formatierer zu deaktivieren, setzen Sie `disabled` auf `true`:
 
-```json title="bolt.json" {5}
+```json title="opencode.json" {5}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "prettier": {
       "disabled": true
@@ -109,9 +109,9 @@ Um einen **bestimmten** Formatierer zu deaktivieren, setzen Sie `disabled` auf `
 
 Sie können den integrierten Formatierer überschreiben oder neu hinzufügen, indem Sie den Befehl, Umgebungsvariablen und Dateierweiterungen angeben:
 
-```json title="bolt.json" {4-14}
+```json title="opencode.json" {4-14}
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "prettier": {
       "command": ["npx", "prettier", "--write", "$FILE"],

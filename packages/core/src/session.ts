@@ -1,45 +1,72 @@
 export * as Session from "./session.js"
 export * from "./session/schema.js"
 
-import { DateTime, Effect, Layer, Schema, Context, Stream } from "effect"
-import { ListAnchor } from "@bolt-ai/schema/session"
-import { and, asc, desc, eq, gt, like, lt, or, type SQL } from "drizzle-orm"
-import { ProjectV2 } from "./project"
-import { WorkspaceV2 } from "./workspace"
-import { ModelV2 } from "./model"
-import { Location } from "./location"
-import { SessionMessage } from "./session/message"
-import { Prompt } from "./session/prompt"
-import { PromptInput } from "@bolt-ai/schema/prompt-input"
-import { EventV2 } from "./event"
-import { Database } from "./database/database"
-import { SessionProjector } from "./session/projector"
-import { SessionMessageTable, SessionTable } from "./session/sql"
-import { SessionSchema } from "./session/schema"
-import { AbsolutePath, PositiveInt, RelativePath } from "./schema"
-import { AgentV2 } from "./agent"
-import { SessionV1 } from "./v1/session"
-import { InstallationVersion } from "./installation/version"
-import { Slug } from "./util/slug"
-import { ProjectTable } from "./project/sql"
+import { DateTime, Effect, Layer, Context, Option, Stream } from "effect"
+import { LLMClient } from "@opencode/ai/effect"
+import { ListAnchor, ListCursor, ListFilter } from "@opencode/schema/session"
+import { and, desc, eq } from "drizzle-orm"
+import { Project } from "./project.js"
+import { Model } from "@opencode/schema/model"
+import { Location } from "./location.js"
+import type { FileSystem } from "./filesystem.js"
+import { SessionMessage } from "./session/message.js"
+import { PromptInput } from "@opencode/schema/prompt-input"
+import { Bus } from "./bus.js"
+import { Instance } from "./instance/service.js"
+import { Database } from "./database/database.js"
+import { SessionProjector } from "./session/projector.js"
+import { SessionMessageTable } from "./session/sql.js"
+import { SessionBlob } from "./session/blob.js"
+import { SessionSchema } from "./session/schema.js"
+import { RelativePath } from "./schema.js"
+import { Agent } from "@opencode/schema/agent"
+import type { Permission } from "@opencode/schema/permission"
+import { App } from "./app.js"
+import { Slug } from "./util/slug.js"
 import path from "path"
-import { fromRow } from "./session/info"
-import { SessionRunner } from "./session/runner/index"
-import { SessionStore } from "./session/store"
-import { SessionExecution } from "./session/execution"
-import { makeGlobalNode } from "./effect/app-node"
-import { LocationServiceMap } from "./location-service-map"
-import { MessageDecodeError } from "./session/error"
-import { SessionEvent } from "./session/event"
-import { SessionInput } from "./session/input"
-import { Snapshot } from "./snapshot"
-import { SessionRevert } from "./session/revert"
-import { Revert } from "@bolt-ai/schema/revert"
-import { FSUtil } from "./fs-util"
-import { SessionDurable } from "@bolt-ai/schema/durable-event-manifest"
-
-export const RevertState = Revert.State
-export type RevertState = Revert.State
+import { SessionRunner } from "./session/runner/index.js"
+import { SessionStore } from "./session/store.js"
+import { SessionExecution } from "./session/execution.js"
+import {
+  AttachmentError,
+  BusyError,
+  CompactionConflictError,
+  ForkEmptyError,
+  InboxConflictError,
+  InvalidListCursorError,
+  MessageDecodeError,
+  MessageNotFoundError,
+  NotFoundError,
+  PromptConflictError,
+  SkillNotFoundError,
+  SyntheticConflictError,
+} from "./session/error.js"
+import { Node } from "@opencode/util/effect/app-node"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { SessionEvent } from "./session/event.js"
+import { SessionInbox } from "./session/inbox.js"
+import { InstructionState } from "./session/instruction-state.js"
+import { SessionGenerate } from "./session/generate.js"
+import { SessionCommand } from "./session/command.js"
+import {
+  SessionMove,
+  DestinationNotFoundError,
+  DestinationNotDirectoryError,
+  DestinationUnavailableError,
+} from "./session/move.js"
+import { SessionModelTransport } from "./session/model-transport.js"
+import { llmClient } from "./effect/app-node-platform.js"
+import { Snapshot } from "./snapshot.js"
+import { Session } from "./session/session.js"
+import { SessionDiff, TurnRangeError } from "./session/diff.js"
+import { LocationServiceMap } from "./location-service-map.js"
+import { FSUtil } from "@opencode/util/fs-util"
+import type { EventLog } from "@opencode/schema/event-log"
+import type { FileDiff } from "@opencode/schema/file-diff"
+import { Job } from "./job.js"
+import type { Command } from "./command.js"
+import { SessionEnvironment } from "./session/environment.js"
+import { InstructionEntry } from "./session/instruction-entry.js"
 
 // get project -> project.locations
 //
@@ -121,6 +148,15 @@ export interface Interface {
     sessionID: SessionSchema.ID
     messageID: SessionMessage.ID
   }) => Effect.Effect<SessionMessage.Info | undefined>
+  /** Experimental: {@link Interface.messages} with files stored in `blob` left as `media:` refs when the session's location enables `experimental.media_blob`. */
+  readonly messagesWithRefs: (
+    input: SessionStore.MessagesInput,
+  ) => Effect.Effect<SessionMessage.MediaInfo[], NotFoundError | MessageDecodeError>
+  /** Experimental: {@link Interface.message} with files stored in `blob` left as `media:` refs when the session's location enables `experimental.media_blob`. */
+  readonly messageWithRefs: (input: {
+    sessionID: SessionSchema.ID
+    messageID: SessionMessage.ID
+  }) => Effect.Effect<SessionMessage.MediaInfo | undefined>
   readonly context: (
     sessionID: SessionSchema.ID,
   ) => Effect.Effect<SessionMessage.Info[], NotFoundError | MessageDecodeError>
@@ -140,6 +176,8 @@ export interface Interface {
    * unhandled compaction barriers.
    */
   readonly inbox: (sessionID: SessionSchema.ID) => Effect.Effect<SessionInbox.Info[], NotFoundError>
+  /** Experimental: {@link Interface.inbox} with files stored in `blob` left as `media:` refs when the session's location enables `experimental.media_blob`. */
+  readonly inboxWithRefs: (sessionID: SessionSchema.ID) => Effect.Effect<SessionInbox.MediaInfo[], NotFoundError>
   readonly cancelInbox: (input: InboxItemRef) => Effect.Effect<void, NotFoundError | InboxConflictError>
   readonly steerInbox: (input: InboxItemRef) => Effect.Effect<void, NotFoundError | InboxConflictError>
   readonly queueInbox: (input: InboxItemRef) => Effect.Effect<void, NotFoundError | InboxConflictError>
@@ -222,7 +260,7 @@ export interface Interface {
   }
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Session") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Session") {}
 
 const layer = Layer.effect(
   Service,
@@ -242,6 +280,7 @@ const layer = Layer.effect(
     const environments = yield* SessionEnvironment.Service
     const locations = yield* LocationServiceMap.Service
     const sessions = yield* Session.make()
+    const mediaBlob = (session: SessionSchema.Info) => SessionBlob.enabledFor(instances, session)
     const isDurableSessionEvent = (item: Bus.LogItem): item is SessionEvent.DurableEvent =>
       Object.hasOwn(SessionEvent.Durable.cases, item.type)
 
@@ -252,7 +291,7 @@ const layer = Layer.effect(
         if (recorded) return recorded
         const parent = input.parentID ? yield* store.get(input.parentID) : undefined
         if (input.parentID && parent === undefined) return yield* new NotFoundError({ sessionID: input.parentID })
-        const location = parent?.location ?? input.location
+        const location = parent?.location ?? (input.location && LocationServiceMap.canonical(input.location))
         if (location === undefined)
           return yield* Effect.die(new Error("Session.create requires either location or an existing parentID"))
         const project = yield* projects.resolve(location.directory)
@@ -330,12 +369,16 @@ const layer = Layer.effect(
         // The fork adopts the parent's newest instruction values rather than the
         // values in effect at the boundary; copied history may contain frozen
         // instruction-update text the initial baseline already reflects.
-        yield* bus.publish(SessionEvent.Forked, {
-          sessionID,
-          parentID: parent.id,
-          boundary: { type: input.before ? "before" : "through", messageID: boundary.id },
-          ...inherited,
-        })
+        // The parent's location, not the caller's, decides whether the copy's media is stored as blobs.
+        const media = yield* mediaBlob(parent)
+        yield* bus
+          .publish(SessionEvent.Forked, {
+            sessionID,
+            parentID: parent.id,
+            boundary: { type: input.before ? "before" : "through", messageID: boundary.id },
+            ...inherited,
+          })
+          .pipe(Effect.provideService(SessionBlob.ForkMedia, media))
         return yield* result.get(sessionID).pipe(Effect.orDie)
       }),
       get: (sessionID) => sessions.forSession(sessionID).get(),
@@ -349,6 +392,7 @@ const layer = Layer.effect(
         yield* result.get(sessionID)
         yield* execution.interrupt(sessionID)
         yield* execution.awaitIdle(sessionID)
+        yield* jobs.cancelSession(sessionID)
         yield* transport.close(sessionID)
         const children = yield* store.list({ parentID: sessionID })
         yield* Effect.forEach(children, (child) => result.remove(child.id), { concurrency: 1, discard: true })
@@ -387,6 +431,18 @@ const layer = Layer.effect(
         return yield* store.messages(input)
       }),
       message: (input) => sessions.forSession(input.sessionID).message(input.messageID),
+      messagesWithRefs: Effect.fn("Session.messagesWithRefs")(function* (input) {
+        const session = yield* result.get(input.sessionID)
+        if (!(yield* mediaBlob(session))) return yield* store.messages(input)
+        return yield* store.messagesWithRefs(input)
+      }),
+      messageWithRefs: Effect.fn("Session.messageWithRefs")(function* (input) {
+        const session = yield* result.get(input.sessionID).pipe(Effect.option)
+        if (Option.isNone(session)) return undefined
+        if (!(yield* mediaBlob(session.value))) return yield* result.message(input)
+        const stored = yield* store.messageWithRefs(input.messageID)
+        return stored?.sessionID === input.sessionID ? stored.message : undefined
+      }),
       context: Effect.fn("Session.context")(function* (sessionID) {
         yield* result.get(sessionID)
         return yield* store.context(sessionID)
@@ -403,6 +459,11 @@ const layer = Layer.effect(
         })
       }),
       inbox: (sessionID) => sessions.forSession(sessionID).inbox(),
+      inboxWithRefs: Effect.fn("Session.inboxWithRefs")(function* (sessionID) {
+        const session = yield* result.get(sessionID)
+        if (!(yield* mediaBlob(session))) return yield* result.inbox(sessionID)
+        return yield* SessionInbox.listWithRefs(db, sessionID)
+      }),
       cancelInbox: (input) => sessions.forSession(input.sessionID).cancelInbox(input.inboxID),
       steerInbox: (input) => sessions.forSession(input.sessionID).steerInbox(input.inboxID),
       queueInbox: (input) => sessions.forSession(input.sessionID).queueInbox(input.inboxID),

@@ -25,7 +25,27 @@ function renderer(events: string[] = []) {
 
 test("rejects when the external editor cannot start", async () => {
   delete process.env.VISUAL
-  process.env.EDITOR = "bolt-editor-that-does-not-exist"
+  process.env.EDITOR = "opencode-editor-that-does-not-exist"
+
+  await expect(openEditor({ value: "original", renderer: renderer() as never })).rejects.toThrow()
+})
+
+test.skipIf(process.platform === "win32")("returns the edited prompt and resumes the renderer", async () => {
+  await using tmp = await tmpdir()
+  const script = path.join(tmp.path, "editor.sh")
+  await writeFile(script, '#!/bin/sh\nprintf edited >> "$1"\n', { mode: 0o755 })
+  delete process.env.VISUAL
+  process.env.EDITOR = script
+  const events: string[] = []
+
+  expect(await openEditor({ value: "original ", renderer: renderer(events) as never })).toBe("original edited")
+  expect(events).toEqual(["suspend", "resume"])
+})
+
+test("says which variable to set when no external editor is configured", async () => {
+  delete process.env.VISUAL
+  delete process.env.EDITOR
+  let suspended = false
   const renderer = {
     suspend() {
       suspended = true

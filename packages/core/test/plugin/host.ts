@@ -1,15 +1,20 @@
-import type { PluginContext } from "@bolt-ai/plugin/v2/effect"
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { Credential } from "@bolt-ai/core/credential"
-import { Integration } from "@bolt-ai/core/integration"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import type { IntegrationEnvMethod, IntegrationKeyMethod, IntegrationOAuthMethod } from "@bolt-ai/sdk/v2/types"
-import { Effect } from "effect"
+import { Plugin } from "@opencode/plugin/effect"
+import type { IntegrationMethod } from "@opencode/plugin/effect/integration"
+import { Agent } from "@opencode/core/agent"
+import { Credential } from "@opencode/core/credential"
+import { Integration } from "@opencode/core/integration"
+import { Location } from "@opencode/core/location"
+import { Model } from "@opencode/core/model"
+import { Project } from "@opencode/core/project"
+import { Provider } from "@opencode/core/provider"
+import { AbsolutePath } from "@opencode/core/schema"
+import { WebSearch } from "@opencode/core/websearch"
+import { Effect, Stream } from "effect"
 
-type Overrides = Partial<Omit<Plugin.Context, "options" | "session">> & {
+type EventSource = ReturnType<Plugin.Context["event"]["subscribe"]>
+type Overrides = Partial<Omit<Plugin.Context, "options" | "session" | "event">> & {
   readonly session?: Partial<Plugin.Context["session"]>
+  readonly event?: { readonly subscribe: () => EventSource }
 }
 export function host(overrides: Overrides = {}): Plugin.Context {
   return {
@@ -62,12 +67,19 @@ export function host(overrides: Overrides = {}): Plugin.Context {
     credential: overrides.credential ?? {
       activate: () => Effect.die("unused credential.activate"),
     },
-    event: overrides.event ?? {
-      subscribe: () => Stream.empty,
-    },
+    event: { subscribe: events(overrides.event?.subscribe ?? (() => Stream.empty)) },
     experimental: overrides.experimental ?? {
       terminal: {
         read: () => Effect.die("unused experimental.terminal.read"),
+      },
+      generate: {
+        text: () => Effect.die("unused experimental.generate.text"),
+        image: () => Effect.die("unused experimental.generate.image"),
+        decisions: () => Effect.die("unused experimental.generate.decisions"),
+      },
+      artifact: {
+        transform: () => Effect.die("unused experimental.artifact.transform"),
+        reload: () => Effect.die("unused experimental.artifact.reload"),
       },
     },
     generate: overrides.generate ?? {
@@ -182,6 +194,13 @@ export function host(overrides: Overrides = {}): Plugin.Context {
       interrupt: overrides.session?.interrupt ?? (() => Effect.die("unused session.interrupt")),
       wait: overrides.session?.wait ?? (() => Effect.die("unused session.wait")),
       context: overrides.session?.context ?? (() => Effect.die("unused session.context")),
+      instructions: overrides.session?.instructions ?? {
+        entry: {
+          list: () => Effect.die("unused session.instructions.entry.list"),
+          put: () => Effect.die("unused session.instructions.entry.put"),
+          remove: () => Effect.die("unused session.instructions.entry.remove"),
+        },
+      },
     },
   }
 }
@@ -233,13 +252,15 @@ export function providerHost(providers: Provider.Interface): Plugin.Context["pro
   return {
     list: () => providers.available().pipe(Effect.map(located)),
     get: (input) =>
-      providers.get(Provider.ID.make(input.providerID)).pipe(
-        Effect.flatMap((provider) =>
-          provider === undefined
-            ? Effect.fail(new Error(`Provider not found: ${input.providerID}`))
-            : Effect.succeed(located(provider)),
+      providers
+        .get(Provider.ID.make(input.providerID))
+        .pipe(
+          Effect.flatMap((provider) =>
+            provider === undefined
+              ? Effect.fail(new Error(`Provider not found: ${input.providerID}`))
+              : Effect.succeed(located(provider)),
+          ),
         ),
-      ),
     reload: providers.reload,
     transform: (callback) =>
       providers.transform((editor) =>
@@ -504,4 +525,11 @@ function located<A>(data: A) {
     }),
     data,
   }
+}
+
+// Filter like the real host, so a fake source can emit any event type.
+function events(source: () => EventSource) {
+  const subscribe = (input?: { readonly types?: ReadonlyArray<string> }): EventSource =>
+    source().pipe(Stream.filter((event) => !input?.types?.length || input.types.includes(event.type)))
+  return subscribe as Plugin.Context["event"]["subscribe"]
 }

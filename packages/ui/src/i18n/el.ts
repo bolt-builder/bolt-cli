@@ -1,4 +1,4 @@
-export const dict: Record<string, string> = {
+export const dict = {
   "ui.sessionReview.title": "Αλλαγές συνεδρίας",
   "ui.sessionReview.title.git": "Git αλλαγές",
   "ui.sessionReview.title.branch": "Αλλαγές κλάδου",
@@ -69,12 +69,8 @@ export const dict: Record<string, string> = {
   "ui.sessionTurn.error.addCredits": "Προσθήκη πιστώσεων",
   "dialog.usageExceeded.freeTier.title": "Συμπληρώθηκε το δωρεάν όριο",
   "dialog.usageExceeded.freeTier.description":
-    "Εγγραφείτε στο Bolt Go για 10 $/μήνα και αποκτήστε αξιόπιστη πρόσβαση στα καλύτερα μοντέλα ανοιχτού κώδικα.",
+    "Εγγραφείτε στο OpenCode Go για 10 $/μήνα και αποκτήστε αξιόπιστη πρόσβαση στα καλύτερα μοντέλα ανοιχτού κώδικα.",
   "dialog.usageExceeded.freeTier.actionLabel": "Εγγραφή",
-  "dialog.usageExceeded.accountRateLimit.title": "Συμπληρώθηκε το όριο μετάβασης",
-  "dialog.usageExceeded.accountRateLimit.description":
-    "Συμπληρώθηκε το όριο χρήσης. Για να συνεχίσετε να χρησιμοποιείτε αυτό το μοντέλο τώρα, ενεργοποιήστε τη χρήση από το διαθέσιμο υπόλοιπό σας",
-  "dialog.usageExceeded.accountRateLimit.actionLabel": "Άνοιγμα ρυθμίσεων",
   "ui.sessionTurn.status.delegating": "Ανάθεση εργασίας",
   "ui.sessionTurn.status.planning": "Σχεδιασμός επόμενων βημάτων",
   "ui.sessionTurn.status.gatheringContext": "Εξερεύνηση",
@@ -193,7 +189,6 @@ export const dict: Record<string, string> = {
   "ui.question.answer.none": "(καμία απάντηση)",
   "ui.question.review.notAnswered": "(δεν απαντήθηκε)",
   "ui.question.multiHint": "Επιλογή όλων των απαντήσεων που ισχύουν",
-  "ui.question.singleHint": "Επιλέξτε μία απάντηση",
   "ui.question.custom.placeholder": "Πληκτρολογήστε την απάντησή σας…",
   "ui.tool.loadedFile": "Φορτώθηκε το {{path}}",
   "ui.tool.loadedSkill": "Φορτώθηκε η δεξιότητα {{name}}",
