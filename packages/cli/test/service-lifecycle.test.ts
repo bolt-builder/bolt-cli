@@ -285,7 +285,7 @@ async function stopped(home: Home, expectedCrash?: string) {
   await until(async () => ((await servers(home)).length === 0 ? true : undefined), 2_000).catch(() => undefined)
   expect(await servers(home)).toEqual([])
   const state = path.dirname(home.registration)
-  const entries = await fs.readdir(state).catch((error: NodeJS.ErrnoException) => {
+  const entries: string[] = await fs.readdir(state).catch((error: NodeJS.ErrnoException) => {
     if (error.code === "ENOENT") return []
     throw error
   })
