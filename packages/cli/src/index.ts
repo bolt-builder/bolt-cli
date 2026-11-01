@@ -42,6 +42,18 @@ if (process.env.OPENCODE_SSH_ASKPASS_PORT) {
 }
 
 const Handlers = Runtime.handlers(Commands, {
+  figma: () => import("./commands/handlers/figma"),
+  eval: () => import("./commands/handlers/eval"),
+  split: () => import("./commands/handlers/split"),
+  stack: () => import("./commands/handlers/stack"),
+  daemon: () => import("./commands/handlers/daemon"),
+  rebase: () => import("./commands/handlers/rebase"),
+  resolve: () => import("./commands/handlers/resolve"),
+  watch: () => import("./commands/handlers/watch"),
+  doctor: () => import("./commands/handlers/doctor"),
+  push: () => import("./commands/handlers/push"),
+  pull: () => import("./commands/handlers/pull"),
+  port: () => import("./commands/handlers/port"),
   bisect: () => import("./commands/handlers/bisect"),
   mutate: () => import("./commands/handlers/mutate"),
   mux: () => import("./commands/handlers/mux"),
@@ -133,6 +145,7 @@ const Handlers = Runtime.handlers(Commands, {
     switch: () => import("./commands/handlers/auth/switch"),
   },
   debug: {
+    context: () => import("./commands/handlers/debug/context"),
     agents: () => import("./commands/handlers/debug/agents"),
     config: () => import("./commands/handlers/debug/config"),
     "heap-dump": () => import("./commands/handlers/debug/heap-dump"),

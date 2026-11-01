@@ -46,6 +46,14 @@ const PermissionParams = {
   ),
 }
 
+const HandoffParams = {
+  sessionID: Argument.String("sessionID"),
+  url: Argument.String("url"),
+  password: Flag.String("password").pipe(Flag.withAlias("p"), Flag.optional),
+  username: Flag.String("username").pipe(Flag.withAlias("u"), Flag.optional),
+  dir: Flag.String("dir").pipe(Flag.optional),
+}
+
 const ExportParams = {
   session: Argument.String("session").pipe(Argument.withDescription("Session ID to export"), Argument.optional),
   sanitize: Flag.Boolean("sanitize").pipe(
@@ -82,6 +90,106 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
     prompt: Flag.String("prompt").pipe(Flag.withDescription("Prompt to use"), Flag.optional),
   },
   commands: [
+    Spec.make("figma", {
+      description: "Generate components from a Figma design node",
+      globalFlags: ServerFlags,
+      params: {
+        url: Argument.String("url"),
+        out: Flag.String("out").pipe(Flag.optional),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("eval", {
+      description: "Run Markdown agent evaluation cases in isolated workspaces",
+      globalFlags: ServerFlags,
+      params: {
+        paths: Argument.String("paths").pipe(Argument.variadic()),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        agent: Flag.String("agent").pipe(Flag.optional),
+        format: Flag.Literals("format", ["default", "json"]).pipe(Flag.withDefault("default")),
+        timeout: Flag.Finite("timeout").pipe(Flag.withDefault(300)),
+        keep: Flag.Boolean("keep").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("split", {
+      description: "Plan logical commits from changed files; commit only with --apply",
+      globalFlags: ServerFlags,
+      params: {
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("stack", {
+      description: "Plan a stack of reviewable branches; create with --apply or --push",
+      globalFlags: ServerFlags,
+      params: {
+        base: Flag.String("base").pipe(Flag.optional),
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        push: Flag.Boolean("push").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("daemon", {
+      description: "Keep a warm Bolt server running in the foreground",
+      params: {
+        stop: Flag.Boolean("stop").pipe(Flag.withDefault(false)),
+        status: Flag.Boolean("status").pipe(Flag.withDefault(false)),
+        hostname: Flag.String("hostname").pipe(Flag.optional),
+        port: Flag.Int("port").pipe(Flag.optional),
+        cors: Flag.String("cors").pipe(Flag.atLeast(0)),
+      },
+    }),
+    Spec.make("rebase", {
+      description: "Plan an interactive rebase; rewrite local history only with --apply",
+      globalFlags: ServerFlags,
+      params: {
+        onto: Flag.String("onto").pipe(Flag.optional),
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("resolve", {
+      description: "Propose resolutions for merge conflicts; write and stage with --apply",
+      globalFlags: ServerFlags,
+      params: {
+        files: Argument.String("file").pipe(Argument.variadic()),
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("watch", {
+      description: "Rerun a command on file changes and optionally repair failures",
+      globalFlags: ServerFlags,
+      params: {
+        command: Argument.String("command"),
+        fix: Flag.Boolean("fix").pipe(Flag.withDefault(false)),
+        attempts: Flag.Int("attempts").pipe(Flag.withDefault(3)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("doctor", {
+      description: "Check binary, config, credentials, gateway and disk state",
+      globalFlags: ServerFlags,
+    }),
+    Spec.make("push", {
+      description: "Push a local session to another Bolt V2 server",
+      globalFlags: ServerFlags,
+      params: HandoffParams,
+    }),
+    Spec.make("pull", {
+      description: "Pull a session from another Bolt V2 server",
+      globalFlags: ServerFlags,
+      params: HandoffParams,
+    }),
+    Spec.make("port", {
+      description: "Port a fix onto other branches with cherry-pick",
+      params: {
+        commit: Argument.String("commit"),
+        to: Flag.String("to").pipe(Flag.atLeast(0)),
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        push: Flag.Boolean("push").pipe(Flag.withDefault(false)),
+      },
+    }),
     Spec.make("bisect", {
       description: "Find the commit that broke a command in an isolated worktree",
       globalFlags: ServerFlags,
@@ -564,6 +672,13 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
     Spec.make("debug", {
       description: "Debugging and troubleshooting tools",
       commands: [
+        Spec.make("context", {
+          description: "Inspect prepared model inputs saved with experimental.context_replay",
+          params: {
+            sessionID: Argument.String("sessionID"),
+            turn: Argument.Int("turn").pipe(Argument.optional),
+          },
+        }),
         Spec.make("agents", { description: "List all agents", globalFlags: ServerFlags }),
         Spec.make("config", { description: "List configuration sources", globalFlags: ServerFlags }),
         Spec.make("heap-dump", {

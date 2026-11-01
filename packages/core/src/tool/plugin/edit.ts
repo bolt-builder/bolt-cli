@@ -187,6 +187,12 @@ const matchView = (source: string, oldString: string, newString: string) => {
   }
 }
 
+/** Share the existing Edit matcher with atomic batches without changing its approval/error ordering. */
+export const matchText = (source: string, oldString: string, newString: string) =>
+  oldString.replaceAll("\r", "") === newString.replaceAll("\r", "")
+    ? { matches: findOccurrences(source, oldString), replace: () => newString }
+    : matchView(source, oldString, newString)
+
 const hintLines = 12
 const hintLineLength = 200
 
@@ -311,9 +317,7 @@ export const Plugin = {
               // Strings that differ only in \r ask to change line endings themselves, so they apply to the exact
               // bytes. Every other edit matches the LF view Read shows the model and keeps the file's endings.
               const endingsOnly = input.oldString.replaceAll("\r", "") === input.newString.replaceAll("\r", "")
-              const { matches, replace } = endingsOnly
-                ? { matches: findOccurrences(source, input.oldString), replace: () => input.newString }
-                : matchView(source, input.oldString, input.newString)
+              const { matches, replace } = matchText(source, input.oldString, input.newString)
               const replacements = matches.length
               const replaced = (input.replaceAll === true ? matches : matches.slice(0, 1))
                 .toReversed()

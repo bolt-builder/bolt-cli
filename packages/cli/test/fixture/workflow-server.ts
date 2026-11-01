@@ -2,10 +2,13 @@ import { expect } from "bun:test"
 
 /** Synthetic V2 transport; commands run their real HTTP client and subprocesses. */
 export function workflowServer(
-  reply: (input: { id: string; agent: string; text: string; prompts: string[] }) => Promise<string>,
+  reply: (input: { id: string; agent: string; text: string; prompts: string[]; directory: string }) => Promise<string>,
 ) {
   const streams = new Set<ReadableStreamDefaultController<Uint8Array>>()
-  const sessions = new Map<string, { agent: string; prompts: string[]; answer: string; permissions: unknown }>()
+  const sessions = new Map<
+    string,
+    { agent: string; prompts: string[]; answer: string; permissions: unknown; directory: string }
+  >()
   const removed: string[] = []
   const server = Bun.serve({
     port: 0,
@@ -28,7 +31,13 @@ export function workflowServer(
           expect.arrayContaining([{ action: "question", resource: "*", effect: "deny" }]),
         )
         const id = `ses_workflow_${sessions.size + 1}`
-        sessions.set(id, { agent: input.agent, prompts: [], answer: "", permissions: input.permissions })
+        sessions.set(id, {
+          agent: input.agent,
+          prompts: [],
+          answer: "",
+          permissions: input.permissions,
+          directory: input.location?.directory,
+        })
         return Response.json({ data: { id } })
       }
       const id = /^\/api\/session\/([^/]+)/.exec(url.pathname)?.[1]!
@@ -41,7 +50,13 @@ export function workflowServer(
       if (url.pathname === `/api/session/${id}/prompt`) {
         const input = await request.json()
         session!.prompts.push(input.text)
-        session!.answer = await reply({ id, agent: session!.agent, text: input.text, prompts: session!.prompts })
+        session!.answer = await reply({
+          id,
+          agent: session!.agent,
+          text: input.text,
+          prompts: session!.prompts,
+          directory: session!.directory,
+        })
         for (const controller of streams) {
           try {
             controller.enqueue(
@@ -60,7 +75,7 @@ export function workflowServer(
           data: [{ id: "msg_answer", type: "assistant", content: [{ type: "text", text: session!.answer }] }],
           cursor: {},
         })
-      if (url.pathname.endsWith("/interrupt")) return new Response(null, { status: 204 })
+      if (url.pathname.endsWith("/interrupt")) return Response.json({ interrupted: true })
       return new Response("Unexpected workflow request", { status: 404 })
     },
   })

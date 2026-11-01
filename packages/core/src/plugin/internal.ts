@@ -77,6 +77,9 @@ import { EditTool } from "../tool/plugin/edit.js"
 import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
 import { TaskTools } from "../tool/plugin/tasks.js"
+import { MultiEditTool } from "../tool/plugin/multiedit.js"
+import { CoverageTool } from "../tool/plugin/coverage.js"
+import { TestRunTool } from "../tool/plugin/testrun.js"
 import { NotebookTool } from "../tool/plugin/notebook.js"
 import { GitTool } from "../tool/plugin/git.js"
 import { SemanticSearchTool } from "../tool/plugin/semantic-search.js"
@@ -265,6 +268,7 @@ const pre = [
   VerbosityPlugin.Plugin,
   IdentityPlugin.Plugin,
   EditTool.Plugin,
+  MultiEditTool.Plugin,
   GlobTool.Plugin,
   GrepTool.Plugin,
   SemanticSearchTool.Plugin,
@@ -279,6 +283,8 @@ const pre = [
   ArtifactTools.Plugin,
   ScheduleTools.Plugin,
   ShellTool.Plugin,
+  TestRunTool.Plugin,
+  CoverageTool.Plugin,
   SkillTool.Plugin,
   SubagentTool.Plugin,
   TodoTool.Plugin,

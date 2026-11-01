@@ -38,7 +38,7 @@ it.effect("registers Bolt specialist agents and preserves their V1 execution res
     for (const id of ["ask", "code-review", "security"]) {
       const agent = yield* agents.get(Agent.ID.make(id))
       if (!agent) throw new Error(`Missing ${id}`)
-      for (const action of ["edit", "shell", "subagent"]) {
+      for (const action of ["edit", "shell", "test_run", "subagent"]) {
         expect(Permission.evaluate(action, "*", agent.permissions).effect).toBe("deny")
       }
       expect(Permission.evaluate("read", "src/main.ts", agent.permissions).effect).toBe("allow")

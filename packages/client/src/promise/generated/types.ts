@@ -2501,6 +2501,7 @@ export type ConfigEntry =
           }
         }
         experimental?: {
+          context_replay?: boolean
           redact?: boolean
           portable_shell_scanner?: boolean
           todo?: boolean

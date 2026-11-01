@@ -1,6 +1,6 @@
 <!-- coderabbit-ai-generated:v1 -->
 
-<!-- coderabbit-ai-generated-section:v1:3e428acc557b357148e0117de856c52bcbbeb81e15588907a2d64a2822be7e41 -->
+<!-- coderabbit-ai-generated-section:v1:6b7315bd5e5f6fe4618e381db2374e55e572c9093e31ee1821b25d3d18ea123a -->
 
 # Bolt V1 parity checklist
 
@@ -54,17 +54,17 @@ Each source below is read from the reference commit. Nested commands retain thei
 | `config edit` | — | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/config/editor.ts` |
 | `config` | — | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/config/index.ts` |
 | `cron <action> [args..]` | — | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/cron.ts` |
-| `daemon` | `--stop`, `--status` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/daemon.ts` |
+| `daemon` | `--stop`, `--status` | Integrated; native lifecycle pending | Actual isolated V2 server: status, duplicate start, authenticated readiness and stop; 1 test / 16 assertions | `packages/cli/src/commands/handlers/daemon.ts` |
 | `dead` | `--limit` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/dead.ts` |
-| `context <sessionID> [turn]` | — | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/debug/context.ts` |
+| `debug context <sessionID> [turn]` | — | Verified recording and inspection | Opt-in post-hook snapshots; native V2 format plus read-only V1 compatibility, private permissions and traversal checks; Core runner/replay 249 tests / 1228 assertions, CLI 6 tests / 39 assertions | `packages/cli/src/commands/handlers/debug/context.ts` |
 | `deps` | — | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/deps.ts` |
 | `diff-gate` | `--threshold`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/diff-gate.ts` |
-| `doctor` | — | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/doctor.ts` |
+| `doctor` | — | Verified diagnostic failure handling | Real CLI checks for config, credentials, gateway, disk probes and exit status; included in 22 tests / 158 assertions | `packages/cli/src/commands/handlers/doctor.ts` |
 | `drift` | `--staged`, `--branch` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/drift.ts` |
 | `dupes` | `--window`, `--limit` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/dupes.ts` |
-| `eval [paths..]` | `--model`, `--agent`, `--format`, `--timeout`, `--keep` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/eval.ts` |
+| `eval [paths..]` | `--model`, `--agent`, `--format`, `--timeout`, `--keep` | Integrated; live model grading pending | Real CLI, synthetic SSE and actual grading commands: timeouts, JSON reports, unsafe seeds, workspace cleanup | `packages/cli/src/commands/handlers/eval.ts` |
 | `exec` | `--file`, `--model`, `--agent` | Integrated; detailed parity pending | test/workflow-commands.test.ts (same-session step execution) | `packages/cli/src/commands/handlers/exec.ts` |
-| `figma <url>` | `--out`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/figma.ts` |
+| `figma <url>` | `--out`, `--model` | Integrated; live Figma pending | Original formatter cases plus HTTP/SSE integration: authenticated node fetch, generation, errors and redirect refusal; eval/Figma suite 19 tests / 87 assertions | `packages/cli/src/commands/handlers/figma.ts` |
 | `flaky <command>` | `--runs`, `--quarantine` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/flaky.ts` |
 | `fork <sessionID> [messageID]` | `--resume` | Integrated; detailed parity pending | test/fork-command.test.ts | `packages/cli/src/commands/handlers/fork.ts` |
 | `grep <pattern>` | `--ignore-case`, `--limit`, `--json` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/grep.ts` |
@@ -78,37 +78,36 @@ Each source below is read from the reference commit. Nested commands retain thei
 | `logs` | `--tail`, `--follow`, `--level`, `--session`, `--json`, `--porcelain` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/logs.ts` |
 | `map` | `--out`, `--depth` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/map.ts` |
 | `memory` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/memory.ts` |
-| `export` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/memory.ts` |
-| `import <file>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/memory.ts` |
-| `team <action> [query]` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/memory.ts` |
-| `diff` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/memory.ts` |
-| `review <mode>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/memory.ts` |
-| `search <query>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/memory.ts` |
-| `conflicts` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/memory.ts` |
-| `why <question>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory export` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory import <file>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory team <action> [query]` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory diff` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory review <mode>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory search <query>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory conflicts` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
+| `memory why <question>` | `--out`, `--apply`, `--discard`, `--limit`, `--fix`, `--model` | Integrated; detailed parity pending | Actual eight-command management RPC/CLI suite; individual settings/error audit pending | `packages/cli/src/commands/handlers/memory.ts` |
 | `mutate <file>` | `--command`, `--limit`, `--timeout` | Integrated; native platforms pending | Original helpers and real CLI integration: 17 tests / 58 assertions; mutation restoration and actual isolated tmux | `packages/cli/src/commands/handlers/mutate.ts` |
 | `mux [dirs..]` | `--count`, `--layout`, `--name` | Integrated; native platforms pending | Original helpers and real CLI integration: 17 tests / 58 assertions; mutation restoration and actual isolated tmux | `packages/cli/src/commands/handlers/mux.ts` |
-| `bolt` | `--count`, `--layout`, `--name` | Integrated; native platforms pending | Original helpers and real CLI integration: 17 tests / 58 assertions; mutation restoration and actual isolated tmux | `packages/cli/src/commands/handlers/mux.ts` |
 | `owners` | `--since`, `--depth` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/owners.ts` |
 | `packages` | `--out` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/packages.ts` |
 | `pair` | `--join`, `--session`, `--port`, `--hostname`, `--password`, `--username` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/pair.ts` |
 | `pipeline <task>` | `--attempts`, `--model` | Integrated; detailed parity pending | test/verified-workflows.test.ts (plan/code/review retry) | `packages/cli/src/commands/handlers/pipeline.ts` |
-| `port <commit>` | `--to`, `--apply`, `--push` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/port.ts` |
+| `port <commit>` | `--to`, `--apply`, `--push` | Integrated; native platforms pending | Real Git preview, root commits, patch equivalence, isolated cherry-pick, conflicts and cleanup; port/split edge suite 26 tests / 162 assertions | `packages/cli/src/commands/handlers/port.ts` |
 | `proptest <file>` | `--name`, `--model` | Integrated; detailed parity pending | test/verified-workflows.test.ts (real test exits) | `packages/cli/src/commands/handlers/proptest.ts` |
-| `pull <sessionID> <url>` | `--password`, `--username`, `--dir` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/pull.ts` |
-| `push <sessionID> <url>` | `--password`, `--username`, `--dir` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/push.ts` |
-| `rebase` | `--onto`, `--apply`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/rebase.ts` |
+| `pull <sessionID> <url>` | `--password`, `--username`, `--dir` | Integrated; V1 transport compatibility pending | Actual V2 session transfer with auth, locations and collision rejection; included in 22 tests / 158 assertions | `packages/cli/src/commands/handlers/pull.ts` |
+| `push <sessionID> <url>` | `--password`, `--username`, `--dir` | Integrated; V1 transport compatibility pending | Actual V2 session transfer with auth, locations and collision rejection; included in 22 tests / 158 assertions | `packages/cli/src/commands/handlers/push.ts` |
+| `rebase` | `--onto`, `--apply`, `--model` | Verified linear history; native editor pending | Original planner and real Git: 19 tests / 64 assertions, literal commit messages, dirty/concurrent checkout protection and abort | `packages/cli/src/commands/handlers/rebase.ts` |
 | `refactor <instruction>` | `--test`, `--attempts`, `--model`, `--confidence`, `--self-review` | Integrated; detailed parity pending | test/refactor-command.test.ts (retained session, failure tails, exhausted attempts) | `packages/cli/src/commands/handlers/refactor.ts` |
-| `resolve [file..]` | `--apply`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/resolve.ts` |
+| `resolve [file..]` | `--apply`, `--model` | Verified preview/apply | Original parser and real conflict resolution: 14 tests / 64 assertions; diff3, quoted paths, stale bytes/index, bounded reads, invalid replies | `packages/cli/src/commands/handlers/resolve.ts` |
 | `resume [sessionID]` | — | Integrated; detailed parity pending | test/resume.test.ts | `packages/cli/src/commands/handlers/resume.ts` |
 | `review` | `--staged`, `--branch`, `--model`, `--confidence`, `--json`, `--porcelain` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/review.ts` |
-| `split` | `--apply`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/split.ts` |
-| `stack` | `--base`, `--apply`, `--push`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/stack.ts` |
+| `split` | `--apply`, `--model` | Verified preview/apply and unborn HEAD | Real Git edge suite: 26 tests / 162 assertions across port and split; index preservation, rename handling, concurrent edits and resulting commits | `packages/cli/src/commands/handlers/split.ts` |
+| `stack` | `--base`, `--apply`, `--push`, `--model` | Verified preview/apply/push | Original planner and real Git: 11 tests / 42 assertions; contiguous layers, atomic branch creation, collisions and local bare-origin pushes | `packages/cli/src/commands/handlers/stack.ts` |
 | `submodules` | `--sync` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/submodules.ts` |
 | `tighten [files..]` | `--branch`, `--suggest`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/tighten.ts` |
 | `undo` | `--session`, `--redo` | Integrated; detailed parity pending | test/workflow-commands.test.ts (paginated revert RPC) | `packages/cli/src/commands/handlers/undo.ts` |
 | `warm` | `--index` | Integrated; detailed parity pending | test/worktree-command.test.ts (index and --no-index) | `packages/cli/src/commands/handlers/warm.ts` |
-| `watch <command>` | `--fix`, `--attempts`, `--model` | **Pending** | No equivalent verified | `packages/cli/src/commands/handlers/watch.ts` |
+| `watch <command>` | `--fix`, `--attempts`, `--model` | Integrated; native watcher pending | Actual child command and filesystem changes: 1 test / 18 assertions; failure budget, same-session repair, recovery and cancellation | `packages/cli/src/commands/handlers/watch.ts` |
 | `why <question>` | `--file`, `--lines`, `--term`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/why.ts` |
 | `worktree` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
 | `worktree list` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
@@ -124,9 +123,11 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Background start / output / list / kill / stdin | `shell` background/shellID/input plus Bolt process RPC; compare permission/cancellation/output contracts | Integrated; parity pending |
 | Git status/diff/log/show/blame | Active Git tool; permission/output/lazy-fetch tests from PR #420 | Integrated; final audit pending |
 | LSP configuration and servers | Config schema survives; runtime and references/rename integration missing | Pending |
-| Coverage / diagnostics / profile / frames / test runner | Reuse V2 process boundaries; restore structured outputs and failure handling | Pending |
+| Test runner | Active `test_run` uses ordinary V2 shell dispatch, permission hooks, sandbox, cancellation and structured failure parsing; 8 tests / 17 assertions | Verified synthetic commands; live model use pending |
+| Coverage discovery | Active convention-based tool, actual Ripgrep and FileAccess/glob approvals, explicit bounded-result reporting; 8 tests / 19 assertions | Verified discovery; measured line coverage is not its contract |
+| Diagnostics / profile / frames | Reuse V2 process boundaries; restore structured outputs and failure handling | Pending |
 | Notebook read/edit/insert/delete | Active notebook tool with FileAccess and locked FileMutation; original helper contracts and permission/metadata integration tests | Verified |
-| Multiedit | V2 edit/patch exist; atomic multi-edit semantics need comparison | Pending |
+| Multiedit | Active atomic preparation, one approval/write, successful-read prerequisite, V2 matcher, BOM/CRLF preservation and session isolation; included in 97 consumer tests / 431 assertions and 10-repetition new-tool suite | Integrated; LSP diagnostics remain open |
 | Tasks with blockers/transitions | Active graph tools with KV, concurrency, session isolation, blocker/terminal transitions and read-only legacy graph import tested | Verified synthetic persistence; live model workflow pending |
 | HTTP / SQL / read cache | Original tool contracts and permission boundaries require audit | Pending |
 | MCP resources / semantic search / slash invocation | Active V2 tools and command API exist; exact input/output audit pending | Integrated; parity pending |
@@ -139,6 +140,15 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Budget / notifications | Existing cost threshold UI and stop/continue; settings persistence audit | Integrated; parity pending |
 | Persistent jobs / cron | One-time locked V1 imports preserve V2 collisions, source records/logs, live supervisor PID updates and removals; malformed-input and retry tests | Integrated; native Windows lifecycle verification pending |
 
+## Compatibility decisions
+
+- V2 push/pull retain V2 collision rejection rather than V1 record merging, preserving existing history. V1 remote protocol interoperability remains open. V2 service authentication retains its registered username.
+- Rebase quotes commit messages literally to repair shell expansion in the V1 helper; merge-containing ranges fail explicitly because the linear plan cannot preserve merges.
+- Daemon uses the V2 service registration and private credential lifecycle. Native Windows shutdown and legacy mDNS flags remain open.
+- Context replay is opt-in and records native V2 requests after request hooks; its inspector also reads V1 JSON files without rewriting them. HTTP headers and credentials are excluded.
+- Multiedit enforces the V1 documented read prerequisite that the old handler omitted. Successful reads persist only a session/path proof. Absolute historical read paths count; ambiguous relative paths require another read. Its replacement matching follows V2 edit behavior.
+- Coverage remains filename-convention discovery, with bounded results and explicit truncation, rather than measured line coverage.
+
 ## Interaction audit
 
 - [ ] Enumerate every V1 slash command and verify its action, argument handling, output and failure behavior.
@@ -149,7 +159,9 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 ## Current verification evidence
 
-- Root `bun run check`: 36/36 packages passed after checkpoint/codemod integration; transcript preferences and subsequent commands require a fresh final run.
+- Root `bun run check`: 36/36 packages passed after CLI workflows, replay, coverage and multiedit. Later Git edge cases require a fresh run before the next checkpoint.
+- Replay, coverage and multiedit repeated 10 times: 150 tests / 470 assertions, zero failures.
+- Official Core, CLI, util and schema compilers passed for that checkpoint. Full V1 parity remains open.
 
 - Linux compiled CLI plus embedded production app: passed; final rebuild required after later additions.
 - Browser regression: 80/80 with 10 repetitions and no retries (mobile light/dark, project menu, About, pairing).
