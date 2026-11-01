@@ -3,9 +3,9 @@ title: Temaer
 description: Velg et innebygd tema eller definer ditt eget.
 ---
 
-Med Bolt kan du velge fra ett av flere innebygde temaer, bruge et tema som tilpasser seg terminaltemaet ditt, eller definere ditt eget tilpassede tema.
+Med OpenCode kan du velge fra ett av flere innebygde temaer, bruge et tema som tilpasser seg terminaltemaet ditt, eller definere ditt eget tilpassede tema.
 
-Som standard bruger Bolt vårt eget `opencode`-tema.
+Som standard bruger OpenCode vårt eget `opencode`-tema.
 
 ---
 
@@ -23,7 +23,7 @@ Uden truecolor-støtte kan temaer vises med redusert farvenøjagtighed eller fal
 
 ## Indbyggede temaer
 
-Bolt kommer med flere innebygde temaer.
+OpenCode kommer med flere innebygde temaer.
 
 | Navn                   | Beskrivelse                                                               |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ Og mer, vi tilføjer stadig til nye temaer.
 
 Systemtemaet er for brugere som:
 
-- Vil at Bolt skal matche terminalens utseende
+- Vil at OpenCode skal matche terminalens utseende
 - Brug tilpassede terminalfarveskjemaer
 - Foretrekker et konsistent utseende på tvers av alle terminalapplikasjoner
 
@@ -65,7 +65,7 @@ Du kan velge et tema ved at hente frem temavalg med kommandoen `/theme`. Eller d
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Du kan velge et tema ved at hente frem temavalg med kommandoen `/theme`. Eller d
 
 ## Brugerdefinerede temaer
 
-Bolt støtter et fleksibelt JSON-basert temasystem som lar brugere enkelt lage og tilpasse temaer.
+OpenCode støtter et fleksibelt JSON-basert temasystem som lar brugere enkelt lage og tilpasse temaer.
 
 ---
 
@@ -84,8 +84,8 @@ Temaer lastes inn fra flere kataloger i følgende rekkefølge der senere katalog
 
 1. **Innebygde temaer** - Disse er innebygd i binæren
 2. **Brugerkonfigurasjonskatalog** - Definert i `~/.config/opencode/themes/*.json` eller `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **Prosjektrotkatalog** - Definert i `<project-root>/.bolt/themes/*.json`
-4. **Nuværende arbejdskatalog** - Definert i `./.bolt/themes/*.json`
+3. **Prosjektrotkatalog** - Definert i `<project-root>/.opencode/themes/*.json`
+4. **Nuværende arbejdskatalog** - Definert i `./.opencode/themes/*.json`
 
 Hvis flere kataloger inneholder et tema med samme navn, vil temaet fra katalogen med høyere prioritet bli brugt.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 Og for prosjektspesifikke temaer.
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ Her er et eksempel på et brugerdefineret tema:
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",
