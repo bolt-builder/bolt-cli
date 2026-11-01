@@ -3,9 +3,9 @@ title: Temi
 description: Seleziona un tema integrato o definiscine uno tuo.
 ---
 
-Con Bolt puoi scegliere tra diversi temi integrati, usare un tema che si adatta al tema del tuo terminale oppure definire un tema personalizzato.
+Con OpenCode puoi scegliere tra diversi temi integrati, usare un tema che si adatta al tema del tuo terminale oppure definire un tema personalizzato.
 
-Per impostazione predefinita, Bolt usa il tema `opencode`.
+Per impostazione predefinita, OpenCode usa il tema `opencode`.
 
 ---
 
@@ -23,7 +23,7 @@ Senza truecolor, i temi potrebbero apparire con colori meno accurati oppure fare
 
 ## Temi integrati
 
-Bolt include diversi temi integrati.
+OpenCode include diversi temi integrati.
 
 | Nome                   | Descrizione                                                               |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ Il tema `system` è progettato per adattarsi automaticamente allo schema colori 
 
 Il tema di sistema è pensato per chi:
 
-- Vuole che Bolt corrisponda all'aspetto del terminale
+- Vuole che OpenCode corrisponda all'aspetto del terminale
 - Usa schemi colori personalizzati del terminale
 - Preferisce un aspetto coerente tra tutte le applicazioni da terminale
 
@@ -65,7 +65,7 @@ Puoi selezionare un tema aprendo la selezione temi con il comando `/theme`. In a
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Puoi selezionare un tema aprendo la selezione temi con il comando `/theme`. In a
 
 ## Temi personalizzati
 
-Bolt supporta un sistema di temi flessibile basato su JSON che permette di creare e personalizzare temi facilmente.
+OpenCode supporta un sistema di temi flessibile basato su JSON che permette di creare e personalizzare temi facilmente.
 
 ---
 
@@ -84,8 +84,8 @@ I temi vengono caricati da più directory nel seguente ordine, dove le directory
 
 1. **Temi integrati** - incorporati nel binario
 2. **Directory di configurazione utente** - in `~/.config/opencode/themes/*.json` o `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **Directory root del progetto** - in `<project-root>/.bolt/themes/*.json`
-4. **Directory di lavoro corrente** - in `./.bolt/themes/*.json`
+3. **Directory root del progetto** - in `<project-root>/.opencode/themes/*.json`
+4. **Directory di lavoro corrente** - in `./.opencode/themes/*.json`
 
 Se più directory contengono un tema con lo stesso nome, verrà usato il tema della directory con priorità più alta.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 E per temi specifici del progetto.
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ Ecco un esempio di tema personalizzato:
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",
