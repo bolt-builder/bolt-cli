@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
-import { which } from "@bolt-ai/core/util/which"
+import { which } from "@opencode/core/util/which"
 import { tmpdir } from "../fixture/tmpdir"
 
 async function cmd(dir: string, name: string, exec = true) {
@@ -40,7 +40,7 @@ function same(a: string | null, b: string) {
 
 describe("util.which", () => {
   test("returns null when command is missing", () => {
-    expect(which("bolt-missing-command-for-test")).toBeNull()
+    expect(which("opencode-missing-command-for-test")).toBeNull()
   })
 
   test("finds a command from PATH override", async () => {
