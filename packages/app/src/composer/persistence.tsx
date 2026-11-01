@@ -1,5 +1,5 @@
-import { base64Encode } from "@bolt-ai/core/util/encode"
-import { createSimpleContext } from "@bolt-ai/ui/context"
+import { base64Encode } from "@opencode/util/encode"
+import { createSimpleContext } from "@opencode/ui/context"
 import { useParams, useSearchParams } from "@solidjs/router"
 import { createMemo, createResource, createRoot, getOwner, onCleanup } from "solid-js"
 import { requireServerKey } from "@/shell/routes/session"
@@ -18,28 +18,7 @@ import {
   type ComposerState,
 } from "./state"
 
-export {
-  createComposerReady,
-  createComposerState,
-  createMemoryComposerState,
-  DEFAULT_PROMPT,
-  isCommentItem,
-} from "./state"
-
-export type {
-  AgentPart,
-  ContentPart,
-  ContextItem,
-  FileAttachmentPart,
-  FileContextItem,
-  ImageAttachmentPart,
-  Prompt,
-  PromptModel,
-  ComposerStore,
-  PromptScope,
-  ComposerState,
-  TextPart,
-} from "./state"
+export type { ComposerState } from "./state"
 
 const WORKSPACE_KEY = "__workspace__"
 
