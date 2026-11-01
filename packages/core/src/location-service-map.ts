@@ -8,8 +8,8 @@ import type { Instance } from "./instance.js"
 
 export class Service extends Context.Service<
   Service,
-  LayerMap.LayerMap<Location.Ref, LocationServices, LocationError>
->()("@bolt/example/LocationServiceMap") {
+  LayerMap.LayerMap<Location.Ref, Instance.Services, Instance.Error>
+>()("@opencode/example/LocationServiceMap") {
   static get(ref: Location.Ref) {
     return Layer.unwrap(Effect.map(Service, (locations) => locations.get(ref)))
   }
@@ -37,8 +37,12 @@ export const reload = Effect.fn("LocationServiceMap.reload")(function* () {
 
 /** Normalize equivalent placements before they become resource-cache keys. */
 export function canonical(ref: Location.Ref) {
+  // Workspace refs can hold remote POSIX paths even on a Windows host.
+  const flavor = process.platform === "win32" && !ref.directory.startsWith("/") ? path.win32 : path.posix
+  const normalized = flavor.normalize(ref.directory)
+  const trailing = normalized.endsWith(flavor.sep) && normalized.length > flavor.parse(normalized).root.length
   return Location.Ref.make({
-    directory: AbsolutePath.make(process.platform === "win32" ? path.normalize(ref.directory) : ref.directory),
+    directory: AbsolutePath.make(trailing ? normalized.slice(0, -1) : normalized),
     workspaceID: ref.workspaceID,
   })
 }
