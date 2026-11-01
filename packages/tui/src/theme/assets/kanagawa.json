@@ -1,5 +1,5 @@
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "sumiInk0": "#1F1F28",
     "sumiInk1": "#2A2A37",
