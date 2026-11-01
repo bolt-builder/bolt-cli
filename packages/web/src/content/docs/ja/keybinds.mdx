@@ -3,11 +3,11 @@ title: キーバインド
 description: キーバインドをカスタマイズします。
 ---
 
-Bolt には、`tui.json` を通じてカスタマイズできるキーバインドのリストがあります。
+OpenCode には、`tui.json` を通じてカスタマイズできるキーバインドのリストがあります。
 
 ```json title="tui.json"
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "leader": "ctrl+x",
     "app_exit": "ctrl+c,ctrl+d,<leader>q",
@@ -106,7 +106,7 @@ Bolt には、`tui.json` を通じてカスタマイズできるキーバイン�
 
 ## リーダーキー
 
-Bolt は、ほとんどのキーバインドに `leader` キーを使用します。これにより、ターミナルでの競合が回避されます。
+OpenCode は、ほとんどのキーバインドに `leader` キーを使用します。これにより、ターミナルでの競合が回避されます。
 
 デフォルトでは、`ctrl+x` がリーダーキーであり、ほとんどの操作では、最初にリーダーキーを押してからショートカットを押す必要があります。たとえば、新しいセッションを開始するには、まず `ctrl+x` を押してから、`n` を押します。
 
@@ -120,7 +120,7 @@ Bolt は、ほとんどのキーバインドに `leader` キーを使用しま�
 
 ```json title="tui.json"
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "keybinds": {
     "session_compact": "none"
   }
@@ -131,7 +131,7 @@ Bolt は、ほとんどのキーバインドに `leader` キーを使用しま�
 
 ## デスクトッププロンプトのショートカット
 
-Bolt デスクトップアプリのプロンプト入力は、テキストを編集するための一般的な Readline/Emacs スタイルのショートカットをサポートしています。これらは組み込みであり、現在 `bolt.json` を介して構成することはできません。
+OpenCode デスクトップアプリのプロンプト入力は、テキストを編集するための一般的な Readline/Emacs スタイルのショートカットをサポートしています。これらは組み込みであり、現在 `opencode.json` を介して構成することはできません。
 
 | ショートカット | アクション                                        |
 | -------------- | ------------------------------------------------- |
