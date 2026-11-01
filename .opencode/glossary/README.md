@@ -1,6 +1,6 @@
 # Locale Glossaries
 
-Use this folder for locale-specific translation guidance that supplements `.bolt/agent/translator.md`.
+Use this folder for locale-specific translation guidance that supplements `.opencode/agent/translator.md`.
 
 The global glossary in `translator.md` remains the source of truth for shared do-not-translate terms (commands, code, paths, product names, etc.). These locale files capture community learnings about phrasing and terminology preferences.
 
@@ -33,11 +33,11 @@ Prefer guidance that is:
 
 ## Sources
 
-- PR #12345: https://github.com/Bolt-builder/bolt-cli/pull/12345
+- PR #12345: https://github.com/anomalyco/opencode/pull/12345
 
 ## Do Not Translate (Locale Additions)
 
-- `Bolt` (preserve casing)
+- `OpenCode` (preserve casing)
 
 ## Preferred Terms
 
