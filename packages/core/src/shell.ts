@@ -3,6 +3,7 @@ export * as Shell from "./shell.js"
 import path from "path"
 import { Context, Deferred, Duration, Effect, Fiber, Latch, Layer, Schema, Schedule, Stream } from "effect"
 import { ChildProcess } from "effect/process"
+import type { ChildProcessHandle } from "effect/process/ChildProcessSpawner"
 import { produce } from "immer"
 import { Shell } from "@opencode/schema/shell"
 import { AppProcess } from "@opencode/util/process"
@@ -38,6 +39,7 @@ export const DIRECTORY = "shell"
 type Info = Shell.Info
 type CreateInput = Shell.CreateInput & {
   shell?: string
+  stdin?: boolean
 }
 
 type Active = {
@@ -51,6 +53,7 @@ type Active = {
   done: Deferred.Deferred<Info, NotFoundError>
   timeoutFiber?: Fiber.Fiber<void>
   timeout?: (duration: number) => Effect.Effect<void>
+  stdin?: ChildProcessHandle["stdin"]
 }
 
 type Ended = {
@@ -86,6 +89,7 @@ export interface Interface {
   readonly timeout: (id: Shell.ID, duration: number) => Effect.Effect<Shell.Info, NotFoundError>
   readonly output: (id: Shell.ID, input?: Shell.OutputInput) => Effect.Effect<Shell.Output, NotFoundError>
   readonly remove: (id: Shell.ID) => Effect.Effect<void, NotFoundError>
+  readonly stdin: (id: Shell.ID, bytes: Uint8Array) => Effect.Effect<void, NotFoundError | Error>
 }
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Shell") {}
@@ -329,7 +333,7 @@ const layer = () =>
                   ChildProcess.make(wrapped.exe, wrapped.args, {
                     cwd: invocation.cwd,
                     env: invocation.env,
-                    stdin: "ignore",
+                    stdin: input.stdin ? { stream: "pipe", endOnDone: false } : "ignore",
                     detached: process.platform !== "win32",
                     forceKillAfter: Duration.seconds(3),
                   }),
@@ -345,6 +349,7 @@ const layer = () =>
                 size: 0,
                 newlines: 0,
                 done: Deferred.makeUnsafe<Info, NotFoundError>(),
+                stdin: input.stdin ? handle.stdin : undefined,
               }
               commands.set(id, command)
 
@@ -470,7 +475,16 @@ const layer = () =>
         return command.info
       })
 
-      return Service.of({ create, list, get, wait, result, timeout, output, remove })
+      const stdin: Interface["stdin"] = Effect.fn("Shell.stdin")(function* (id, bytes) {
+        if (bytes.byteLength > 65_536) return yield* Effect.fail(new Error("Process input exceeds 64 KiB"))
+        const command = yield* require(id)
+        if (command.info.status !== "running" || !command.stdin)
+          return yield* Effect.fail(new Error(`Process ${id} is not accepting input; its stdin is closed.`))
+        yield* Stream.run(Stream.make(bytes), command.stdin).pipe(
+          Effect.mapError(() => new Error(`Process ${id} is not accepting input; its stdin is closed.`)),
+        )
+      })
+      return Service.of({ create, list, get, wait, result, timeout, output, remove, stdin })
     }),
   )
 

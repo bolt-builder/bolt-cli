@@ -48,5 +48,7 @@ export async function list(sessionID: string, bases: readonly string[]) {
 
 export function load(sessionID: string, entry: { name: string; base: string }) {
   if (!/^\d+-[A-Za-z0-9_-]+\.json$/.test(entry.name)) throw new Error("Invalid context replay filename")
-  return Bun.file(path.join(directory(sessionID, entry.base), entry.name)).json() as Promise<unknown>
+  return fs
+    .readFile(path.join(directory(sessionID, entry.base), entry.name), "utf8")
+    .then((content): unknown => JSON.parse(content.replace(/^\uFEFF/, "")))
 }

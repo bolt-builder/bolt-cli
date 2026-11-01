@@ -9,6 +9,7 @@ import { FileAccess } from "../../file-access.js"
 import { Location } from "../../location.js"
 import { Permission } from "../../permission.js"
 import DESCRIPTION from "./sql.txt"
+import { sqlite, remote } from "#sql-driver"
 
 const MAX_ROWS = 100
 const DEFAULT_ROWS = 50
@@ -170,45 +171,6 @@ const SCHEMA_QUERY = {
     "SELECT table_name AS table_name, column_name AS column_name, data_type AS data_type FROM information_schema.columns WHERE table_schema = DATABASE() ORDER BY table_name, ordinal_position",
 }
 
-async function sqlite(file: string, query: string, limit: number) {
-  const { Database } = await import("bun:sqlite")
-  const db = new Database(file, { readonly: true })
-  try {
-    db.exec("PRAGMA query_only = ON")
-    const statement = db.query<Row, []>(query)
-    if (!statement.readonly) throw new Error("query rejected: SQLite reports a write-capable statement")
-    const rows: Row[] = []
-    for (const row of statement.iterate()) {
-      rows.push(row)
-      if (rows.length > limit) break
-    }
-    return rows
-  } finally {
-    db.close()
-  }
-}
-
-async function remote(target: string, query: string, limit: number, signal: AbortSignal) {
-  const db = new Bun.SQL({ url: target.replace(/^mariadb:/i, "mysql:"), max: 1, connectionTimeout: 10 })
-  const close = () => {
-    void db.close({ timeout: 0 }).catch(() => {})
-  }
-  signal.addEventListener("abort", close, { once: true })
-  try {
-    if (signal.aborted) throw new Error("SQL request interrupted")
-    return await db.begin("READ ONLY", async (sql) => {
-      // SELECT/WITH are bounded at the server, avoiding collection of the full result.
-      const statement = /^(?:SELECT|WITH)\b/i.test(strip(query)?.trim() ?? "")
-        ? `SELECT * FROM (\n${query.trim().replace(/;\s*$/, "")}\n) AS bolt_readonly_result LIMIT ${limit + 1}`
-        : query
-      return await sql.unsafe<Row[]>(statement)
-    })
-  } finally {
-    signal.removeEventListener("abort", close)
-    await db.close({ timeout: 0 })
-  }
-}
-
 export const Plugin = {
   id: "bolt.tool.sql",
   effect: Effect.fn("SqlTool.Plugin")(function* (ctx: Context) {
@@ -267,8 +229,13 @@ export const Plugin = {
               const statement = input.schema ? SCHEMA_QUERY[kind] : query!
               const limit = input.schema ? 1000 : (input.limit ?? DEFAULT_ROWS)
               const rows = yield* Effect.gen(function* () {
-                if (kind !== "sqlite")
-                  return yield* Effect.tryPromise((signal) => remote(target, statement, limit, signal))
+                if (kind !== "sqlite") {
+                  // Bound SELECT/WITH before the driver collects rows; schema/EXPLAIN keep their original form.
+                  const bounded = /^(?:SELECT|WITH)\b/i.test(strip(statement)?.trim() ?? "")
+                    ? `SELECT * FROM (\n${statement.trim().replace(/;\s*$/, "")}\n) AS bolt_readonly_result LIMIT ${limit + 1}`
+                    : statement
+                  return yield* Effect.tryPromise((signal) => remote(target, bounded, signal))
+                }
                 if (location.workspaceID)
                   return yield* Effect.fail(
                     new Error(

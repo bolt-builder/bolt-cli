@@ -130,14 +130,14 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 <!-- coderabbit-ai-generated:v1 -->
 
-<!-- coderabbit-ai-generated-section:v1:9bc17357cd7923ddd12b420fae1be2303656311491e8e32f9406cc073309f265 -->
+<!-- coderabbit-ai-generated-section:v1:8da1dc25918fe28368270e9fc52ff6090644b1f4ac5e42d4fcd253b53a1c1158 -->
 
 ## Tools and services
 
 | V1 feature | V2 implementation / required work | Status |
 | --- | --- | --- |
-| Browser / screenshots / interaction | Desktop browser plugin exists; terminal/headless browser service and exact V1 operations need audit | Pending |
-| Background start / output / list / kill / stdin | `shell` background/shellID/input plus Bolt process RPC; compare permission/cancellation/output contracts | Integrated; parity pending |
+| Browser / screenshots / interaction | Original headless `browser` text/PNG inputs, viewport, five-second rendering and 30-second deadline; isolated CDP profile and IP-pinned proxy guard every resource/redirect; configured V1 browser permissions preserved; V2 attached browser tools retained | Verified real Chromium on Linux, including ten repetitions; native browser discovery/hosts and real HTTPS matrix pending |
+| Background start / output / list / kill / stdin | All five original tool names backed by approved V2 Shell/Job: bounded live/final output, repeated input, terminal states, same-session ownership and cancellation; latest 25 completed results retained | Verified Linux process/permission/cleanup fixtures and ten repetitions; native hosts pending; stdin acceptance does not guarantee child receipt |
 | Git status/diff/log/show/blame | Active Git tool; permission/output/lazy-fetch tests from PR #420 | Integrated; final audit pending |
 | LSP configuration and servers | Active location-scoped Content-Length transport; 38 V1 server IDs/extensions, roots, config disable/override and npm launchers; real TypeScript smoke | Verified Linux protocol/configuration; native downloaders, remaining real servers and supported hosts pending |
 | Test runner | Active `test_run` uses ordinary V2 shell dispatch, permission hooks, sandbox, cancellation and structured failure parsing; 8 tests / 17 assertions | Verified synthetic commands; live model use pending |
@@ -150,10 +150,10 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Multiedit | Active atomic preparation, one approval/write, successful-read prerequisite, V2 matcher, BOM/CRLF preservation and session isolation; included in 97 consumer tests / 431 assertions and 10-repetition new-tool suite | Existing editing contracts verified; registered LSP hook added, real multiedit/LSP workflow audit pending |
 | Tasks with blockers/transitions | Active graph tools with KV, concurrency, session isolation, blocker/terminal transitions and read-only legacy graph import tested | Verified synthetic persistence; live model workflow pending |
 | HTTP requests and named profiles | Original interpolation/shape helpers, real POST/redirect/denial/size/status fixtures and virtual-clock timeout; guarded IP-pinned transport and credential stripping across origins; 19 tests / 56 assertions | Verified synthetic local APIs |
-| SQL inspection | Original validator/formatters, real byte-preserving read-only SQLite tests and PostgreSQL/MariaDB transactions/schema/row limits; remote write-performing function rejection | Verified SQLite/PostgreSQL/MariaDB; native MySQL and other hosts pending |
+| SQL inspection | Original validator/formatters, real byte-preserving read-only SQLite tests and PostgreSQL/MariaDB transactions/schema/row limits; remote write-performing function rejection | Verified SQLite on Bun/Node and PostgreSQL/MariaDB on Bun; native MySQL and other hosts pending |
 | Read cache | Existing V2 read proof is active; exact V1 content-cache behavior still requires audit | Pending |
 | MCP resources / semantic search / slash invocation | Active V2 tools and command API exist; exact input/output audit pending | Integrated; parity pending |
-| Named checkpoints | Active save/list/rewind/remove RPC and CLI; full-project snapshots, attached conversation rewind, immutable V1 object import and collision preservation tested | Integrated; missing-marker rejection and native platforms remain open |
+| Named checkpoints | Active save/list/rewind/remove RPC and CLI; full-project snapshots, attached conversation rewind, immutable V1 object import and collision preservation tested | Verified Linux snapshots, retained legacy sources and deleted-session marker rejection; native platforms pending |
 | Undo / redo | CLI uses existing V2 session revert with filesystem restore and paginated history | Verified by actual CLI paginated history and revert transport; redo UI audit pending |
 | Mutation guardrails / approvals / dry run | Retain V2 permissions and fail-closed sandbox; compare every original mutation boundary | Pending |
 | Project memory / capture / session controls | Existing Bolt memory package/RPC/tools; rich project settings and model override audit | Integrated; parity pending |
@@ -174,7 +174,15 @@ Each source below is read from the reference commit. Nested commands retain thei
 - Coverage remains filename-convention discovery, with bounded results and explicit truncation, rather than measured line coverage.
 - HTTP repairs V1 credential leakage across origins and for short profile values, preserves explicit header overrides regardless of casing, and applies V2 guarded transport. URL credentials are rejected; use headers/profiles.
 - SQL opens SQLite read-only, uses read-only remote transactions and limits SELECT/WITH at the server. Counts describe fetched/displayed rows, with explicit truncation. Remote-workspace SQLite file access is rejected instead of reading a same-named local file.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:76c37a718bbf55e8ac48482212d6c333a0ea880da61ca3234a26993456d7ef74 -->
+
 - Profiler scratch output is cleaned after completion. Successful extracted frames remain readable under unique `.bolt/tmp` directories; failed/interrupted extraction is cleaned. Both tools use ordinary V2 shell approvals and sandbox boundaries.
+- Headless capture preserves original text/PNG behavior while adding a private profile and per-resource checked-IP proxy; URL credentials and metadata addresses are rejected. HTTP upgrades are rejected; HTTPS CONNECT remains browser-verified. Remote workspaces use V2 attached browser tools rather than reading a same-named local directory.
+- Background tools restrict process access to the owning session (the V1 global process map did not). Completion still clears the durable notification outbox; the newest 25 consumed results remain readable in memory. Stdin reports bytes accepted by the runtime; Bun 1.4.4 cannot reliably surface a live child closing fd 0. Node callback failures propagate, and stopped/cancelled/no-stdin processes reject input.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Interaction audit
 
@@ -184,22 +192,24 @@ Each source below is read from the reference commit. Nested commands retain thei
 - [ ] Preserve V2 workflows, session data and custom themes while migrating global/project V1 configuration.
 - [ ] Audit distribution, website/About labels, docs, installers, updater discovery and package/channel artifacts.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:0efd68b0467070c3916fdba4e1f4782488284d8988f9f6a8084f9a657802cbfa -->
+
 ## Current verification evidence
 
-- Root `bun run check`: 36/36 packages passed after run/Mini controls and HTTP/SQL/profile/frames restoration (30 cached, six fresh). Later implementation changes require fresh affected checks.
-- Replay, coverage and multiedit repeated 10 times: 150 tests / 470 assertions, zero failures.
-- Official Core and CLI compilers passed for the current controls/tool checkpoint; unchanged util/schema passes are retained. Full V1 parity remains open.
-- Remote SQL smoke: real PostgreSQL and MariaDB, 2 tests / 16 assertions; write-performing functions called through SELECT are rejected in both read-only transactions.
+- Root `bun run check`: 36/36 fresh tasks passed after the browser/process and runtime-packaging restoration. Official Core, util and memory compiler checks passed.
+- Browser/process/catalog/permission/Job/LSP selection: 241 tests / 1301 assertions, 23 platform/environment skips; actual LSP stdio, Shell retention/cleanup and session removal: another 23 tests / 164 assertions.
+- Real Chromium text/PNG capture passed ten repetitions. Process input/cancellation and CDP failure/cancellation passed ten repetitions: 50 tests / 410 assertions.
+- Memory: 234 tests / 807 assertions; restored ESM/declaration/text-prompt archive packs successfully. Codemode packed Node/workerd imports pass. Packed SDK imports pass on Node/Bun, its workerd bundle passes portability checks, and the worker boots successfully.
+- SQL/checkpoint selection: 27 tests / 105 assertions, including actual PostgreSQL/MariaDB read-only transactions. Node SQLite smoke rejects writes and preserves database bytes. Sandbox/voice/process/capture consumers: 13 tests / 93 assertions. Context replay CLI/Core and Node round-trip/BOM/error/path checks pass.
+- Linux x64 compiled CLI with embedded production app passed; artifact SHA256 `d9f5787b9d0d785e52cd701755e8cd83015dcca8f3ce68d0078a3a8fe19274e2`, 264337584 bytes. Compiled `--help` and `--version` pass.
+- Reused for unchanged presentation inputs: browser regression 80/80 with ten repetitions and no retries; component selection 30 passes with ten repetitions; shared cloud About/light/dark and reduced-motion checks. Production menu benchmark median 124.9 ms → 119.6 ms; cold-session first-correct 407.10 ms / stable 441.60 ms, with no improvement claim.
+- Native Windows/macOS execution, remaining command/settings comparisons and full terminal interaction remain outstanding. A passing checkpoint does not establish full V1 parity.
 
-- Linux compiled CLI plus embedded production app: passed; final rebuild required after later additions.
-- Browser regression: 80/80 with 10 repetitions and no retries (mobile light/dark, project menu, About, pairing).
-- Production menu benchmark: three before/after repetitions; median observed latency 124.9 ms → 119.6 ms.
 
-- Production cold-session entry: three passes after correcting the benchmark to measure the visible viewport above the composer; median first-correct 407.10 ms / stable 441.60 ms. Probe unit tests pass; no performance improvement claim.
 
-- Native Windows verification: outstanding.
-
-## Delivery gates
+<!-- /coderabbit-ai-generated:v1 -->## Delivery gates
 
 - [ ] Current affected package suites and required repeat tests.
 - [ ] Root `bun run check` after all implementation changes.

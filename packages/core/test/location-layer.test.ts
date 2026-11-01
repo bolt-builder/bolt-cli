@@ -555,6 +555,9 @@ describe("LocationServiceMap", () => {
           expect(blockedState.providers.some((provider) => provider.id === allowedID)).toBe(false)
           const blockedTools = blockedState.tools.map((tool) => tool.name)
           expect(blockedTools.filter((name) => name !== "execute").sort()).toEqual([
+            "background_stdin",
+            "bash_background",
+            "browser",
             "coverage",
             "diagnostics",
             "edit",
@@ -563,6 +566,8 @@ describe("LocationServiceMap", () => {
             "glob",
             "grep",
             "http",
+            "kill_process",
+            "list_processes",
             "lsp",
             "lsp_references",
             "lsp_rename",
@@ -571,6 +576,7 @@ describe("LocationServiceMap", () => {
             "multiedit",
             "notebook",
             "patch",
+            "process_output",
             "profile",
             "question",
             "read",
@@ -593,6 +599,9 @@ describe("LocationServiceMap", () => {
           const allowedTools = allowedState.tools.map((tool) => tool.name)
           expect(blockedTools.includes("execute")).toBe(allowedTools.includes("execute"))
           expect(allowedTools.filter((name) => name !== "execute").sort()).toEqual([
+            "background_stdin",
+            "bash_background",
+            "browser",
             "coverage",
             "diagnostics",
             "edit",
@@ -601,6 +610,8 @@ describe("LocationServiceMap", () => {
             "glob",
             "grep",
             "http",
+            "kill_process",
+            "list_processes",
             "lsp",
             "lsp_references",
             "lsp_rename",
@@ -609,6 +620,7 @@ describe("LocationServiceMap", () => {
             "multiedit",
             "notebook",
             "patch",
+            "process_output",
             "profile",
             "question",
             "read",

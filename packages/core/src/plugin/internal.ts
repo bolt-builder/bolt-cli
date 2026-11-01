@@ -102,6 +102,7 @@ import { ReadTool } from "../tool/plugin/read.js"
 import { ArtifactTools } from "../tool/plugin/artifact.js"
 import { ScheduleTools } from "../tool/plugin/schedule.js"
 import { ShellTool } from "../tool/plugin/shell.js"
+import { BackgroundTools } from "../tool/plugin/background.js"
 import { SkillTool } from "../tool/plugin/skill.js"
 import { SubagentTool } from "../tool/plugin/subagent.js"
 import { TodoTool } from "../tool/plugin/todo.js"
@@ -113,6 +114,7 @@ import { WellKnown } from "../wellknown.js"
 import { WriteTool } from "../tool/plugin/write.js"
 import { AgentPlugin } from "./agent.js"
 import BrowserPlugin from "@opencode/plugin-browser"
+import { BrowserTool } from "../tool/plugin/browser.js"
 import { CommandPlugin } from "./command.js"
 import { IdentityPlugin } from "./identity.js"
 import { PlanPlugin } from "./plan.js"
@@ -295,6 +297,7 @@ const pre = [
   ArtifactTools.Plugin,
   ScheduleTools.Plugin,
   ShellTool.Plugin,
+  BackgroundTools.Plugin,
   TestRunTool.Plugin,
   CoverageTool.Plugin,
   LspTool.Plugin,
@@ -319,6 +322,7 @@ const post = [
   ConfigInstructionPlugin.Plugin,
   ConfigReferencePlugin.Plugin,
   ConfigAgentPlugin.Plugin,
+  BrowserTool.Plugin,
   BrowserPlugin,
   ConfigCommandPlugin.Plugin,
   ConfigCompactionPlugin.Plugin,

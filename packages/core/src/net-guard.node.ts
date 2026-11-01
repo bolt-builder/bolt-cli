@@ -42,7 +42,7 @@ export function proxyFor(url: URL, env: Environment = process.env) {
 const systemResolver: Resolver = async (host) => (await lookup(host, { all: true })).map((entry) => entry.address)
 
 /** Resolve once and reject the entire answer if any address targets link-local services. */
-async function resolve(url: URL, resolver: Resolver = systemResolver) {
+export async function resolveAddresses(url: URL, resolver: Resolver = systemResolver) {
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("URL must use http:// or https://")
   const host = url.hostname.replace(/^\[|\]$/g, "")
   const addresses = isIP(host) ? [host] : await resolver(host)
@@ -57,7 +57,7 @@ async function resolve(url: URL, resolver: Resolver = systemResolver) {
 export const assertFetchable = (url: URL) =>
   Effect.tryPromise({
     try: async () => {
-      await resolve(url)
+      await resolveAddresses(url)
     },
     catch: (error) => (error instanceof Error ? error : new Error(String(error))),
   })
@@ -66,7 +66,7 @@ export const assertFetchable = (url: URL) =>
 export function makeFetch(resolver: Resolver = systemResolver, env: Environment = process.env) {
   return async function fetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
     const url = new URL(input)
-    const addresses = await resolve(url, resolver)
+    const addresses = await resolveAddresses(url, resolver)
     if (init.signal?.aborted) throw init.signal.reason
     const selected = proxyFor(url, env)
     let proxy: URL | undefined

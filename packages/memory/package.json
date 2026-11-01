@@ -54,10 +54,11 @@
   ],
   "scripts": {
     "typecheck": "bun check --no-script",
-    "build": "tsc",
+    "build": "bun run script/build.ts",
     "test": "bun test --timeout 30000",
     "test:ci": "mkdir -p .artifacts/unit && bun test --timeout 30000 --reporter=junit --reporter-outfile=.artifacts/unit/junit.xml",
-    "typecheck:tsc": "tsc --noEmit"
+    "typecheck:tsc": "tsc --noEmit",
+    "pack": "bun run script/pack.ts"
   },
   "dependencies": {
     "effect": "catalog:",

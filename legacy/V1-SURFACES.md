@@ -318,7 +318,7 @@ These are the literal string defaults in V1's keybinding definitions. Non-litera
 
 <!-- coderabbit-ai-generated:v1 -->
 
-<!-- coderabbit-ai-generated-section:v1:5653f38187e36244787c658d08f633ddbfb2afc5b4e4af697d06b41ee115f43a -->
+<!-- coderabbit-ai-generated-section:v1:75d33b285436f2c85a4fa67668dcdcb7fb2142d0a49a15c2c26a1a9f044783a5 -->
 
 ## Classic tool definitions
 
@@ -328,9 +328,9 @@ AST inventory covers both `packages/core/src/tool` and `packages/opencode/src/to
 | --- | --- | --- |
 | `<dynamic:ShellID.ToolID>` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/shell.ts` |
 | `apply_patch` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/apply_patch.ts` |
-| `background_stdin` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
-| `bash_background` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
-| `browser` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/browser.ts` |
+| `background_stdin` | Linux integration and permission/ownership/cleanup verified; see V1-PARITY.md for stdin/history/native-host limits | `packages/core/src/tool/background.ts` |
+| `bash_background` | Linux integration and permission/ownership/cleanup verified; see V1-PARITY.md for stdin/history/native-host limits | `packages/core/src/tool/background.ts` |
+| `browser` | Real Linux Chromium text/PNG and denied-resource proxy verified; ten repetitions; native hosts pending | `packages/core/src/tool/browser.ts` |
 | `coverage` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/coverage.ts` |
 | `diagnostics` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/diagnostics.ts` |
 | `edit` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/edit.ts` |
@@ -340,8 +340,8 @@ AST inventory covers both `packages/core/src/tool` and `packages/opencode/src/to
 | `glob` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/glob.ts` |
 | `grep` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/grep.ts` |
 | `http` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/http.ts` |
-| `kill_process` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
-| `list_processes` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `kill_process` | Linux integration and permission/ownership/cleanup verified; see V1-PARITY.md for stdin/history/native-host limits | `packages/core/src/tool/background.ts` |
+| `list_processes` | Linux integration and permission/ownership/cleanup verified; see V1-PARITY.md for stdin/history/native-host limits | `packages/core/src/tool/background.ts` |
 | `lsp` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/opencode/src/tool/lsp.ts` |
 | `lsp_references` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/lsp-references.ts` |
 | `lsp_rename` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/lsp-rename.ts` |
@@ -352,7 +352,7 @@ AST inventory covers both `packages/core/src/tool` and `packages/opencode/src/to
 | `multiedit` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/multiedit.ts` |
 | `notebook` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/notebook.ts` |
 | `plan_exit` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/plan.ts` |
-| `process_output` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `process_output` | Linux integration and permission/ownership/cleanup verified; see V1-PARITY.md for stdin/history/native-host limits | `packages/core/src/tool/background.ts` |
 | `profile` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/profile.ts` |
 | `read` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/read.ts` |
 | `semantic_search` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/semantic-search.ts` |
