@@ -5,21 +5,21 @@ import {
   MouseEvent,
   PasteEvent,
   decodePasteBytes,
-  rgbToHex,
+  measureEditText,
+  stripAnsiSequences,
   type KeyEvent,
 } from "@opentui/core"
 import { createEffect, createMemo, onMount, createSignal, onCleanup, on, Show, Switch, Match, For } from "solid-js"
 import path from "path"
 import { useLocal } from "../../context/local"
-import { Flag } from "@bolt-ai/core/flag/flag"
-import { tint, useTheme } from "../../context/theme"
+import { useTheme, useThemes } from "../../context/theme"
+import { tint } from "../../theme/color"
+import { createAnimatable, tween } from "../../ui/animation"
 import { EmptyBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
-import { voice } from "../../voice"
-import { createFire, FireStrip } from "../fire-frame"
-import { useSDK } from "../../context/sdk"
+import { useClient } from "../../context/client"
 import { useRoute } from "../../context/route"
 import { usePromptRef } from "../../context/prompt"
 import { useSessionTabs } from "../../context/session-tabs"
@@ -31,17 +31,15 @@ import { expandPromptInputPastedText, realignPromptInputMentions } from "../../p
 import { parseSlashHead } from "../../prompt/parse"
 import { createStore, produce, unwrap } from "solid-js/store"
 import { emptyPrompt, usePromptHistory, type PromptInfo, type PromptPartRef } from "../../prompt/history"
-import { saveDraft, takeDraft } from "./draft-stash"
+import { registerComposer, saveDraft, takeDraft } from "./draft-stash"
 import { Skill } from "@opencode/schema/skill"
 import { computePromptTraits } from "../../prompt/traits"
 import { expandPastedTextPlaceholders, expandTrackedPastedText } from "../../prompt/part"
 import { usePromptStash } from "../../prompt/stash"
 import { DialogStash } from "../dialog-stash"
-import { type AutocompleteRef, Autocomplete } from "./autocomplete"
-import { useRenderer, useTerminalDimensions, type JSX } from "@opentui/solid"
-import type { AssistantMessage, FilePart, UserMessage } from "@bolt-ai/sdk/v2"
+import { type AutocompleteOption, type AutocompleteRef, Autocomplete } from "./autocomplete"
+import { useRenderer, useTerminalDimensions } from "@opentui/solid"
 import { Locale } from "../../util/locale"
-import { meter } from "../../util/meter"
 import { errorMessage } from "../../util/error"
 import { createColors, createFrames } from "../../ui/spinner"
 import { useDialog } from "../../ui/dialog"
@@ -50,23 +48,29 @@ import { useConnected } from "../use-connected"
 import { useToast } from "../../ui/toast"
 import { createFadeIn } from "../../util/signal"
 import { DialogSkill } from "../dialog-skill"
-import { DialogWorkspaceUnavailable } from "../dialog-workspace-unavailable"
-import { useArgs } from "../../context/args"
-import { BOLT_BASE_MODE, useBindings, useCommandShortcut, useLeaderActive, useOpencodeKeymap } from "../../keymap"
-import { useTuiConfig } from "../../config"
-import { usePromptWorkspace } from "./workspace"
+import { useConfig, useCursorStyle } from "../../config"
 import { usePromptMove } from "./move"
-import { resolvePastedAttachments } from "./local-attachment"
+import { promptFilesForServer, resolvePastedAttachments } from "./local-attachment"
 import { locationKey, useData } from "../../context/data"
 import { useLocation } from "../../context/location"
-import { useVim, VimModeIndicator, vimToggleCommand } from "./vim-mode"
-import { createCostAlertController } from "../../util/cost-alert"
-import { useNudge } from "../../context/nudge"
-import { parseMemoryCommand } from "@bolt-ai/memory/commands"
-import { runMemoryCommand } from "../../util/memory-command"
-import { showMemoryDialog, showMemoryHelpDialog, showMemoryStatusDialog } from "../dialog-memory"
-
-registerOpencodeSpinner()
+import { useArgs } from "../../context/args"
+import { Keymap, type KeymapCommand } from "../../context/keymap"
+import { useInteractivity } from "../../context/interactivity"
+import { abbreviateHome } from "../../runtime"
+import { Slot } from "../../plugin/render"
+import type { SessionInbox } from "@opencode/schema/session-inbox"
+import {
+  deduplicatePromptImages,
+  preserveMentionlessPromptAttachments,
+  promptAttachmentLabel,
+} from "../../prompt/attachment"
+import { DialogImagePreview } from "../dialog-image-preview"
+import { useDirectoryRecents } from "../../prompt/directory-recents"
+import { directoryRecentValue } from "../../prompt/directory-completion"
+import { useWorkingDirectoryActions } from "../../ui/working-directory-actions"
+import { truncateFilePath } from "../../ui/file-path"
+import { PromptMetadataRow } from "./metadata"
+import { limitLabel, useUsageLimits } from "../usage"
 
 export type PromptProps = {
   sessionID?: string
@@ -74,7 +78,7 @@ export type PromptProps = {
   disabled?: boolean
   muted?: boolean
   onSubmit?: () => void
-  onAside?: (question: string) => void
+  onEmptySubmit?: () => boolean | Promise<boolean>
   ref?: (ref: PromptRef | undefined) => void
   placeholders?: {
     normal?: string[]
@@ -92,11 +96,6 @@ export type PromptRef = {
   blur(): void
   focus(): void
   submit(): void
-  // Optional so plugin-provided prompt replacements without side-question
-  // support still satisfy the ref.
-  aside?(): void
-  // Optional for the same reason; inserts text at the cursor without submitting.
-  insert?(text: string): void
 }
 
 const DRAFT_RETENTION_MIN_CHARS = 20
@@ -208,6 +207,7 @@ export function Prompt(props: PromptProps) {
   const currentLocation = useLocation()
   const args = useArgs()
   const config = useConfig().data
+  const cursorStyle = useCursorStyle()
   const dialog = useDialog()
   const toast = useToast()
   const status = createMemo(() => data.session.status(props.sessionID ?? ""))
@@ -314,17 +314,7 @@ export function Prompt(props: PromptProps) {
     ],
   }))
   const [cursorVersion, setCursorVersion] = createSignal(0)
-  const nudge = useNudge()
-  const vim = useVim({
-    input: () => input,
-    disabled: () => props.disabled ?? false,
-    autocompleteVisible: () => Boolean(auto()?.visible),
-    getVimEnabled: () => Boolean(kv.get("vim_enabled", false)),
-    bumpCursor: () => setCursorVersion((value) => value + 1),
-    cursorVersion: () => cursorVersion(),
-  })
-  const currentProviderLabel = createMemo(() => local.model.parsed().provider)
-  const hasRightContent = createMemo(() => Boolean(props.right))
+  const connected = useConnected()
 
   function promptModelWarning() {
     toast.show({
@@ -363,42 +353,13 @@ export function Prompt(props: PromptProps) {
 
   createEffect(() => {
     if (!input || input.isDestroyed) return
-    if (props.disabled) input.cursorColor = theme.backgroundElement
-    if (!props.disabled) input.cursorColor = theme.text
-    if (tuiConfig.cursor) input.cursorStyle = tuiConfig.cursor
-  })
-
-  const lastUserMessage = createMemo(() => {
-    if (!props.sessionID) return undefined
-    const messages = sync.data.message[props.sessionID]
-    if (!messages) return undefined
-    return messages.findLast((m): m is UserMessage => m.role === "user")
-  })
-
-  const usage = createMemo(() => {
-    if (!props.sessionID) return
-    const session = sync.session.get(props.sessionID)
-    const msg = sync.data.message[props.sessionID] ?? []
-    const last = msg.findLast((item): item is AssistantMessage => item.role === "assistant" && item.tokens.output > 0)
-    if (!last) return
-
-    const tokens =
-      last.tokens.input + last.tokens.output + last.tokens.reasoning + last.tokens.cache.read + last.tokens.cache.write
-    if (tokens <= 0) return
-
-    const model = sync.data.provider.find((item) => item.id === last.providerID)?.models[last.modelID]
-    const pct = model?.limit.context ? Math.round((tokens / model.limit.context) * 100) : undefined
-    const cost = session?.cost ?? 0
-    return {
-      context: pct !== undefined ? `${meter(pct)} ${Locale.number(tokens)} (${pct}%)` : Locale.number(tokens),
-      cost: cost > 0 ? money.format(cost) : undefined,
-    }
+    input.cursorColor = disabled() ? theme.background.raised.base : theme.text.base
   })
 
   const [store, setStore] = createStore<{
     prompt: PromptInfo
-    mode: "normal" | "shell" | "btw"
-    extmarkToPartIndex: Map<number, number>
+    mode: "normal" | "shell"
+    extmarkToPart: Map<number, PromptPartRef>
     interrupt: number
     placeholder: number
   }>({
@@ -547,7 +508,7 @@ export function Prompt(props: PromptProps) {
           if (auto()?.visible) return
           if (!input.focused) return
           // TODO: this should be its own command
-          if (store.mode !== "normal") {
+          if (store.mode === "shell") {
             setStore("mode", "normal")
             return
           }
@@ -570,14 +531,19 @@ export function Prompt(props: PromptProps) {
         },
       },
       {
-        title: "Cost alert",
-        desc: "Set a session cost alert",
-        name: "cost_alert",
+        title: "Background blocking tools",
+        name: "session.background",
         category: "Session",
-        slashName: "cost-alert",
-        slashAliases: ["cost"],
+        palette: undefined,
+        enabled: status() === "running",
         run: () => {
-          costAlert.start()
+          if (auto()?.visible) return
+          if (!input.focused) return
+          if (!props.sessionID) return
+
+          void client.api.session.background({
+            sessionID: props.sessionID,
+          })
           dialog.clear()
         },
       },
@@ -614,13 +580,6 @@ export function Prompt(props: PromptProps) {
           input.cursorOffset = measure(normalized)
         },
       },
-      vimToggleCommand({
-        vimEnabled: vim.vimEnabled,
-        setVimEnabled: (value) => kv.set("vim_enabled", value),
-        resetVim: vim.resetVim,
-        clearDialog: () => dialog.clear(),
-        showToast: (message) => toast.show({ message, variant: "info" }),
-      }),
       {
         title: "Skills",
         name: "prompt.skills",
@@ -661,19 +620,8 @@ export function Prompt(props: PromptProps) {
         },
       },
       {
-        title: "Warp",
-        desc: "Change the workspace for the session",
-        name: "workspace.set",
-        category: "Session",
-        enabled: Flag.BOLT_EXPERIMENTAL_WORKSPACES,
-        slashName: "warp",
-        run: () => {
-          workspace.open()
-        },
-      },
-      {
-        title: "Move session",
-        desc: "Move to another project dir",
+        title: "Manage workspaces",
+        desc: "Manage workspaces",
         name: "session.move",
         category: "Session",
         slash: { name: "worktrees" },
@@ -699,9 +647,15 @@ export function Prompt(props: PromptProps) {
     commands: promptCommands(),
   }))
 
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
-    bindings: tuiConfig.keybinds.gather("prompt.palette", [
+  Keymap.createLayer(() => ({
+    priority: 1,
+    enabled: !disabled(),
+    bindings: ["prompt.queue"],
+  }))
+
+  Keymap.createLayer(() => ({
+    enabled: !disabled(),
+    bindings: [
       "prompt.submit",
       "prompt.editor",
       "prompt.editor_context.clear",
@@ -710,7 +664,6 @@ export function Prompt(props: PromptProps) {
       "prompt.stash.pop",
       "prompt.stash.list",
       "prompt.skills",
-      "prompt.vim.toggle",
       "session.interrupt",
       "session.background",
       "session.move",
@@ -744,26 +697,10 @@ export function Prompt(props: PromptProps) {
       input.gotoBufferEnd()
     },
     reset() {
-      input.clear()
-      input.extmarks.clear()
-      setStore("prompt", {
-        input: "",
-        parts: [],
-      })
-      setStore("extmarkToPartIndex", new Map())
-      // return to insert mode after the prompt is cleared
-      vim.resetVim()
+      resetComposer()
     },
     submit() {
       void submit()
-    },
-    aside() {
-      setStore("mode", "btw")
-      input.focus()
-    },
-    insert(text) {
-      input.insertText(text)
-      input.focus()
     },
   }
 
@@ -780,6 +717,7 @@ export function Prompt(props: PromptProps) {
   const stashSessionID = props.sessionID
 
   onMount(() => {
+    onCleanup(registerComposer(stashSessionID, ref))
     const saved = takeDraft(stashSessionID)
     if (store.prompt.text) return
     if (saved && saved.prompt.text) {
@@ -949,16 +887,9 @@ export function Prompt(props: PromptProps) {
         category: "Prompt",
         enabled: !!store.prompt.text,
         run: () => {
-          if (!store.prompt.input) return
-          stash.push({
-            input: store.prompt.input,
-            parts: store.prompt.parts,
-          })
-          input.extmarks.clear()
-          input.clear()
-          setStore("prompt", { input: "", parts: [] })
-          setStore("extmarkToPartIndex", new Map())
-          vim.resetVim()
+          if (!store.prompt.text) return
+          stash.push({ prompt: store.prompt })
+          resetComposer()
           dialog.clear()
         },
       },
@@ -974,7 +905,6 @@ export function Prompt(props: PromptProps) {
             setStore("prompt", entry.prompt)
             restoreExtmarksFromPrompt(entry.prompt)
             input.gotoBufferEnd()
-            vim.resetVim()
           }
           dialog.clear()
         },
@@ -992,7 +922,6 @@ export function Prompt(props: PromptProps) {
                 setStore("prompt", entry.prompt)
                 restoreExtmarksFromPrompt(entry.prompt)
                 input.gotoBufferEnd()
-                vim.resetVim()
               }}
             />
           ))
@@ -1063,8 +992,17 @@ export function Prompt(props: PromptProps) {
     return {
       priority: 1,
       target: inputTarget,
-      enabled: inputTarget() !== undefined && store.mode !== "normal",
-      bindings: [{ key: "escape", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      enabled: inputTarget() !== undefined && !disabled() && store.mode === "shell",
+      commands: [
+        { bind: "escape", title: "Exit shell mode", group: "Prompt", run: () => setStore("mode", "normal") },
+        {
+          bind: "ctrl+c",
+          title: "Exit shell mode",
+          group: "Prompt",
+          enabled: () => store.prompt.text === "",
+          run: () => setStore("mode", "normal"),
+        },
+      ],
     }
   })
 
@@ -1073,9 +1011,11 @@ export function Prompt(props: PromptProps) {
       target: inputTarget,
       enabled: (() => {
         cursorVersion()
-        return inputTarget() !== undefined && store.mode !== "normal" && input?.visualCursor.offset === 0
+        return inputTarget() !== undefined && !disabled() && store.mode === "shell" && input?.visualCursor.offset === 0
       })(),
-      bindings: [{ key: "backspace", desc: "Exit mode", group: "Prompt", cmd: () => setStore("mode", "normal") }],
+      commands: [
+        { bind: "backspace", title: "Exit shell mode", group: "Prompt", run: () => setStore("mode", "normal") },
+      ],
     }
   })
 
@@ -1107,9 +1047,7 @@ export function Prompt(props: PromptProps) {
             input.setText(item.text)
             setStore("prompt", item)
             setStore("mode", item.mode ?? "normal")
-            restoreExtmarksFromParts(item.parts)
-            // recalled history starts in insert mode
-            vim.resetVim()
+            restoreExtmarksFromPrompt(item)
             input.cursorOffset = 0
           },
         },
@@ -1149,10 +1087,8 @@ export function Prompt(props: PromptProps) {
             input.setText(item.text)
             setStore("prompt", item)
             setStore("mode", item.mode ?? "normal")
-            restoreExtmarksFromParts(item.parts)
-            // recalled history starts in insert mode
-            vim.resetVim()
-            input.cursorOffset = input.plainText.length
+            restoreExtmarksFromPrompt(item)
+            input.cursorOffset = measure(item.text)
           },
         },
       ],
@@ -1187,32 +1123,27 @@ export function Prompt(props: PromptProps) {
     }
     if (move.creating()) return false
     if (auto()?.visible) return false
-    if (!store.prompt.input) return false
-    // in-memory cost alert command
-    if (costAlert.handle(store.prompt.input.trim())) return true
-    // client-side /memory command; never sent to the model
-    if (parseMemoryCommand(store.prompt.input.trim())) {
-      const text = store.prompt.input.trim()
-      clearPrompt()
-      void runMemoryCommand({
-        text,
-        client: sdk.client,
-        sessionID: props.sessionID,
-        toast,
-        inspect: async (root) => {
-          const { default: open } = await import("open")
-          await open(root)
-        },
-        show: () => showMemoryDialog(dialog),
-        status: () => showMemoryStatusDialog(dialog),
-        usage: (reason) => showMemoryHelpDialog(dialog, { reason, sessionID: props.sessionID }),
-      })
-      return true
+    const trimmed = store.prompt.text.trim()
+    if (!trimmed && (!props.sessionID || store.mode === "shell" || delivery === "queue"))
+      return delivery === "steer" ? (await props.onEmptySubmit?.()) === true : false
+    const exitWord = trimmed === "exit" || trimmed === "quit" || trimmed === ":q"
+    const inputText = expandTrackedPastedText(
+      store.prompt.text,
+      input.extmarks.getAllForTypeId(promptPartTypeId).flatMap((extmark) => {
+        const ref = store.extmarkToPart.get(extmark.id)
+        if (ref?.type !== "pasted") return []
+        const part = store.prompt.pasted[ref.index]
+        if (!part) return []
+        return [{ start: extmark.start, end: extmark.end, text: part.text }]
+      }),
+      renderer.widthMethod,
+    )
+    const slash = argumentSlash(inputText, keymapCommands())
+    if (delivery === "queue" && (store.mode === "shell" || exitWord || slash)) {
+      toast.show({ message: "This prompt cannot be queued", variant: "warning" })
+      return false
     }
-    const agent = local.agent.current()
-    if (!agent) return false
-    const trimmed = store.prompt.input.trim()
-    if (trimmed === "exit" || trimmed === "quit" || trimmed === ":q") {
+    if (exitWord) {
       void exit()
       return true
     }
@@ -1315,121 +1246,16 @@ export function Prompt(props: PromptProps) {
           variant,
         },
       })
-
-      if (res.error) {
-        if (finishMoveProgress) move.finishSubmit()
-        console.log("Creating a session failed:", res.error)
-
-        toast.show({
-          message: "Creating a session failed. Open console for more details.",
-          variant: "error",
-        })
-
-        return true
-      }
-
-      sessionID = res.data.id
-    }
-
-    const inputText = expandTrackedPastedText(
-      store.prompt.input,
-      input.extmarks.getAllForTypeId(promptPartTypeId).flatMap((extmark) => {
-        const partIndex = store.extmarkToPartIndex.get(extmark.id)
-        const part = partIndex === undefined ? undefined : store.prompt.parts[partIndex]
-        if (part?.type !== "text") return []
-        return [{ start: extmark.start, end: extmark.end, text: part.text }]
-      }),
-    )
-
-    // Filter out text parts (pasted content) since they're now expanded inline
-    const nonTextParts = store.prompt.parts.filter((part) => part.type !== "text")
-
-    // Capture mode before it gets reset
-    const currentMode = store.mode
-    const editorSelection = editorContext()
-    const editorParts =
-      editorSelection && editor.labelState() === "pending"
-        ? [
-            {
-              type: "text" as const,
-              text: formatEditorContext(editorSelection),
-              synthetic: true,
-              metadata: {
-                kind: "editor_context",
-                source: editorSelection.source ?? "editor",
-                filePath: editorSelection.filePath,
-                ranges: editorSelection.ranges,
-              },
-            },
-          ]
-        : []
-
-    if (store.mode === "btw") {
-      // Sticky side-question mode: each submission becomes its own fork; the
-      // mode stays active until esc so follow-ups don't need /btw again.
-      if (!inputText.trim()) return true
-      props.onAside?.(inputText)
-    } else if (store.mode === "shell") {
-      move.startSubmit()
-      void sdk.client.session.shell({
-        sessionID,
-        agent: agent.name,
-        model: {
-          providerID: selectedModel.providerID,
-          modelID: selectedModel.modelID,
-        },
-        command: inputText,
-      })
-      setStore("mode", "normal")
-    } else if (
-      inputText.startsWith("/") &&
-      sync.data.command.some((x) => x.name === inputText.split("\n")[0].split(" ")[0].slice(1))
-    ) {
-      move.startSubmit()
-      // Parse command from first line, preserve multi-line content in arguments
-      const firstLineEnd = inputText.indexOf("\n")
-      const firstLine = firstLineEnd === -1 ? inputText : inputText.slice(0, firstLineEnd)
-      const [command, ...firstLineArgs] = firstLine.split(" ")
-      const restOfInput = firstLineEnd === -1 ? "" : inputText.slice(firstLineEnd + 1)
-      const args = firstLineArgs.join(" ") + (restOfInput ? "\n" + restOfInput : "")
-
-      void sdk.client.session.command({
-        sessionID,
-        command: command.slice(1),
-        arguments: args,
-        agent: agent.name,
-        model: `${selectedModel.providerID}/${selectedModel.modelID}`,
-        variant,
-        parts: nonTextParts.filter((x) => x.type === "file"),
-      })
-    } else {
-      move.startSubmit()
-      sdk.client.session
-        .prompt(
-          {
-            sessionID,
-            ...selectedModel,
-            agent: agent.name,
-            model: selectedModel,
-            variant,
-            // Yolo mode: permissions are auto-approved client-side, so tell
-            // the model up front not to stop and ask for any.
-            system:
-              local.permission.mode === "auto"
-                ? "Yolo mode is active: every permission request is granted automatically. Do not ask the user for permission or confirmation before acting; proceed directly."
-                : undefined,
-            parts: [
-              ...editorParts,
-              {
-                type: "text",
-                text: inputText,
-              },
-              ...nonTextParts,
-            ],
-          },
-          { throwOnError: true },
-        )
-        .catch((error) => {
+      if (newSessionID !== undefined) created.request.catch(() => args.restoreNewSessionID(newSessionID))
+      sessionID = created.id
+      session = data.session.get(created.id)
+      newSession = {
+        gate: created.request.then(async (info) => {
+          if (terminalEnvironment.variables !== undefined) {
+            await client.api.session.environment({ sessionID: created.id, variables: terminalEnvironment.variables })
+          }
+        }),
+        recover: (error) => {
           toast.show({
             title: data.session.get(created.id) ? "Failed to set up session" : "Creating a session failed",
             message: errorMessage(error),
@@ -1500,7 +1326,7 @@ export function Prompt(props: PromptProps) {
           sessionID: target,
           name: slashHead.name,
           text: slashHead.arguments,
-          files: entry.files,
+          files: promptFilesForServer(entry.files, terminalEnvironment.localServer === true),
           agents: entry.agents,
           skills: entry.skills?.length ? entry.skills : undefined,
           delivery,
@@ -1541,7 +1367,7 @@ export function Prompt(props: PromptProps) {
         .prompt({
           sessionID: target,
           text: inputText,
-          files: entry.files,
+          files: promptFilesForServer(entry.files, terminalEnvironment.localServer === true),
           agents: entry.agents,
           skills: entry.skills?.length ? entry.skills : undefined,
           delivery,
@@ -1658,7 +1484,7 @@ export function Prompt(props: PromptProps) {
     }, 0)
   }
 
-  function pasteAttachment(file: { filename?: string; uri: string }) {
+  function pasteAttachment(file: { filename?: string; uri: string; path?: string }) {
     const currentOffset = input.cursorOffset
     const extmarkStart = currentOffset
     const virtualText = promptAttachmentLabel(store.prompt.files, { uri: file.uri, name: file.filename })
@@ -1678,6 +1504,7 @@ export function Prompt(props: PromptProps) {
     const part: NonNullable<PromptInfo["files"]>[number] = {
       uri: file.uri,
       name: file.filename,
+      path: file.path,
       mention: {
         start: extmarkStart,
         end: extmarkEnd,
@@ -1706,35 +1533,22 @@ export function Prompt(props: PromptProps) {
         mode: store.mode,
       })
     }
-    input.clear()
-    input.extmarks.clear()
-    setStore("prompt", {
-      input: "",
-      parts: [],
-    })
-    setStore("extmarkToPartIndex", new Map())
-    // don't leak stale vim mode/selection into an emptied prompt
-    vim.resetVim()
+    resetComposer()
   }
 
-  // cost-alert logic lives in util/cost-alert; only prompt mutation stays here
-  const costAlert = createCostAlertController({
-    prefill: () => {
-      const value = "/cost-alert "
-      input.setText(value)
-      setStore("prompt", { input: value, parts: [] })
-      input.gotoBufferEnd()
-    },
-    clearPrompt,
-    toast,
-    nudge,
-    sessionID: () => props.sessionID,
-  })
-
-  const highlight = createMemo(() => {
-    if (leader()) return theme.border
-    return theme.primary
-  })
+  // Keep the last resolved prompt display visible while destination catalogs load;
+  // availability and submission still use the live location-scoped catalog.
+  const promptDisplay = createMemo<{
+    agentLabel: string | undefined
+    agentColor: RGBA | undefined
+    modelLabel: string
+    providerLabel: string
+    variant: string | undefined
+  }>(
+    (previous) => {
+      const location = currentLocation.ref ?? data.location.default()
+      const sessionLocation = props.sessionID ? data.session.get(props.sessionID)?.location : location
+      if (!sessionLocation || locationKey(sessionLocation) !== locationKey(location)) return previous
 
       const loading = data.location.agent.list(location) === undefined || !local.model.catalogReady
       const error = currentLocation.error
@@ -1759,15 +1573,47 @@ export function Prompt(props: PromptProps) {
       variant: undefined,
     },
   )
-  const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
-  const fire = createMemo(
-    () => animationsEnabled() && kv.get("fire_animation_enabled", true) && status().type !== "idle",
+  // What the workspace's limits leave for the selected model, once it is running low. Only OpenCode Console limits
+  // models, so only a model it serves loads them.
+  const limits = useUsageLimits()
+  createEffect(() => {
+    const selected = local.model.current()
+    if (selected && limits.served(selected.providerID) && limits.info() === undefined) limits.load()
+  })
+  const limit = createMemo(() => {
+    const selected = local.model.current()
+    const model = limits
+      .models()
+      .find((item) => item.providerID === selected?.providerID && item.id === selected?.modelID)
+    return model ? limitLabel(limits.usage(model), model) : undefined
+  })
+  const highlight = createMemo(() => {
+    if (muted()) return theme.border.base
+    if (store.mode === "shell") return theme.text.action.primary.selected
+    return promptDisplay().agentColor ?? theme.border.base
+  })
+  const agentLabel = createMemo(() => (store.mode === "shell" ? "Shell" : promptDisplay().agentLabel))
+  const animateMetadata = !revealedPromptMetadata.has(local)
+  const metadataAnimationsEnabled = () => animationsEnabled() && animateMetadata
+  const agentMetaAlpha = createFadeIn(() => !!agentLabel(), metadataAnimationsEnabled)
+  const modelMetaAlpha = createFadeIn(
+    () => !!promptDisplay().agentLabel && store.mode === "normal",
+    metadataAnimationsEnabled,
   )
-  const flames = createFire(
-    () => dimensions().width,
-    fire,
-    () => rgbToHex(theme.primary),
+  const variantMetaAlpha = createFadeIn(
+    () => !!promptDisplay().agentLabel && store.mode === "normal" && !!promptDisplay().variant,
+    metadataAnimationsEnabled,
   )
+  createEffect(() => {
+    if (agentLabel()) revealedPromptMetadata.add(local)
+  })
+  const borderHighlight = createMemo(() => tint(theme.border.base, highlight(), agentMetaAlpha()))
+  const footerInput = () => ({
+    sessionID: props.sessionID,
+    mode: store.mode,
+    showDetails: store.interrupt === 0 || dimensions().width >= 80,
+  })
+
   const placeholderText = createMemo(() => {
     const value = (() => {
       if (store.mode === "shell") {
@@ -1786,9 +1632,26 @@ export function Prompt(props: PromptProps) {
       // No session yet: show where the next session will be created.
       return currentLocation.ref ?? data.location.default()
     }
-    if (store.mode === "btw") return "Ask a side question... esc to exit"
-    if (!list().length) return undefined
-    return `Ask anything… "${list()[store.placeholder % list().length]}"`
+    if (status() !== "idle") return
+    return data.session.get(props.sessionID)?.location
+  })
+  const locationLabel = createMemo(() => {
+    const pending = pendingDirectory()
+    const location = pending ? { directory: pending } : footerLocation()
+    if (!location) return
+    const directory = abbreviateHome(location.directory, paths.home)
+    const branch = data.location.vcs.info(location)?.branch.current
+    return branch ? `${directory}:${branch}` : directory
+  })
+  const [locationWidth, setLocationWidth] = createSignal(dimensions().width)
+  const locationLabelDisplay = createMemo(() => {
+    const label = locationLabel()
+    if (!label) return
+    return truncateFilePath(label, locationWidth())
+  })
+  const locationActions = useWorkingDirectoryActions({
+    directory: () => footerLocation()?.directory,
+    onMove: () => void move.open(),
   })
 
   const spinnerDef = createMemo(() => {
@@ -1816,13 +1679,6 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
-      {/* Outside the anchor box on purpose: the autocomplete palette renders
-          above the anchor, so keeping the fire out of it lets the palette sit
-          flush against the input and cover the flames instead of floating
-          above the whole strip. */}
-      <Show when={props.visible !== false && fire()}>
-        <FireStrip rows={flames()} />
-      </Show>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <box
           width="100%"
@@ -1918,7 +1774,7 @@ export function Prompt(props: PromptProps) {
               focusedTextColor={muted() ? theme.text.muted : theme.text.base}
               minHeight={1}
               maxHeight={maxHeight()}
-              cursorStyle={config.cursor}
+              cursorStyle={cursorStyle()}
               onContentChange={() => {
                 const value = input.plainText
                 setStore("prompt", "text", value)
@@ -1927,15 +1783,9 @@ export function Prompt(props: PromptProps) {
                 setCursorVersion((value) => value + 1)
               }}
               onCursorChange={() => setCursorVersion((value) => value + 1)}
-              onKeyDown={(e: KeyEvent) => {
-                if (props.disabled) {
+              onKeyDown={(e: { preventDefault(): void }) => {
+                if (disabled()) {
                   e.preventDefault()
-                  return
-                }
-                // route keys through the vim layer when enabled
-                if (vim.vimOnKey(e)) {
-                  e.preventDefault()
-                  e.stopPropagation()
                   return
                 }
               }}
@@ -1983,7 +1833,6 @@ export function Prompt(props: PromptProps) {
                   // setTimeout is a workaround and needs to be addressed properly
                   if (!input || input.isDestroyed) return
                   input.cursorColor = disabled() ? theme.background.raised.base : theme.text.base
-                  if (config.cursor) input.cursorStyle = config.cursor
                 }, 0)
               }}
               onMouseDown={(r: MouseEvent) => {
@@ -2005,59 +1854,20 @@ export function Prompt(props: PromptProps) {
               syntaxStyle={syntax()}
             />
             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
-              <box flexDirection="row" gap={1}>
-                <Show when={local.agent.current()} fallback={<box height={1} />}>
-                  {(agent) => (
-                    <>
-                      <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                        {store.mode === "shell"
-                          ? "Shell"
-                          : store.mode === "btw"
-                            ? "Btw"
-                            : Locale.titlecase(agent().name)}
-                      </text>
-                      <Show when={store.mode === "normal" && local.permission.mode === "auto"}>
-                        <text fg={fadeColor(theme.textMuted, agentMetaAlpha())}>auto</text>
-                      </Show>
-                      <VimModeIndicator
-                        when={() => vim.vimEnabled() && store.mode !== "shell"}
-                        mode={vim.vimMode}
-                        fade={fadeColor}
-                        textMuted={() => theme.textMuted}
-                        info={() => theme.info}
-                        warning={() => theme.warning}
-                        success={() => theme.success}
-                        alpha={agentMetaAlpha}
-                      />
-                      <Show when={store.mode === "normal"}>
-                        <box flexDirection="row" gap={1}>
-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>·</text>
-                          <text
-                            flexShrink={0}
-                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                          >
-                            {local.model.parsed().model}
-                          </text>
-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
-                          <Show when={showVariant()}>
-                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                            <text>
-                              <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
-                                {local.model.variant.current()}
-                              </span>
-                            </text>
-                          </Show>
-                        </box>
-                      </Show>
-                    </>
-                  )}
-                </Show>
-              </box>
-              <Show when={hasRightContent()}>
-                <box flexDirection="row" gap={1} alignItems="center">
-                  {props.right}
-                </box>
-              </Show>
+              <PromptMetadataRow
+                mode={store.mode}
+                agent={agentLabel()}
+                auto={local.permission.mode === "autoaccept"}
+                model={promptDisplay().modelLabel}
+                provider={promptDisplay().providerLabel}
+                variant={promptDisplay().variant}
+                limit={limit()}
+                muted={!!muted()}
+                highlight={highlight()}
+                agentAlpha={agentMetaAlpha()}
+                modelAlpha={modelMetaAlpha()}
+                variantAlpha={variantMetaAlpha()}
+              />
             </box>
           </box>
         </box>
@@ -2087,20 +1897,9 @@ export function Prompt(props: PromptProps) {
             }
           />
         </box>
-        <box width="100%" flexDirection="row" justifyContent="space-between">
-          <Switch>
-            <Match when={voice.status() !== "idle"}>
-              <box marginLeft={1} flexDirection="row" gap={1}>
-                <Show
-                  when={voice.status() === "recording"}
-                  fallback={<Spinner color={theme.accent}>transcribing</Spinner>}
-                >
-                  <text fg={theme.error}>● recording</text>
-                  <text fg={theme.textMuted}>/voice to stop</text>
-                </Show>
-              </box>
-            </Match>
-            <Match when={status().type !== "idle"}>
+        <box width="100%" flexDirection="row" justifyContent="space-between" gap={2}>
+          <Slot path="prompt.footer" input={footerInput()}>
+            <Slot path="prompt.footer.status" input={footerInput()}>
               <box
                 flexGrow={1}
                 flexShrink={1}
@@ -2162,36 +1961,26 @@ export function Prompt(props: PromptProps) {
                           {location()}
                         </text>
                       )}
-                    </Match>
-                    <Match when={true}>
-                      <text fg={theme.text}>
-                        <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
-                          {"["}
-                          {agentShortcut()}
-                          {"]"}
-                        </span>{" "}
-                        <span style={{ fg: theme.textMuted }}>agents</span>
-                      </text>
-                    </Match>
-                  </Switch>
-                  <text fg={theme.text}>
-                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>
-                      {"["}
-                      {paletteShortcut()}
-                      {"]"}
-                    </span>{" "}
-                    <span style={{ fg: theme.textMuted }}>commands</span>
+                    </Show>
+                  </Match>
+                </Switch>
+              </box>
+            </Slot>
+            <Slot path="prompt.footer.file" input={footerInput()}>
+              <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
+                {(file) => (
+                  <text
+                    wrapMode="none"
+                    truncate
+                    flexShrink={1}
+                    fg={editorContextLabelState() === "pending" ? theme.hue.accent[500] : theme.text.muted}
+                  >
+                    {file()}
                   </text>
-                </Match>
-                <Match when={store.mode === "shell"}>
-                  <text fg={theme.text}>
-                    <span style={{ fg: theme.text, bg: theme.backgroundPanel, bold: true }}>[esc]</span>{" "}
-                    <span style={{ fg: theme.textMuted }}>exit shell mode</span>
-                  </text>
-                </Match>
-              </Switch>
-            </box>
-          </Show>
+                )}
+              </Show>
+            </Slot>
+          </Slot>
         </box>
       </box>
       <Autocomplete
