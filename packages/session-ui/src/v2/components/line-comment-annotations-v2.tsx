@@ -8,10 +8,9 @@ import {
   type SavedLineComment,
   type LineCommentStateProps,
 } from "../../components/line-comment-annotations"
-import { useI18n } from "@bolt-ai/ui/context/i18n"
-import { cloneSelectedLineRange, formatSelectedLineLabel } from "../../pierre/selection-bridge"
-import { LineCommentEditorV2, LineCommentV2 } from "@bolt-ai/ui/v2/line-comment-v2"
-import type { LineCommentEditorV2Mention } from "@bolt-ai/ui/v2/line-comment-v2"
+import { useI18n } from "@opencode/ui/context/i18n"
+import { cloneSelectedLineRange } from "../../pierre/selection-bridge"
+import { LineCommentEditor, LineComment, type LineCommentEditorMention } from "@opencode/ui/line-comment"
 
 type LineCommentControllerV2Props<T extends SavedLineComment> = {
   comments: Accessor<T[]>
