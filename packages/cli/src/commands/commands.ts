@@ -1,5 +1,6 @@
 import { Argument, Flag, GlobalFlag } from "effect/cli"
 import { Schema } from "effect"
+import { CliFlag } from "../framework/flag"
 import { Spec } from "../framework/spec"
 import { Updater } from "../services/updater"
 
@@ -26,10 +27,46 @@ export const Server = GlobalFlag.Setting("server")({
 
 const ServerFlags = [Standalone, Server] as const
 
-declare const BOLT_CLI_NAME: string | undefined
+declare const OPENCODE_CLI_NAME: string | undefined
 
-export const Commands = Spec.make(typeof BOLT_CLI_NAME === "string" ? BOLT_CLI_NAME : "bolt", {
-  description: "Bolt CLI command line interface",
+const ServerParams = {
+  standalone: Standalone.flag,
+  server: Server.flag,
+}
+
+const PermissionParams = {
+  auto: Flag.Boolean("auto").pipe(
+    Flag.withDescription("Auto-approve permissions that are not explicitly denied"),
+    Flag.withDefault(false),
+  ),
+  yolo: Flag.Boolean("yolo").pipe(Flag.withDefault(false), Flag.withHidden),
+  dangerouslySkipPermissions: Flag.Boolean("dangerously-skip-permissions").pipe(
+    Flag.withDefault(false),
+    Flag.withHidden,
+  ),
+}
+
+const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME : "opencode", {
+  description: "OpenCode command line interface",
+  params: {
+    ...ServerParams,
+    ...PermissionParams,
+    directory: Argument.String("directory").pipe(
+      Argument.withDescription("Directory to start OpenCode in"),
+      Argument.optional,
+    ),
+    continue: Flag.Boolean("continue").pipe(
+      Flag.withAlias("c"),
+      Flag.withDescription("Continue the last session"),
+      Flag.withDefault(false),
+    ),
+    session: Flag.String("session").pipe(
+      Flag.withAlias("s"),
+      Flag.withDescription("Session ID to continue, or to create if it does not exist"),
+      Flag.optional,
+    ),
+    prompt: Flag.String("prompt").pipe(Flag.withDescription("Prompt to use"), Flag.optional),
+  },
   commands: [
     Spec.make("upgrade", {
       description: "Upgrade OpenCode to the latest or a specific version",
@@ -381,6 +418,10 @@ export const Commands = Spec.make(typeof BOLT_CLI_NAME === "string" ? BOLT_CLI_N
         fork: Flag.Boolean("fork").pipe(
           Flag.withDescription("Fork the session before continuing"),
           Flag.withDefault(false),
+        ),
+        worktree: CliFlag.optionalValue("worktree", "name").pipe(
+          Flag.withAlias("w"),
+          Flag.withDescription("Start a new session in a new git worktree, optionally with this name"),
         ),
         model: Flag.String("model").pipe(
           Flag.withAlias("m"),
