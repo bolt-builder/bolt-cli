@@ -6,9 +6,16 @@ import {
   ToolResultPart,
   type ContentPart,
   type ProviderMetadata,
-} from "@bolt-ai/llm"
-import { SessionMessage } from "../message"
-import type { FileAttachment } from "../prompt"
+} from "@opencode/ai/effect"
+import type { Model } from "@opencode/schema/model"
+import { Option, Schema } from "effect"
+import { fileURLToPath } from "url"
+import { SessionMessage } from "../message.js"
+import { SessionHistory } from "../history.js"
+import { SessionRecentText } from "../recent-text.js"
+import type { FileAttachment } from "@opencode/schema/prompt"
+
+const imageMimes = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"])
 
 const media = (file: FileAttachment): ContentPart => ({
   type: "media",
@@ -164,8 +171,9 @@ const assistant = (message: SessionMessage.Assistant, model: Model.Ref, provider
         },
       ]
     // Let the destination adapter handle readable reasoning after a model/provider switch.
-    if (item.type === "reasoning")
-      return reuseProviderMetadata && !reasoningInterrupted
+    if (item.type === "reasoning") {
+      if (message.error !== undefined || reasoningInterrupted) return []
+      return reuseProviderMetadata
         ? [
             {
               type: "reasoning",
@@ -174,8 +182,9 @@ const assistant = (message: SessionMessage.Assistant, model: Model.Ref, provider
             },
           ]
         : item.text.length > 0
-          ? [{ type: message.error === undefined && !reasoningInterrupted ? "reasoning" : "text", text: item.text }]
+          ? [{ type: "reasoning", text: item.text }]
           : []
+    }
     // Call-side metadata is model-scoped proof of generation (Gemini thought
     // signatures, OpenAI encrypted reasoning): only the producing model may
     // replay it.
@@ -307,6 +316,9 @@ function toLLMMessage(message: SessionMessage.Info, model: Model.Ref, providerMe
   }
 }
 
-/** Translate projected V2 Session history into canonical @bolt-ai/llm context. */
-export const toLLMMessages = (messages: readonly SessionMessage.Message[], model: Model) =>
-  messages.flatMap((message) => toLLMMessage(message, model))
+/** Translate projected Session history into canonical @opencode/ai context. */
+export const toLLMMessages = (
+  messages: readonly SessionMessage.Info[],
+  model: Model.Ref,
+  providerMetadataKey: string = model.providerID,
+) => messages.flatMap((message) => toLLMMessage(message, model, providerMetadataKey))
