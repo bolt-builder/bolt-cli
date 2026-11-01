@@ -1,22 +1,22 @@
-import { Accordion } from "@bolt-ai/ui/accordion"
-import { Button } from "@bolt-ai/ui/button"
-import { DropdownMenu } from "@bolt-ai/ui/dropdown-menu"
-import { RadioGroup } from "@bolt-ai/ui/radio-group"
-import { DiffChanges } from "@bolt-ai/ui/diff-changes"
-import { FileIcon } from "@bolt-ai/ui/file-icon"
-import { Icon } from "@bolt-ai/ui/icon"
-import { IconButton } from "@bolt-ai/ui/icon-button"
-import { StickyAccordionHeader } from "@bolt-ai/ui/sticky-accordion-header"
-import { Tooltip } from "@bolt-ai/ui/tooltip"
-import { ScrollView } from "@bolt-ai/ui/scroll-view"
-import { useFileComponent } from "@bolt-ai/ui/context/file"
-import { useI18n } from "@bolt-ai/ui/context/i18n"
-import { getDirectory, getFilename } from "@bolt-ai/core/util/path"
-import { checksum } from "@bolt-ai/core/util/encode"
+import { Accordion } from "@opencode/ui/accordion"
+import { Button } from "@opencode/ui/button"
+import { Menu } from "@opencode/ui/menu"
+import { SegmentedControl, SegmentedControlItem } from "@opencode/ui/segmented-control"
+import { DiffChanges } from "@opencode/ui/diff-changes"
+import { FileIcon } from "@opencode/ui/file-icon"
+import { Icon } from "@opencode/ui/icon"
+import { IconButton } from "@opencode/ui/icon-button"
+import { StickyAccordionHeader } from "@opencode/ui/sticky-accordion-header"
+import { Tooltip } from "@opencode/ui/tooltip"
+import { useFileComponent } from "@opencode/ui/context/file"
+import { useI18n } from "@opencode/ui/context/i18n"
+import { getDirectory, getFilename } from "@opencode/util/path"
+import { checksum } from "@opencode/util/encode"
 import { createEffect, createMemo, For, Match, onCleanup, Show, Switch, untrack, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
-import { type FileContent, type SnapshotFileDiff, type VcsFileDiff } from "@bolt-ai/sdk/v2"
-import type { FileDiffInfo } from "@bolt-ai/client/promise"
+import { Predicate } from "effect"
+import type { FileDiffInfo } from "@opencode/client/promise"
+import type { PresentationFileContent, PresentationFileDiff } from "../file-presentation"
 import { PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
 import { type SelectedLineRange } from "@pierre/diffs"
 import { Dynamic } from "solid-js/web"
@@ -399,9 +399,10 @@ export const SessionReview = (props: SessionReviewProps) => {
         </div>
       </div>
 
-      <ScrollView
+      <div
         data-slot="session-review-scroll"
-        viewportRef={(el) => {
+        data-scrollable
+        ref={(el) => {
           scroll = el
           props.scrollRef?.(el)
           queue()
@@ -645,7 +646,7 @@ export const SessionReview = (props: SessionReviewProps) => {
                                 <Match when={!mounted() && !tooLarge()}>
                                   <div
                                     data-slot="session-review-diff-placeholder"
-                                    class="rounded-lg border border-border-weak-base bg-background-stronger/40"
+                                    class="rounded-lg border border-v2-border-border-muted bg-background-stronger/40"
                                     style={{ height: "160px" }}
                                   />
                                 </Match>
@@ -714,7 +715,7 @@ export const SessionReview = (props: SessionReviewProps) => {
             </div>
           </Show>
         </div>
-      </ScrollView>
+      </div>
     </div>
   )
 }
