@@ -1,11 +1,11 @@
 ---
 title: Web
-description: En utilisant Bolt dans votre navigateur.
+description: En utilisant OpenCode dans votre navigateur.
 ---
 
-Bolt peut s'exécuter comme une application Web dans votre navigateur, offrant la même expérience puissante de codage d'IA sans avoir besoin d'un terminal.
+OpenCode peut s'exécuter comme une application Web dans votre navigateur, offrant la même expérience puissante de codage d'IA sans avoir besoin d'un terminal.
 
-![Bolt Web - Nouvelle session](../../../assets/web/web-homepage-new-session.png)
+![OpenCode Web - Nouvelle session](../../../assets/web/web-homepage-new-session.png)
 
 ## Commencer
 
@@ -15,10 +15,10 @@ Démarrez l'interface Web en exécutant :
 opencode web
 ```
 
-Cela démarre un serveur local sur `127.0.0.1` avec un port disponible aléatoire et ouvre automatiquement Bolt dans votre navigateur par défaut.
+Cela démarre un serveur local sur `127.0.0.1` avec un port disponible aléatoire et ouvre automatiquement OpenCode dans votre navigateur par défaut.
 
 :::caution
-Si `BOLT_SERVER_PASSWORD` n'est pas défini, le serveur ne sera pas sécurisé. C'est bien pour une utilisation locale mais doit être défini pour l'accès au réseau.
+Si `OPENCODE_SERVER_PASSWORD` n'est pas défini, le serveur ne sera pas sécurisé. C'est bien pour une utilisation locale mais doit être défini pour l'accès au réseau.
 :::
 
 :::tip[Windows Utilisateurs]
@@ -33,7 +33,7 @@ Vous pouvez configurer le serveur Web à l'aide d'indicateurs de ligne de comman
 
 ### Port
 
-Par défaut, Bolt sélectionne un port disponible. Vous pouvez spécifier un port :
+Par défaut, OpenCode sélectionne un port disponible. Vous pouvez spécifier un port :
 
 ```bash
 opencode web --port 4096
@@ -41,13 +41,13 @@ opencode web --port 4096
 
 ### Nom d'hôte
 
-Par défaut, le serveur se lie à `127.0.0.1` (localhost uniquement). Pour rendre Bolt accessible sur votre réseau :
+Par défaut, le serveur se lie à `127.0.0.1` (localhost uniquement). Pour rendre OpenCode accessible sur votre réseau :
 
 ```bash
 opencode web --hostname 0.0.0.0
 ```
 
-Lorsque vous utilisez `0.0.0.0`, Bolt affichera les adresses locales et réseau :
+Lorsque vous utilisez `0.0.0.0`, OpenCode affichera les adresses locales et réseau :
 
 ```
   Local access:       http://localhost:4096
@@ -62,7 +62,7 @@ Activez mDNS pour rendre votre serveur visible sur le réseau local :
 opencode web --mdns
 ```
 
-Cela définit automatiquement le nom d'hôte sur `0.0.0.0` et annonce le serveur comme `bolt.local`.
+Cela définit automatiquement le nom d'hôte sur `0.0.0.0` et annonce le serveur comme `opencode.local`.
 
 Vous pouvez personnaliser le nom de domaine mDNS pour exécuter plusieurs instances sur le même réseau :
 
@@ -80,31 +80,31 @@ opencode web --cors https://example.com
 
 ### Authentification
 
-Pour protéger l'accès, définissez un mot de passe à l'aide de la variable d'environnement `BOLT_SERVER_PASSWORD` :
+Pour protéger l'accès, définissez un mot de passe à l'aide de la variable d'environnement `OPENCODE_SERVER_PASSWORD` :
 
 ```bash
-BOLT_SERVER_PASSWORD=secret opencode web
+OPENCODE_SERVER_PASSWORD=secret opencode web
 ```
 
-Le nom d'utilisateur par défaut est `opencode` mais peut être modifié avec `BOLT_SERVER_USERNAME`.
+Le nom d'utilisateur par défaut est `opencode` mais peut être modifié avec `OPENCODE_SERVER_USERNAME`.
 
 ---
 
 ## Utilisation de l'interface Web
 
-Une fois démarrée, l'interface web permet d'accéder à vos sessions Bolt.
+Une fois démarrée, l'interface web permet d'accéder à vos sessions OpenCode.
 
 ### Sessions
 
 Consultez et gérez vos sessions depuis la page d'accueil. Vous pouvez voir les sessions actives et en démarrer de nouvelles.
 
-![Bolt Web - Session active](../../../assets/web/web-homepage-active-session.png)
+![OpenCode Web - Session active](../../../assets/web/web-homepage-active-session.png)
 
 ### Statut du serveur
 
 Cliquez sur "Voir les serveurs" pour afficher les serveurs connectés et leur état.
 
-![Bolt Web - Voir Serveurs](../../../assets/web/web-homepage-see-servers.png)
+![OpenCode Web - Voir Serveurs](../../../assets/web/web-homepage-see-servers.png)
 
 ---
 
@@ -126,7 +126,7 @@ Cela vous permet d'utiliser simultanément l'interface Web et le terminal, en pa
 
 ## Fichier de configuration
 
-Vous pouvez également configurer les paramètres du serveur dans votre fichier de configuration `bolt.json` :
+Vous pouvez également configurer les paramètres du serveur dans votre fichier de configuration `opencode.json` :
 
 ```json
 {
