@@ -1,10 +1,10 @@
-import { DialogBody, DialogHeader, DialogTitle, DialogV2 } from "@bolt-ai/ui/v2/dialog-v2"
-import { Icon } from "@bolt-ai/ui/v2/icon"
-import { ProviderIcon } from "@bolt-ai/ui/provider-icon"
-import { Tag } from "@bolt-ai/ui/v2/badge-v2"
-import { TooltipV2 } from "@bolt-ai/ui/v2/tooltip-v2"
-import { useDialog } from "@bolt-ai/ui/context/dialog"
-import { useTheme } from "@bolt-ai/ui/theme"
+import { DialogBody, DialogHeader, DialogTitle, Dialog } from "@opencode/ui/dialog"
+import { Badge } from "@opencode/ui/badge"
+import { Icon } from "@opencode/ui/icon"
+import { ProviderModelIcon } from "@/providers/models/provider-group"
+import { Tooltip } from "@opencode/ui/tooltip"
+import { useDialog } from "@opencode/ui/context/dialog"
+import { useTheme } from "@opencode/ui/theme"
 import { createMemo, onCleanup, onMount, type Component, For, Show } from "solid-js"
 import { useLocal, type ModelSelection } from "@/providers/models/selection"
 import { isFreeModel } from "@/providers/models/models"
@@ -17,8 +17,6 @@ type ModelState = ModelSelection
 
 const featuredProviders = ["opencode-go", "opencode", "openai", "anthropic", "google", "github-copilot"]
 
-type ModelState = ReturnType<typeof useLocal>["model"]
-const featuredProviders = ["bolt", "bolt-go", "openai", "anthropic", "google", "github-copilot"]
 const displayModelName = (name: string) => name.replace(/\s+(?:\(free\)|free)$/i, "")
 
 export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props) => {
@@ -36,15 +34,19 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
 
     return c ? `${c.provider.id}:${c.id}` : undefined
   })
-  const isFree = (item: ReturnType<ModelState["list"]>[number]) =>
-    item.provider.id === "bolt" && (!item.cost || item.cost.input === 0)
-  const freeModels = createMemo(() => model.list().filter(isFree))
+
+  const providerName = (provider: { id: string; name: string }) =>
+    provider.id === "opencode" ? language.t("provider.connect.opencode.name") : provider.name
+
+  const freeModels = createMemo(() => model.list().filter(isFreeModel))
 
   const openProviders = (provider?: string) => {
     void import("@/providers/connect/dialog").then((x) => {
       const controller = x.useProviderConnectController()
       controller.select(provider)
-      void dialog.show(() => <x.DialogConnectProvider controller={controller} directory={directory()} />)
+      void dialog.show(() => (
+        <x.DialogConnectProvider controller={controller} directory={directory()} selection={model} />
+      ))
     })
   }
 
@@ -53,7 +55,7 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
     dialog.close()
   }
 
-  // Focus starts on the dialog's close button, outside the list, so listen at the
+  // Focus starts on the dialog itself, outside the list, so listen at the
   // document level while the dialog is mounted instead of on the list container.
   let listEl: HTMLDivElement | undefined
   onMount(() => {
@@ -161,13 +163,13 @@ export const DialogSelectModelUnpaid: Component<{ model?: ModelState }> = (props
                         class="mt-0.5 shrink-0 text-v2-icon-icon-base"
                       />
                       <span class="flex min-w-0 flex-col">
-                        <span class="truncate">{provider.name}</span>
-                        <Show when={provider.id === "bolt" || provider.id === "bolt-go"}>
+                        <span class="truncate">{providerName(provider)}</span>
+                        <Show when={provider.id === "opencode" || provider.id === "opencode-go"}>
                           <span class="truncate font-[440] text-v2-text-text-muted">
                             {language.t(
-                              provider.id === "bolt"
-                                ? "dialog.provider.bolt.tagline"
-                                : "dialog.provider.boltGo.tagline",
+                              provider.id === "opencode"
+                                ? "dialog.provider.opencode.tagline"
+                                : "dialog.provider.opencodeGo.tagline",
                             )}
                           </span>
                         </Show>
