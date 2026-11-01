@@ -1,5 +1,5 @@
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "darkStep6": "#3c3c3c",
     "darkStep11": "#808080",
