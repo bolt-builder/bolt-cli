@@ -13,22 +13,6 @@ const OUTPUT_LIMIT = 8_000
 const SYMBOL_LIMIT = 50
 const CODE = [".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"]
 
-/** Extract the changed file paths from a unified diff. */
-export function changed(diff: string) {
-  return [
-    ...new Set(
-      diff
-        .split("\n")
-        .flatMap((line) => {
-          const match = line.match(/^\+\+\+ b\/(.+)$/)
-          if (!match) return []
-          return [match[1]]
-        })
-        .filter((file) => file !== "/dev/null"),
-    ),
-  ]
-}
-
 /** Extract exported symbol names and their lines from a source file. */
 export function exported(source: string) {
   const declarations = [
@@ -94,9 +78,10 @@ export default Runtime.handler(Commands.commands.analyze, (args) =>
       return ["diff", `${merge.stdout.toString().trim()}..HEAD`]
     })
 
-    const diff = yield* git.run(range, cwd)
+    // Name-only output lists deletions and pure renames, which carry no `+++` header in a unified diff.
+    const diff = yield* git.run([...range, "--name-only", "-z"], cwd)
     if (diff.exitCode !== 0) return yield* fail(diff.stderr.toString().trim() || "git diff failed")
-    const files = changed(diff.stdout.toString())
+    const files = [...new Set(diff.stdout.toString().split("\0").filter(Boolean))]
     if (files.length === 0) {
       println("Nothing to analyze.")
       return

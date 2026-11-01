@@ -70,6 +70,15 @@ test("analyze runs project scripts, reports dead exports and preserves staged/br
     expect(failed.stdout).toContain('typecheck: no "typecheck" script')
     expect(failed.stdout).toContain("Verdict: FAIL")
     expect((await cli("--staged", "--branch=main")).code).toBe(1)
+    await git("checkout", "-q", "--", "package.json")
+    await git("rm", "-q", "caller.ts")
+    const deleted = await cli()
+    expect(deleted.stdout).toContain("Analyzing 1 changed file...")
+    expect(deleted.stdout).toContain("lint: pass")
+    expect(deleted.stdout).toContain("typecheck: pass")
+    await git("reset", "-q", "--hard")
+    await git("mv", "api.ts", "renamed.ts")
+    expect((await cli("--staged")).stdout).toContain("Analyzing 1 changed file...")
   } finally {
     await fs.rm(home, { recursive: true, force: true })
   }
