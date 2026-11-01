@@ -18,13 +18,13 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 
 #### 選項
 
-| 旗標            | 描述                    | 預設         |
-| --------------- | ----------------------- | ------------ |
-| `--port`        | 監聽連接埠              | `4096`       |
-| `--hostname`    | 監聽的主機名稱          | `127.0.0.1`  |
-| `--mdns`        | 啟用 mDNS 探索          | `false`      |
-| `--mdns-domain` | mDNS 服務的自訂網域名稱 | `bolt.local` |
-| `--cors`        | 額外允許的瀏覽器來源    | `[]`         |
+| 旗標            | 描述                    | 預設             |
+| --------------- | ----------------------- | ---------------- |
+| `--port`        | 監聽連接埠              | `4096`           |
+| `--hostname`    | 監聽的主機名稱          | `127.0.0.1`      |
+| `--mdns`        | 啟用 mDNS 探索          | `false`          |
+| `--mdns-domain` | mDNS 服務的自訂網域名稱 | `opencode.local` |
+| `--cors`        | 額外允許的瀏覽器來源    | `[]`             |
 
 `--cors` 可以多次傳遞：
 
@@ -36,10 +36,10 @@ opencode serve --cors http://localhost:5173 --cors https://app.example.com
 
 ### 認證
 
-設定 `BOLT_SERVER_PASSWORD` 以使用 HTTP 基本認證保護伺服器。使用者名稱預設為 `opencode`，也可以設定 `BOLT_SERVER_USERNAME` 來覆蓋它。這適用於 `opencode serve` 和 `opencode web`。
+設定 `OPENCODE_SERVER_PASSWORD` 以使用 HTTP 基本認證保護伺服器。使用者名稱預設為 `opencode`，也可以設定 `OPENCODE_SERVER_USERNAME` 來覆蓋它。這適用於 `opencode serve` 和 `opencode web`。
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---
@@ -62,7 +62,7 @@ BOLT_SERVER_PASSWORD=your-password opencode serve
 
 當你啟動 TUI 時，它會隨機分配連接埠和主機名稱。你也可以傳入 `--hostname` 和 `--port` [旗標](/docs/cli)，然後用它來連接對應的伺服器。
 
-[`/tui`](#tui) 端點可用於透過伺服器驅動 TUI。例如，你可以預填充或執行一個提示詞。此方式被 Bolt [IDE](/docs/ide) 外掛所使用。
+[`/tui`](#tui) 端點可用於透過伺服器驅動 TUI。例如，你可以預填充或執行一個提示詞。此方式被 OpenCode [IDE](/docs/ide) 外掛所使用。
 
 ---
 
