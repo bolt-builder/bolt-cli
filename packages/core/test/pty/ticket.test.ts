@@ -1,9 +1,9 @@
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { PtyID } from "@bolt-ai/core/pty/schema"
-import { PtyTicket } from "@bolt-ai/core/pty/ticket"
-import { WorkspaceV2 } from "@bolt-ai/core/workspace"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Pty } from "@opencode/core/pty"
+import { PtyTicket } from "@opencode/core/pty/ticket"
+import { Workspace } from "@opencode/core/workspace"
 import { testEffect } from "../lib/effect"
 
 const it = testEffect(LayerNode.compile(PtyTicket.node))
