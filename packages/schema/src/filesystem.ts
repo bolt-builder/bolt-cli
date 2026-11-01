@@ -1,8 +1,9 @@
 export * as FileSystem from "./filesystem.js"
 
 import { Schema } from "effect"
-import { define, inventory } from "./event"
-import { NonNegativeInt, PositiveInt, RelativePath, optional } from "./schema"
+import { optional } from "./schema.js"
+import { ephemeral, inventory } from "./event.js"
+import { AbsolutePath, NonNegativeInt, PositiveInt, RelativePath } from "./schema.js"
 
 const Changed = ephemeral({
   type: "filesystem.changed",
