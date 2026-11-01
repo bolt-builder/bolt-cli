@@ -1,24 +1,7 @@
-import type {
-  AgentV2Info,
-  CommandV2Info,
-  IntegrationInfo,
-  LocationRef,
-  ModelV2Info,
-  PermissionSavedInfo,
-  PermissionV2Request,
-  ProviderV2Info,
-  QuestionV2Request,
-  ReferenceInfo,
-  SessionMessage,
-  SessionMessageAssistant,
-  SessionMessageAssistantReasoning,
-  SessionMessageAssistantText,
-  SessionMessageAssistantTool,
-  SessionV2Info,
-  SkillV2Info,
-  V2Event,
-} from "@bolt-ai/sdk/v2"
-import { createStore, produce } from "solid-js/store"
+import { createData } from "@opencode/client/solid"
+import { withMediaRefs, type LocationRef } from "@opencode/client"
+import type { Plugin } from "@opencode/plugin/tui"
+import { createStore } from "solid-js/store"
 import { createSimpleContext } from "./helper"
 import { useClient } from "./client"
 
@@ -30,7 +13,8 @@ export const { use: useData, provider: DataProvider } = createSimpleContext({
   init: (props: { directory: string }) => {
     const client = useClient()
     const data = createData({
-      api: () => client.api,
+      // Only the transcript store reads stored media as `media:<hash>` refs; plugins and other callers keep inline bytes.
+      api: () => withMediaRefs(client.api),
       event: client.event,
       connection: client.connection,
       directory: props.directory,
