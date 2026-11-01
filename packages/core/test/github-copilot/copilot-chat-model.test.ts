@@ -1,4 +1,4 @@
-import { OpenAICompatibleChatLanguageModel } from "@bolt-ai/core/github-copilot/chat/openai-compatible-chat-language-model"
+import { OpenAICompatibleChatLanguageModel } from "@opencode/core/github-copilot/chat/openai-compatible-chat-language-model"
 import { describe, test, expect, mock } from "bun:test"
 import type { LanguageModelV3Prompt } from "@ai-sdk/provider"
 
