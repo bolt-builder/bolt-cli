@@ -1,5 +1,5 @@
-import type { Event } from "@bolt-ai/sdk/v2"
-import { useSDK } from "./sdk"
+import type { OpenCodeEvent } from "@opencode/client"
+import { useClient } from "./client"
 
 type EventMetadata = {
   directory: string | undefined
