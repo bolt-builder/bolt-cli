@@ -3,13 +3,11 @@ export * as Pty from "./pty.js"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import type { Disp, Proc } from "#pty"
 import { Context, Effect, Layer, Schema, Types } from "effect"
-import { Pty } from "@bolt-ai/schema/pty"
-import { Config } from "./config"
-import { EventV2 } from "./event"
-import { Location } from "./location"
-import { PtyID } from "./pty/schema"
-import { Shell } from "./shell"
-import { lazy } from "./util/lazy"
+import { Pty } from "@opencode/schema/pty"
+import { Bus } from "./bus.js"
+import { Location } from "./location.js"
+import { ShellSelect } from "./shell/select.js"
+import { lazy } from "./util/lazy.js"
 
 const BUFFER_LIMIT = 1024 * 1024 * 2
 // Exited sessions stay observable (status, exit code, retained output) until removed explicitly.
@@ -90,7 +88,7 @@ export interface Interface {
   readonly attach: (id: ID, input: AttachInput) => Effect.Effect<Attachment, NotFoundError | ExitedError>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Pty") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Pty") {}
 
 const layer = Layer.effect(
   Service,
@@ -174,7 +172,7 @@ const layer = Layer.effect(
         ...process.env,
         ...input.env,
         TERM: "xterm-256color",
-        BOLT_TERMINAL: "1",
+        OPENCODE_TERMINAL: "1",
       } as Record<string, string>
       if (process.platform === "win32") {
         env.LC_ALL = "C.UTF-8"
