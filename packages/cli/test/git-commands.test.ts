@@ -145,7 +145,8 @@ test("bench exits nonzero when temporary worktree cleanup fails", async () => {
     expect(stderr).toContain("Failed to remove the temporary worktree")
     const list = await raw("worktree", "list", "--porcelain")
     for (const match of list.matchAll(/^worktree (.+)$/gm))
-      if (match[1] !== root) await raw("worktree", "remove", "--force", match[1])
+      if ((await fs.realpath(match[1].trim())) !== (await fs.realpath(root)))
+        await raw("worktree", "remove", "--force", match[1].trim())
   } finally {
     await fs.rm(home, { recursive: true, force: true })
   }

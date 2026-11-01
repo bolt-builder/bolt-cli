@@ -2,15 +2,14 @@ export * as BackgroundTools from "./background.js"
 
 import { ToolFailure } from "@opencode/ai/effect"
 import type { Context } from "@opencode/plugin/effect/plugin"
-import { Shell as ShellSchema } from "@opencode/schema/shell"
-import type { Tool } from "@opencode/schema/tool"
+import { ID } from "@opencode/schema/shell"
 import { Effect, Schema } from "effect"
 import { Job } from "../../job.js"
 import { Permission } from "../../permission.js"
 import { Shell } from "../../shell.js"
-import { Tool as ToolRegistry } from "../../tool.js"
+import { Tool } from "../../tool.js"
 
-const ID = Schema.Struct({ id: Schema.String })
+const ProcessInput = Schema.Struct({ id: Schema.String })
 const Output = Schema.Struct({
   id: Schema.String,
   status: Schema.String,
@@ -18,7 +17,7 @@ const Output = Schema.Struct({
   truncated: Schema.optionalKey(Schema.Boolean),
   bytes: Schema.optionalKey(Schema.Number),
 })
-const Started = Schema.Struct({ shellID: ShellSchema.ID })
+const Started = Schema.Struct({ shellID: ID })
 
 export function payload(data: string, enter?: boolean) {
   return new TextEncoder().encode(enter === false ? data : `${data}\n`)
@@ -31,7 +30,7 @@ export const Plugin = {
     const jobs = yield* Job.Service
     const shell = yield* Shell.Service
     const permissions = yield* Permission.Service
-    const registry = yield* ToolRegistry.Service
+    const registry = yield* Tool.Service
     const find = Effect.fn("BackgroundTools.find")(function* (id: string, context: Tool.Context) {
       const info = yield* jobs.get(id)
       if (!info || info.type !== "shell" || info.metadata?.sessionID !== context.sessionID)
@@ -103,7 +102,7 @@ export const Plugin = {
           description:
             "Read a session background process's live output or final result. Optional wait is milliseconds, at most 120000; use only when the output is needed now.",
           input: Schema.Struct({
-            ...ID.fields,
+            ...ProcessInput.fields,
             wait: Schema.optionalKey(
               Schema.Finite.check(Schema.isGreaterThanOrEqualTo(0), Schema.isLessThanOrEqualTo(120_000)),
             ),
@@ -119,7 +118,7 @@ export const Plugin = {
               let text = info.output ?? info.error ?? ""
               let truncated = false
               if (info.status === "running") {
-                const id = yield* Schema.decodeUnknownEffect(ShellSchema.ID)(input.id)
+                const id = yield* Schema.decodeUnknownEffect(ID)(input.id)
                 const head = yield* shell.output(id, { cursor: 0, limit: 1 })
                 const tail = yield* shell.output(id, { cursor: Math.max(0, head.size - 65_536), limit: 65_536 })
                 text = tail.output
@@ -141,7 +140,11 @@ export const Plugin = {
           options: { permission: "shell", codemode: false },
           description:
             "Write text to a running session background process. Appends a newline unless enter is false. Input is limited to 64 KiB per call.",
-          input: Schema.Struct({ ...ID.fields, data: Schema.String, enter: Schema.optionalKey(Schema.Boolean) }),
+          input: Schema.Struct({
+            ...ProcessInput.fields,
+            data: Schema.String,
+            enter: Schema.optionalKey(Schema.Boolean),
+          }),
           output: Output,
           execute: (input, context) =>
             Effect.gen(function* () {
@@ -153,7 +156,7 @@ export const Plugin = {
               const bytes = payload(input.data, input.enter)
               if (bytes.byteLength > 65_536) return yield* Effect.fail(new Error("Process input exceeds 64 KiB"))
               yield* authorize(info, context)
-              yield* shell.stdin(yield* Schema.decodeUnknownEffect(ShellSchema.ID)(info.id), bytes)
+              yield* shell.stdin(yield* Schema.decodeUnknownEffect(ID)(info.id), bytes)
               return result(
                 info.id,
                 info.status,
@@ -167,7 +170,7 @@ export const Plugin = {
           options: { permission: "shell", codemode: false },
           description:
             "Cancel a session background process by its exact id. Already finished processes retain their terminal state.",
-          input: ID,
+          input: ProcessInput,
           output: Output,
           execute: (input, context) =>
             Effect.gen(function* () {

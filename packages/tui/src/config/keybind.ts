@@ -126,6 +126,7 @@ export const Definitions = {
   "session.fork": keybind("none", "Fork session from message"),
   "session.rename": keybind("ctrl+r", "Rename session"),
   "session.delete": keybind("ctrl+d", "Delete session"),
+  "session.history.clear": keybind("none", "Clear session history after confirmation"),
   // Retain shipped configuration names; session sharing was removed.
   "session.share": keybind("none", "Deprecated: session sharing was removed"),
   "session.unshare": keybind("none", "Deprecated: session sharing was removed"),

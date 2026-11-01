@@ -174,7 +174,7 @@ test("npm publication validates Bolt ownership, version, scripts and signed orig
     for (const target of targets) await pack(`@bolt-builder/bolt-cli-${target}`)
     await pack("@opencode/schema")
     const args = [f.dirs.npm, f.dirs.mac, f.dirs.win]
-    expect((await f.run("publish-npm.sh", args)).code).toBe(0)
+    expect(await f.run("publish-npm.sh", args)).toMatchObject({ code: 0 })
     const calls = (await Bun.file(f.env.CALLS).text()).trim().split("\n")
     expect(calls).toHaveLength(13)
     expect(calls.every((call) => call.includes("--ignore-scripts") && call.includes("--dry-run"))).toBe(true)

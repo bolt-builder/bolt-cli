@@ -1,5 +1,6 @@
 import { Effect, Option } from "effect"
 import path from "node:path"
+import fs from "node:fs"
 import { OpenCode } from "@opencode/client/promise"
 import { Service } from "@opencode/client/effect/service"
 import { noTimeoutFetch } from "@opencode/util/no-timeout-fetch"
@@ -68,8 +69,10 @@ export default Runtime.handler(Commands.commands.why, (input) =>
       return yield* Effect.fail(new Error("Provide --model in the format provider/model."))
     const git = yield* Git.make
     const root = yield* git.run(["rev-parse", "--show-toplevel"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-    const cwd = root.stdout.toString().trim()
-    const file = requestedFile ? path.relative(cwd, path.resolve(requestedFile)) : undefined
+    const cwd = fs.realpathSync.native(root.stdout.toString().trim())
+    const file = requestedFile
+      ? path.relative(cwd, path.resolve(fs.realpathSync.native(process.cwd()), requestedFile)).replaceAll("\\", "/")
+      : undefined
     const format = "--format=%H%x00%an%x00%cd%x00%s%x01"
     const log = yield* Effect.gen(function* () {
       if (lineSpec) {

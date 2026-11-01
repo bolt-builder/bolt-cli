@@ -6,7 +6,6 @@ for (const reducedMotion of [false, true]) {
     page,
   }) => {
     await setupTimeline(page, { seedHistory: true, reducedMotion })
-    const chat = page.locator('[data-slot="session-chat-panel"]')
     const scroll = page.locator('[data-slot="session-timeline-scroll"]')
     const viewport = scroll.locator(".scroll-view__viewport")
     const thumb = page.locator('[data-slot="session-timeline-visible"] .scroll-view__thumb')

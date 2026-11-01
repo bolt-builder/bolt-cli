@@ -166,9 +166,11 @@ test("detached jobs retain logs and argv, kill descendants and cap health-driven
   } finally {
     for (const job of created) {
       try {
-        process.kill(-job.pid, "SIGKILL")
+        if (process.platform === "win32")
+          Bun.spawnSync(["taskkill", "/pid", String(job.pid), "/T", "/F"], { stdout: "ignore", stderr: "ignore" })
+        if (process.platform !== "win32") process.kill(-job.pid, "SIGKILL")
       } catch {}
     }
-    await fs.rm(home, { recursive: true, force: true })
+    await fs.rm(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }, 60000)

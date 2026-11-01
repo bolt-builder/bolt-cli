@@ -80,7 +80,8 @@ for (const scenario of ["typing", "cursor-movement", "cursor-noop", "submit-clea
               probe.bytes += value.length
             }
 
-            return parse(value, reviver)
+            // eslint-disable-next-line no-restricted-globals -- Forward both JSON.parse reviver overloads, including source context.
+            return Reflect.apply(parse, JSON, [value, reviver])
           }
         }
 

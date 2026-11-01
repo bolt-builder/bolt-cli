@@ -107,7 +107,8 @@ const checkCase = Effect.fn("cli.eval.check")(function* (check: Check, workspace
     const target = workspacePath(workspace, check.path)
     const real = await fs.realpath(target).catch(() => undefined)
     if (!real) return { check, passed: false, detail: "file not found" }
-    workspacePath(workspace, path.relative(workspace, real))
+    const root = await fs.realpath(workspace)
+    workspacePath(root, path.relative(root, real))
     if (check.type === "file_exists") return { check, passed: true }
     if (check.text === undefined && check.pattern === undefined)
       return { check, passed: false, detail: "file_contains requires text or pattern" }

@@ -108,7 +108,8 @@ export default Runtime.handler(Commands.commands.resolve, (input) =>
     if (model !== undefined) parseSessionTargetModel(model)
     const git = yield* Git.make
     const root = yield* git.run(["rev-parse", "--show-toplevel"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-    const cwd = root.stdout.toString().trim()
+    const cwd = yield* Effect.tryPromise(() => fs.realpath(root.stdout.toString().trim()))
+    const invocation = yield* Effect.tryPromise(() => fs.realpath(process.cwd()))
     const status = yield* git
       .run(["diff", "--name-only", "--diff-filter=U", "-z"], cwd)
       .pipe(Effect.flatMap(AppProcess.requireSuccess))
@@ -116,7 +117,7 @@ export default Runtime.handler(Commands.commands.resolve, (input) =>
     const files = [
       ...new Set(
         input.files.length
-          ? input.files.map((file) => path.relative(cwd, path.resolve(process.cwd(), file)).replaceAll("\\", "/"))
+          ? input.files.map((file) => path.relative(cwd, path.resolve(invocation, file)).replaceAll("\\", "/"))
           : conflicted,
       ),
     ]

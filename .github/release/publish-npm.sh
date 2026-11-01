@@ -31,7 +31,7 @@ list=$(mktemp)
 for file in "${files[@]}"; do
   IFS=$'\t' read -r name version config install < <(tar -xzOf "$file" package/package.json |
     jq -r '[.name, .version, ((.publishConfig // {}) | keys - ["access"] | length > 0),
-      ((.scripts // {}) | (has("preinstall") or has("install") or has("postinstall")))] | @tsv')
+      ((.scripts // {}) | (has("preinstall") or has("install") or has("postinstall")))] | @tsv' | tr -d '\r')
   if [[ "$name" == @opencode/* ]]; then
     # shellcheck disable=SC2086 # $internal is the fixed workspace library allowlist.
     printf '%s\n' $internal | grep -qxF -- "${name#@opencode/}" || die "Unexpected internal package $name"

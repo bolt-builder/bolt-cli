@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import fs from "node:fs/promises"
 import os from "node:os"
+import { EOL } from "node:os"
 import path from "node:path"
 import type { SessionMessageInfo } from "@opencode/client/promise"
 import { isolatedEnv } from "../fixture/environment"
@@ -203,7 +204,7 @@ test("run machine output preserves envelopes, TSV escaping, context and reconcil
     expect(json.stderr).toContain("1 step")
     const porcelain = await f.run("hello", "--porcelain")
     expect(porcelain.code, porcelain.stderr).toBe(0)
-    expect(porcelain.stdout).toBe("session\tses_controls_2\ntext\tanswer\\nwith\\ttabs\n")
+    expect(porcelain.stdout).toBe(`session\tses_controls_2${EOL}text\tanswer\\nwith\\ttabs${EOL}`)
     const context = await f.run("hello", "--emit", "context")
     expect(context.code, context.stderr).toBe(0)
     expect(context.stdout).toBe("[bolt run context session=ses_controls_3]\n\nanswer\nwith\ttabs\n")

@@ -225,16 +225,34 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 The restoration remains in progress. None of the pending rows is covered by a general claim of full parity.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:06060329b1f486995a2b2e89b3cabc703ad9a9c6396c8aeac08af9267be6b4fa -->
+
 ## Native CI repair checkpoint
 
 The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizzle glob importing the SQL tool, Windows shell quoting/path/archive problems, and assertions tied to the upstream brand/palette. Repairs preserve the database schema, user data and V2 permission paths.
 
-- Canonical root check passed: 36 tasks, including 13 fresh checks and 23 equivalent cached checks.
-- CLI repair selection passed 25 tests / 745 assertions, including actual shell commands, job descendants, Git worktrees, configuration and release archives. Windows-only branches still require native CI.
-- Full lifecycle/dialog selection passed 75 TUI tests. The two lifecycle regressions also passed ten repetitions before the full selection.
+- Canonical root check passed: 36/36 packages. Official Core, CLI and TUI TypeScript checks passed at this checkpoint.
+- CLI repair selection passed 36 tests / 684 assertions after canonicalizing Windows path aliases, preserving native porcelain EOL, fixing jq CRLF metadata and cleaning Windows process trees. Split bisect integration cases retain the original checkout/worktree/read-only assertions within each test deadline. Native unit reruns remain required.
+- TUI history/lifecycle/commands selection passed 56 tests; appearance/config/theme selection passed 28 tests. Prior full lifecycle/dialog selection passed 75 tests; unchanged regressions also passed ten repetitions.
 - Bolt pin-board interaction/reduced motion and light/dark composer component cases passed 60 repetitions with no retries.
-- Migration/SQL selection passed 46 tests / 125 assertions after naming the tool module `sql-query.ts`; no database schema or migration changed.
-- Fresh production browser regressions, official dependent compilers, packed SDK, Node SEA verification and native reruns remain outstanding. A sandbox Node build generated the SEA but exited 137 before its final verification; it is not counted as a passing build.
+- Migration/SQL selection passed 46 tests / 125 assertions after naming the tool module `sql-query.ts`; no database schema or migration changed. Regenerated OpenAPI passes its generated-output check.
+- Linux Node SEA production build and compiled service smoke passed. Packed SDK Node/Bun/workerd imports, bundling and actual worker boot passed. The newer history controls still require a fresh compiled build.
+- At head `c8d9d6c`, all five Node builds, Linux/Windows builds, all six desktop builds and Linux/Windows browser suites passed. Linux unit CI found stale generated OpenAPI; Windows unit CI found the command/fixture failures repaired above. Signing/installers and fresh unit reruns are tracked separately; builds do not prove native installation or full V1 parity.
+- Production browser fixture selection passed 129/130 initially. The remaining Go-limit fixture injected its refusal before the model catalog was selected; waiting for the actual selected model fixes its owning readiness condition, and 20/20 fresh repetitions passed. About-page loading/failure cases passed 20/20 on the new production web build.
+- Full Effect pattern scan retains 34 findings already present in `dev`; the two new background-tool import aliases were removed and the scoped scan passes. Effect rule fixtures and simplification scan pass. This baseline failure is not reported as a passing full scan.
+
+## Requested session history controls
+
+- Terminal session sidebar lists past root conversations, not only open tabs, loads older pages and opens the selected conversation. It follows deletion events and retains existing session search.
+- `/clear-data` (alias `/clear-history`) snapshots all root conversations from the connected Bolt server, shows their count and requires typing `DELETE`. It uses normal V2 deletion, reports partial failures and preserves settings, credentials, memory and project files. This is conversation cleanup: it cannot delete provider-held data, reset Zen usage limits or enable unlimited usage. No real user history was deleted during verification.
+- New designs is removed from the Experiments menu. Existing saved layout preferences and the reusable Experiments framework are retained.
+- The About Bolt wordmark now uses the original cyan-to-blue gradient at full opacity while retaining the existing reduced-motion behavior; verified in the shared cloud browser against a production build.
+- Evidence: TUI `test/session-history.test.tsx` uses the actual app fixture for pagination, opening an older conversation, deletion events, cancellation and explicit deletion with partial failures. Full supported-platform and V1 parity gates above remain open.
+
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 
 <!-- /coderabbit-ai-generated:v1 -->
