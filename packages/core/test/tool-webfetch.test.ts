@@ -519,6 +519,35 @@ describe("WebFetchTool registration", () => {
     )
   })
 
+  it.effect("blocks link-local fetches and redirects even when permissions allow them", () =>
+    Effect.gen(function* () {
+      const registry = yield* Tool.Service
+      for (const url of [
+        "http://169.254.169.254/latest/meta-data",
+        "http://[fe80::1]/",
+        "http://[::ffff:169.254.1.1]/",
+      ]) {
+        reset()
+        const result = yield* executeTool(registry, call({ url, format: "text" }))
+        expect(result).toMatchObject({
+          status: "error",
+          error: { message: expect.stringContaining("Refusing to fetch link-local address") },
+        })
+        expect(requests).toEqual([])
+      }
+      reset()
+      respond = () =>
+        Effect.succeed(
+          new Response("", { status: 302, headers: { location: "http://169.254.169.254/latest/meta-data" } }),
+        )
+      expect(yield* executeTool(registry, call({ url: "https://1.1.1.1/start", format: "text" }))).toMatchObject({
+        status: "error",
+        error: { message: expect.stringContaining("Refusing to fetch link-local address") },
+      })
+      expect(requests.map((request) => request.url)).toEqual(["https://1.1.1.1/start"])
+    }),
+  )
+
   it.effect("stops at a redirect target the rules deny", () =>
     Effect.gen(function* () {
       reset()

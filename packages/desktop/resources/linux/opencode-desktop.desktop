@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=OpenCode
-Exec=/opt/OpenCode/ai.opencode %U
+Name=Bolt
+Exec=/opt/Bolt/ai.opencode %U
 Terminal=false
 Type=Application
 Icon=ai.opencode

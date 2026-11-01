@@ -7,6 +7,7 @@ import { discoverThemes } from "../src/theme/discovery"
 import { configDirectories } from "../src/util/config-directories"
 import { terminalMode } from "../src/theme/system"
 import opencodeSource from "../src/theme/assets/opencode.json" with { type: "json" }
+import { resolveThemeDocument } from "@opencode/theme/tui"
 import type { ThemeV1Json } from "@opencode/theme/tui/v1"
 import { tmpdir } from "./fixture/fixture"
 
@@ -51,9 +52,7 @@ test("decodes native V2 themes lazily once", () => {
 })
 
 test("rejects invalid V2 themes when parsing", () => {
-  expect(() => parseTheme({ light: { categorical: [] } }, "invalid-v2")).toThrow(
-    "Invalid theme: invalid-v2",
-  )
+  expect(() => parseTheme({ light: { categorical: [] } }, "invalid-v2")).toThrow("Invalid theme: invalid-v2")
 })
 
 test("rejects invalid V1 themes when parsing", () => {
@@ -147,4 +146,13 @@ test("theme directories include global config before project directories", async
     global: { source: "global" },
     project: { source: "project" },
   })
+})
+
+test.each(["light", "dark"] as const)("migrates the original Bolt palette in %s mode", (mode) => {
+  const source = allThemes().bolt as ThemeV1Json
+  const original = resolveTheme(source, mode)
+  const tokens = resolveThemeDocument(parseTheme(source, "bolt"), mode)
+  expect(tokens.background.base.toInts()).toEqual(original.background.toInts())
+  expect(tokens.text.base.toInts()).toEqual(original.text.toInts())
+  expect(tokens.syntax.keyword.toInts()).toEqual(original.syntaxKeyword.toInts())
 })

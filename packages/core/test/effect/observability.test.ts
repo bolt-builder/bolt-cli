@@ -139,3 +139,25 @@ test("file logger flattens nested objects", async () => {
   expect(line).toContain("session.id=session-1")
   expect(line).not.toContain("request={")
 })
+
+test("file logger scrubs credentials in errors, arguments and nested annotations", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-redacted-log-"))
+  try {
+    const key = "sk-" + "a".repeat(24)
+    const file = path.join(dir, "bolt.log")
+    await Effect.logError("request failed", { cause: new Error(key), args: [key] }).pipe(
+      Effect.annotateLogs({ request: { token: key } }),
+      Effect.provide(
+        Logger.layer([fileLogger(file, "fixture")]).pipe(Layer.provide(NodeFileSystem.layer), Layer.orDie),
+      ),
+      Effect.scoped,
+      Effect.runPromise,
+    )
+    const text = await Bun.file(file).text()
+    expect(text).not.toContain(key)
+    expect(text).toContain("[redacted:api-key]")
+    expect(text).toContain('message="request failed"')
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true })
+  }
+})

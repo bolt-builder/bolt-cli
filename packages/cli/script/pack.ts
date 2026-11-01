@@ -4,8 +4,9 @@ import pkg from "../package.json"
 import { Script } from "@opencode/script"
 import { archiveDir, npmDir } from "@opencode/script/pack"
 import { existsSync } from "fs"
-import { chmod, mkdir, rm, utimes } from "node:fs/promises"
+import { chmod, copyFile, mkdir, mkdtemp, rm, utimes } from "node:fs/promises"
 import path from "node:path"
+import os from "node:os"
 
 // Packs the built CLI (dist/) into npm tarballs in dist/npm and standalone archives in dist/archives at
 // the repository root. The release workflow signs the macOS and Windows packages and archives afterwards.
@@ -17,20 +18,20 @@ await mkdir(archiveDir, { recursive: true })
 
 await packDistribution({
   root,
-  name: pkg.name,
-  command: "opencode",
-  legacyCommand: "opencode2",
+  name: "@bolt-builder/bolt-cli",
+  command: "bolt",
+  legacyCommand: "opencode",
   binary: "opencode",
-  packagePrefix: "@opencode/cli-",
-  archive: (target) => target.startsWith("linux-"),
+  packagePrefix: "@bolt-builder/bolt-cli-",
+  archive: () => true,
 })
 if (existsSync(path.join(root, "node"))) {
   await packDistribution({
     root: path.join(root, "node"),
-    name: "@opencode/cli-node",
-    command: "opencode2-node",
+    name: "@bolt-builder/bolt-cli-node",
+    command: "bolt-node",
     binary: "opencode2-node",
-    packagePrefix: "@opencode/cli-node-",
+    packagePrefix: "@bolt-builder/bolt-cli-node-",
     archive: () => true,
   })
 }
@@ -45,10 +46,12 @@ async function packDistribution(input: {
   archive: (target: string) => boolean
 }) {
   const binaries: Record<string, string> = {}
+  const directories: Record<string, string> = {}
   for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: input.root })) {
     const item = await Bun.file(`${input.root}/${filepath}`).json()
     if (!item.name.startsWith(input.packagePrefix)) continue
     binaries[item.name] = item.version
+    directories[item.name] = path.dirname(filepath)
   }
   console.log(input.name, "binaries", binaries)
   const versions = new Set(Object.values(binaries))
@@ -81,7 +84,7 @@ async function packDistribution(input: {
         scripts: { postinstall: "node ./postinstall.mjs" },
         version,
         license: pkg.license,
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        repository: { type: "git", url: "git+https://github.com/bolt-builder/bolt-cli.git" },
         os: ["darwin", "linux", "win32"],
         cpu: ["arm64", "x64"],
         optionalDependencies: binaries,
@@ -91,7 +94,7 @@ async function packDistribution(input: {
     ),
   )
 
-  await Promise.all(Object.keys(binaries).map((name) => pack(`${input.root}/${name.replace("@opencode/", "")}`)))
+  await Promise.all(Object.keys(binaries).map((name) => pack(path.join(input.root, directories[name]))))
   await pack(`${input.root}/${input.name}`)
   await Promise.all(
     Object.keys(binaries)
@@ -99,9 +102,11 @@ async function packDistribution(input: {
       .filter(input.archive)
       .map((target) =>
         archive(
-          path.join(input.root, `${input.packagePrefix.replace("@opencode/", "")}${target}`, "bin"),
+          path.join(input.root, directories[`${input.packagePrefix}${target}`], "bin"),
           target,
           input.binary,
+          input.command,
+          input.name.split("/").at(-1)!,
         ),
       ),
   )
@@ -112,19 +117,26 @@ async function pack(directory: string) {
   await $`bun pm pack --destination ${npmDir}`.cwd(directory)
 }
 
-async function archive(bin: string, target: string, binary: string) {
-  const executable = `${binary}${target.startsWith("windows-") ? ".exe" : ""}`
-  const source = path.join(bin, executable)
-  if (!(await Bun.file(source).exists()) || !Bun.file(source).size) throw new Error(`Missing binary: ${source}`)
-  // GitHub artifact downloads lose execute bits. Fixed timestamps make retries reproducible.
-  await chmod(source, 0o755)
-  await utimes(source, new Date("1980-01-01T00:00:00Z"), new Date("1980-01-01T00:00:00Z"))
-  const extension = target.startsWith("linux-") ? "tar.gz" : "zip"
-  const output = path.join(archiveDir, `${binary}-${target}.${extension}`)
-  await rm(output, { force: true })
-  if (extension === "tar.gz") {
-    await $`tar --mtime=@0 --owner=0 --group=0 --numeric-owner -czf ${output} -C ${bin} ${executable}`
+async function archive(bin: string, target: string, binary: string, command: string, name: string) {
+  const suffix = target.startsWith("windows-") ? ".exe" : ""
+  const executable = `${command}${suffix}`
+  const original = path.join(bin, `${binary}${suffix}`)
+  if (!(await Bun.file(original).exists()) || !Bun.file(original).size) throw new Error(`Missing binary: ${original}`)
+  const staging = await mkdtemp(path.join(os.tmpdir(), "bolt-archive-"))
+  try {
+    const source = path.join(staging, executable)
+    await copyFile(original, source)
+    // Artifact downloads lose execute bits. Fixed timestamps make retries reproducible.
+    await chmod(source, 0o755)
+    await utimes(source, new Date("1980-01-01T00:00:00Z"), new Date("1980-01-01T00:00:00Z"))
+    const extension = target.startsWith("linux-") ? "tar.gz" : "zip"
+    const output = path.join(archiveDir, `${name}-${target}.${extension}`)
+    await rm(output, { force: true })
+    if (extension === "tar.gz")
+      await $`tar --mtime=@0 --owner=0 --group=0 --numeric-owner -czf ${output} -C ${staging} ${executable}`
+    if (extension === "zip") await $`zip -X -q ${output} ${executable}`.cwd(staging)
+    return output
+  } finally {
+    await rm(staging, { recursive: true, force: true })
   }
-  if (extension === "zip") await $`zip -X -q ${output} ${executable}`.cwd(bin)
-  return output
 }

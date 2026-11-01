@@ -175,9 +175,8 @@ test.each(
     exitSplash({ ...input, title: "Review mini layout", session_id: sessionID, theme }),
     input.width,
   )
-  const command = `opencode mini -s ${sessionID}`
-  const commandRows =
-    input.width >= 80 ? [result.rows[2].slice(result.rows[2].indexOf("opencode"))] : result.rows.slice(1)
+  const command = `bolt mini -s ${sessionID}`
+  const commandRows = input.width >= 80 ? [result.rows[2].slice(result.rows[2].indexOf("bolt"))] : result.rows.slice(1)
   const reconstructed = commandRows
     .map((row, index) => (index < commandRows.length - 1 ? row.padEnd(input.width) : row))
     .join("")
@@ -191,6 +190,6 @@ test.each(
     expect(result.rows).toHaveLength(1 + Math.ceil(command.length / input.width))
   }
   if (input.mono) expect(result.rows.join("")).not.toMatch(/[^\x20-\x7e]/)
-  expect(result.spans.find((span) => span.text.includes("opencode"))?.fg.intent).toBe("default")
-  expect(result.spans.find((span) => span.text.includes("opencode"))?.fg.toInts()).toEqual(theme.right.toInts())
+  expect(result.spans.find((span) => span.text.includes("bolt"))?.fg.intent).toBe("default")
+  expect(result.spans.find((span) => span.text.includes("bolt"))?.fg.toInts()).toEqual(theme.right.toInts())
 })

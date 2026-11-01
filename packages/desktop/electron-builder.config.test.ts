@@ -50,11 +50,12 @@ function trimFilter(dir: string, config: Configuration) {
 test.each(channels)("channel identity for $channel", ({ channel, appId, feed }) => {
   const config = load(channel)
   expect(config.appId).toBe(appId)
-  // Every published channel updates from its own feed on the update service.
+  // Published channels discover releases from the Bolt repository.
   expect(config.publish).toEqual({
-    provider: "generic",
-    url: `https://opencode.ai/update/api/${feed}/desktop/opencode/`,
-    channel: "latest",
+    provider: "github",
+    owner: "bolt-builder",
+    repo: "bolt-cli",
+    channel: feed,
   })
   expect(config.extraMetadata?.desktopName).toBe(`${appId}.desktop`)
   // The executable must never end in `.desktop`: libappimage resolves the
@@ -82,7 +83,7 @@ test.each(channels)("channel identity for $channel", ({ channel, appId, feed }) 
 
 test("legacy Linux launcher stays hidden", async () => {
   const desktop = await Bun.file(path.join(import.meta.dirname, "resources/linux/opencode-desktop.desktop")).text()
-  expect(desktop).toContain("Exec=/opt/OpenCode/ai.opencode %U")
+  expect(desktop).toContain("Exec=/opt/Bolt/ai.opencode %U")
   expect(desktop).toContain("Icon=ai.opencode")
   expect(desktop).toContain("StartupWMClass=ai.opencode.desktop")
   expect(desktop).toContain("NoDisplay=true")

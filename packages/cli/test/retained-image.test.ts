@@ -67,7 +67,7 @@ windows("installed accepts package-manager and curl binaries only", () =>
     yield* Effect.addFinalizer(() => Effect.sync(() => (process.execPath = original)))
     const cases = [
       [path.join(home, ".bun", "install", "global", "node_modules", "@opencode", "cli", "bin", "opencode.exe"), true],
-      [path.join(home, ".opencode", "bin", "opencode.exe"), true],
+      [path.join(home, ".bolt", "bin", "bolt.exe"), true],
       [
         path.join(
           home,
@@ -79,8 +79,10 @@ windows("installed accepts package-manager and curl binaries only", () =>
           "Anomaly.OpenCode_Microsoft.Winget.Source_8wekyb3d8bbwe",
           "opencode.exe",
         ),
-        true,
+        false,
       ],
+      [path.join(home, "scoop", "apps", "bolt", "current", "bolt.exe"), true],
+      [path.join("C:", "ProgramData", "chocolatey", "lib", "bolt", "tools", "bolt.exe"), true],
       [path.join(home, "AppData", "Local", "Programs", "OpenCode", "resources", "opencode-cli.exe"), false],
       [path.join(home, "node_modules", "bun", "bin", "bun.exe"), false],
     ] as const

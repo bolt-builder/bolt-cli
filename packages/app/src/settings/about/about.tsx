@@ -146,8 +146,8 @@ export function SettingsAbout(props: { active: boolean }) {
       </div>
 
       <p class="settings-about-faint">
-        <ExternalLink href="https://opencode.ai">
-          <bdi dir="ltr">{language.t("settings.about.website")}</bdi>
+        <ExternalLink href="https://github.com/bolt-builder/bolt-cli">
+          <bdi dir="ltr">github.com/bolt-builder/bolt-cli</bdi>
         </ExternalLink>
       </p>
 

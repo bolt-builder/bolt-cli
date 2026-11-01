@@ -106,6 +106,25 @@ const launch = Effect.fn(function* (fixture: Effect.Success<typeof setup>, name:
 })
 
 describe("Session.shell", () => {
+  if (process.platform === "linux" && Bun.which("bwrap") && !import.meta.dir.startsWith("/tmp/"))
+    it.live("enforces the session filesystem sandbox on shell launches", () =>
+      Effect.gen(function* () {
+        const fixture = yield* setup
+        const blocked = path.join(import.meta.dir, `.bolt-sandbox-${crypto.randomUUID()}`)
+        yield* Effect.addFinalizer(() => Effect.promise(() => fs.rm(blocked, { force: true })))
+        yield* fixture.session.setMetadata({ sessionID: fixture.created.id, metadata: { sandbox: true } })
+        const quoted = `'${blocked.replaceAll("'", "'\\''")}'`
+        const info = yield* fixture.shell.create({
+          command: `printf allowed > allowed.txt; printf denied > ${quoted}`,
+          metadata: { sessionID: fixture.created.id },
+        })
+        const result = yield* fixture.shell.wait(info.id)
+        expect(result.exit).not.toBe(0)
+        expect(yield* Effect.promise(() => Bun.file(blocked).exists())).toBe(false)
+        expect(yield* Effect.promise(() => Bun.file(path.join(fixture.tmp.path, "allowed.txt")).text())).toBe("allowed")
+        expect((yield* fixture.shell.output(info.id)).output).toContain("Read-only file system")
+      }),
+    )
   it.live("runs shells concurrently with an active model and waits for each shell's own completion", () =>
     Effect.gen(function* () {
       const fixture = yield* setup

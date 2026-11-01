@@ -205,6 +205,7 @@ export function normalize(input: unknown): Result {
 
   const nativeAtomic = {
     $schema: Info.fields.$schema,
+    redact: Info.fields.redact,
     shell: Info.fields.shell,
     default_agent: Info.fields.default_agent,
     share: Info.fields.share,
@@ -459,6 +460,15 @@ function normalizeExperimental(
       unsupportedExperimental.forEach((key) =>
         unsupportedIfPresent(experimental, key, ["experimental", key], diagnostics),
       )
+      if (own(experimental, "redact")) {
+        const value = decodeEncoded(
+          ConfigExperimental.Info.fields.redact,
+          experimental.redact,
+          ["experimental", "redact"],
+          diagnostics,
+        )
+        if (value !== undefined) result.redact = value
+      }
       if (own(experimental, "portable_shell_scanner")) {
         const value = decodeEncoded(
           ConfigExperimental.Info.fields.portable_shell_scanner,

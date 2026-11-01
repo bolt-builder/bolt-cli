@@ -29,6 +29,10 @@ describe("Job", () => {
       })
 
       expect(job).toMatchObject({ type: "test", status: "running", metadata: { durable: false } })
+      const listed = yield* jobs.list
+      expect(listed).toContainEqual(job)
+      listed[0]!.metadata!.durable = true
+      expect((yield* jobs.get(job.id))?.metadata?.durable).toBe(false)
       expect(yield* jobs.wait({ id: job.id, timeout: 0 })).toMatchObject({
         timedOut: true,
         info: { status: "running" },

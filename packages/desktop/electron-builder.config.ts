@@ -64,7 +64,7 @@ const getBase = (appId: string): Configuration => {
   const desktopName = `${appId}.desktop`
 
   return {
-    artifactName: "opencode-desktop-${os}-${arch}.${ext}",
+    artifactName: "bolt-desktop-${os}-${arch}.${ext}",
     directories: {
       output: "dist",
       buildResources: "resources",
@@ -173,7 +173,7 @@ const getBase = (appId: string): Configuration => {
       target: ["dmg", "zip"],
     },
     protocols: {
-      name: "OpenCode",
+      name: "Bolt",
       schemes: ["opencode"],
     },
     win: {
@@ -218,15 +218,16 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Dev",
+        productName: "Bolt Dev",
         publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/dev/desktop/opencode/",
-          channel: "latest",
+          provider: "github",
+          owner: "bolt-builder",
+          repo: "bolt-cli",
+          channel: "dev",
         },
         deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
         rpm: {
-          packageName: "opencode-dev",
+          packageName: "bolt-dev",
           fpm: [rpmNoBuildIdLinksFpm, ...previewCompressionFpm("rpm"), metainfoFpm(appId)],
         },
       }
@@ -236,16 +237,17 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode Beta",
-        protocols: { name: "OpenCode Beta", schemes: ["opencode"] },
+        productName: "Bolt Beta",
+        protocols: { name: "Bolt Beta", schemes: ["opencode"] },
         publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/beta/desktop/opencode/",
-          channel: "latest",
+          provider: "github",
+          owner: "bolt-builder",
+          repo: "bolt-cli",
+          channel: "beta",
         },
         deb: { fpm: [...previewCompressionFpm("deb"), metainfoFpm(appId)] },
         rpm: {
-          packageName: "opencode-beta",
+          packageName: "bolt-beta",
           fpm: [rpmNoBuildIdLinksFpm, ...previewCompressionFpm("rpm"), metainfoFpm(appId)],
         },
       }
@@ -255,20 +257,21 @@ export function getConfig() {
       return {
         ...base,
         appId,
-        productName: "OpenCode",
-        protocols: { name: "OpenCode", schemes: ["opencode"] },
+        productName: "Bolt",
+        protocols: { name: "Bolt", schemes: ["opencode"] },
         // An Icon Composer package compiles to Assets.car, which macOS 26 and later draw the app icon from
         // (Dock, Finder, system dialogs and the system icon styles). Older macOS keeps using the ICNS.
         mac: { ...base.mac, icon: "resources/icons/icon.icon" },
         // The DMG volume icon would otherwise use the same actool-generated ICNS.
         dmg: { icon: "resources/icons/icon.icns" },
         publish: {
-          provider: "generic",
-          url: "https://opencode.ai/update/api/latest/desktop/opencode/",
+          provider: "github",
+          owner: "bolt-builder",
+          repo: "bolt-cli",
           channel: "latest",
         },
         deb: { fpm: [metainfoFpm(appId), legacyDesktopEntryFpm] },
-        rpm: { packageName: "opencode", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId), legacyDesktopEntryFpm] },
+        rpm: { packageName: "bolt", fpm: [rpmNoBuildIdLinksFpm, metainfoFpm(appId), legacyDesktopEntryFpm] },
       }
     }
   }

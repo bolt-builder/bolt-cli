@@ -173,15 +173,26 @@ describe("Agent", () => {
       yield* AgentPlugin.Plugin.effect(
         host({
           agent: agentHost(agent),
+          session: { hook: () => Effect.succeed({ dispose: Effect.void }) },
         }),
       )
 
       const agents = yield* agent.list()
       expect(agents.map((item) => String(item.id)).sort()).toEqual([
+        "ask",
         "build",
+        "code",
+        "code-review",
+        "commit",
         "compaction",
+        "debug",
+        "docs",
         "explore",
         "general",
+        "migrate",
+        "perf",
+        "refactor",
+        "security",
         "summary",
         "title",
       ])
@@ -203,6 +214,20 @@ describe("Agent", () => {
       expect(Permission.evaluate("external_directory", path.join(global.config, "*"), permissions).effect).toBe("allow")
       expect(Permission.evaluate("external_directory", path.join(global.tmp, "*"), permissions).effect).toBe("allow")
       expect(Permission.evaluate("external_directory", "/outside/*", permissions).effect).toBe("allow")
+      for (const id of ["ask", "code-review", "security"]) {
+        const info = yield* agent.get(Agent.ID.make(id))
+        for (const action of [
+          "memory_save",
+          "execute",
+          "todowrite",
+          "opencode_schedule_create",
+          "opencode_artifact_delete",
+          "opencode_worktree_create",
+        ]) {
+          expect(Permission.evaluate(action, "*", info?.permissions ?? []).effect).toBe("deny")
+        }
+        expect(Permission.evaluate("read", "src/index.ts", info?.permissions ?? []).effect).toBe("allow")
+      }
       const explore = yield* agent.get(Agent.ID.make("explore"))
       expect(Permission.evaluate("shell", "git log -5", explore?.permissions ?? []).effect).toBe("allow")
       expect(Permission.evaluate("edit", "src/index.ts", explore?.permissions ?? []).effect).toBe("deny")
@@ -223,6 +248,7 @@ describe("Agent", () => {
       yield* AgentPlugin.Plugin.effect(
         host({
           agent: agentHost(agent),
+          session: { hook: () => Effect.succeed({ dispose: Effect.void }) },
         }),
       )
 

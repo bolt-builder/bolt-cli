@@ -1,10 +1,11 @@
 import { expect, test } from "bun:test"
+import { logo } from "../../src/logo"
 import { epilogue } from "../../src/util/presentation"
 
 const rows = (text: string | undefined) =>
   Bun.stripANSI(text ?? "")
     .split("\n")
-    .filter((line) => line.trim() && !/[▀▄█]/.test(line))
+    .filter((line) => /^\s+(?:Session|Continue|Run)\b/.test(line))
 
 test("prints nothing without a session or update", () => {
   expect(epilogue({})).toBeUndefined()
@@ -13,18 +14,23 @@ test("prints nothing without a session or update", () => {
 test("formats session continuation summary", () => {
   expect(rows(epilogue({ session: { title: "A session", sessionID: "ses_123" } }))).toEqual([
     "  Session   A session",
-    "  Continue  opencode -s ses_123",
+    "  Continue  bolt -s ses_123",
   ])
 })
 
-test("tells the user to start OpenCode again after an update", () => {
-  expect(rows(epilogue({ updatedVersion: "2.0.0" }))).toEqual(["  Run opencode to use 2.0.0"])
+test("tells the user to start Bolt again after an update", () => {
+  expect(rows(epilogue({ updatedVersion: "2.0.0" }))).toEqual(["  Run bolt to use 2.0.0"])
 })
 
 test("keeps the session continuation after an update", () => {
   expect(rows(epilogue({ session: { title: "A session", sessionID: "ses_123" }, updatedVersion: "2.0.0" }))).toEqual([
-    "  Run opencode to use 2.0.0",
+    "  Run bolt to use 2.0.0",
     "  Session   A session",
-    "  Continue  opencode -s ses_123",
+    "  Continue  bolt -s ses_123",
   ])
+})
+
+test("renders the Bolt artwork literally including underscore strokes", () => {
+  const lines = Bun.stripANSI(epilogue({ updatedVersion: "2.0.0" }) ?? "").split("\n")
+  expect(lines.slice(0, logo.left.length)).toEqual(logo.left.map((line, index) => `  ${line} ${logo.right[index]}`))
 })

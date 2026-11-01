@@ -11,7 +11,7 @@ describe("debug paths command", () => {
     expect(debug.stdout).toContain("paths")
     expect(debug.stdout).toContain("Show global paths (data, config, cache, state)")
     expect(paths.exitCode).toBe(0)
-    expect(paths.stdout).toContain("opencode debug paths [flags]")
+    expect(paths.stdout).toContain("bolt debug paths [flags] [<name>]")
   })
 
   test("prints resolved global paths without starting a server", async () => {

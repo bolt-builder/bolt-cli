@@ -4,6 +4,7 @@ import { createEffect, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { createSimpleContext } from "../context/helper"
+import boltThemeJson from "./themes/bolt.json"
 import oc2ThemeJson from "./themes/oc-2.json"
 import { resolveThemeVariant, themeToCss } from "./resolve"
 import { resolveThemeVariantV2, themeV2ToCss } from "./v2/resolve"
@@ -49,54 +50,59 @@ function knownThemes() {
   return known
 }
 
-const names: Record<string, string> = {
-  "oc-2": "OpenCode",
-  amoled: "AMOLED",
-  aura: "Aura",
-  ayu: "Ayu",
-  carbonfox: "Carbonfox",
-  catppuccin: "Catppuccin",
-  "catppuccin-frappe": "Catppuccin Frappe",
-  "catppuccin-macchiato": "Catppuccin Macchiato",
-  cobalt2: "Cobalt2",
-  cursor: "Cursor",
-  dracula: "Dracula",
-  everforest: "Everforest",
-  flexoki: "Flexoki",
-  github: "GitHub",
-  gruvbox: "Gruvbox",
-  kanagawa: "Kanagawa",
-  "lucent-orng": "Lucent Orng",
-  material: "Material",
-  matrix: "Matrix",
-  mercury: "Mercury",
-  monokai: "Monokai",
-  nightowl: "Night Owl",
-  nord: "Nord",
-  "one-dark": "One Dark",
-  onedarkpro: "One Dark Pro",
-  orng: "Orng",
-  "osaka-jade": "Osaka Jade",
-  palenight: "Palenight",
-  rosepine: "Rose Pine",
-  shadesofpurple: "Shades of Purple",
-  solarized: "Solarized",
-  synthwave84: "Synthwave '84",
-  tokyonight: "Tokyonight",
-  vercel: "Vercel",
-  vesper: "Vesper",
-  zenburn: "Zenburn",
-}
+const names = new Map(
+  Object.entries({
+    "oc-2": "OpenCode",
+    bolt: "Bolt",
+    amoled: "AMOLED",
+    aura: "Aura",
+    ayu: "Ayu",
+    carbonfox: "Carbonfox",
+    catppuccin: "Catppuccin",
+    "catppuccin-frappe": "Catppuccin Frappe",
+    "catppuccin-macchiato": "Catppuccin Macchiato",
+    cobalt2: "Cobalt2",
+    cursor: "Cursor",
+    dracula: "Dracula",
+    everforest: "Everforest",
+    flexoki: "Flexoki",
+    github: "GitHub",
+    gruvbox: "Gruvbox",
+    kanagawa: "Kanagawa",
+    "lucent-orng": "Lucent Orng",
+    material: "Material",
+    matrix: "Matrix",
+    mercury: "Mercury",
+    monokai: "Monokai",
+    nightowl: "Night Owl",
+    nord: "Nord",
+    "one-dark": "One Dark",
+    onedarkpro: "One Dark Pro",
+    orng: "Orng",
+    "osaka-jade": "Osaka Jade",
+    palenight: "Palenight",
+    rosepine: "Rose Pine",
+    shadesofpurple: "Shades of Purple",
+    solarized: "Solarized",
+    synthwave84: "Synthwave '84",
+    tokyonight: "Tokyonight",
+    vercel: "Vercel",
+    vesper: "Vesper",
+    zenburn: "Zenburn",
+  }),
+)
 
+// SAFETY: the bundled OpenCode theme is maintained in the DesktopTheme format.
 const oc2Theme = oc2ThemeJson as DesktopTheme
 
 function resolveStoredTheme(id: string | null | undefined, registered?: Record<string, DesktopTheme>) {
   if (id === "oc-2" || (id && (knownThemes().has(id) || registered?.[id]))) return id
 
-  return "oc-2"
+  return "bolt"
 }
 
 function read(key: string) {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- localStorage may be absent during server rendering.
   if (typeof localStorage !== "object") return null
 
   try {
@@ -107,6 +113,7 @@ function read(key: string) {
 }
 
 function write(key: string, value: string) {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- localStorage may be absent during server rendering.
   if (typeof localStorage !== "object") return
 
   try {
@@ -115,6 +122,7 @@ function write(key: string, value: string) {
 }
 
 function drop(key: string) {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- localStorage may be absent during server rendering.
   if (typeof localStorage !== "object") return
 
   try {
@@ -128,6 +136,7 @@ function clear() {
 }
 
 function ensureThemeStyleElement(): HTMLStyleElement {
+  // SAFETY: this id is reserved for the style element created below.
   const existing = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null
 
   if (existing) return existing
@@ -138,7 +147,12 @@ function ensureThemeStyleElement(): HTMLStyleElement {
   return element
 }
 
+function parseScheme(value: string | null): ColorScheme {
+  return value === "light" || value === "dark" || value === "system" ? value : "system"
+}
+
 function getSystemMode(): "light" | "dark" {
+  // oxlint-disable-next-line anti-slop/no-runtime-typeof -- window is absent during server rendering.
   if (typeof window !== "object") return "light"
 
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
@@ -166,12 +180,12 @@ function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "da
   ensureThemeStyleElement().textContent = fullCss
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
-  document.documentElement.style.backgroundColor = isDark ? "#080808" : "#fafafa"
+  document.documentElement.style.backgroundColor = "var(--v2-background-bg-deep)"
 
   // Update theme-color meta tag to match light/dark mode
   const meta = document.querySelector('meta[name="theme-color"]')
 
-  if (meta) meta.setAttribute("content", isDark ? "#080808" : "#fafafa")
+  if (meta) meta.setAttribute("content", getComputedStyle(document.documentElement).backgroundColor)
 }
 
 function cacheThemeVariants(theme: DesktopTheme, themeId: string) {
@@ -201,18 +215,31 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       clear()
     }
 
-    const colorScheme = (read(STORAGE_KEYS.COLOR_SCHEME) as ColorScheme | null) ?? "system"
+    const colorScheme = parseScheme(read(STORAGE_KEYS.COLOR_SCHEME))
     const mode = colorScheme === "system" ? getSystemMode() : colorScheme
 
-    const [store, setStore] = createStore({
+    type ThemeState = {
+      themes: Record<string, DesktopTheme>
+      themeId: string
+      colorScheme: ColorScheme
+      mode: "light" | "dark"
+      previewThemeId: string | null
+      previewScheme: ColorScheme | null
+    }
+
+    // SAFETY: the bundled Bolt theme is maintained in the DesktopTheme format.
+    const boltTheme = boltThemeJson as DesktopTheme
+
+    const [store, setStore] = createStore<ThemeState>({
       themes: {
         "oc-2": oc2Theme,
-      } as Record<string, DesktopTheme>,
+        bolt: boltTheme,
+      },
       themeId,
       colorScheme,
       mode,
-      previewThemeId: null as string | null,
-      previewScheme: null as ColorScheme | null,
+      previewThemeId: null,
+      previewScheme: null,
     })
 
     const loads = new Map<string, Promise<DesktopTheme | undefined>>()
@@ -290,8 +317,9 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       }
 
       if (e.key === STORAGE_KEYS.COLOR_SCHEME && e.newValue) {
-        setStore("colorScheme", e.newValue as ColorScheme)
-        setStore("mode", e.newValue === "system" ? getSystemMode() : (e.newValue as "light" | "dark"))
+        const scheme = parseScheme(e.newValue)
+        setStore("colorScheme", scheme)
+        setStore("mode", scheme === "system" ? getSystemMode() : scheme)
       }
     }
 
@@ -309,7 +337,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
 
       const rawTheme = read(STORAGE_KEYS.THEME_ID) ?? props.defaultTheme
       const savedTheme = resolveStoredTheme(rawTheme, store.themes)
-      const savedScheme = (read(STORAGE_KEYS.COLOR_SCHEME) as ColorScheme | null) ?? "system"
+      const savedScheme = parseScheme(read(STORAGE_KEYS.COLOR_SCHEME))
 
       if (rawTheme && rawTheme !== savedTheme) {
         write(STORAGE_KEYS.THEME_ID, savedTheme)
@@ -375,7 +403,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
       colorScheme: () => store.colorScheme,
       mode: () => store.mode,
       ids,
-      name: (id: string) => store.themes[id]?.name ?? names[id] ?? id,
+      name: (id: string) => store.themes[id]?.name ?? names.get(id) ?? id,
       loadThemes,
       themes: () => store.themes,
       setTheme,

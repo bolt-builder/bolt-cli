@@ -17,6 +17,7 @@
     "./config/v1": "./src/config/v1/index.tsx",
     "./config/v1/keybind": "./src/config/v1/keybind.ts",
     "./plugin/discovery": "./src/plugin/discovery.ts",
+    "./voice": "./src/voice.ts",
     "./editor": "./src/editor.ts",
     "./mini": "./src/mini/index.ts",
     "./mini/tool": "./src/mini/tool.public.ts",

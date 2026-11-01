@@ -1,10 +1,10 @@
 {
   "groups": [
     {
-      "name": "OpenCode",
+      "name": "Bolt",
       "layers": [
         {
-          "name": "OpenCode",
+          "name": "Bolt",
           "image-name": "icon.png",
           "glass": false
         }
@@ -20,6 +20,8 @@
     }
   ],
   "supported-platforms": {
-    "squares": ["macOS"]
+    "squares": [
+      "macOS"
+    ]
   }
 }

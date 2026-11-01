@@ -78,7 +78,7 @@ function formatInitError(error: InitError, t: Translator): string {
     case "MCPFailed": {
       const name = read(error, "name", Predicate.isString) ?? ""
 
-      return t("error.chain.mcpFailed", { name })
+      return t("error.chain.mcpConnectionFailed", { name })
     }
 
     case "ProviderAuthError": {

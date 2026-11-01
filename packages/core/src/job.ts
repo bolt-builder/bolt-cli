@@ -132,6 +132,7 @@ export type BackgroundAllInput = {
 }
 
 export interface Interface {
+  readonly list: Effect.Effect<Info[]>
   readonly get: (id: string) => Effect.Effect<Info | undefined>
   readonly start: (input: StartInput) => Effect.Effect<Info>
   readonly wait: (input: WaitInput) => Effect.Effect<WaitResult>
@@ -550,6 +551,7 @@ export const make = Effect.gen(function* () {
   )
 
   return Service.of({
+    list: SynchronizedRef.get(state.jobs).pipe(Effect.map((jobs) => [...jobs.values()].map(snapshot))),
     get,
     start,
     wait,

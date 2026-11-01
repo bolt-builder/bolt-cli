@@ -47,7 +47,7 @@ export default Runtime.handler(Commands, (input) =>
       },
     }).pipe(
       Effect.tapError(() =>
-        Effect.promise(() => preflight.fail("OpenCode update could not start the new background service")),
+        Effect.promise(() => preflight.fail("Bolt update could not start the new background service")),
       ),
     )
     const session = Option.getOrUndefined(input.session)

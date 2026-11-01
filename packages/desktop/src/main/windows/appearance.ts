@@ -1,3 +1,4 @@
+import { APP_NAME } from "../constants"
 import { app, BrowserWindow, nativeImage, nativeTheme } from "electron"
 import type { DesktopZoomLevel } from "@opencode/app/desktop-menu"
 import type { Path } from "effect"
@@ -26,7 +27,7 @@ let backgroundColor: string | undefined
 
 export function windowAppearance(path: Path.Path, paths: DesktopPaths.Resolved) {
   return {
-    title: "OpenCode",
+    title: APP_NAME,
     icon: iconPath(path, paths),
     backgroundColor: backgroundColor ?? storedBackgroundColor(),
     ...platformFrame(tone(), storedZoomLevel()),

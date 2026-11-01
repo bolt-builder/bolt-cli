@@ -5,6 +5,21 @@
 . "$(dirname "$0")/lib.sh"
 
 tag="v$OPENCODE_VERSION"
+# Preview builds tag the triggering commit without changing package versions or the changelog.
+if [ "$OPENCODE_CHANNEL" != latest ]; then
+  sha=$(git rev-parse HEAD)
+  if ! dry_run; then
+    # An annotated tag lists its own object and then the peeled commit; compare the commit.
+    existing=$(git ls-remote origin "refs/tags/$tag" "refs/tags/$tag^{}" | tail -n 1 | cut -f1)
+    if [ -n "$existing" ]; then
+      [ "$existing" = "$sha" ] || die "Tag $tag already exists at a different commit"
+    else
+      git -c core.hooksPath=/dev/null push -q origin "HEAD:refs/tags/$tag"
+    fi
+  fi
+  echo "sha=$sha" >> "$GITHUB_OUTPUT"
+  exit 0
+fi
 # @opencode/pty is versioned separately, by process-daemon-v<version> tags.
 git ls-files -z -- '*package.json' bun.lock ':!packages/process-daemon/**' | xargs -0 sed -i -E "s/\"version\": \"[^\"]+\"/\"version\": \"$OPENCODE_VERSION\"/g"
 

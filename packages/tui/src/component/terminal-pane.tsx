@@ -235,7 +235,7 @@ export function TerminalPane(props: {
       }
       if (message.type !== "attached") return
       if (message.inputProtocol !== 1) {
-        setFailure("Persistent terminal server is out of date; restart OpenCode")
+        setFailure("Persistent terminal server is out of date; restart Bolt")
         next.close()
         return
       }

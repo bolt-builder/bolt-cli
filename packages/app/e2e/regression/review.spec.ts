@@ -772,6 +772,7 @@ test("artifact actions copy and download content, switch source, and follow the 
 
   const workspace = await openSession(page, {
     name: "ArtifactActions",
+    seed: { theme: { id: "bolt", scheme: "light" } },
     fileList: () => [],
     fileContent: (path) => {
       if (path === "vector.svg") return { content: source }
@@ -831,9 +832,10 @@ test("artifact actions copy and download content, switch source, and follow the 
   await expect(image).toHaveJSProperty("naturalWidth", 120)
 
   await page.getByRole("link", { name: "Table", exact: true }).click()
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "bolt")
   await expect(panel.getByRole("columnheader", { name: /^name(?:\s|$)/ })).toHaveCSS(
     "background-color",
-    "rgb(242, 242, 242)",
+    "rgb(237, 237, 237)",
   )
   const nameCell = panel.getByRole("cell", { name: /^Jensen, Oliver(?:\s|$)/ })
   await expect(nameCell).toBeVisible()

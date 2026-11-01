@@ -556,11 +556,15 @@ describe("LocationServiceMap", () => {
           const blockedTools = blockedState.tools.map((tool) => tool.name)
           expect(blockedTools.filter((name) => name !== "execute").sort()).toEqual([
             "edit",
+            "git",
             "glob",
             "grep",
+            "memory_recall",
+            "memory_save",
             "patch",
             "question",
             "read",
+            "semantic_search",
             "shell",
             "skill",
             "subagent",
@@ -575,11 +579,15 @@ describe("LocationServiceMap", () => {
           expect(blockedTools.includes("execute")).toBe(allowedTools.includes("execute"))
           expect(allowedTools.filter((name) => name !== "execute").sort()).toEqual([
             "edit",
+            "git",
             "glob",
             "grep",
+            "memory_recall",
+            "memory_save",
             "patch",
             "question",
             "read",
+            "semantic_search",
             "shell",
             "skill",
             "subagent",
