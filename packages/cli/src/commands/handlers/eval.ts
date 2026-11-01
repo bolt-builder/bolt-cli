@@ -136,7 +136,7 @@ export default Runtime.handler(Commands.commands.eval, (input) =>
       if (id) {
         const info = yield* Effect.tryPromise(() =>
           client.session.get({ sessionID: id }, { signal: AbortSignal.timeout(5000) }),
-        ).pipe(Effect.catch(() => Effect.succeed(undefined)))
+        ).pipe(Effect.orElseSucceed(() => undefined))
         cost = info?.cost ?? 0
         tokens = info?.tokens
       }

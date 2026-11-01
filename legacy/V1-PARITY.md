@@ -128,6 +128,10 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Mini automatic permission replies | Verified transport | Root/descendant requests answered once, duplicate suppression, failures return to manual UI, forms stay interactive; 10-repeat transport/runtime passes |
 | Dry-run, plan-only, pair and advanced attach/remote flags | Pending | These are still open V1 command-surface gates |
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:9bc17357cd7923ddd12b420fae1be2303656311491e8e32f9406cc073309f265 -->
+
 ## Tools and services
 
 | V1 feature | V2 implementation / required work | Status |
@@ -135,14 +139,15 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Browser / screenshots / interaction | Desktop browser plugin exists; terminal/headless browser service and exact V1 operations need audit | Pending |
 | Background start / output / list / kill / stdin | `shell` background/shellID/input plus Bolt process RPC; compare permission/cancellation/output contracts | Integrated; parity pending |
 | Git status/diff/log/show/blame | Active Git tool; permission/output/lazy-fetch tests from PR #420 | Integrated; final audit pending |
-| LSP configuration and servers | Config schema survives; runtime and references/rename integration missing | Pending |
+| LSP configuration and servers | Active location-scoped Content-Length transport; 38 V1 server IDs/extensions, roots, config disable/override and npm launchers; real TypeScript smoke | Verified Linux protocol/configuration; native downloaders, remaining real servers and supported hosts pending |
 | Test runner | Active `test_run` uses ordinary V2 shell dispatch, permission hooks, sandbox, cancellation and structured failure parsing; 8 tests / 17 assertions | Verified synthetic commands; live model use pending |
 | Coverage discovery | Active convention-based tool, actual Ripgrep and FileAccess/glob approvals, explicit bounded-result reporting; 8 tests / 19 assertions | Verified discovery; measured line coverage is not its contract |
-| Diagnostics | Requires restored LSP runtime and original file/severity refresh behavior | Pending |
+| Diagnostics | Push/pull, dynamic identifiers, related/workspace reports, result IDs, 150 ms push settling, version filtering, file/severity output and edit/delete refresh; 48 LSP/consumer tests / 306 assertions | Verified fixtures and real TypeScript on Linux; native server matrix pending |
+| LSP references / semantic rename | Original 1-based inputs and output presentation, owning-server snapshots, approved locked writes, external edit skipping with disclosure, BOM/CRLF and stale-text checks | Verified Linux tool integration and real TypeScript rename proposals; native platforms pending |
 | CPU profiling | Original aggregation and frame rendering; actual Node capture through V2 shell approvals/sandbox, timeout and scratch cleanup; 10 tests / 32 assertions | Verified on Linux; native Windows/macOS pending |
 | Video frames | Explicit timestamps, duration-based sampling, partial failures, readable PNGs and read/frames/shell denial; real ffmpeg fixture, 10 tests / 47 assertions | Verified on Linux; decoder availability on other hosts pending |
 | Notebook read/edit/insert/delete | Active notebook tool with FileAccess and locked FileMutation; original helper contracts and permission/metadata integration tests | Verified |
-| Multiedit | Active atomic preparation, one approval/write, successful-read prerequisite, V2 matcher, BOM/CRLF preservation and session isolation; included in 97 consumer tests / 431 assertions and 10-repetition new-tool suite | Integrated; LSP diagnostics remain open |
+| Multiedit | Active atomic preparation, one approval/write, successful-read prerequisite, V2 matcher, BOM/CRLF preservation and session isolation; included in 97 consumer tests / 431 assertions and 10-repetition new-tool suite | Existing editing contracts verified; registered LSP hook added, real multiedit/LSP workflow audit pending |
 | Tasks with blockers/transitions | Active graph tools with KV, concurrency, session isolation, blocker/terminal transitions and read-only legacy graph import tested | Verified synthetic persistence; live model workflow pending |
 | HTTP requests and named profiles | Original interpolation/shape helpers, real POST/redirect/denial/size/status fixtures and virtual-clock timeout; guarded IP-pinned transport and credential stripping across origins; 19 tests / 56 assertions | Verified synthetic local APIs |
 | SQL inspection | Original validator/formatters, real byte-preserving read-only SQLite tests and PostgreSQL/MariaDB transactions/schema/row limits; remote write-performing function rejection | Verified SQLite/PostgreSQL/MariaDB; native MySQL and other hosts pending |
@@ -157,7 +162,9 @@ Each source below is read from the reference commit. Nested commands retain thei
 | Budget / notifications | Existing cost threshold UI and stop/continue; settings persistence audit | Integrated; parity pending |
 | Persistent jobs / cron | One-time locked V1 imports preserve V2 collisions, source records/logs, live supervisor PID updates and removals; malformed-input and retry tests | Integrated; native Windows lifecycle verification pending |
 
-## Compatibility decisions
+
+
+<!-- /coderabbit-ai-generated:v1 -->## Compatibility decisions
 
 - V2 push/pull retain V2 collision rejection rather than V1 record merging, preserving existing history. V1 remote protocol interoperability remains open. V2 service authentication retains its registered username.
 - Rebase quotes commit messages literally to repair shell expansion in the V1 helper; merge-containing ranges fail explicitly because the linear plan cannot preserve merges.

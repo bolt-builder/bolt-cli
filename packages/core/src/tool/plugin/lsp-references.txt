@@ -1,0 +1,9 @@
+Find all references to the symbol at a position using the project's language servers.
+
+- Returns every reference, including the declaration, as file:line:col lines
+- Positions are 1-based, exactly as shown in editors
+- Faster and more precise than grep for symbol usage: results are semantic, so shadowed names and string matches are excluded
+
+Usage notes:
+- Place the position on the symbol name itself (any character inside the identifier works)
+- A language server must be configured for the file type; if none is available an error is returned

@@ -316,24 +316,61 @@ These are the literal string defaults in V1's keybinding definitions. Non-litera
 | `which-key.home` | `ctrl+alt+home` | Same default; action pending |
 | `which-key.end` | `ctrl+alt+end` | Same default; action pending |
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:5653f38187e36244787c658d08f633ddbfb2afc5b4e4af697d06b41ee115f43a -->
+
 ## Classic tool definitions
 
-Literal tool definitions are listed once by tool name, with all declaration sources retained. Registration guards, experimental settings and indirect/generated definitions require separate checks. Refer to the main parity checklist for the tested notebook/task/checkpoint implementations and outstanding services.
+AST inventory covers both `packages/core/src/tool` and `packages/opencode/src/tool`: 41 Tool.define calls at the reference revision, including generic calls and a symbolic shell ID. The earlier ten-row inventory covered only literal calls under opencode. Each name below retains its actual source; plugin-generated registrations, registration guards and settings still require their separate runtime audit.
 
 | Tool | Status | Reference source |
 | --- | --- | --- |
+| `<dynamic:ShellID.ToolID>` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/shell.ts` |
 | `apply_patch` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/apply_patch.ts` |
+| `background_stdin` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `bash_background` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `browser` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/browser.ts` |
+| `coverage` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/coverage.ts` |
+| `diagnostics` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/diagnostics.ts` |
 | `edit` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/edit.ts` |
+| `execute` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/code-mode.ts` |
+| `frames` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/frames.ts` |
+| `git` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/git.ts` |
 | `glob` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/glob.ts` |
 | `grep` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/grep.ts` |
-| `lsp` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/lsp.ts` |
+| `http` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/http.ts` |
+| `kill_process` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `list_processes` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `lsp` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/opencode/src/tool/lsp.ts` |
+| `lsp_references` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/lsp-references.ts` |
+| `lsp_rename` | Linux protocol/tool/approval integration verified; native server matrix pending | `packages/core/src/tool/lsp-rename.ts` |
+| `mcp_resource_read` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/mcp-resource.ts` |
+| `mcp_resources` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/mcp-resource.ts` |
+| `memory_recall` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/memory.ts` |
+| `memory_save` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/memory.ts` |
+| `multiedit` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/multiedit.ts` |
+| `notebook` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/notebook.ts` |
 | `plan_exit` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/plan.ts` |
+| `process_output` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/background.ts` |
+| `profile` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/profile.ts` |
+| `read` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/read.ts` |
+| `semantic_search` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/semantic-search.ts` |
 | `skill` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/skill.ts` |
+| `slashcommand` | Pending complete input/output/permission/error comparison | `packages/core/src/tool/slashcommand.ts` |
+| `sql` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/sql.ts` |
+| `task` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/task.ts` |
+| `task_create` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/tasks.ts` |
+| `task_list` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/tasks.ts` |
+| `task_update` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/tasks.ts` |
+| `test_run` | See verified behavior and explicit limitations in V1-PARITY.md | `packages/core/src/tool/testrun.ts` |
 | `webfetch` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/webfetch.ts` |
 | `websearch` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/websearch.ts` |
 | `write` | Pending complete input/output/permission/error comparison | `packages/opencode/src/tool/write.ts` |
 
-## Mini capabilities requiring end-to-end comparison
+
+
+<!-- /coderabbit-ai-generated:v1 -->## Mini capabilities requiring end-to-end comparison
 
 - Best-of-N parsing, independently isolated attempts, judging, failure fallback and cleanup.
 - Arena execution, anonymous candidate labels, worktree retention and winner selection.

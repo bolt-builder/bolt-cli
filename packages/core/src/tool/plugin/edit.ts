@@ -261,7 +261,6 @@ const countBefore = (positions: number[], offset: number) => {
 /** Deferred edit behavior and UX integrations remain visible at the model-facing seam. */
 // TODO: Publish watcher/file-edit events after watcher integration exists.
 // TODO: Add snapshots / undo after design exists.
-// TODO: Add LSP notification and diagnostics after LSP runtime exists.
 
 export const Plugin = {
   id: "opencode.tool.edit",

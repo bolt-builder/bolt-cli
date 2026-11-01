@@ -53,6 +53,12 @@ import { Integration } from "../integration.js"
 import { Job } from "../job.js"
 import { KV } from "../kv.js"
 import { Location } from "../location.js"
+import { LSP } from "../lsp.js"
+import { LspTool } from "../tool/plugin/lsp.js"
+import { LspReferencesTool } from "../tool/plugin/lsp-references.js"
+import { LspRenameTool } from "../tool/plugin/lsp-rename.js"
+import { DiagnosticsTool } from "../tool/plugin/diagnostics.js"
+import { LspPlugin } from "./lsp.js"
 import { ModelsDev } from "../models-dev.js"
 import { Mcp } from "../mcp/index.js"
 import { Npm } from "@opencode/util/npm"
@@ -158,6 +164,7 @@ const services = [
   KV.Service,
   LLMClient.Service,
   Location.Service,
+  LSP.Service,
   ModelsDev.Service,
   Mcp.Service,
   Npm.Service,
@@ -215,6 +222,7 @@ export const requirements = LayerNode.group([
   KV.node,
   llmClient,
   Location.node,
+  LSP.node,
   ModelsDev.node,
   Mcp.node,
   Npm.node,
@@ -289,6 +297,11 @@ const pre = [
   ShellTool.Plugin,
   TestRunTool.Plugin,
   CoverageTool.Plugin,
+  LspTool.Plugin,
+  LspReferencesTool.Plugin,
+  LspRenameTool.Plugin,
+  DiagnosticsTool.Plugin,
+  LspPlugin.Plugin,
   HttpTool.Plugin,
   FramesTool.Plugin,
   SqlTool.Plugin,

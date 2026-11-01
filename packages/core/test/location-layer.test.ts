@@ -556,12 +556,16 @@ describe("LocationServiceMap", () => {
           const blockedTools = blockedState.tools.map((tool) => tool.name)
           expect(blockedTools.filter((name) => name !== "execute").sort()).toEqual([
             "coverage",
+            "diagnostics",
             "edit",
             "frames",
             "git",
             "glob",
             "grep",
             "http",
+            "lsp",
+            "lsp_references",
+            "lsp_rename",
             "memory_recall",
             "memory_save",
             "multiedit",
@@ -590,12 +594,16 @@ describe("LocationServiceMap", () => {
           expect(blockedTools.includes("execute")).toBe(allowedTools.includes("execute"))
           expect(allowedTools.filter((name) => name !== "execute").sort()).toEqual([
             "coverage",
+            "diagnostics",
             "edit",
             "frames",
             "git",
             "glob",
             "grep",
             "http",
+            "lsp",
+            "lsp_references",
+            "lsp_rename",
             "memory_recall",
             "memory_save",
             "multiedit",
