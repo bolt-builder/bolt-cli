@@ -2351,8 +2351,8 @@ test("highlights the exact duplicate passage whenever its quote comment is open"
   await expect(jump).toHaveCount(0)
 
   for (const palette of [
-    { colorScheme: "dark" as const, background: "color(srgb 0.635294 0.737255 1 / 0.25)" },
-    { colorScheme: "light" as const, background: "color(srgb 0.133333 0.219608 0.560784 / 0.1)" },
+    { colorScheme: "dark" as const, background: "color(srgb 0.776471 0.854902 0.988235 / 0.25)" },
+    { colorScheme: "light" as const, background: "color(srgb 0.00784314 0.129412 0.290196 / 0.1)" },
   ]) {
     await page.emulateMedia({ colorScheme: palette.colorScheme })
     await expect
@@ -2780,7 +2780,7 @@ test("quotes table rows and diff lines selected across a diff viewer", async ({ 
   await expect(added).toHaveText("export const value = 'after'")
   await expect
     .poll(() => added.evaluate((element) => getComputedStyle(element, "::selection").backgroundColor))
-    .toBe("color(srgb 0.133333 0.219608 0.560784 / 0.1)")
+    .toBe("color(srgb 0.00784314 0.129412 0.290196 / 0.1)")
 
   const drag = async (from: Locator, to: Locator) => {
     const start = await from.boundingBox()

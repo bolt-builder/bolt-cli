@@ -14,6 +14,7 @@
 // that compiles this file; packages importing tui sources (like cli) don't
 // include tui's wasm.d.ts on their own.
 /// <reference path="../wasm.d.ts" />
+import { readFile } from "node:fs/promises"
 import wasm from "@seomis/doom-fire/doom_fire_bg.wasm" with { type: "file" }
 
 // The classic 36-color DOOM fire palette, black ember to white-hot core,
@@ -122,9 +123,7 @@ let compiled: Promise<WebAssembly.Module> | undefined
 // Caches the in-flight compilation so concurrent ignite() calls share one
 // compile instead of racing to compile the module twice.
 function module() {
-  compiled ??= Bun.file(wasm)
-    .bytes()
-    .then((bytes) => new WebAssembly.Module(bytes))
+  compiled ??= readFile(wasm).then((bytes) => new WebAssembly.Module(bytes))
   return compiled
 }
 

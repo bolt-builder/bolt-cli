@@ -212,6 +212,7 @@ export default Runtime.handler(Commands.commands.rebase, (input) =>
         const run = yield* app.run(
           ChildProcess.make("git", ["rebase", "-i", merge], {
             cwd,
+            extendEnv: true,
             env: { GIT_SEQUENCE_EDITOR: `sh ${quote(editor.replaceAll("\\", "/"))}`, GIT_EDITOR: "true" },
           }),
           { maxOutputBytes: 100_000, maxErrorBytes: 100_000 },

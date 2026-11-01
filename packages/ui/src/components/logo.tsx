@@ -55,6 +55,7 @@ export const Splash = (props: Pick<ComponentProps<"svg">, "ref" | "class">) => {
 
 export const Logo = (props: { class?: string; viewBox?: string }) => {
   const gradient = createUniqueId()
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

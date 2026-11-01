@@ -115,11 +115,7 @@ export default Runtime.handler(Commands.commands.analyze, (args) =>
       }
       const command = `${runner} ${script}`
       const result = yield* processService.run(
-        ChildProcess.make(
-          process.platform === "win32" ? "cmd" : "sh",
-          process.platform === "win32" ? ["/c", command] : ["-c", command],
-          { cwd, stdout: "pipe", stderr: "pipe" },
-        ),
+        ChildProcess.make(command, { shell: true, cwd, stdout: "pipe", stderr: "pipe" }),
       )
       const run = {
         code: result.exitCode,

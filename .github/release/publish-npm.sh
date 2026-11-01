@@ -4,7 +4,7 @@
 # package.json is read as data and must match. macOS and Windows CLI packages must come from a signed dir.
 . "$(dirname "$0")/lib.sh"
 
-npm_dir=$1
+npm_dir=$(posix "$1")
 shift
 targets="linux-arm64 linux-x64 linux-x64-baseline linux-arm64-musl linux-x64-musl linux-x64-baseline-musl darwin-arm64 darwin-x64 darwin-x64-baseline windows-arm64 windows-x64 windows-x64-baseline"
 expected="@bolt-builder/bolt-cli"
@@ -25,7 +25,7 @@ fi
 
 shopt -s nullglob
 files=()
-for dir in "$@"; do files+=("$dir"/*.tgz); done
+for dir in "$@"; do files+=("$(posix "$dir")"/*.tgz); done
 files+=("$npm_dir"/*.tgz)
 list=$(mktemp)
 for file in "${files[@]}"; do

@@ -71,7 +71,7 @@ test("Bolt npm packages and archives match the existing installer and survive re
       "bolt-cli-linux-x64.tar.gz",
       "bolt-cli-windows-x64.zip",
     ])
-    expect((await run(["tar", "-tzf", path.join(archives, "bolt-cli-linux-x64.tar.gz")])).trim()).toBe("bolt")
+    expect((await run(["tar", "-tzf", "bolt-cli-linux-x64.tar.gz"], archives)).trim()).toBe("bolt")
     for (const [target, name] of [
       ["darwin-arm64", "bolt"],
       ["windows-x64", "bolt.exe"],
@@ -102,14 +102,7 @@ test("Bolt npm packages and archives match the existing installer and survive re
     for (const name of ["bolt-cli", "bolt-cli-linux-x64"]) {
       const directory = path.join(install, name)
       await fs.mkdir(directory, { recursive: true })
-      await run([
-        "tar",
-        "-xzf",
-        path.join(npm, `bolt-builder-${name}-2.3.4.tgz`),
-        "--strip-components=1",
-        "-C",
-        directory,
-      ])
+      await run(["tar", "-xzf", `bolt-builder-${name}-2.3.4.tgz`, "--strip-components=1", "-C", directory], npm)
     }
     const wrapper = path.join(install, "bolt-cli")
     const manifest = JSON.parse(await fs.readFile(path.join(wrapper, "package.json"), "utf8"))

@@ -5,10 +5,9 @@ import { AppProcess } from "@opencode/util/process"
 /** Drain both streams while retaining the failure tail used by repair prompts. */
 export const runTestCommand = Effect.fn("cli.runTestCommand")(function* (command: string, cwd: string) {
   const app = yield* AppProcess.Service
-  const shell = process.platform === "win32" ? ["cmd", "/d", "/s", "/c", command] : ["sh", "-c", command]
   return yield* Effect.scoped(
     Effect.gen(function* () {
-      const handle = yield* app.spawn(ChildProcess.make(shell[0], shell.slice(1), { cwd }))
+      const handle = yield* app.spawn(ChildProcess.make(command, { shell: true, cwd }))
       const collect = (stream: typeof handle.stdout) =>
         Stream.runFold(
           stream,

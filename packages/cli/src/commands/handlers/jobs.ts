@@ -1,6 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
-import { spawn } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 import { Effect, Option, Schema } from "effect"
 import { ChildProcess } from "effect/process"
 import { Global } from "@opencode/util/global"
@@ -95,11 +95,13 @@ export function probe(target: string): "url" | "command" {
  * Kill a detached job and its descendants. Jobs are spawned as their own
  * process-group leader (see spawnJob), and `bolt run` spawns tool subprocesses
  * (sh -c ...) into that group, so signal the whole group. Falls back to the
- * lone pid when the group signal is unsupported (Windows) or already gone.
+ * lone pid when the group is already gone; Windows uses taskkill for the tree.
  */
 export function killJob(pid: number, signal: NodeJS.Signals | number = "SIGTERM") {
   if (process.platform === "win32") {
-    process.kill(pid, signal)
+    const killed = spawnSync("taskkill", ["/pid", String(pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" })
+    if (killed.error) throw killed.error
+    if (killed.status !== 0) process.kill(pid, signal)
     return
   }
   try {
@@ -248,11 +250,7 @@ export default Runtime.handler(Commands.commands.jobs, (args) =>
           )
         }
         const proc = yield* processService.run(
-          ChildProcess.make(
-            process.platform === "win32" ? "cmd" : "sh",
-            process.platform === "win32" ? ["/c", check] : ["-c", check],
-            { stdout: "ignore", stderr: "ignore" },
-          ),
+          ChildProcess.make(check, { shell: true, stdout: "ignore", stderr: "ignore" }),
         )
         return proc.exitCode === 0
       })

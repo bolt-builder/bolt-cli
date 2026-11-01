@@ -219,7 +219,25 @@ Each source below is read from the reference commit. Nested commands retain thei
 - [ ] Existing Linux/Windows/browser CI failures resolved and rerun on supported hosts.
 - [ ] New PR targeting `dev` with actual verification results and this checklist.
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:2eef51ce9773b8be8c0f1c26c0fd04ec79729ce1bbe015e880a9ea61ba878c1e -->
+
 The restoration remains in progress. None of the pending rows is covered by a general claim of full parity.
+
+## Native CI repair checkpoint
+
+The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizzle glob importing the SQL tool, Windows shell quoting/path/archive problems, and assertions tied to the upstream brand/palette. Repairs preserve the database schema, user data and V2 permission paths.
+
+- Canonical root check passed: 36 tasks, including 13 fresh checks and 23 equivalent cached checks.
+- CLI repair selection passed 25 tests / 745 assertions, including actual shell commands, job descendants, Git worktrees, configuration and release archives. Windows-only branches still require native CI.
+- Full lifecycle/dialog selection passed 75 TUI tests. The two lifecycle regressions also passed ten repetitions before the full selection.
+- Bolt pin-board interaction/reduced motion and light/dark composer component cases passed 60 repetitions with no retries.
+- Migration/SQL selection passed 46 tests / 125 assertions after naming the tool module `sql-query.ts`; no database schema or migration changed.
+- Fresh production browser regressions, official dependent compilers, packed SDK, Node SEA verification and native reruns remain outstanding. A sandbox Node build generated the SEA but exited 137 before its final verification; it is not counted as a passing build.
+
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 
 <!-- /coderabbit-ai-generated:v1 -->

@@ -106,13 +106,14 @@ test("bench exits nonzero when temporary worktree cleanup fails", async () => {
     if (process.platform === "win32")
       await Bun.write(
         path.join(bin, "git.cmd"),
-        `@echo off\r\necho %* | findstr /C:"worktree remove" >nul && exit /b 1\r\n"${git}" %*\r\nexit /b %errorlevel%\r\n`,
+        `@echo off\r\necho %* | findstr /R /C:"worktree.*remove" >nul && exit /b 1\r\n"${git}" %*\r\nexit /b %errorlevel%\r\n`,
       )
-    await Bun.write(
-      path.join(bin, "git"),
-      `#!/bin/sh\ncase " $* " in *" worktree remove "*) exit 1;; esac\nexec "${git}" "$@"\n`,
-    )
-    await fs.chmod(path.join(bin, "git"), 0o755)
+    if (process.platform !== "win32")
+      await Bun.write(
+        path.join(bin, "git"),
+        `#!/bin/sh\ncase " $* " in *" worktree remove "*) exit 1;; esac\nexec "${git}" "$@"\n`,
+      )
+    if (process.platform !== "win32") await fs.chmod(path.join(bin, "git"), 0o755)
     const proc = Bun.spawn(
       [
         process.execPath,

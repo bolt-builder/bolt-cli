@@ -1,4 +1,4 @@
-export * as SqlTool from "./sql.js"
+export * as SqlTool from "./sql-query.js"
 
 import type { Context } from "@opencode/plugin/effect/plugin"
 import { ToolFailure } from "@opencode/ai/effect"

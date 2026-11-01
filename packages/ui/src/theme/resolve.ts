@@ -39,7 +39,7 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
         l: isDark ? Math.max(0, 0.88 - tint.l) * 0.4 : -Math.max(0, tint.l - 0.18) * 0.24,
         c: isDark ? 1.04 : 1.02,
       })
-    : undefined
+    : ink
 
   const backgroundOverride = overrides["background-base"]
   const backgroundHex = getHex(backgroundOverride)
@@ -81,7 +81,7 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   const background = backgroundHex ?? neutral[0]
 
   const alphaTone = (color: HexColor, alpha: number) =>
-    overlay ? (withAlpha(color, alpha) as ColorValue) : blend(color, background, alpha)
+    overlay ? alphaColor(color, alpha) : blend(color, background, alpha)
 
   const borderTone = (light: number, dark: number) =>
     alphaTone(ink, isDark ? Math.min(1, dark + 0.024 + (colors.compact ? 0.08 : 0)) : Math.min(1, light + 0.024))
@@ -129,8 +129,8 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   }
 
   const on = (fill: HexColor) => {
-    const light = "#ffffff" as HexColor
-    const dark = "#000000" as HexColor
+    const light = "#ffffff"
+    const dark = "#000000"
 
     return hit(light, fill) > hit(dark, fill) ? light : dark
   }
@@ -148,14 +148,12 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   tokens["base"] = neutralAlpha[1]
   tokens["surface-base-hover"] = neutralAlpha[2]
   tokens["surface-base-active"] = neutralAlpha[2]
-  tokens["surface-base-interactive-active"] = withAlpha(interactive[2], 0.3) as ColorValue
+  tokens["surface-base-interactive-active"] = alphaColor(interactive[2], 0.3)
   tokens["base2"] = neutralAlpha[1]
   tokens["base3"] = neutralAlpha[1]
   tokens["surface-inset-base"] = neutralAlpha[1]
   tokens["surface-inset-base-hover"] = neutralAlpha[2]
-  tokens["surface-inset-strong"] = isDark
-    ? (withAlpha(neutral[0], 0.5) as ColorValue)
-    : (withAlpha(neutral[3], 0.09) as ColorValue)
+  tokens["surface-inset-strong"] = isDark ? alphaColor(neutral[0], 0.5) : alphaColor(neutral[3], 0.09)
   tokens["surface-inset-strong-hover"] = tokens["surface-inset-strong"]
   tokens["surface-raised-base"] = neutralAlpha[0]
   tokens["surface-float-base"] = isDark ? neutral[1] : neutral[11]
@@ -217,15 +215,15 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   tokens["input-focus"] = isDark ? interactive[6] : interactive[0]
   tokens["input-disabled"] = neutral[3]
 
-  tokens["text-base"] = colors.compact ? (body as HexColor) : neutral[10]
-  tokens["text-weak"] = colors.compact ? shift(body as HexColor, { l: isDark ? -0.11 : 0.11, c: 0.9 }) : neutral[8]
+  tokens["text-base"] = colors.compact ? body : neutral[10]
+  tokens["text-weak"] = colors.compact ? shift(body, { l: isDark ? -0.11 : 0.11, c: 0.9 }) : neutral[8]
   tokens["text-weaker"] = colors.compact
-    ? shift(body as HexColor, { l: isDark ? -0.2 : 0.21, c: isDark ? 0.78 : 0.72 })
+    ? shift(body, { l: isDark ? -0.2 : 0.21, c: isDark ? 0.78 : 0.72 })
     : neutral[7]
   tokens["text-strong"] = colors.compact
     ? isDark
-      ? blend("#ffffff", body as HexColor, 0.9)
-      : shift(body as HexColor, { l: -0.07, c: 1.04 })
+      ? blend("#ffffff", body, 0.9)
+      : shift(body, { l: -0.07, c: 1.04 })
     : neutral[11]
   tokens["text-invert-base"] = isDark ? neutral[10] : neutral[1]
   tokens["text-invert-weak"] = isDark ? neutral[8] : neutral[2]
@@ -264,19 +262,19 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   tokens["border-base"] = colors.compact ? borderTone(0.22, 0.16) : neutralAlpha[6]
   tokens["border-hover"] = colors.compact ? borderTone(0.28, 0.2) : neutralAlpha[7]
   tokens["border-active"] = colors.compact ? borderTone(0.34, 0.24) : neutralAlpha[8]
-  tokens["border-selected"] = withAlpha(interactive[8], isDark ? 0.9 : 0.99) as ColorValue
+  tokens["border-selected"] = alphaColor(interactive[8], isDark ? 0.9 : 0.99)
   tokens["border-disabled"] = colors.compact ? borderTone(0.18, 0.12) : neutralAlpha[7]
   tokens["border-focus"] = colors.compact ? borderTone(0.34, 0.24) : neutralAlpha[8]
   tokens["border-weak-base"] = colors.compact ? borderTone(0.1, 0.08) : neutralAlpha[isDark ? 5 : 4]
   tokens["border-strong-base"] = colors.compact ? borderTone(0.34, 0.24) : neutralAlpha[isDark ? 7 : 6]
   tokens["border-strong-hover"] = colors.compact ? borderTone(0.4, 0.28) : neutralAlpha[7]
   tokens["border-strong-active"] = colors.compact ? borderTone(0.46, 0.32) : neutralAlpha[isDark ? 7 : 6]
-  tokens["border-strong-selected"] = withAlpha(interactive[5], 0.6) as ColorValue
+  tokens["border-strong-selected"] = alphaColor(interactive[5], 0.6)
   tokens["border-strong-disabled"] = colors.compact ? borderTone(0.14, 0.1) : neutralAlpha[5]
   tokens["border-strong-focus"] = colors.compact ? borderTone(0.46, 0.32) : neutralAlpha[isDark ? 7 : 6]
   tokens["border-weak-hover"] = colors.compact ? borderTone(0.16, 0.12) : neutralAlpha[isDark ? 6 : 5]
   tokens["border-weak-active"] = colors.compact ? borderTone(0.22, 0.16) : neutralAlpha[isDark ? 7 : 6]
-  tokens["border-weak-selected"] = withAlpha(interactive[4], isDark ? 0.6 : 0.5) as ColorValue
+  tokens["border-weak-selected"] = alphaColor(interactive[4], isDark ? 0.6 : 0.5)
   tokens["border-weak-disabled"] = colors.compact ? borderTone(0.08, 0.06) : neutralAlpha[5]
   tokens["border-weak-focus"] = colors.compact ? borderTone(0.22, 0.16) : neutralAlpha[isDark ? 7 : 6]
   tokens["border-weaker-base"] = colors.compact ? borderTone(0.06, 0.04) : neutralAlpha[2]
@@ -460,6 +458,7 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
     const weak = tokens["text-weak"]
 
     if (weak.startsWith("#")) {
+      // SAFETY: ColorValue is a hex color or var() reference, and this branch checked the hex prefix.
       tokens["text-weaker"] = shift(weak as HexColor, { l: isDark ? -0.12 : 0.12, c: 0.75 })
     } else {
       tokens["text-weaker"] = weak
@@ -499,6 +498,7 @@ interface ThemeColors {
 }
 
 function getColors(variant: ThemeVariant): ThemeColors {
+  // SAFETY: This view retains the runtime check for malformed variants containing both exclusive fields.
   const input = variant as { palette?: unknown; seeds?: unknown }
 
   if (input.palette && input.seeds) {
@@ -553,6 +553,7 @@ function generateNeutralAlphaScale(neutralScale: HexColor[], isDark: boolean): H
 function getHex(value: ColorValue | undefined): HexColor | undefined {
   if (!value?.startsWith("#")) return
 
+  // SAFETY: ColorValue is a hex color or var() reference, and the guard rejected references.
   return value as HexColor
 }
 
@@ -560,4 +561,9 @@ export function themeToCss(tokens: ResolvedTheme): string {
   return Object.entries(tokens)
     .map(([key, value]) => `--${key}: ${value};`)
     .join("\n  ")
+}
+
+function alphaColor(color: HexColor, alpha: number): ColorValue {
+  // SAFETY: withAlpha emits CSS rgba accepted by token consumers; the historical ColorValue union is narrower.
+  return withAlpha(color, alpha) as ColorValue
 }

@@ -11,7 +11,7 @@ test("resolve previews and stages real conflicts, preserving changed files and r
   const home = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-resolve-command-"))
   const project = path.join(home, "project")
   const nested = path.join(project, "src")
-  const name = 'two "sides".ts'
+  const name = process.platform === "win32" ? "two 'sides'.ts" : 'two "sides".ts'
   const source = path.join(nested, name)
   await fs.mkdir(nested, { recursive: true })
   await initRepo(project)
@@ -43,7 +43,7 @@ test("resolve previews and stages real conflicts, preserving changed files and r
   let mode = "clean"
   const fixture = workflowServer(async ({ agent, text }) => {
     expect(agent).toBe("plan")
-    expect(text).toContain('File: src/two "sides".ts')
+    expect(text).toContain(`File: src/${name}`)
     expect(text).toContain("Ours: HEAD")
     if (mode === "stale") await Bun.write(source, "user changed the file\n")
     return mode === "invalid"

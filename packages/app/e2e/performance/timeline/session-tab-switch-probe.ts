@@ -6,6 +6,12 @@ type SessionSwitchProbe = {
   stop: () => void
 }
 
+declare global {
+  interface Window {
+    __sessionSwitchProbe?: SessionSwitchProbe
+  }
+}
+
 async function installSessionSwitchProbe(
   page: Page,
   input: {
@@ -26,7 +32,7 @@ async function installSessionSwitchProbe(
       let started: number | undefined
       let running = true
 
-      const reviewLevels: Record<string, string> = {
+      const reviewLevels = {
         panel: "#review-panel",
         tabs: '#review-panel [data-component="tabs"]',
         body: '#review-panel [data-slot="session-review-v2-body"]',
@@ -34,7 +40,7 @@ async function installSessionSwitchProbe(
         preview: '#review-panel [data-slot="session-review-v2-preview"]',
         scroll: '#review-panel [data-slot="session-review-v2-diff-scroll"]',
         file: '#review-panel [data-component="file"][data-mode="diff"]',
-      }
+      } satisfies Record<string, string>
 
       const initialReviewNodes: Record<string, Element | null> = {}
 
@@ -73,6 +79,7 @@ async function installSessionSwitchProbe(
 
           if (root) {
             const view = root.getBoundingClientRect()
+
             // The composer covers the inset at the bottom of the scroll viewport.
             const visibleBottom =
               view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
@@ -88,9 +95,9 @@ async function installSessionSwitchProbe(
               )
             }
 
-            const visible = [...root.querySelectorAll<HTMLElement>("[data-message-id]")]
-              .filter(inViewport)
-              .map((element) => element.dataset.messageId!)
+            const visible = [...root.querySelectorAll<HTMLElement>("[data-message-id]")].flatMap((element) =>
+              inViewport(element) ? [element.dataset.messageId!] : [],
+            )
 
             const hasVisibleRows = [...root.querySelectorAll<HTMLElement>("[data-timeline-key]")].some(inViewport)
 
@@ -156,7 +163,7 @@ async function installSessionSwitchProbe(
       // Tabs activate on mousedown; click alone misses the synchronous navigation work.
       document.addEventListener("mousedown", start, true)
       document.addEventListener("click", start, true)
-      ;(window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe = {
+      window.__sessionSwitchProbe = {
         samples,
         stop: () => {
           running = false
@@ -172,7 +179,7 @@ async function installSessionSwitchProbe(
 
 async function waitForStableSessionSwitch(page: Page) {
   await page.waitForFunction(() => {
-    const samples = (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe?.samples
+    const samples = window.__sessionSwitchProbe?.samples
 
     if (!samples) return false
 
@@ -196,9 +203,9 @@ async function waitForStableSessionSwitch(page: Page) {
 
 async function collectSessionSwitchResult(page: Page) {
   const samples = await page.evaluate(() => {
-    const probe = (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe!
+    const probe = window.__sessionSwitchProbe!
     probe.stop()
-    delete (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe
+    delete window.__sessionSwitchProbe
 
     return probe.samples
   })
@@ -239,8 +246,8 @@ export async function measureSessionSwitch(
     return await collectSessionSwitchResult(page)
   } finally {
     await page.evaluate(() => {
-      ;(window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe?.stop()
-      delete (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe
+      window.__sessionSwitchProbe?.stop()
+      delete window.__sessionSwitchProbe
     })
   }
 }
@@ -267,6 +274,7 @@ export async function waitForStableTimeline(page: Page, lastID: string) {
                     }
 
                     const view = root.getBoundingClientRect()
+
                     const visibleBottom =
                       view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
 

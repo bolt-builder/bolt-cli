@@ -230,16 +230,16 @@ test("inactive session attention dots share the close control without marking th
 test("the browser title names the open session and resets after leaving it", async ({ page }) => {
   await mockWorkspace(page, { name: "Tabs", sessions: [a, b] })
   await page.goto(sessionHref(a.id))
-  await expect(page).toHaveTitle(`${a.title} · OpenCode`)
+  await expect(page).toHaveTitle(`${a.title} · Bolt`)
 
   const tabB = page.locator(`[data-titlebar-tab-slot]:has(a[href="${sessionHref(b.id)}"])`)
   await tabB.locator("[data-titlebar-tab-link]").click()
   await expectPath(page, sessionHref(b.id))
-  await expect(page).toHaveTitle(`${b.title} · OpenCode`)
+  await expect(page).toHaveTitle(`${b.title} · Bolt`)
 
   await page.getByRole("button", { name: "Home", exact: true }).click()
   await expectPath(page, "/")
-  await expect(page).toHaveTitle("OpenCode")
+  await expect(page).toHaveTitle("Bolt")
 })
 
 for (const tabLayout of ["horizontal", "vertical"] as const) {

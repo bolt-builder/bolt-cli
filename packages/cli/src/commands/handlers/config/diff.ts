@@ -1,3 +1,4 @@
+import fs from "node:fs"
 import path from "node:path"
 import { Effect } from "effect"
 import { isRecord } from "@opencode/util/record"
@@ -56,12 +57,19 @@ export default Runtime.handler(Commands.commands.config.commands.diff, (input) =
           ),
         )
     const root = yield* git(["rev-parse", "--show-toplevel"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-    const cwd = root.stdout.toString().trim()
+    const cwd =
+      process.platform === "win32"
+        ? fs.realpathSync.native(root.stdout.toString().trim())
+        : root.stdout.toString().trim()
     const tracked = yield* git(["ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd).pipe(
       Effect.flatMap(AppProcess.requireSuccess),
     )
     const directories = new Set<string>()
-    for (let directory = process.cwd(); ; directory = path.dirname(directory)) {
+    for (
+      let directory = process.platform === "win32" ? fs.realpathSync.native(process.cwd()) : process.cwd();
+      ;
+      directory = path.dirname(directory)
+    ) {
       for (const child of [directory, path.join(directory, ".bolt"), path.join(directory, ".opencode")])
         directories.add(path.relative(cwd, child).replaceAll("\\", "/"))
       if (directory === cwd || path.dirname(directory) === directory) break

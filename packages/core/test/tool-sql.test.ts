@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { classify, render, sanitize, tables, validate } from "@opencode/core/tool/plugin/sql"
+import { classify, render, sanitize, tables, validate } from "@opencode/core/tool/plugin/sql-query"
 
 describe("validate", () => {
   test("accepts a plain select", () => {
@@ -149,7 +149,7 @@ describe("tables", () => {
 
 import { Database } from "bun:sqlite"
 import { Effect, Layer } from "effect"
-import { SqlTool } from "@opencode/core/tool/plugin/sql"
+import { SqlTool } from "@opencode/core/tool/plugin/sql-query"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { Environment } from "@opencode/core/environment/index"
 import { FileAccess } from "@opencode/core/file-access"

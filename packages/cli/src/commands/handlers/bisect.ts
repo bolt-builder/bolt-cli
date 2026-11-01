@@ -62,8 +62,7 @@ export default Runtime.handler(Commands.commands.bisect, (input) =>
         maxOutputBytes: 60000,
         maxErrorBytes: 10000,
       })
-    const shell = process.platform === "win32" ? ["cmd", "/d", "/s", "/c", input.command] : ["sh", "-c", input.command]
-    const execute = app.run(ChildProcess.make(shell[0], shell.slice(1), { cwd: directory }), {
+    const execute = app.run(ChildProcess.make(input.command, { shell: true, cwd: directory }), {
       maxOutputBytes: 10000,
       maxErrorBytes: 10000,
     })
@@ -76,7 +75,25 @@ export default Runtime.handler(Commands.commands.bisect, (input) =>
     yield* run(["checkout", "--detach", sha]).pipe(Effect.flatMap(AppProcess.requireSuccess))
     process.stdout.write(`Bisecting between ${input.good} (good) and HEAD (bad)...\n`)
     yield* run(["bisect", "start", sha, goodSHA]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-    const result = yield* run(["bisect", "run", ...shell])
+    // Git for Windows invokes bisect commands through its POSIX shell, which
+    // reparses cmd.exe quoting. Drive the same good/bad/skip protocol directly.
+    const result = yield* process.platform === "win32"
+      ? Effect.gen(function* () {
+          while (true) {
+            const current = yield* run(["rev-parse", "HEAD"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
+            const bad = yield* run(["rev-parse", "refs/bisect/bad"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
+            if (current.stdout.equals(bad.stdout)) return bad
+            const checked = yield* execute
+            if (checked.exitCode >= 128)
+              return yield* Effect.fail(
+                new Error(`Bisect command aborted (exit ${checked.exitCode}).\n${checked.stderr}`),
+              )
+            yield* run(["bisect", checked.exitCode === 0 ? "good" : checked.exitCode === 125 ? "skip" : "bad"]).pipe(
+              Effect.flatMap(AppProcess.requireSuccess),
+            )
+          }
+        })
+      : run(["bisect", "run", "sh", "-c", input.command])
     const culprit = yield* run(["rev-parse", "--verify", "refs/bisect/bad"])
     if (result.exitCode !== 0 || culprit.exitCode !== 0)
       return yield* Effect.fail(new Error(result.stderr.toString().trim() || "git bisect run failed to converge"))

@@ -73,7 +73,10 @@ export default Runtime.handler(Commands.commands.invariants, (args) =>
     const root = yield* git.run(["rev-parse", "--show-toplevel"])
     if (root.exitCode !== 0)
       return yield* fail("Could not find git repository. Please run this command from a git repository.")
-    const cwd = root.stdout.toString().trim()
+    const cwd =
+      process.platform === "win32"
+        ? fs.realpathSync.native(root.stdout.toString().trim())
+        : root.stdout.toString().trim()
     const store = path.join(cwd, FILE)
     const ask = (title: string, text: string) =>
       Effect.gen(function* () {
@@ -95,9 +98,11 @@ export default Runtime.handler(Commands.commands.invariants, (args) =>
       let totalBytes = 0
       for (const file of args.files) {
         const absolute = path.resolve(file)
-        const name = path.relative(cwd, absolute)
         const target = Bun.file(absolute)
         if (!(yield* Effect.promise(() => target.exists()))) return yield* fail(`No such file: ${file}`)
+        const name = path
+          .relative(cwd, process.platform === "win32" ? fs.realpathSync.native(absolute) : absolute)
+          .replaceAll("\\", "/")
         if (target.size > FILE_LIMIT) return yield* fail(`File exceeds ${FILE_LIMIT} bytes: ${file}`)
         totalBytes += target.size + Buffer.byteLength(`### ${name}\n\n`) + 2
         if (totalBytes > TOTAL_LIMIT)

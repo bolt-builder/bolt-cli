@@ -56,9 +56,8 @@ export default Runtime.handler(Commands.commands.guard, (input) =>
     if (!(yield* Effect.promise(() => Bun.file(path.resolve(cwd, file)).exists())))
       return yield* Effect.fail(new Error(`The model reported ${file}, but that file does not exist.`))
     process.stdout.write(`Test written: ${file}\nRunning "${command}" to confirm it fails before the fix...\n`)
-    const shell = process.platform === "win32" ? ["cmd", "/d", "/s", "/c", command] : ["sh", "-c", command]
     const app = yield* AppProcess.Service
-    const run = yield* app.run(ChildProcess.make(shell[0], shell.slice(1), { cwd }), {
+    const run = yield* app.run(ChildProcess.make(command, { shell: true, cwd }), {
       maxOutputBytes: OUTPUT_LIMIT,
       maxErrorBytes: OUTPUT_LIMIT,
     })
