@@ -67,7 +67,7 @@ export interface Interface extends State.Transformable<Editor> {
   readonly restore: (input: RestoreInput) => Effect.Effect<void, Error>
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/Snapshot") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/Snapshot") {}
 
 const layer = Layer.effect(
   Service,
