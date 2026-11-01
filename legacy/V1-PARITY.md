@@ -1,6 +1,6 @@
 <!-- coderabbit-ai-generated:v1 -->
 
-<!-- coderabbit-ai-generated-section:v1:6b7315bd5e5f6fe4618e381db2374e55e572c9093e31ee1821b25d3d18ea123a -->
+<!-- coderabbit-ai-generated-section:v1:3cb5712af831b869476fb9315c9a8e48a56bd08b075a4323d5875b256f5a37a4 -->
 
 # Bolt V1 parity checklist
 
@@ -115,6 +115,19 @@ Each source below is read from the reference commit. Nested commands retain thei
 | `worktree remove <worktree>` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
 | `worktree clean` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
 
+## Run and Mini restoration evidence
+
+| Capability | Status | Evidence / open boundary |
+| --- | --- | --- |
+| Cost/token budgets, per-attempt timeout and retries | Verified transport | Real CLI/SSE fixtures preserve session IDs, budget/timeout exit codes, partial text, no retries after budget/user cancellation and failed-stop handling |
+| JSON envelope, TSV porcelain and context output | Verified transport | Escaping, one-result envelope, live/projection cost deduplication and explicit schema retries; original helper tests retained |
+| Output-schema loading | Integrated | Bounded 1 MiB read, schema validation and three-attempt failure behavior; full schema-dialect support is unchanged from V1's supported subset |
+| Automatic primary-agent selection | Verified transport | Filters hidden/subagent entries and preserves configured default fallback |
+| `bolt --mini`, `run --mini`, `run --interactive` | Integrated | Existing headless/Mini import boundaries preserved with a dispatcher; root and run route initial prompt and model/session/permission flags to Mini; no-TTY rejection precedes server startup |
+| Mini files, model variants, title, thinking and replay settings | Integrated | Bounded shared attachment reader; configuration handoff verifies requested overrides and replay options; live terminal attachment/title verification remains open |
+| Mini automatic permission replies | Verified transport | Root/descendant requests answered once, duplicate suppression, failures return to manual UI, forms stay interactive; 10-repeat transport/runtime passes |
+| Dry-run, plan-only, pair and advanced attach/remote flags | Pending | These are still open V1 command-surface gates |
+
 ## Tools and services
 
 | V1 feature | V2 implementation / required work | Status |
@@ -125,11 +138,15 @@ Each source below is read from the reference commit. Nested commands retain thei
 | LSP configuration and servers | Config schema survives; runtime and references/rename integration missing | Pending |
 | Test runner | Active `test_run` uses ordinary V2 shell dispatch, permission hooks, sandbox, cancellation and structured failure parsing; 8 tests / 17 assertions | Verified synthetic commands; live model use pending |
 | Coverage discovery | Active convention-based tool, actual Ripgrep and FileAccess/glob approvals, explicit bounded-result reporting; 8 tests / 19 assertions | Verified discovery; measured line coverage is not its contract |
-| Diagnostics / profile / frames | Reuse V2 process boundaries; restore structured outputs and failure handling | Pending |
+| Diagnostics | Requires restored LSP runtime and original file/severity refresh behavior | Pending |
+| CPU profiling | Original aggregation and frame rendering; actual Node capture through V2 shell approvals/sandbox, timeout and scratch cleanup; 10 tests / 32 assertions | Verified on Linux; native Windows/macOS pending |
+| Video frames | Explicit timestamps, duration-based sampling, partial failures, readable PNGs and read/frames/shell denial; real ffmpeg fixture, 10 tests / 47 assertions | Verified on Linux; decoder availability on other hosts pending |
 | Notebook read/edit/insert/delete | Active notebook tool with FileAccess and locked FileMutation; original helper contracts and permission/metadata integration tests | Verified |
 | Multiedit | Active atomic preparation, one approval/write, successful-read prerequisite, V2 matcher, BOM/CRLF preservation and session isolation; included in 97 consumer tests / 431 assertions and 10-repetition new-tool suite | Integrated; LSP diagnostics remain open |
 | Tasks with blockers/transitions | Active graph tools with KV, concurrency, session isolation, blocker/terminal transitions and read-only legacy graph import tested | Verified synthetic persistence; live model workflow pending |
-| HTTP / SQL / read cache | Original tool contracts and permission boundaries require audit | Pending |
+| HTTP requests and named profiles | Original interpolation/shape helpers, real POST/redirect/denial/size/status fixtures and virtual-clock timeout; guarded IP-pinned transport and credential stripping across origins; 19 tests / 56 assertions | Verified synthetic local APIs |
+| SQL inspection | Original validator/formatters, real byte-preserving read-only SQLite tests and PostgreSQL/MariaDB transactions/schema/row limits; remote write-performing function rejection | Verified SQLite/PostgreSQL/MariaDB; native MySQL and other hosts pending |
+| Read cache | Existing V2 read proof is active; exact V1 content-cache behavior still requires audit | Pending |
 | MCP resources / semantic search / slash invocation | Active V2 tools and command API exist; exact input/output audit pending | Integrated; parity pending |
 | Named checkpoints | Active save/list/rewind/remove RPC and CLI; full-project snapshots, attached conversation rewind, immutable V1 object import and collision preservation tested | Integrated; missing-marker rejection and native platforms remain open |
 | Undo / redo | CLI uses existing V2 session revert with filesystem restore and paginated history | Verified by actual CLI paginated history and revert transport; redo UI audit pending |
@@ -148,6 +165,9 @@ Each source below is read from the reference commit. Nested commands retain thei
 - Context replay is opt-in and records native V2 requests after request hooks; its inspector also reads V1 JSON files without rewriting them. HTTP headers and credentials are excluded.
 - Multiedit enforces the V1 documented read prerequisite that the old handler omitted. Successful reads persist only a session/path proof. Absolute historical read paths count; ambiguous relative paths require another read. Its replacement matching follows V2 edit behavior.
 - Coverage remains filename-convention discovery, with bounded results and explicit truncation, rather than measured line coverage.
+- HTTP repairs V1 credential leakage across origins and for short profile values, preserves explicit header overrides regardless of casing, and applies V2 guarded transport. URL credentials are rejected; use headers/profiles.
+- SQL opens SQLite read-only, uses read-only remote transactions and limits SELECT/WITH at the server. Counts describe fetched/displayed rows, with explicit truncation. Remote-workspace SQLite file access is rejected instead of reading a same-named local file.
+- Profiler scratch output is cleaned after completion. Successful extracted frames remain readable under unique `.bolt/tmp` directories; failed/interrupted extraction is cleaned. Both tools use ordinary V2 shell approvals and sandbox boundaries.
 
 ## Interaction audit
 
@@ -159,9 +179,10 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 ## Current verification evidence
 
-- Root `bun run check`: 36/36 packages passed after CLI workflows, replay, coverage and multiedit. Later Git edge cases require a fresh run before the next checkpoint.
+- Root `bun run check`: 36/36 packages passed after run/Mini controls and HTTP/SQL/profile/frames restoration (30 cached, six fresh). Later implementation changes require fresh affected checks.
 - Replay, coverage and multiedit repeated 10 times: 150 tests / 470 assertions, zero failures.
-- Official Core, CLI, util and schema compilers passed for that checkpoint. Full V1 parity remains open.
+- Official Core and CLI compilers passed for the current controls/tool checkpoint; unchanged util/schema passes are retained. Full V1 parity remains open.
+- Remote SQL smoke: real PostgreSQL and MariaDB, 2 tests / 16 assertions; write-performing functions called through SELECT are rejected in both read-only transactions.
 
 - Linux compiled CLI plus embedded production app: passed; final rebuild required after later additions.
 - Browser regression: 80/80 with 10 repetitions and no retries (mobile light/dark, project menu, About, pairing).

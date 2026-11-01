@@ -19,6 +19,10 @@ export type MiniCommandInput = {
   model?: string
   agent?: string
   prompt?: string
+  file?: string[]
+  variant?: string
+  title?: string
+  auto?: boolean
   replay?: boolean
   replayLimit?: number
   demo?: boolean
@@ -38,12 +42,24 @@ export async function runMini(input: MiniCommandInput) {
       const initialInput = mergeInput(process.stdin.isTTY ? undefined : await readStdin(), input.prompt)
       const frontendTask = import("@opencode/tui/mini")
       const directory = localDirectory()
+      const requestedFiles = input.file ?? []
+      const files = requestedFiles.length
+        ? await (async () => {
+            const { prepareFile } = await import("./services/attachment")
+            return Promise.all(
+              requestedFiles.map(async (file) => ({
+                type: "file" as const,
+                ...(await prepareFile(file, directory, {})),
+              })),
+            )
+          })()
+        : []
       const connection = createMiniConnection(input.server)
       const sdk = connection.sdk
       const environment = input.server.reconnect ? Env.session() : undefined
       const requested = parseModel(input.model)
       const model = requested ? { providerID: requested.providerID, modelID: requested.id } : undefined
-      const prepare = prepareTarget(input.agent)
+      const prepare = prepareTarget(input.agent, input.variant)
       const resolveTarget = async (initial: OpenCodeClient, signal: AbortSignal) => {
         const resolved = await resolveMiniTarget({
           sdk: initial,
@@ -68,10 +84,19 @@ export async function runMini(input: MiniCommandInput) {
             }),
         })
         const target = resolved.value
+        if (!target.resume && input.title !== undefined) {
+          await resolved.sdk.session.update(
+            { sessionID: target.session.id, title: input.title || initialInput?.slice(0, 50) || "Bolt Mini" },
+            { signal },
+          )
+        }
         return {
           sdk: resolved.sdk,
           sessionID: target.session.id,
-          sessionTitle: target.session.title,
+          sessionTitle:
+            !target.resume && input.title !== undefined
+              ? input.title || initialInput?.slice(0, 50) || "Bolt Mini"
+              : target.session.title,
           location: target.location,
           model: target.model ? { providerID: target.model.providerID, modelID: target.model.id } : undefined,
           variant: target.model?.variant,
@@ -118,8 +143,9 @@ export async function runMini(input: MiniCommandInput) {
         createSession: create,
         agent: input.agent,
         model,
-        variant: requested?.variant,
-        files: [],
+        variant: input.variant ?? requested?.variant,
+        files,
+        auto: input.auto,
         initialInput,
         replay: input.replay ?? true,
         replayLimit: input.replayLimit,
@@ -183,7 +209,7 @@ export async function resolveMiniTarget<A>(input: {
 }
 
 export function validateMiniTerminal() {
-  if (!process.stdout.isTTY) fail("opencode mini requires a TTY stdout")
+  if (!process.stdout.isTTY) fail("Bolt Mini requires a TTY stdout")
 }
 
 /** @internal Exported for testing. */
@@ -202,7 +228,7 @@ function validate(input: MiniCommandInput) {
 }
 
 function localDirectory(): string {
-  const root = process.env.PWD ?? process.cwd()
+  const root = process.cwd()
   try {
     process.chdir(root)
     return process.cwd()
@@ -219,8 +245,24 @@ function parseModel(value?: string) {
   }
 }
 
-function prepareTarget(requestedAgent?: string): SessionTargetPreparation {
-  return async (input) => ({ model: input.model, agent: requestedAgent ?? input.agent })
+function prepareTarget(requestedAgent?: string, variant?: string): SessionTargetPreparation {
+  return async (input) => {
+    const model =
+      input.model ??
+      (variant
+        ? (
+            await input.client.model.default(
+              { location: { directory: input.location.directory } },
+              { signal: input.signal },
+            )
+          ).data
+        : undefined)
+    if (variant && !model) throw new MiniInputError("Cannot select a variant before selecting a model")
+    return {
+      model: model && variant ? { providerID: model.providerID, id: model.id, variant } : input.model,
+      agent: requestedAgent ?? input.agent,
+    }
+  }
 }
 
 function fail(message: string): never {

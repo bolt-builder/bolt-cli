@@ -19,6 +19,9 @@ import PROMPT_PERF from "./agent/perf.txt"
 const readOnlyMutations = [
   "memory_save",
   "test_run",
+  "http",
+  "profile",
+  "frames",
   "task_create",
   "task_update",
   "execute",

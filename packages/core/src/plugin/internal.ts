@@ -78,6 +78,10 @@ import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
 import { TaskTools } from "../tool/plugin/tasks.js"
 import { MultiEditTool } from "../tool/plugin/multiedit.js"
+import { ProfileTool } from "../tool/plugin/profile.js"
+import { SqlTool } from "../tool/plugin/sql.js"
+import { FramesTool } from "../tool/plugin/frames.js"
+import { HttpTool } from "../tool/plugin/http.js"
 import { CoverageTool } from "../tool/plugin/coverage.js"
 import { TestRunTool } from "../tool/plugin/testrun.js"
 import { NotebookTool } from "../tool/plugin/notebook.js"
@@ -285,6 +289,10 @@ const pre = [
   ShellTool.Plugin,
   TestRunTool.Plugin,
   CoverageTool.Plugin,
+  HttpTool.Plugin,
+  FramesTool.Plugin,
+  SqlTool.Plugin,
+  ProfileTool.Plugin,
   SkillTool.Plugin,
   SubagentTool.Plugin,
   TodoTool.Plugin,

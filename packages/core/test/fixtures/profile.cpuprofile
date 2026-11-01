@@ -1,0 +1,21 @@
+{
+  "nodes": [
+    { "id": 1, "callFrame": { "functionName": "(root)", "url": "", "lineNumber": -1 }, "children": [2, 5] },
+    {
+      "id": 2,
+      "callFrame": { "functionName": "main", "url": "file:///app/main.ts", "lineNumber": 0 },
+      "children": [3, 4]
+    },
+    { "id": 3, "callFrame": { "functionName": "hot", "url": "file:///app/main.ts", "lineNumber": 9 }, "children": [] },
+    {
+      "id": 4,
+      "callFrame": { "functionName": "cold", "url": "file:///app/main.ts", "lineNumber": 19 },
+      "children": []
+    },
+    { "id": 5, "callFrame": { "functionName": "(garbage collector)", "url": "", "lineNumber": -1 }, "children": [] }
+  ],
+  "samples": [3, 3, 3, 4, 2, 3, 5],
+  "timeDeltas": [1000, 1000, 1000, 500, 250, 1000, 100],
+  "startTime": 0,
+  "endTime": 4850
+}

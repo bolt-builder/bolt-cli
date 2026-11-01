@@ -167,7 +167,7 @@ const Handlers = Runtime.handlers(Commands, {
   models: () => import("./commands/handlers/models"),
   stats: () => import("./commands/handlers/stats"),
   mini: () => import("./commands/handlers/mini"),
-  run: () => import("./commands/handlers/run"),
+  run: () => import("./commands/handlers/run-dispatch"),
   pair: () => import("./commands/handlers/pair"),
   reload: () => import("./commands/handlers/reload"),
   session: {

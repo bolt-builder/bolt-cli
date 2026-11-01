@@ -73,6 +73,13 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
   params: {
     ...ServerParams,
     ...PermissionParams,
+    mini: Flag.Boolean("mini").pipe(Flag.withDefault(false), Flag.withDescription("Start the Bolt Mini interface")),
+    replay: Flag.Boolean("replay").pipe(Flag.optional),
+    replayLimit: Flag.Int("replay-limit").pipe(Flag.optional),
+    demo: Flag.Boolean("demo").pipe(Flag.withDefault(false), Flag.withHidden),
+    model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+    agent: Flag.String("agent").pipe(Flag.optional),
+    fork: Flag.Boolean("fork").pipe(Flag.withDefault(false)),
     directory: Argument.String("directory").pipe(
       Argument.withDescription("Directory to start Bolt in"),
       Argument.optional,
@@ -918,6 +925,11 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       description: "Start the minimal interactive interface",
       globalFlags: ServerFlags,
       params: {
+        thinking: Flag.Boolean("thinking").pipe(Flag.optional),
+        ...PermissionParams,
+        file: Flag.String("file").pipe(Flag.withAlias("f"), Flag.atMost(100)),
+        variant: Flag.String("variant").pipe(Flag.optional),
+        title: Flag.String("title").pipe(Flag.optional),
         continue: Flag.Boolean("continue").pipe(
           Flag.withAlias("c"),
           Flag.withDescription("Continue the last session"),
@@ -1062,6 +1074,30 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       description: "Run Bolt with a message",
       globalFlags: ServerFlags,
       params: {
+        mini: Flag.Boolean("mini").pipe(
+          Flag.withAlias("interactive"),
+          Flag.withDefault(false),
+          Flag.withDescription("Start Mini with this initial prompt"),
+        ),
+        replay: Flag.Boolean("replay").pipe(Flag.optional),
+        replayLimit: Flag.Int("replay-limit").pipe(Flag.optional),
+        demo: Flag.Boolean("demo").pipe(Flag.withDefault(false), Flag.withHidden),
+        json: Flag.Boolean("json").pipe(
+          Flag.withDefault(false),
+          Flag.withDescription("Emit one versioned JSON result envelope"),
+        ),
+        porcelain: Flag.Boolean("porcelain").pipe(
+          Flag.withDefault(false),
+          Flag.withDescription("Emit stable tab-separated records"),
+        ),
+        emit: Flag.Literals("emit", ["context"]).pipe(Flag.optional),
+        maxCost: Flag.Finite("max-cost").pipe(Flag.optional),
+        maxTokens: Flag.Int("max-tokens").pipe(Flag.optional),
+        timeout: Flag.Finite("timeout").pipe(Flag.optional, Flag.withDescription("Maximum seconds per attempt")),
+        retries: Flag.Int("retries").pipe(Flag.withDefault(0)),
+        outputSchema: Flag.String("output-schema").pipe(Flag.optional),
+        costReport: Flag.Boolean("cost-report").pipe(Flag.withDefault(false)),
+        autoAgent: Flag.Boolean("auto-agent").pipe(Flag.withDefault(false)),
         bestOf: Flag.String("best-of").pipe(
           Flag.optional,
           Flag.withDescription("Race comma-separated provider/model entries and judge their answers"),
@@ -1111,7 +1147,7 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
           Flag.atMost(100),
         ),
         title: Flag.String("title").pipe(Flag.withDescription("Session title"), Flag.optional),
-        thinking: Flag.Boolean("thinking").pipe(Flag.withDescription("Show thinking blocks"), Flag.withDefault(false)),
+        thinking: Flag.Boolean("thinking").pipe(Flag.withDescription("Show thinking blocks"), Flag.optional),
         ...PermissionParams,
       },
     }),
