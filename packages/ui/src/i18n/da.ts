@@ -108,12 +108,8 @@ export const dict = {
 
   "dialog.usageExceeded.freeTier.title": "Gratis grænse nået",
   "dialog.usageExceeded.freeTier.description":
-    "Abonnér på Bolt Go for $10/måned, og få pålidelig adgang til de bedste open source-modeller.",
+    "Abonnér på OpenCode Go for $10/måned, og få pålidelig adgang til de bedste open source-modeller.",
   "dialog.usageExceeded.freeTier.actionLabel": "Abonnér",
-  "dialog.usageExceeded.accountRateLimit.title": "Go-grænse nået",
-  "dialog.usageExceeded.accountRateLimit.description":
-    "Forbrugsgrænse nået. For at fortsætte med at bruge denne model nu, aktivér forbrug fra din tilgængelige saldo",
-  "dialog.usageExceeded.accountRateLimit.actionLabel": "Åbn indstillinger",
 
   "ui.sessionTurn.status.delegating": "Delegerer arbejde",
   "ui.sessionTurn.status.planning": "Planlægger næste trin",
@@ -214,7 +210,6 @@ export const dict = {
   "ui.question.answer.none": "(intet svar)",
   "ui.question.review.notAnswered": "(ikke besvaret)",
   "ui.question.multiHint": "Vælg alle der gælder",
-  "ui.question.singleHint": "Vælg ét svar",
   "ui.question.custom.placeholder": "Skriv dit svar…",
 
   "ui.fileSearch.placeholder": "Find",
