@@ -1,5 +1,7 @@
 <!-- coderabbit-ai-generated:v1 -->
 
+<!-- coderabbit-ai-generated-section:v1:a3c04091419a93f2c6bd6024bb308ebe93587ad156bfb33ec23840e88adfc4d7 -->
+
 <!-- coderabbit-ai-generated-section:v1:3cb5712af831b869476fb9315c9a8e48a56bd08b075a4323d5875b256f5a37a4 -->
 
 # Bolt V1 parity checklist
@@ -170,7 +172,9 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 
 
-<!-- /coderabbit-ai-generated:v1 -->## Compatibility decisions
+<!-- /coderabbit-ai-generated:v1 -->
+
+## Compatibility decisions
 
 - V2 push/pull retain V2 collision rejection rather than V1 record merging, preserving existing history. V1 remote protocol interoperability remains open. V2 service authentication retains its registered username.
 - Rebase quotes commit messages literally to repair shell expansion in the V1 helper; merge-containing ranges fail explicitly because the linear plan cannot preserve merges.
@@ -215,15 +219,17 @@ Each source below is read from the reference commit. Nested commands retain thei
 
 
 
-<!-- /coderabbit-ai-generated:v1 -->## Delivery gates
+<!-- /coderabbit-ai-generated:v1 -->
 
-- [ ] Current affected package suites and required repeat tests.
-- [ ] Root `bun run check` after all implementation changes.
+## Delivery gates
+
+- [x] Current affected package suites and required repeat tests (Linux/Windows CI at `421a0b5d`; local owning repeats recorded below).
+- [x] Root `bun run check` after all implementation changes: 36/36 packages.
 - [ ] Production web, CLI and relevant desktop builds, including embedded fire WASM.
-- [ ] Service smoke tests and real terminal visual checks.
-- [ ] Shared cloud browser checks in light/dark modes and reduced motion.
-- [ ] Existing Linux/Windows/browser CI failures resolved and rerun on supported hosts.
-- [ ] New PR targeting `dev` with actual verification results and this checklist.
+- [x] Selected service smoke tests and real terminal visual checks; live-provider/hardware limits remain documented.
+- [x] Shared cloud browser checks in light/dark modes and reduced motion for the changed presentation.
+- [x] Existing Linux/Windows/browser CI failures resolved and rerun on supported hosts at `421a0b5d`.
+- [x] PR #421 targets `dev` with actual verification results and this checklist; broad V1 parity remains in progress.
 
 <!-- coderabbit-ai-generated:v1 -->
 
@@ -244,13 +250,13 @@ The restoration remains in progress. None of the pending rows is covered by a ge
 The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizzle glob importing the SQL tool, Windows shell quoting/path/archive problems, and assertions tied to the upstream brand/palette. Repairs preserve the database schema, user data and V2 permission paths.
 
 - Canonical root check passed: 36/36 packages. Official Core, CLI, TUI, App and E2E TypeScript checks passed for the affected source. Changed-file GUI lint now has zero findings in all 21 changed files.
-- CLI repair selection passed 36 tests / 684 assertions after canonicalizing Windows path aliases, preserving native porcelain EOL, fixing jq CRLF metadata and cleaning Windows process trees. Windows confirmed those repairs at `996072d`; bisect alone still looped after Git finished on a good HEAD. The shared platform-shell loop now detects convergence using Git's remaining-candidate count, preserves skip/abort semantics and reports ambiguity. Its six real Git/SSE cases pass locally with exact culprit, readonly proposal, boundary failures, original checkout bytes and worktree cleanup assertions; fresh native unit rerun is required.
+- CLI repair selection passed 36 tests / 684 assertions after canonicalizing Windows path aliases, preserving native porcelain EOL, fixing jq CRLF metadata and cleaning Windows process trees. Windows confirmed those repairs at `996072d`; bisect alone still looped after Git finished on a good HEAD. The shared platform-shell loop now detects convergence using Git's remaining-candidate count, preserves skip/abort semantics and reports ambiguity. Its six real Git/SSE cases pass locally with exact culprit, readonly proposal, boundary failures, original checkout bytes and worktree cleanup assertions; randomized ten-repeat verification passes 60 tests / 1500 assertions. Fresh native Linux and Windows unit jobs both pass at `421a0b5d`.
 - Native Linux CI exposed context_replay being dropped during config normalization; the schema-owned normalizer now preserves true/false and diagnoses malformed input. Existing normalization property expectations remain unchanged. Config consumers pass 98 tests / 596 assertions. A voice-route fixture now clears the previous test's draft stash; paired prompt-offset/voice cases pass 3 tests / 5 assertions without weakening the production route guard.
 - TUI history/lifecycle/commands selection passed 56 tests; appearance/config/theme selection passed 28 tests. Prior full lifecycle/dialog selection passed 75 tests; unchanged regressions also passed ten repetitions. Native Windows TUI passed 1669 tests with 18 existing platform skips at `996072d`.
 - Bolt pin-board interaction/reduced motion and light/dark composer component cases passed 60 repetitions with no retries.
 - Migration/SQL selection passed 46 tests / 125 assertions after naming the tool module `sql-query.ts`; no database schema or migration changed. Regenerated OpenAPI passes its generated-output check.
 - Current history/fire source compiled into a Linux Node SEA production binary and passed an actual isolated terminal smoke: history outside tabs, changing WASM fire, persisted animation/fire settings, cleanup confirmation/cancellation, Experiments menu and narrow layout. Terminal captures are attached to the coding task. Packed SDK Node/Bun/workerd imports, bundling and actual worker boot also passed.
-- At `996072d`, all five Node builds, Linux/Windows builds, all six desktop builds, npm/Docker builds and every Linux/Windows browser suite passed. Signing/installers and fresh unit reruns are tracked separately; builds do not prove native installation or full V1 parity.
+- At `996072d`, all five Node builds, Linux/Windows builds, all six desktop builds, npm/Docker builds and every Linux/Windows browser suite passed. At `421a0b5d`, the official TypeScript/lint gate and fresh Linux/Windows unit, build and every app/component browser shard pass ([check-test](https://github.com/bolt-builder/bolt-cli/actions/runs/41356526866), [typecheck/lint](https://github.com/bolt-builder/bolt-cli/actions/runs/41356526839)). Signing/installers and remaining release jobs are tracked separately; builds do not prove native installation or full V1 parity.
 - Production browser fixture selection passed 129/130 initially. The Go-limit fixture needed actual model-catalog readiness; its repaired keeper passes 20/20. About loading/failure cases pass 20/20. All four composer persistence benchmark scenarios pass with the full 44,223-byte prompt, eight context attachments, exact stored bytes/cursor and submission cleanup. The shared draft reader now follows the existing inline/text-chunk storage contract; its original long-quote reload consumer also passes. Workloads and timing/count measurement boundaries are retained.
 - Full Effect pattern scan retains 34 findings already present in `dev`; the two new background-tool import aliases were removed and the scoped scan passes. Effect rule fixtures and simplification scan pass. This baseline failure is not reported as a passing full scan.
 
@@ -260,7 +266,7 @@ The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizz
 - `/clear-data` (alias `/clear-history`) snapshots all root conversations from the connected Bolt server, shows their count and requires typing `DELETE`. It uses normal V2 deletion, reports partial failures and preserves settings, credentials, memory and project files. This is conversation cleanup: it cannot delete provider-held data, reset Zen usage limits or enable unlimited usage. No real user history was deleted during verification.
 - New designs is removed from the Experiments menu. Existing saved layout preferences and the reusable Experiments framework are retained.
 - The About Bolt wordmark now uses the original cyan-to-blue gradient at full opacity while retaining the existing reduced-motion behavior; verified in the shared cloud browser against a production build.
-- Evidence: TUI `test/session-history.test.tsx` uses the actual app fixture for pagination, opening an older conversation, deletion events, cancellation and explicit deletion with partial failures. The current packaged terminal smoke independently exercised history, fire/settings, the menu and cleanup cancellation. Full supported-platform and V1 parity gates above remain open.
+- Evidence: TUI `test/session-history.test.tsx` uses the actual app fixture for pagination, opening an older conversation, deletion events, cancellation and explicit deletion with partial failures. The current packaged terminal smoke independently exercised history, fire/settings, the menu and cleanup cancellation. A fresh Node SEA build at `421a0b5d` also passes actual bisect success/skip/abort cases while preserving checkout bytes and removing temporary worktrees. Full supported-platform and V1 parity gates above remain open.
 
 <!-- /coderabbit-ai-generated:v1 -->
 
