@@ -1,4 +1,4 @@
-import type { FileContent } from "@bolt-ai/sdk/v2"
+import type { PresentationFileContent } from "../file-presentation"
 
 export type MediaKind = "image" | "audio" | "svg"
 
