@@ -8,11 +8,12 @@ import { route, type Locale } from "../lib/language"
 export type HeaderLink = { href: string; label: string }
 
 export const githubLink = {
-  href: "https://github.com/Bolt-builder/bolt-cli",
-  apiHref: "https://api.github.com/repos/bolt-builder/bolt-cli",
-  fallbackStars: "195K",}
+  href: "https://github.com/anomalyco/opencode",
+  apiHref: "https://api.github.com/repos/anomalyco/opencode",
+  fallbackStars: "220K",
+}
 export const themePreferences = ["dark", "light", "system"] as const
-export const themeStorageKey = "bolt:stats-theme"
+export const themeStorageKey = "opencode:stats-theme"
 export type ThemePreference = (typeof themePreferences)[number]
 
 const compactNumberFormatter = new Intl.NumberFormat("en", {
@@ -133,8 +134,8 @@ export function Header(props: { githubStars: string; links?: readonly HeaderLink
             <strong>{i18n.t("header.github")}</strong>
             <span>[{props.githubStars}]</span>
           </a>
-          <a data-slot="header-button" data-variant="contrast" href="https://bolt.ai/">
-            <strong>{i18n.t("header.tryBolt")}</strong>
+          <a data-slot="header-button" data-variant="contrast" href="https://opencode.ai/">
+            <strong>{i18n.t("header.tryOpenCode")}</strong>
           </a>
           <button
             data-slot="menu-button"
@@ -203,9 +204,9 @@ function DataWordmark() {
   )
 }
 
-function BoltMark() {
+function OpenCodeMark() {
   return (
-    <svg data-slot="bolt-mark" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <svg data-slot="opencode-mark" width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
       <path d="M40 40H0V0H40V40Z" fill="var(--stats-logo-bg)" />
       <path d="M26 29H14V17H26V29Z" fill="var(--stats-logo-fill)" />
       <path d="M26 11H14V29H26V11ZM32 35H8V5H32V35Z" fill="var(--stats-logo-stroke)" />
@@ -234,12 +235,12 @@ export function Footer(props: {
     { href: "#methodology", label: i18n.t("methodology.title") },
   ]
   const legal = [
-    { href: "https://bolt.ai/legal/terms-of-service", label: i18n.t("footer.terms") },
-    { href: "https://bolt.ai/legal/privacy-policy", label: i18n.t("footer.privacy") },
+    { href: "https://opencode.ai/legal/terms-of-service", label: i18n.t("footer.terms") },
+    { href: "https://opencode.ai/legal/privacy-policy", label: i18n.t("footer.privacy") },
   ]
   const connect = [
-    { href: "mailto:hello@bolt.ai", label: i18n.t("footer.contact") },
-    { href: "https://bolt.ai/discord", label: i18n.t("footer.community") },
+    { href: "mailto:hello@opencode.ai", label: i18n.t("footer.contact") },
+    { href: "https://opencode.ai/discord", label: i18n.t("footer.community") },
     { href: "https://x.com/opencode", label: "X" },
     { href: githubLink.href, label: i18n.t("header.github") },
     { href: "https://www.youtube.com/@anomalyco", label: i18n.t("footer.youtube") },
@@ -253,8 +254,8 @@ export function Footer(props: {
     <footer data-component="footer">
       <Show when={bridge()}>{(link) => <SectionBridge label={link().label} href={link().href} />}</Show>
       <div data-slot="footer-grid">
-        <a data-slot="footer-mark" href="https://bolt.ai" aria-label={i18n.t("footer.homeAria")}>
-          <BoltMark />
+        <a data-slot="footer-mark" href="https://opencode.ai" aria-label={i18n.t("footer.homeAria")}>
+          <OpenCodeMark />
         </a>
         <FooterColumn title={i18n.t("footer.modelData")} links={modelStats} localHref={localHref} />
         <FooterColumn title={i18n.t("footer.legal")} links={legal} localHref={localHref} />
@@ -271,7 +272,7 @@ export function Footer(props: {
       <div data-slot="footer-bottom">
         <div>
           <span>{i18n.t("footer.copyright")}</span>
-          <span data-slot="status">{i18n.t("footer.status")}</span>
+          <SystemStatusLink />
         </div>
         <div data-slot="footer-controls">
           <FooterLanguageSwitcher />
@@ -308,7 +309,6 @@ function FooterLanguageSwitcher() {
     <label data-slot="footer-language">
       <span>{i18n.t("footer.language")}</span>
       <select
-        value={language.locale()}
         aria-label={i18n.t("footer.language")}
         onChange={(event) => {
           const locale = event.currentTarget.value as Locale
@@ -319,10 +319,44 @@ function FooterLanguageSwitcher() {
           if (href !== current) window.location.assign(href)
         }}
       >
-        <For each={language.locales}>{(locale) => <option value={locale}>{language.label(locale)}</option>}</For>
+        {/* Mark the option, not the select: SSR ignores a select value and hydration does not apply it. */}
+        <For each={language.locales}>
+          {(locale) => (
+            <option value={locale} selected={locale === language.locale()}>
+              {language.label(locale)}
+            </option>
+          )}
+        </For>
       </select>
     </label>
   )
+}
+
+const systemStatuses = ["operational", "degraded", "outage", "unknown"] as const
+type SystemStatus = (typeof systemStatuses)[number]
+
+function SystemStatusLink() {
+  const i18n = useI18n()
+  const [status, setStatus] = createSignal<SystemStatus>("unknown")
+
+  onMount(() => {
+    fetch("/status/api/summary", { signal: AbortSignal.timeout(10_000) })
+      .then((response) => (response.ok ? response.json() : undefined))
+      .then((body: unknown) => setStatus(readSystemStatus(body)))
+      .catch(() => setStatus("unknown"))
+  })
+
+  // The status page lives outside this app and is not localized, so bypass the locale route and client router.
+  return (
+    <a data-slot="status" data-status={status()} href="/status" rel="external">
+      {i18n.t(`footer.status.${status()}`)}
+    </a>
+  )
+}
+
+function readSystemStatus(body: unknown) {
+  if (!body || typeof body !== "object" || !("status" in body)) return "unknown"
+  return systemStatuses.find((status) => status === body.status) ?? "unknown"
 }
 
 function SectionBridge(props: { label: string; href: string }) {
@@ -435,7 +469,7 @@ function SubscribeModal(props: { onClose: () => void }) {
       <div data-slot="modal-scrim" aria-hidden="true" onClick={props.onClose} />
       <div data-slot="modal-panel">
         <div data-slot="modal-brand">
-          <img data-slot="modal-logo" src={opencodeWordmarkDark} alt="Bolt" />
+          <img data-slot="modal-logo" src={opencodeWordmarkDark} alt="OpenCode" />
           <button
             data-slot="modal-close"
             type="button"
