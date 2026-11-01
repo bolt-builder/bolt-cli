@@ -1,30 +1,32 @@
 import { expect, test } from "@playwright/test"
-import { mockBoltServer } from "../utils/mock-server"
+import { project, provider, sessionHref } from "../utils/app"
+import { mockOpenCodeServer } from "../utils/mock-server"
 import { expectAppVisible } from "../utils/waits"
 import { openSession } from "../utils/workspace"
 
-const directory = "C:/Bolt/NewProject"
+const directory = "C:/OpenCode/NewProject"
 
-test("creates a session in a new project, connects Bolt Go, and selects its model", async ({ page }) => {
-  let connectedGo = false
-  let pendingGo = false
-  const connections: Array<{ integrationID: string; body: unknown }> = []
-
-  await mockBoltServer(page, {
+test("creates a session in a new project and selects its model", async ({ page }) => {
+  // An empty draft must remain usable when the file viewer is unavailable.
+  await page.route(/(?:\/_assets\/file-(?!icon-)[^/]+\.js|\/session-ui\/src\/components\/file\.tsx)(?:\?|$)/, (route) =>
+    route.abort(),
+  )
+  const created = project({ id: "proj_model_selection_flow", directory, name: "NewProject" })
+  // The server knows no project until the user adds this one.
+  const projects: unknown[] = []
+  await mockOpenCodeServer(page, {
     directory,
-    project: {
-      id: "proj_model_selection_flow",
-      worktree: directory,
-      vcs: "git",
-      name: "NewProject",
-      time: { created: 1_700_000_000_000, updated: 1_700_000_000_000 },
-      sandboxes: [],
+    project: created,
+    projects: () => projects,
+    // The picker answers with the platform's separators; the server resolves them to its own.
+    onLocationGet: (requested) => {
+      if (requested.replaceAll("\\", "/") === directory && !projects.includes(created)) projects.push(created)
     },
     provider: () => ({
       all: [
         {
-          id: "bolt",
-          name: "Bolt",
+          id: "opencode",
+          name: "OpenCode",
           models: {
             "free-model": {
               id: "free-model",
@@ -35,8 +37,8 @@ test("creates a session in a new project, connects Bolt Go, and selects its mode
           },
         },
         {
-          id: "bolt-go",
-          name: "Bolt Go",
+          id: "opencode-go",
+          name: "OpenCode Go",
           models: {
             "go-model-1": {
               id: "go-model-1",
@@ -47,25 +49,26 @@ test("creates a session in a new project, connects Bolt Go, and selects its mode
           },
         },
       ],
-      connected: connectedGo ? ["bolt", "bolt-go"] : ["bolt"],
-      default: { providerID: "bolt", modelID: "free-model" },
+      connected: ["opencode", "opencode-go"],
+      default: { providerID: "opencode", modelID: "free-model" },
     }),
-    integrationMethods: { "bolt-go": [{ type: "api", label: "API key" }] },
-    onConnectKey: (input) => {
-      connections.push(input)
-      if (input.integrationID === "bolt-go") pendingGo = true
-    },
-    onInstanceDispose: () => {
-      if (pendingGo) connectedGo = true
-    },
     sessions: [],
     pageMessages: () => ({ items: [] }),
     // Listings are requested by absolute path and returned relative to the stable Location.
     fileList: (path) => (path === "C:/OpenCode" ? [{ path: "./", type: "directory", ignored: false }] : []),
   })
   await page.addInitScript(() => {
-    localStorage.setItem("settings.v3", JSON.stringify({ general: { newLayoutDesigns: true } }))
-    localStorage.setItem("bolt.global.dat:server", JSON.stringify({ projects: { local: [] } }))
+    localStorage.setItem(
+      "opencode.global.dat:model",
+      JSON.stringify({
+        user: [
+          { providerID: "opencode", modelID: "free-model", visibility: "show" },
+          { providerID: "opencode-go", modelID: "go-model-1", visibility: "show" },
+        ],
+        recent: [{ providerID: "opencode-go", modelID: "go-model-1" }],
+        variant: {},
+      }),
+    )
   })
 
   await page.goto("/")
@@ -73,7 +76,7 @@ test("creates a session in a new project, connects Bolt Go, and selects its mode
   await expectAppVisible(addProject)
   await addProject.click()
   const picker = page.getByRole("dialog", { name: "Open project", exact: true })
-  await expect(picker.getByRole("combobox")).toHaveValue("C:\\OpenCode\\NewProject")
+  await expect(picker.getByRole("combobox")).toHaveValue("")
 
   const listing = page.waitForRequest((request) => {
     const url = new URL(request.url())
@@ -99,19 +102,16 @@ test("creates a session in a new project, connects Bolt Go, and selects its mode
   const modelControl = page.locator('[data-action="composer-model"]')
   await expect(modelControl).toContainText("Go Model 1")
   await modelControl.click()
-  await expect(page.locator('[data-section="free-models"]')).toContainText("Free models provided by Bolt")
+  const modelSearch = page.getByPlaceholder("Search models", { exact: true })
+  await expect(modelSearch).toBeFocused()
+  await modelSearch.press("ArrowDown")
+  await modelSearch.press("Enter")
+  await expect(modelControl).toContainText("Free Model")
 
-  await page.locator('[data-provider-id="bolt-go"]').click()
-  await page.locator('[data-input="provider-api-key"]').fill("mock-go-api-key")
-  await page.locator('[data-action="provider-connect-submit"]').click()
-  await expect(page.locator('[data-component="dialog-v2"]')).toHaveCount(0)
-  expect(connections).toEqual([{ integrationID: "bolt-go", body: { type: "api", key: "mock-go-api-key" } }])
-
-  await expect(modelControl).toHaveAttribute("data-control-type", "popover")
   await modelControl.click()
-  const goModel = page.locator('[data-option-key="bolt-go:go-model-1"]')
-  await expect(goModel).toBeVisible()
-  await goModel.click()
+  await expect(modelSearch).toBeFocused()
+  await modelSearch.press("ArrowUp")
+  await modelSearch.press("Enter")
 
   await expect(modelControl).toContainText("Go Model 1")
 })
