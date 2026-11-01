@@ -62,7 +62,7 @@ export function StatsPoster(props: { stats: SessionStatsInfo }) {
     <box width={width()} flexDirection="column" alignItems="center" flexShrink={0} gap={compact() ? 1 : 2}>
       <box width="100%" flexDirection={width() < 44 ? "column" : "row"} justifyContent="space-between">
         <text fg={theme.text.base} attributes={TextAttributes.BOLD}>
-          opencode / stats
+          bolt / stats
         </text>
         <text fg={theme.text.muted}>{dates()}</text>
       </box>
@@ -131,7 +131,7 @@ export function StatsPoster(props: { stats: SessionStatsInfo }) {
         </For>
       </box>
       <box width="100%" flexDirection="row" justifyContent="flex-end">
-        <text fg={theme.text.base}>opencode.ai</text>
+        <text fg={theme.text.base}>Bolt CLI</text>
       </box>
     </box>
   )

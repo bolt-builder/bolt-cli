@@ -146,10 +146,10 @@ for (const target of targets) {
     path.join(outdir, name, "package.json"),
     `${JSON.stringify(
       {
-        name: `@opencode/${name}`,
+        name: `@bolt-builder/bolt-${name}`,
         version: Script.version,
         license: pkg.license,
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        repository: { type: "git", url: "git+https://github.com/bolt-builder/bolt-cli.git" },
         os: [target.platform],
         cpu: [target.arch],
       },

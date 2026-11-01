@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import fs from "node:fs/promises"
 import path from "node:path"
 import { Readable } from "node:stream"
 import { pathToFileURL } from "node:url"
@@ -170,5 +171,24 @@ describe("Mini CLI host", () => {
     await Bun.write(file, "{")
     await input.preferences.saveVariant(model, "high")
     expect(await input.preferences.resolveVariant(model)).toBe("high")
+  })
+  test("scrubs credential formats from trace metadata and errors", async () => {
+    await using directory = await tmpdir()
+    const previous = process.env.OPENCODE_DIRECT_TRACE
+    process.env.OPENCODE_DIRECT_TRACE = "1"
+    try {
+      const input = host({ stdin: stream(true), cleanup() {} }, directory.path)
+      const key = "sk-" + "a".repeat(24)
+      input.diagnostics.trace?.write("fixture", { nested: { prompt: key } })
+      const names = await fs.readdir(path.join(directory.path, "direct"))
+      const trace = await Bun.file(
+        path.join(directory.path, "direct", names.find((name) => name.endsWith(".jsonl"))!),
+      ).text()
+      expect(trace).not.toContain(key)
+      expect(trace).toContain("[redacted:api-key]")
+    } finally {
+      if (previous === undefined) delete process.env.OPENCODE_DIRECT_TRACE
+      else process.env.OPENCODE_DIRECT_TRACE = previous
+    }
   })
 })

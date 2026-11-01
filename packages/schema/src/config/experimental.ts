@@ -6,6 +6,10 @@ import { ConfigModel } from "./model.js"
 import { ConfigPolicy } from "./policy.js"
 
 export class Info extends Schema.Class<Info>("ConfigExperimental.Info")({
+  redact: Schema.Boolean.pipe(optional).annotate({
+    description:
+      "Experimental: redact known credential formats from model prompts. Defaults to true; set false to disable.",
+  }),
   portable_shell_scanner: Schema.Boolean.pipe(optional).annotate({
     description: "Deprecated: the built-in shell permission scanner is now always enabled.",
   }),

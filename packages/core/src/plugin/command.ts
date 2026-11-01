@@ -6,6 +6,7 @@ import { Bus } from "../bus.js"
 import { Location } from "../location.js"
 import { Mcp } from "../mcp/index.js"
 import PROMPT_INITIALIZE from "./command/initialize.txt"
+import PROMPT_BUG from "./command/bug.txt"
 import PROMPT_REVIEW from "./command/review.txt"
 
 export const Plugin = define({
@@ -48,6 +49,19 @@ export const Plugin = define({
               ...input.prompt,
               sessionID: input.sessionID,
               text: append(PROMPT_REVIEW.replace("${path}", location.project.directory), input.prompt.text),
+              delivery: input.delivery,
+            })
+            .pipe(Effect.asVoid),
+      })
+      editor.add({
+        name: "bug",
+        description: "file a Bolt bug report [description], asks if omitted",
+        execute: (input) =>
+          ctx.session
+            .prompt({
+              ...input.prompt,
+              sessionID: input.sessionID,
+              text: append(PROMPT_BUG, input.prompt.text),
               delivery: input.delivery,
             })
             .pipe(Effect.asVoid),

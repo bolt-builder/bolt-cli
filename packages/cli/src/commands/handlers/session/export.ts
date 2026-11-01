@@ -6,12 +6,19 @@ import { EOL } from "node:os"
 import { Commands } from "../../commands"
 import { Runtime } from "../../../framework/runtime"
 import { ServerConnection } from "../../../services/server-connection"
+import { Envelope } from "../../../util/envelope"
+import { Porcelain } from "../../../util/porcelain"
+import { turns } from "../../../services/transcript"
 import { errorMessage } from "../../../util/error"
 
 export default Runtime.handler(
   Commands.commands.session.commands.export,
   Effect.fn("cli.session.export")((input) =>
     Effect.gen(function* () {
+      if ([input.html, input.md, input.jsonl, input.json, input.porcelain].filter(Boolean).length > 1)
+        return yield* Effect.fail(
+          new Error("Choose only one export format: --html, --md, --jsonl, --json or --porcelain"),
+        )
       const requested = Option.getOrUndefined(input.session)
       if (!requested && !process.stdin.isTTY) {
         yield* Effect.fail(new Error("Pass a session ID when running without an interactive terminal"))
@@ -71,6 +78,38 @@ export default Runtime.handler(
         try: () => client.experimental.session.export({ sessionID, sanitize: input.sanitize }),
         catch: (cause) => cause,
       })
+      if (input.html) {
+        const { render } = yield* Effect.promise(() => import("../export-html"))
+        yield* Effect.promise(() =>
+          Bun.write(input.out, render(data.info.title ?? "Untitled session", turns(data.messages))),
+        )
+        process.stderr.write(`Wrote replay to ${input.out}\n`)
+        return
+      }
+      if (input.md) {
+        const { markdown } = yield* Effect.promise(() => import("../export-md"))
+        process.stdout.write(markdown(data.info.title ?? "Untitled session", turns(data.messages)))
+        return
+      }
+      if (input.jsonl) {
+        for (const message of data.messages) process.stdout.write(JSON.stringify(message) + EOL)
+        return
+      }
+      if (input.json) {
+        Envelope.print(data)
+        return
+      }
+      if (input.porcelain) {
+        Porcelain.print("session", data.info.id, data.info.title ?? "Untitled session")
+        for (const turn of turns(data.messages))
+          Porcelain.print(
+            "message",
+            turn.info.id,
+            turn.info.role,
+            turn.parts.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("\n"),
+          )
+        return
+      }
       process.stdout.write(JSON.stringify(data, null, 2) + EOL)
     }).pipe(
       Effect.catch((error) =>

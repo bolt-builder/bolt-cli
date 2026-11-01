@@ -10,6 +10,11 @@ import DiffViewer from "../feature-plugins/system/diff-viewer"
 import Notifications from "../feature-plugins/system/notifications"
 import Plugins from "../feature-plugins/system/plugins"
 import Storybook from "../feature-plugins/system/storybook"
+import CostAlert from "../feature-plugins/system/cost-alert"
+import Voice from "../feature-plugins/system/voice"
+import Sandbox from "../feature-plugins/system/sandbox"
+import Memory from "../feature-plugins/system/memory"
+import Process from "../feature-plugins/system/process"
 import Stats from "../feature-plugins/system/stats"
 import Latex from "@opencode/latex/plugin"
 import Merman from "@opencode/merman/plugin"
@@ -26,6 +31,11 @@ export const builtins = [
   Notifications,
   Plugins,
   Stats,
+  CostAlert,
+  Process,
+  Memory,
+  Sandbox,
+  Voice,
   Merman,
   Latex,
   // The storybook is a development tool; keep its route and palette commands out of

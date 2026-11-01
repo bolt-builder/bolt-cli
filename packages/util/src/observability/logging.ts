@@ -1,5 +1,6 @@
 import { Effect, FileSystem, Formatter, Logger, Option, Schedule, Stream, type LogLevel } from "effect"
 import path from "path"
+import { Redact } from "../redact.js"
 import { Global } from "../global.js"
 import { runID } from "./shared.js"
 
@@ -16,17 +17,19 @@ const LOG_TRIM_CHUNK = 64 * 1024
 function formatter(id: string = runID()) {
   return Logger.map(Logger.formatStructured, (output) => {
     const messages = Array.isArray(output.message) ? output.message : [output.message]
-    return [
-      ["timestamp", output.timestamp],
-      ["level", output.level],
-      ["run", id],
-      ...messages.flatMap((value) => (plain(value) ? flatten(value) : [["message", value] as const])),
-      ...(output.cause === undefined ? [] : [["cause", output.cause] as const]),
-      ...flatten(output.spans),
-      ...flatten(output.annotations),
-    ]
-      .map(([key, value]) => `${key}=${format(value)}`)
-      .join(" ")
+    return Redact.text(
+      [
+        ["timestamp", output.timestamp],
+        ["level", output.level],
+        ["run", id],
+        ...messages.flatMap((value) => (plain(value) ? flatten(value) : [["message", value] as const])),
+        ...(output.cause === undefined ? [] : [["cause", output.cause] as const]),
+        ...flatten(output.spans),
+        ...flatten(output.annotations),
+      ]
+        .map(([key, value]) => `${key}=${format(value)}`)
+        .join(" "),
+    )
   })
 }
 

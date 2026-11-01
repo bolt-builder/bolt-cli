@@ -528,7 +528,7 @@ export function createPromptState(input: PromptInput): PromptState {
         description: "compact older session context to free space",
       } satisfies SlashOption,
       ...EXIT_COMMANDS.map(
-        (name) => ({ kind: "slash", name, display: `/${name}`, description: "close OpenCode" }) satisfies SlashOption,
+        (name) => ({ kind: "slash", name, display: `/${name}`, description: "close Bolt" }) satisfies SlashOption,
       ),
     ]
     const hidden = new Set(builtins.map((item) => item.name))

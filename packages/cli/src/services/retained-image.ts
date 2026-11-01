@@ -60,8 +60,8 @@ export function installed(home: string) {
   const executable = path.resolve(process.execPath)
   return (
     executable.split(path.sep).includes("node_modules") ||
-    /[\\/]winget[\\/]packages[\\/]/i.test(executable) ||
-    executable === path.resolve(home, ".opencode", "bin", "opencode.exe")
+    /[\\/](?:scoop[\\/]apps[\\/]bolt|chocolatey[\\/]lib[\\/]bolt)[\\/]/i.test(executable) ||
+    executable === path.resolve(home, ".bolt", "bin", "bolt.exe")
   )
 }
 

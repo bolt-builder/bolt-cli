@@ -46,13 +46,27 @@ const PermissionParams = {
   ),
 }
 
-const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME : "opencode", {
-  description: "OpenCode command line interface",
+const ExportParams = {
+  session: Argument.String("session").pipe(Argument.withDescription("Session ID to export"), Argument.optional),
+  sanitize: Flag.Boolean("sanitize").pipe(
+    Flag.withDescription("Redact sensitive transcript and file data"),
+    Flag.withDefault(false),
+  ),
+  html: Flag.Boolean("html").pipe(Flag.withDefault(false)),
+  md: Flag.Boolean("md").pipe(Flag.withDefault(false)),
+  jsonl: Flag.Boolean("jsonl").pipe(Flag.withDefault(false)),
+  json: Flag.Boolean("json").pipe(Flag.withDefault(false)),
+  porcelain: Flag.Boolean("porcelain").pipe(Flag.withDefault(false)),
+  out: Flag.String("out").pipe(Flag.withDefault("replay.html")),
+}
+
+const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME : "bolt", {
+  description: "Bolt command line interface",
   params: {
     ...ServerParams,
     ...PermissionParams,
     directory: Argument.String("directory").pipe(
-      Argument.withDescription("Directory to start OpenCode in"),
+      Argument.withDescription("Directory to start Bolt in"),
       Argument.optional,
     ),
     continue: Flag.Boolean("continue").pipe(
@@ -68,8 +82,335 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
     prompt: Flag.String("prompt").pipe(Flag.withDescription("Prompt to use"), Flag.optional),
   },
   commands: [
+    Spec.make("cron", {
+      description: "Schedule recurring agent chores through persistent background jobs",
+      params: {
+        action: Argument.Literals("action", ["add", "list", "rm", "start"]),
+        args: Argument.String("args").pipe(Argument.variadic()),
+      },
+    }),
+    Spec.make("jobs", {
+      description: "Manage background jobs and supervise health with bounded restarts",
+      params: {
+        action: Argument.Literals("action", ["list", "tail", "kill", "supervise"]),
+        id: Argument.String("id").pipe(Argument.optional),
+        follow: Flag.Boolean("follow").pipe(Flag.withAlias("f"), Flag.withDefault(false)),
+        health: Flag.String("health").pipe(Flag.optional),
+        interval: Flag.Finite("interval").pipe(Flag.withDefault(5)),
+        retries: Flag.Finite("retries").pipe(Flag.withDefault(3)),
+        limit: Flag.Finite("limit").pipe(Flag.withDefault(5)),
+      },
+    }),
+    Spec.make("invariants", {
+      description: "State invariants before refactoring and verify them afterwards",
+      globalFlags: ServerFlags,
+      params: {
+        action: Argument.Literals("action", ["state", "verify"]),
+        files: Argument.String("files").pipe(Argument.variadic()),
+        range: Flag.String("range").pipe(Flag.optional),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("analyze", {
+      description: "Run project lint, typecheck and dead-export checks over the current diff",
+      params: {
+        branchTarget: Argument.String("branch-name").pipe(Argument.optional),
+        staged: Flag.Boolean("staged").pipe(Flag.withDefault(false)),
+        branch: Flag.String("branch").pipe(Flag.withOptionalValue(""), Flag.optional),
+      },
+    }),
+    Spec.make("init", {
+      description: "Initialize Bolt config, agents and commands for a project",
+      params: {
+        directory: Argument.String("directory").pipe(Argument.optional),
+        preset: Flag.Literals("preset", ["library", "webapp", "monorepo"]).pipe(Flag.optional),
+      },
+    }),
+    Spec.make("submodules", {
+      description: "Report submodule drift and bring submodules in sync",
+      params: { sync: Flag.Boolean("sync").pipe(Flag.withDefault(false)) },
+    }),
+    Spec.make("bench", {
+      description: "Benchmark a command against a base ref and flag regressions",
+      params: {
+        command: Argument.String("command"),
+        base: Flag.String("base").pipe(Flag.withAlias("b"), Flag.optional),
+        runs: Flag.Finite("runs").pipe(Flag.withAlias("n"), Flag.withDefault(5)),
+        warmup: Flag.Finite("warmup").pipe(Flag.withDefault(1)),
+        threshold: Flag.Finite("threshold").pipe(Flag.withAlias("t"), Flag.withDefault(10)),
+      },
+    }),
+    Spec.make("asserts", {
+      description: "Find weak assertions and suggest concrete checks",
+      globalFlags: ServerFlags,
+      params: {
+        files: Argument.String("files").pipe(Argument.variadic()),
+        branch: Flag.String("branch").pipe(Flag.withOptionalValue(""), Flag.optional),
+        suggest: Flag.Boolean("suggest").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("tighten", {
+      description: "Find loose types and suggest stricter replacements",
+      globalFlags: ServerFlags,
+      params: {
+        files: Argument.String("files").pipe(Argument.variadic()),
+        branch: Flag.String("branch").pipe(Flag.withOptionalValue(""), Flag.optional),
+        suggest: Flag.Boolean("suggest").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("index", {
+      description: "Build or query the incremental local source index",
+      params: {
+        query: Argument.String("query").pipe(Argument.optional),
+        out: Flag.String("out").pipe(Flag.withDefault("codebase-index.json")),
+        limit: Flag.Int("limit").pipe(Flag.withDefault(10)),
+        watch: Flag.Boolean("watch").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("flaky", {
+      description: "Detect flaky tests by repeating a command and quarantine mixed results",
+      params: {
+        command: Argument.String("command"),
+        runs: Flag.Int("runs").pipe(Flag.withAlias("n"), Flag.withDefault(10)),
+        quarantine: Flag.Boolean("quarantine").pipe(Flag.withAlias("q"), Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("resume", {
+      description: "Resume a session, with a fuzzy picker when no ID is given",
+      globalFlags: ServerFlags,
+      params: { sessionID: Argument.String("sessionID").pipe(Argument.optional) },
+    }),
+    Spec.make("fork", {
+      description: "Fork a session at a message, including that message in the copied history",
+      globalFlags: ServerFlags,
+      params: {
+        sessionID: Argument.String("sessionID"),
+        messageID: Argument.String("messageID").pipe(Argument.optional),
+        resume: Flag.Boolean("resume").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("drift", {
+      description: "Flag documentation and comments made stale by the current diff",
+      params: {
+        branchTarget: Argument.String("branch-name").pipe(Argument.optional),
+        staged: Flag.Boolean("staged").pipe(Flag.withDefault(false)),
+        branch: Flag.String("branch").pipe(Flag.withOptionalValue(""), Flag.optional),
+      },
+    }),
+    Spec.make("logs", {
+      description: "Print or follow the Bolt agent log",
+      params: {
+        tail: Flag.Int("tail").pipe(Flag.withDefault(1000)),
+        follow: Flag.Boolean("follow").pipe(Flag.withAlias("f"), Flag.withDefault(false)),
+        level: Flag.Literals("level", ["DEBUG", "INFO", "WARN", "ERROR"]).pipe(Flag.optional),
+        session: Flag.String("session").pipe(Flag.optional),
+        file: Flag.String("file").pipe(Flag.optional),
+        json: Flag.Boolean("json").pipe(Flag.withDefault(false)),
+        porcelain: Flag.Boolean("porcelain").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("deps", { description: "Report outdated, vulnerable, deprecated and abandoned npm dependencies" }),
+    Spec.make("alias", {
+      description: "List, show, set or remove Bolt CLI command aliases",
+      params: {
+        entry: Argument.String("entry").pipe(Argument.optional),
+        rm: Flag.Boolean("rm").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("memory", {
+      description: "Inspect and manage Bolt project memory",
+      commands: [
+        Spec.make("export", {
+          description: "Export project memory as markdown",
+          globalFlags: ServerFlags,
+          params: { out: Flag.String("out").pipe(Flag.withAlias("o"), Flag.optional) },
+        }),
+        Spec.make("import", {
+          description: "Import an exported memory document",
+          globalFlags: ServerFlags,
+          params: { file: Argument.String("file") },
+        }),
+        Spec.make("team", {
+          description: "Share selected memory through .bolt/memory.md",
+          globalFlags: ServerFlags,
+          params: {
+            action: Argument.Literals("action", ["init", "share"]),
+            query: Argument.String("query").pipe(Argument.optional),
+          },
+        }),
+        Spec.make("diff", {
+          description: "Review memory staged by session captures",
+          globalFlags: ServerFlags,
+          params: {
+            apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+            discard: Flag.Boolean("discard").pipe(Flag.withDefault(false)),
+          },
+        }),
+        Spec.make("review", {
+          description: "Toggle review mode for captured memory",
+          globalFlags: ServerFlags,
+          params: { mode: Argument.Literals("mode", ["on", "off"]) },
+        }),
+        Spec.make("search", {
+          description: "Search stored project memory",
+          globalFlags: ServerFlags,
+          params: {
+            query: Argument.String("query"),
+            limit: Flag.Int("limit").pipe(Flag.withAlias("n"), Flag.withDefault(10)),
+          },
+        }),
+        Spec.make("conflicts", {
+          description: "Detect and resolve contradictory facts",
+          globalFlags: ServerFlags,
+          params: { fix: Flag.Boolean("fix").pipe(Flag.withDefault(false)) },
+        }),
+        Spec.make("why", {
+          description: "Explain stored memory with evidence and provenance",
+          globalFlags: ServerFlags,
+          params: {
+            question: Argument.String("question").pipe(Argument.variadic()),
+            model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+          },
+        }),
+      ],
+    }),
+    Spec.make("export", {
+      globalFlags: ServerFlags,
+      description: "Export a session as JSON, Markdown, JSONL or a self-contained HTML replay",
+      params: ExportParams,
+    }),
+    Spec.make("grep", {
+      globalFlags: ServerFlags,
+      description: "Search text, reasoning and completed tool output across session transcripts",
+      params: {
+        pattern: Argument.String("pattern"),
+        ignoreCase: Flag.Boolean("ignore-case").pipe(Flag.withAlias("i"), Flag.withDefault(false)),
+        limit: Flag.Int("limit").pipe(Flag.optional),
+        json: Flag.Boolean("json").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("why", {
+      globalFlags: ServerFlags,
+      description: "Explain when and why a behavior changed using commit evidence",
+      params: {
+        question: Argument.String("question"),
+        file: Flag.String("file").pipe(Flag.optional),
+        lines: Flag.String("lines").pipe(Flag.optional),
+        term: Flag.String("term").pipe(Flag.optional),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("commitlint", {
+      description: "Lint commit messages against this repository's own conventions",
+      params: {
+        range: Flag.String("range").pipe(Flag.optional),
+        history: Flag.Int("history").pipe(Flag.withDefault(200)),
+      },
+    }),
+    Spec.make("review", {
+      globalFlags: ServerFlags,
+      description: "Review code changes with the code-review agent",
+      params: {
+        branchTarget: Argument.String("branch-name").pipe(Argument.optional),
+        staged: Flag.Boolean("staged").pipe(Flag.withDefault(false)),
+        branch: Flag.String("branch").pipe(Flag.withOptionalValue(""), Flag.optional),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        confidence: Flag.Boolean("confidence").pipe(Flag.withDefault(false)),
+        json: Flag.Boolean("json").pipe(Flag.withDefault(false)),
+        porcelain: Flag.Boolean("porcelain").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("diff-gate", {
+      globalFlags: ServerFlags,
+      description: "Review a diff from stdin and fail at the selected severity",
+      params: {
+        threshold: Flag.Literals("threshold", ["minor", "major", "critical"]).pipe(Flag.withDefault("major")),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("learn", {
+      globalFlags: ServerFlags,
+      description: "Learn repository conventions into Bolt project memory",
+      params: { model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional) },
+    }),
+    Spec.make("ask", {
+      globalFlags: ServerFlags,
+      description: "Ask a one-shot question and print only the answer",
+      params: {
+        question: Argument.String("question").pipe(Argument.variadic()),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        agent: Flag.String("agent").pipe(Flag.optional),
+      },
+    }),
+    Spec.make("commit", {
+      globalFlags: ServerFlags,
+      description: "Commit staged changes with a generated message",
+      params: {
+        all: Flag.Boolean("all").pipe(Flag.withAlias("a"), Flag.withDefault(false)),
+        dryRun: Flag.Boolean("dry-run").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("map", {
+      description: "Draw a markdown and Mermaid map of source dependencies",
+      params: {
+        out: Flag.String("out").pipe(Flag.withDefault("codebase-map.md")),
+        depth: Flag.Int("depth").pipe(Flag.withDefault(2)),
+      },
+    }),
+    Spec.make("arch", {
+      description: "Detect imports that violate the declared module contract",
+      params: { contract: Flag.String("contract").pipe(Flag.withDefault("architecture.json")) },
+    }),
+    Spec.make("owners", {
+      description: "Map directory ownership from Git history and CODEOWNERS",
+      params: {
+        since: Flag.String("since").pipe(Flag.withDefault("1 year")),
+        depth: Flag.Int("depth").pipe(Flag.withDefault(2)),
+      },
+    }),
+    Spec.make("dead", {
+      description: "Find unused exports ranked by deletion safety",
+      params: { limit: Flag.Int("limit").pipe(Flag.withDefault(40)) },
+    }),
+    Spec.make("dupes", {
+      description: "Find near-identical code blocks across the repo",
+      params: {
+        window: Flag.Int("window").pipe(Flag.withDefault(6)),
+        limit: Flag.Int("limit").pipe(Flag.withDefault(20)),
+      },
+    }),
+    Spec.make("packages", {
+      description: "Map workspace dependencies and parallel build order",
+      params: { out: Flag.String("out").pipe(Flag.optional) },
+    }),
+    Spec.make("hotspots", {
+      description: "Flag files with high churn and high complexity for refactoring",
+      params: {
+        since: Flag.String("since").pipe(
+          Flag.withDescription("History window, any git-parseable date"),
+          Flag.withDefault("90 days"),
+        ),
+        limit: Flag.Int("limit").pipe(Flag.withDescription("Maximum files to report"), Flag.withDefault(20)),
+      },
+    }),
+    Spec.make("blast", {
+      description: "Estimate the blast radius of tracked changes",
+      params: {
+        staged: Flag.Boolean("staged").pipe(
+          Flag.withDescription("Analyze staged changes only"),
+          Flag.withDefault(false),
+        ),
+        branch: Flag.String("branch").pipe(
+          Flag.withDescription("Analyze changes since the merge base with a branch"),
+          Flag.optional,
+        ),
+      },
+    }),
     Spec.make("upgrade", {
-      description: "Upgrade OpenCode to the latest or a specific version",
+      description: "Upgrade Bolt to the latest or a specific version",
       aliases: ["update"],
       params: {
         target: Argument.String("target").pipe(
@@ -84,7 +425,7 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       },
     }),
     Spec.make("uninstall", {
-      description: "Uninstall OpenCode, keeping session data, configuration, and state",
+      description: "Uninstall Bolt, keeping session data, configuration, and state",
       params: {
         dryRun: Flag.Boolean("dry-run").pipe(
           Flag.withDescription("Show what would be removed without removing"),
@@ -398,9 +739,14 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       },
     }),
     Spec.make("run", {
-      description: "Run OpenCode with a message",
+      description: "Run Bolt with a message",
       globalFlags: ServerFlags,
       params: {
+        background: Flag.Boolean("background").pipe(Flag.withAlias("bg"), Flag.withDefault(false)),
+        voice: Flag.Boolean("voice").pipe(
+          Flag.withDefault(false),
+          Flag.withDescription("Record a prompt and transcribe with local whisper.cpp"),
+        ),
         message: Argument.String("message").pipe(
           Argument.withDescription("Message to send"),
           Argument.variadic({ min: 0 }),
@@ -469,17 +815,8 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
           },
         }),
         Spec.make("export", {
-          description: "Export session data as JSON",
-          params: {
-            session: Argument.String("session").pipe(
-              Argument.withDescription("Session ID to export"),
-              Argument.optional,
-            ),
-            sanitize: Flag.Boolean("sanitize").pipe(
-              Flag.withDescription("Redact sensitive transcript and file data"),
-              Flag.withDefault(false),
-            ),
-          },
+          description: "Export a session as JSON, Markdown, JSONL or an HTML replay",
+          params: ExportParams,
         }),
         Spec.make("import", {
           description: "Import session data from a JSON file or URL",

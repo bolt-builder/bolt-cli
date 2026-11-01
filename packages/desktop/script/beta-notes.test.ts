@@ -74,6 +74,13 @@ test("embeds the build's commit, its history and the notes of its non-merge feat
 
   await $`git checkout -q -b side HEAD~1 && git commit -q --allow-empty -m ${"fix(app): side fix"} && git checkout -q beta && git merge -q --no-ff side -m ${"fix(app): merge side"}`
     .cwd(git.dir)
+    .env({
+      ...process.env,
+      GIT_AUTHOR_NAME: "Ada",
+      GIT_AUTHOR_EMAIL: "a@b.c",
+      GIT_COMMITTER_NAME: "Ada",
+      GIT_COMMITTER_EMAIL: "a@b.c",
+    })
     .quiet()
 
   const head = (await $`git rev-parse HEAD`.cwd(git.dir).text()).trim()

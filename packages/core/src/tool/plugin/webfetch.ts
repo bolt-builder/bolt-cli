@@ -5,6 +5,7 @@ import { ToolFailure } from "@opencode/ai/effect"
 import { Duration, Effect, Schema } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientError, HttpClientRequest, HttpClientResponse } from "effect/http"
 import { Parser } from "htmlparser2"
+import { NetGuard } from "../../net-guard.js"
 import { Mime } from "../../mime.js"
 import { Permission } from "../../permission.js"
 import { convertHTMLToMarkdown, MAX_MARKDOWN_BYTES } from "../html-markdown.js"
@@ -154,15 +155,18 @@ export const Plugin = {
               })
 
               const { body, contentType } = yield* Effect.gen(function* () {
+                yield* NetGuard.assertFetchable(new URL(input.url))
                 const check = (url: string) =>
-                  permission.assertNotDenied({
-                    action: name,
-                    resources: [url],
-                    metadata: { ...input, url },
-                    sessionID: context.sessionID,
-                    agent: context.agent,
-                    source: { type: "tool", messageID: context.messageID, id: context.id },
-                  })
+                  permission
+                    .assertNotDenied({
+                      action: name,
+                      resources: [url],
+                      metadata: { ...input, url },
+                      sessionID: context.sessionID,
+                      agent: context.agent,
+                      source: { type: "tool", messageID: context.messageID, id: context.id },
+                    })
+                    .pipe(Effect.andThen(NetGuard.assertFetchable(new URL(url))))
                 const response = yield* execute(http, check, input.url, input.format).pipe(
                   Effect.catchIf(isCloudflareChallenge, () =>
                     execute(http, check, input.url, input.format, "opencode"),

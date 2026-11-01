@@ -4,9 +4,10 @@ import fs from "node:fs"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { ReadStream } from "node:tty"
+import { Redact } from "@opencode/util/redact"
 import { OPENCODE_VERSION } from "./version"
 
-export const INTERACTIVE_INPUT_ERROR = "opencode mini requires a controlling terminal for input"
+export const INTERACTIVE_INPUT_ERROR = "bolt mini requires a controlling terminal for input"
 
 export type InteractiveStdin = {
   stdin: NodeJS.ReadStream
@@ -54,7 +55,7 @@ function createTrace(
     .replace(/\.\d+Z$/, "Z")
   const target = path.join(logPath, "direct", `${stamp}-${diagnostics.pid}.jsonl`)
   const text = (data: unknown) =>
-    JSON.stringify(data, (_key, value) => (typeof value === "bigint" ? String(value) : value), 0)
+    JSON.stringify(Redact.deep(data), (_key, value) => (typeof value === "bigint" ? String(value) : value), 0)
   fs.mkdirSync(path.dirname(target), { recursive: true })
   fs.writeFileSync(
     path.join(logPath, "direct", "latest.json"),

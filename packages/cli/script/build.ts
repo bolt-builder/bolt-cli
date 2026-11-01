@@ -185,7 +185,7 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
       outfile: path.join(outdir, name, "bin", binary),
       execArgv: [
         "--smol",
-        `--user-agent=opencode/${Script.channel}/${Script.version}/cli`,
+        `--user-agent=bolt/${Script.channel}/${Script.version}/cli`,
         "--use-system-ca",
         "--no-warnings",
         "--",
@@ -194,7 +194,7 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
     },
     define: {
       OPENCODE_VERSION: `'${Script.version}'`,
-      OPENCODE_CLI_NAME: "'opencode'",
+      OPENCODE_CLI_NAME: "'bolt'",
       OPENCODE_CHANNEL: `'${Script.channel}'`,
       OPENCODE_ARTIFACT: `'cli'`,
       ...(highlights ? { OPENCODE_RELEASE_HIGHLIGHTS: JSON.stringify(highlights) } : {}),
@@ -216,10 +216,10 @@ export default { path: file, version: ${JSON.stringify(opencodePty.version)}, sh
     path.join(outdir, name, "package.json"),
     JSON.stringify(
       {
-        name: `@opencode/${name}`,
+        name: `@bolt-builder/bolt-${name}`,
         version: Script.version,
         license: "MIT",
-        repository: { type: "git", url: "git+https://github.com/anomalyco/opencode.git" },
+        repository: { type: "git", url: "git+https://github.com/bolt-builder/bolt-cli.git" },
         os: [item.os],
         cpu: [item.arch],
       },

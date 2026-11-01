@@ -4,6 +4,7 @@ import { createEffect, onMount } from "solid-js"
 import { createStore } from "solid-js/store"
 import { makeEventListener } from "@solid-primitives/event-listener"
 import { createSimpleContext } from "../context/helper"
+import boltThemeJson from "./themes/bolt.json"
 import oc2ThemeJson from "./themes/oc-2.json"
 import { resolveThemeVariant, themeToCss } from "./resolve"
 import { resolveThemeVariantV2, themeV2ToCss } from "./v2/resolve"
@@ -51,6 +52,7 @@ function knownThemes() {
 
 const names: Record<string, string> = {
   "oc-2": "OpenCode",
+  bolt: "Bolt",
   amoled: "AMOLED",
   aura: "Aura",
   ayu: "Ayu",
@@ -93,7 +95,7 @@ const oc2Theme = oc2ThemeJson as DesktopTheme
 function resolveStoredTheme(id: string | null | undefined, registered?: Record<string, DesktopTheme>) {
   if (id === "oc-2" || (id && (knownThemes().has(id) || registered?.[id]))) return id
 
-  return "oc-2"
+  return "bolt"
 }
 
 function read(key: string) {
@@ -166,12 +168,12 @@ function applyThemeCss(theme: DesktopTheme, themeId: string, mode: "light" | "da
   ensureThemeStyleElement().textContent = fullCss
   document.documentElement.dataset.theme = themeId
   document.documentElement.dataset.colorScheme = mode
-  document.documentElement.style.backgroundColor = isDark ? "#080808" : "#fafafa"
+  document.documentElement.style.backgroundColor = "var(--v2-background-bg-deep)"
 
   // Update theme-color meta tag to match light/dark mode
   const meta = document.querySelector('meta[name="theme-color"]')
 
-  if (meta) meta.setAttribute("content", isDark ? "#080808" : "#fafafa")
+  if (meta) meta.setAttribute("content", getComputedStyle(document.documentElement).backgroundColor)
 }
 
 function cacheThemeVariants(theme: DesktopTheme, themeId: string) {
@@ -207,6 +209,7 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
     const [store, setStore] = createStore({
       themes: {
         "oc-2": oc2Theme,
+        bolt: boltThemeJson as DesktopTheme,
       } as Record<string, DesktopTheme>,
       themeId,
       colorScheme,

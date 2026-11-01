@@ -6,6 +6,7 @@ import { Cause, Effect } from "effect"
 import { getErrorReported } from "effect/Runtime"
 import { Commands } from "./commands/commands"
 import { Runtime } from "./framework/runtime"
+import { Redact } from "@opencode/util/redact"
 import { Observability } from "@opencode/util/observability"
 import { Updater } from "./services/updater"
 import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_LOCAL, OPENCODE_VERSION } from "./version"
@@ -41,6 +42,50 @@ if (process.env.OPENCODE_SSH_ASKPASS_PORT) {
 
 const Handlers = Runtime.handlers(Commands, {
   $: () => import("./commands/handlers/default"),
+  cron: () => import("./commands/handlers/cron"),
+  jobs: () => import("./commands/handlers/jobs"),
+  invariants: () => import("./commands/handlers/invariants"),
+  analyze: () => import("./commands/handlers/analyze"),
+  init: () => import("./commands/handlers/init"),
+  submodules: () => import("./commands/handlers/submodules"),
+  bench: () => import("./commands/handlers/bench"),
+  asserts: () => import("./commands/handlers/asserts"),
+  tighten: () => import("./commands/handlers/tighten"),
+  index: () => import("./commands/handlers/indexer"),
+  flaky: () => import("./commands/handlers/flaky"),
+  resume: () => import("./commands/handlers/resume"),
+  fork: () => import("./commands/handlers/fork"),
+  drift: () => import("./commands/handlers/drift"),
+  logs: () => import("./commands/handlers/logs"),
+  deps: () => import("./commands/handlers/deps"),
+  alias: () => import("./commands/handlers/alias"),
+  memory: {
+    export: () => import("./commands/handlers/memory/export"),
+    import: () => import("./commands/handlers/memory/import"),
+    team: () => import("./commands/handlers/memory/team"),
+    diff: () => import("./commands/handlers/memory/diff"),
+    review: () => import("./commands/handlers/memory/review"),
+    search: () => import("./commands/handlers/memory/search"),
+    conflicts: () => import("./commands/handlers/memory/conflicts"),
+    why: () => import("./commands/handlers/memory/why"),
+  },
+  export: () => import("./commands/handlers/session/export"),
+  grep: () => import("./commands/handlers/grep"),
+  why: () => import("./commands/handlers/why"),
+  commitlint: () => import("./commands/handlers/commitlint"),
+  review: () => import("./commands/handlers/review"),
+  "diff-gate": () => import("./commands/handlers/diff-gate"),
+  learn: () => import("./commands/handlers/learn"),
+  ask: () => import("./commands/handlers/ask"),
+  commit: () => import("./commands/handlers/commit"),
+  map: () => import("./commands/handlers/map"),
+  arch: () => import("./commands/handlers/arch"),
+  owners: () => import("./commands/handlers/owners"),
+  dead: () => import("./commands/handlers/dead"),
+  dupes: () => import("./commands/handlers/dupes"),
+  packages: () => import("./commands/handlers/packages"),
+  hotspots: () => import("./commands/handlers/hotspots"),
+  blast: () => import("./commands/handlers/blast"),
   upgrade: () => import("./commands/handlers/upgrade"),
   uninstall: () => import("./commands/handlers/uninstall"),
   acp: () => import("./commands/handlers/acp"),
@@ -121,6 +166,18 @@ Effect.gen(function* () {
     local: OPENCODE_LOCAL,
     args: process.argv.slice(2),
   })
+  // Aliases are parsed as argv once, after the CLI configuration service applies migrations.
+  // Keep the hot path lazy when an invocation cannot begin with an alias.
+  if (process.argv[2] && !process.argv[2].startsWith("-") && process.argv[2] !== "alias") {
+    const { CliAlias } = yield* Effect.promise(() => import("./services/alias"))
+    const config = yield* Config.Service
+    const global = yield* Global.Service
+    const current = yield* config.get()
+    const aliases = yield* Effect.try(() => CliAlias.load(process.cwd(), global.config, current.alias)).pipe(
+      Effect.orElseSucceed(() => current.alias ?? {}),
+    )
+    process.argv = [...process.argv.slice(0, 2), ...CliAlias.expand(process.argv.slice(2), aliases)]
+  }
   return yield* Runtime.run(Commands, Handlers, { version: OPENCODE_VERSION })
 }).pipe(
   Effect.catchCause((cause) =>
@@ -157,10 +214,13 @@ Effect.gen(function* () {
   // desktop and `Service.ensure` only capture stderr from `serve --service`, so this is the only
   // channel through which a startup failure's reason reaches the user.
   Effect.tapCause((cause) =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       if (Cause.hasInterruptsOnly(cause)) return
       if (!getErrorReported(Cause.squash(cause))) return
-      process.stderr.write(Cause.pretty(cause) + "\n")
+      process.stderr.write(Redact.text(Cause.pretty(cause)) + "\n")
+      const { Crash } = yield* Effect.promise(() => import("./crash"))
+      const file = yield* Effect.try(() => Crash.write(Cause.squash(cause))).pipe(Effect.option)
+      if (file._tag === "Some") process.stderr.write(`crash report written to ${file.value}\n`)
     }),
   ),
   NodeRuntime.runMain({ disableErrorReporting: true }),

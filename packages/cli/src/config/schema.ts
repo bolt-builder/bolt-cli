@@ -6,6 +6,9 @@ export const SchemaURL = "https://opencode.ai/v2/cli.json"
 export const Info = Schema.Struct({
   $schema: Schema.optional(Schema.String).annotate({ description: "JSON Schema for CLI configuration" }),
   ...Config.Info.fields,
+  alias: Schema.optional(Schema.Record(Schema.String, Schema.String)).annotate({
+    description: "CLI command aliases, expanded once before argument parsing",
+  }),
 })
 export type Info = Schema.Schema.Type<typeof Info>
 

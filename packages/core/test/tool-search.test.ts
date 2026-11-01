@@ -1,3 +1,6 @@
+import { $ } from "bun"
+import { initRepo } from "./fixture/git"
+import { GitTool } from "@opencode/core/tool/plugin/git"
 import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
@@ -14,6 +17,7 @@ import { Ripgrep } from "@opencode/core/ripgrep"
 import { AbsolutePath } from "@opencode/core/schema"
 import { Session } from "@opencode/core/session"
 import { GlobTool } from "@opencode/core/tool/plugin/glob"
+import { SemanticSearchTool } from "@opencode/core/tool/plugin/semantic-search"
 import { GrepTool } from "@opencode/core/tool/plugin/grep"
 import { Tool } from "@opencode/core/tool"
 import { location } from "./fixture/location"
@@ -32,6 +36,16 @@ const grepToolNode = makeLocationNode({
   layer: Layer.effectDiscard(registerToolPlugin(GrepTool.Plugin)),
   deps: [Tool.node, Environment.node, Ripgrep.node, Location.node, FileAccess.node, Permission.node],
 })
+const semanticToolNode = makeLocationNode({
+  name: "test/semantic-search-tool-plugin",
+  layer: Layer.effectDiscard(registerToolPlugin(SemanticSearchTool.Plugin)),
+  deps: [Tool.node, Environment.node, Ripgrep.node, Location.node, FileAccess.node, Permission.node],
+})
+const gitToolNode = makeLocationNode({
+  name: "test/git-tool-plugin",
+  layer: Layer.effectDiscard(registerToolPlugin(GitTool.Plugin)),
+  deps: [Tool.node, Environment.node, Location.node, FileAccess.node, Permission.node],
+})
 const sessionID = Session.ID.make("ses_search_tool_test")
 
 const withTools = <A, E, R>(
@@ -44,7 +58,7 @@ const withTools = <A, E, R>(
     return yield* body(registry)
   }).pipe(
     Effect.provide(
-      AppNodeBuilder.build(LayerNode.group([Tool.node, globToolNode, grepToolNode]), [
+      AppNodeBuilder.build(LayerNode.group([Tool.node, globToolNode, grepToolNode, semanticToolNode, gitToolNode]), [
         Location.node.replace(
           Layer.succeed(Location.Service, Location.Service.of(location({ directory: AbsolutePath.make(directory) }))),
         ),
@@ -60,7 +74,7 @@ const withTools = <A, E, R>(
     ),
   )
 
-const call = (name: "glob" | "grep", input: unknown) => ({
+const call = (name: "glob" | "grep" | "semantic_search" | "git", input: unknown) => ({
   sessionID,
   ...toolIdentity,
   call: { type: "tool-call" as const, id: `call-${name}`, name, input },
@@ -396,5 +410,133 @@ describe("search tools", () => {
           Promise.all([active[Symbol.asyncDispose](), outside[Symbol.asyncDispose]()]).then(() => undefined),
         ),
     ),
+  )
+})
+
+describe("Bolt semantic search", () => {
+  it.live("ranks source definitions, bounds results and records V2 read permissions", () =>
+    Effect.gen(function* () {
+      const tmp = yield* tmpdirScoped()
+      yield* Effect.promise(() =>
+        Promise.all([
+          Bun.write(path.join(tmp.path, ".ignore"), "node_modules/\n"),
+          Bun.write(path.join(tmp.path, "cache.ts"), "export function invalidateCache() { return expiredEntries() }\n"),
+          Bun.write(path.join(tmp.path, "unrelated.ts"), "export function formatInvoice() { return printInvoice() }\n"),
+          Bun.write(path.join(tmp.path, "node_modules", "ignored.ts"), "export function invalidateCache() {}\n"),
+        ]),
+      )
+      const assertions: Permission.AssertInput[] = []
+      yield* withTools(
+        tmp.path,
+        (registry) =>
+          Effect.gen(function* () {
+            const result = yield* executeTool(
+              registry,
+              call("semantic_search", { query: "invalidate cache", limit: 1 }),
+            )
+            expect(result.status).toBe("completed")
+            expect(result.output).toHaveLength(1)
+            expect(result.output[0]).toMatchObject({ file: "cache.ts", start: 1 })
+            expect(result.metadata).toMatchObject({ files: 2, results: 1 })
+            expect(result.content?.[0]?.type === "text" ? result.content[0].text : "").toContain("invalidateCache")
+            expect(assertions[0]).toMatchObject({
+              action: "semantic_search",
+              resources: ["invalidate cache"],
+              sessionID,
+              agent: toolIdentity.agent,
+              source: { type: "tool", messageID: toolIdentity.messageID, id: "call-semantic_search" },
+            })
+            expect(
+              assertions
+                .filter((input) => input.action === "read")
+                .map((input) => input.resources)
+                .flat()
+                .sort(),
+            ).toEqual(["cache.ts", "unrelated.ts"])
+          }),
+        assertions,
+      )
+    }),
+  )
+
+  it.live("returns the original no-match guidance and rejects empty queries", () =>
+    Effect.gen(function* () {
+      const tmp = yield* tmpdirScoped()
+      yield* Effect.promise(() => Bun.write(path.join(tmp.path, "empty.ts"), "const value = 1\n"))
+      yield* withTools(tmp.path, (registry) =>
+        Effect.gen(function* () {
+          const result = yield* executeTool(registry, call("semantic_search", { query: "invoices" }))
+          expect(result.status).toBe("completed")
+          expect(result.output).toEqual([])
+          expect(result.content).toEqual([
+            { type: "text", text: "No matching code found. Try different wording, or grep for exact strings." },
+          ])
+          const invalid = yield* executeTool(registry, call("semantic_search", { query: "" }))
+          expect(invalid.status).toBe("error")
+        }),
+      )
+    }),
+  )
+})
+
+describe("Bolt git query tool", () => {
+  it.live("runs original read-only queries with canonical permissions and rejects revision options", () =>
+    Effect.gen(function* () {
+      const tmp = yield* tmpdirScoped()
+      yield* Effect.promise(async () => {
+        await initRepo(tmp.path)
+        await Bun.write(path.join(tmp.path, "file.txt"), "first\n")
+        await $`git add file.txt`.cwd(tmp.path).quiet()
+        await $`git commit -m fixture`.cwd(tmp.path).quiet()
+        await Bun.write(path.join(tmp.path, "file.txt"), "second\n")
+        await Bun.write(path.join(tmp.path, "new.txt"), "untracked\n")
+      })
+      const assertions: Permission.AssertInput[] = []
+      yield* withTools(
+        tmp.path,
+        (registry) =>
+          Effect.gen(function* () {
+            const status = yield* executeTool(registry, call("git", { action: "status" }))
+            expect(status.status).toBe("completed")
+            expect(status.output).toContain("modified file.txt")
+            expect(status.output).toContain("untracked:")
+            expect(status.metadata).toMatchObject({ title: "git status", unstaged: 1, untracked: 1 })
+            const patch = yield* executeTool(registry, call("git", { action: "diff", path: "file.txt" }))
+            expect(patch.output).toContain("+second")
+            expect(patch.metadata).toMatchObject({ files: 1, additions: 1, deletions: 1 })
+            const staged = yield* executeTool(registry, call("git", { action: "diff", staged: true }))
+            expect(staged.output).toBe("no changes")
+            const log = yield* executeTool(registry, call("git", { action: "log", count: 1 }))
+            expect(log.output).toContain("fixture")
+            const blame = yield* executeTool(
+              registry,
+              call("git", { action: "blame", path: "file.txt", start: 1, end: 1 }),
+            )
+            expect(blame.output).toContain("second")
+            const show = yield* executeTool(registry, call("git", { action: "show", sha: "HEAD" }))
+            expect(show.output).toContain("subject fixture")
+            expect(show.output).toContain("+first")
+            const injected = yield* executeTool(
+              registry,
+              call("git", { action: "show", sha: `--output=${path.join(tmp.path, "written.txt")}` }),
+            )
+            expect(injected.status).toBe("error")
+            expect(yield* Effect.promise(() => Bun.file(path.join(tmp.path, "written.txt")).exists())).toBe(false)
+            expect((yield* executeTool(registry, call("git", { action: "blame" }))).status).toBe("error")
+            expect(assertions.filter((item) => item.action === "git").map((item) => item.resources)).toEqual([
+              ["status"],
+              ["diff"],
+              ["diff"],
+              ["log"],
+              ["blame"],
+              ["show"],
+              ["show"],
+              ["blame"],
+            ])
+            expect(assertions[0]?.source).toEqual({ type: "tool", messageID: toolIdentity.messageID, id: "call-git" })
+          }),
+        assertions,
+      )
+    }),
   )
 })

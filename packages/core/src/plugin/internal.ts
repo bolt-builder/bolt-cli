@@ -1,5 +1,6 @@
 export * as PluginInternal from "./internal.js"
 
+import { RedactPlugin } from "./redact.js"
 import { LLMClient } from "@opencode/ai/effect"
 import type { Plugin } from "@opencode/plugin/effect/plugin"
 import { LayerNode } from "@opencode/util/effect/layer-node"
@@ -75,6 +76,8 @@ import { PatchTool } from "../tool/plugin/patch.js"
 import { EditTool } from "../tool/plugin/edit.js"
 import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
+import { GitTool } from "../tool/plugin/git.js"
+import { SemanticSearchTool } from "../tool/plugin/semantic-search.js"
 import { ImageGenerateTool } from "../tool/plugin/image-generate.js"
 import { McpResourceTools } from "../tool/plugin/mcp-resource.js"
 import { OpenCodeTools } from "../tool/plugin/opencode.js"
@@ -98,6 +101,10 @@ import BrowserPlugin from "@opencode/plugin-browser"
 import { CommandPlugin } from "./command.js"
 import { IdentityPlugin } from "./identity.js"
 import { PlanPlugin } from "./plan.js"
+import { VoicePlugin } from "./voice.js"
+import { SandboxPlugin } from "./sandbox.js"
+import { MemoryPlugin } from "./memory.js"
+import { ProcessPlugin } from "./process.js"
 import { GoalPlugin } from "./goal.js"
 import { ModelsDevPlugin } from "./models-dev.js"
 import { McpCodeModeDefaultsPlugin } from "./mcp-codemode-defaults.js"
@@ -239,6 +246,10 @@ const pre = [
   PlanPlugin.Plugin,
   CommandPlugin.Plugin,
   GoalPlugin.Plugin,
+  ProcessPlugin.Plugin,
+  MemoryPlugin.Plugin,
+  SandboxPlugin.Plugin,
+  VoicePlugin.Plugin,
   SkillPlugin.Plugin,
   VcsHgPlugin.Plugin,
   ModelsDevPlugin,
@@ -252,6 +263,8 @@ const pre = [
   EditTool.Plugin,
   GlobTool.Plugin,
   GrepTool.Plugin,
+  SemanticSearchTool.Plugin,
+  GitTool.Plugin,
   ImageGenerateTool.Plugin,
   OpenCodeTools.Plugin,
   McpResourceTools.Plugin,
@@ -289,6 +302,7 @@ const post = [
   DynamicProviderPlugin,
   ConfigWebSearchPlugin.Plugin,
   ConfigPolicyPlugin.Plugin,
+  RedactPlugin.Plugin,
 ] as const satisfies readonly InternalPlugin[]
 
 // Repository config must not switch off policy enforcement or the Console connection that delivers

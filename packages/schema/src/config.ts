@@ -27,6 +27,10 @@ export class Info extends Schema.Class<Info>("Config.Info")({
   $schema: optional(Schema.String).annotate({
     description: "JSON schema reference for configuration validation",
   }),
+  redact: Schema.Boolean.pipe(optional).annotate({
+    description:
+      "Deprecated: use experimental.redact. Redact known credential formats before sending model prompts. Defaults to true.",
+  }),
   shell: Schema.String.pipe(optional).annotate({
     description: "Default shell to use for terminal and shell tool execution",
   }),

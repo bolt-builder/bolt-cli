@@ -155,6 +155,8 @@ const appBindingCommands = [
   "model.cycle_favorite",
   "model.cycle_favorite_reverse",
   "agent.list",
+  "agent.plan",
+  "permission.mode",
   "mcp.list",
   "usage.show",
   "agent.cycle",
@@ -641,23 +643,23 @@ function App() {
     if (!terminalTitleEnabled()) return
 
     if (route.data.type === "home") {
-      setTerminalTitle(renderer, "OpenCode")
+      setTerminalTitle(renderer, "Bolt")
       return
     }
 
     if (route.data.type === "session") {
       const title = session?.title
       if (!title || isFallbackTitle(title)) {
-        setTerminalTitle(renderer, "OpenCode")
+        setTerminalTitle(renderer, "Bolt")
         return
       }
 
-      setTerminalTitle(renderer, `OC | ${title.length > 40 ? title.slice(0, 37) + "…" : title}`)
+      setTerminalTitle(renderer, `Bolt | ${title.length > 40 ? title.slice(0, 37) + "…" : title}`)
       return
     }
 
     if (route.data.type === "plugin") {
-      setTerminalTitle(renderer, `OC | ${route.data.name}`)
+      setTerminalTitle(renderer, `Bolt | ${route.data.name}`)
     }
   })
 
@@ -748,6 +750,7 @@ function App() {
       .catch(toast.error)
   })
 
+  let priorPlanAgent: string | undefined
   const connected = useConnected()
   const appCommands = createMemo(() =>
     [
@@ -955,6 +958,41 @@ function App() {
         },
       },
       {
+        name: "agent.plan",
+        title: "Toggle plan mode",
+        category: "Agent",
+        slash: { name: "plan" },
+        run: () => {
+          const current = local.agent.current()?.id
+          if (current === "plan") {
+            const target =
+              priorPlanAgent && local.agent.list().some((agent) => agent.id === priorPlanAgent)
+                ? priorPlanAgent
+                : "build"
+            local.agent.set(target)
+            toast.show({ variant: "info", message: `Plan mode off, back to ${target}` })
+          } else {
+            priorPlanAgent = current
+            local.agent.set("plan")
+            toast.show({ variant: "info", message: "Plan mode on, the agent will propose before changing files" })
+          }
+          dialog.clear()
+        },
+      },
+      {
+        name: "permission.mode",
+        title:
+          local.permission.mode === "autoaccept"
+            ? "Disable auto-approve permissions"
+            : "Enable auto-approve permissions",
+        category: "System",
+        slash: { name: "auto-approve", aliases: ["autoapprove", "approve-all", "approveall", "yolo"] },
+        run: async () => {
+          await local.permission.toggle()
+          dialog.clear()
+        },
+      },
+      {
         name: "usage.show",
         title: "View usage",
         category: "Agent",
@@ -1063,7 +1101,7 @@ function App() {
         ? [
             {
               name: "opencode.update",
-              title: "Update OpenCode",
+              title: "Update Bolt",
               slash: { name: "update" },
               run: () => updater.open?.("manual"),
               category: "System",

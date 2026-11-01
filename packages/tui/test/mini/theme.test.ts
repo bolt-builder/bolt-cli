@@ -155,7 +155,11 @@ test.each(["light", "dark"] as const)("uses shared %s defaults and named built-i
   for (const name of [undefined, "opencode", "tokyonight"] as const) {
     const theme = await resolveRunTheme(renderer({ colors }), { name, mode })
     const expected = resolveThemeDocument(
-      name === undefined || name === "opencode" ? getOpenCodeTheme() : parseTheme(DEFAULT_THEMES[name]),
+      name === undefined
+        ? parseTheme(DEFAULT_THEMES.bolt)
+        : name === "opencode"
+          ? getOpenCodeTheme()
+          : parseTheme(DEFAULT_THEMES[name]),
       mode,
     )
     try {
@@ -205,63 +209,56 @@ test.each(["light", "dark"] as const)("shares the %s system scheme while retaini
   }
 })
 
-test.each(["light", "dark"] as const)(
-  "loads complete %s custom theme files",
-  async (mode) => {
-    const base = selectTheme(getOpenCodeTheme(), mode)
-    const definition = {
-      ...base,
-      text: {
-        ...base.text,
-        base: "#123456",
-        action: {
-          ...base.text.action,
-          primary: { ...base.text.action.primary, $focused: "#56789a" },
-        },
-        formfield: {
-          ...base.text.formfield,
-          base: "#234567",
-          $selected: "#345678",
-          $focused: "#6789ab",
-        },
-        feedback: {
-          ...base.text.feedback,
-          warning: { ...base.text.feedback.warning, base: "#456789" },
-        },
+test.each(["light", "dark"] as const)("loads complete %s custom theme files", async (mode) => {
+  const base = selectTheme(getOpenCodeTheme(), mode)
+  const definition = {
+    ...base,
+    text: {
+      ...base.text,
+      base: "#123456",
+      action: {
+        ...base.text.action,
+        primary: { ...base.text.action.primary, $focused: "#56789a" },
       },
-      background: {
-        ...base.background,
-        action: {
-          ...base.background.action,
-          primary: { ...base.background.action.primary, $focused: "#789abc" },
-        },
-        formfield: { ...base.background.formfield, $focused: "#89abcd" },
+      formfield: {
+        ...base.text.formfield,
+        base: "#234567",
+        $selected: "#345678",
+        $focused: "#6789ab",
       },
-    }
-    const { hue, ...tokens } = definition
-    const source = {
-      base: tokens,
-      [mode]: { hue },
-    }
-    await Bun.write(path.join(tmp.path, "themes", "mini-custom.json"), JSON.stringify(source))
-    const theme = await resolveRunTheme(renderer({ colors: terminalColors({}, mode) }), { name: "mini-custom", mode })
-    try {
-      expectFooter(theme, resolveThemeDocument(parseTheme(source), mode))
-    } finally {
-      theme.block.syntax?.destroy()
-    }
-  },
-)
+      feedback: {
+        ...base.text.feedback,
+        warning: { ...base.text.feedback.warning, base: "#456789" },
+      },
+    },
+    background: {
+      ...base.background,
+      action: {
+        ...base.background.action,
+        primary: { ...base.background.action.primary, $focused: "#789abc" },
+      },
+      formfield: { ...base.background.formfield, $focused: "#89abcd" },
+    },
+  }
+  const { hue, ...tokens } = definition
+  const source = {
+    base: tokens,
+    [mode]: { hue },
+  }
+  await Bun.write(path.join(tmp.path, "themes", "mini-custom.json"), JSON.stringify(source))
+  const theme = await resolveRunTheme(renderer({ colors: terminalColors({}, mode) }), { name: "mini-custom", mode })
+  try {
+    expectFooter(theme, resolveThemeDocument(parseTheme(source), mode))
+  } finally {
+    theme.block.syntax?.destroy()
+  }
+})
 
 test.each(["light", "dark"] as const)(
   "falls back to shared %s defaults for unknown or invalid themes",
   async (mode) => {
-    const expected = resolveThemeDocument(getOpenCodeTheme(), mode)
-    for (const source of [
-      { [mode]: { categorical: [] } },
-      { [mode]: { text: { base: "$missing" } } },
-      undefined,
-    ]) {
+    const expected = resolveThemeDocument(parseTheme(DEFAULT_THEMES.bolt), mode)
+    for (const source of [{ [mode]: { categorical: [] } }, { [mode]: { text: { base: "$missing" } } }, undefined]) {
       if (source) await Bun.write(path.join(tmp.path, "themes", "mini-invalid.json"), JSON.stringify(source))
       const theme = await resolveRunTheme(renderer({ colors: terminalColors({}, mode) }), {
         name: source ? "mini-invalid" : "mini-unknown",
@@ -285,7 +282,7 @@ test.each(["light", "dark"] as const)("resolves dark-only Aura on an automatic %
   try {
     expectFooter(
       theme,
-      resolveThemeDocument(mode === "light" ? getOpenCodeTheme() : parseTheme(DEFAULT_THEMES.aura), mode),
+      resolveThemeDocument(mode === "light" ? parseTheme(DEFAULT_THEMES.bolt) : parseTheme(DEFAULT_THEMES.aura), mode),
     )
     expect(rgba(theme.background).toInts()).toEqual(RGBA.fromHex(colors.defaultBackground!).toInts())
   } finally {
@@ -309,7 +306,7 @@ test.each(["light", "dark"] as const)(
       try {
         expectFooter(
           theme,
-          resolveThemeDocument(requested === mode ? parseTheme(source) : getOpenCodeTheme(), requested),
+          resolveThemeDocument(requested === mode ? parseTheme(source) : parseTheme(DEFAULT_THEMES.bolt), requested),
         )
       } finally {
         theme.block.syntax?.destroy()
@@ -319,7 +316,7 @@ test.each(["light", "dark"] as const)(
 )
 
 test.each(["light", "dark"] as const)("handles unavailable palettes in %s mode", async (mode) => {
-  const expected = resolveThemeDocument(getOpenCodeTheme(), mode)
+  const expected = resolveThemeDocument(parseTheme(DEFAULT_THEMES.bolt), mode)
   for (const input of [
     { fail: true },
     { colors: emptyColors },
@@ -332,7 +329,7 @@ test.each(["light", "dark"] as const)("handles unavailable palettes in %s mode",
   }
   const theme = await resolveRunTheme(renderer({ fail: true }), { name: "opencode", mode })
   try {
-    expectFooter(theme, expected)
+    expectFooter(theme, resolveThemeDocument(getOpenCodeTheme(), mode))
   } finally {
     theme.block.syntax?.destroy()
   }
@@ -355,7 +352,7 @@ test("uses refreshed background brightness rather than stale mode or ANSI slot z
 })
 
 test.each(["light", "dark"] as const)("follows physical %s mode over opposite configuration", async (mode) => {
-  const expected = resolveThemeDocument(getOpenCodeTheme(), mode)
+  const expected = resolveThemeDocument(parseTheme(DEFAULT_THEMES.bolt), mode)
   for (const fail of [false, true]) {
     const theme = await resolveRunTheme(renderer({ colors: terminalColors({}, mode), themeMode: mode, fail }), {
       mode: mode === "light" ? "dark" : "light",

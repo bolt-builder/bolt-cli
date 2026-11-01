@@ -1,0 +1,13 @@
+Structured, read-only access to the project's git repository.
+
+Actions:
+- status: staged, unstaged, and untracked files with rename detection
+- diff: per-file change summary (hunks, additions, deletions) plus the patch text; pass staged=true for the index diff, path to scope to one file or directory
+- log: recent commits (sha, author, date, subject); pass count to change how many, path to scope to one file or directory
+- blame: line-by-line commit attribution for a file; pass start and end to limit the line range
+- show: metadata and patch for a single commit by sha
+
+Usage notes:
+- This tool NEVER mutates the repository. It cannot add, commit, push, checkout, reset, or change anything; it only reads. Use the bash tool for git operations that write.
+- Prefer this tool over running git in the shell when you need status, diffs, history, blame, or a commit's contents; the output is structured and consistently capped.
+- Patch text is truncated past a fixed cap; scope with path or use show on individual commits for large changes.

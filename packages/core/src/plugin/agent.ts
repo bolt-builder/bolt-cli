@@ -4,6 +4,16 @@ import { define } from "@opencode/plugin/effect/plugin"
 import { Effect } from "effect"
 import { Agent } from "../agent.js"
 
+import PROMPT_ASK from "./agent/ask.txt"
+import PROMPT_COMMIT from "./agent/commit.txt"
+import PROMPT_CODE_REVIEW from "./agent/code-review.txt"
+import PROMPT_DEBUG from "./agent/debug.txt"
+import PROMPT_REFACTOR from "./agent/refactor.txt"
+import PROMPT_DOCS from "./agent/docs.txt"
+import PROMPT_SECURITY from "./agent/security.txt"
+import PROMPT_MIGRATE from "./agent/migrate.txt"
+import PROMPT_PERF from "./agent/perf.txt"
+
 const PROMPT_EXPLORE = `You are a file search specialist. You excel at thoroughly navigating and exploring codebases.
 
 Guidelines:
@@ -58,6 +68,118 @@ export const Plugin = define({
         item.description = "The default agent. Executes tools based on configured permissions."
         item.mode = "primary"
         item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+      })
+
+      editor.update(Agent.ID.make("code"), (item) => {
+        item.name = Agent.Name.make("Code")
+        item.description = "Write and modify code using configured permissions."
+        item.mode = "primary"
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+      })
+
+      editor.update(Agent.ID.make("ask"), (item) => {
+        item.name = Agent.Name.make("Ask")
+        item.description = "Research and answer questions without making changes."
+        item.mode = "primary"
+        item.system = PROMPT_ASK
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "edit", resource: "*", effect: "deny" },
+          { action: "shell", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "*", effect: "deny" },
+        )
+      })
+
+      editor.update(Agent.ID.make("commit"), (item) => {
+        item.name = Agent.Name.make("Commit")
+        item.description = "Generate a commit message."
+        item.mode = "primary"
+        item.system = PROMPT_COMMIT
+        item.hidden = true
+        item.request.settings.temperature = 0.3
+        item.permissions.push({ action: "*", resource: "*", effect: "deny" })
+      })
+
+      editor.update(Agent.ID.make("code-review"), (item) => {
+        item.name = Agent.Name.make("Code-Review")
+        item.description = "Review code changes for correctness, style, and security issues."
+        item.mode = "primary"
+        item.system = PROMPT_CODE_REVIEW
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "edit", resource: "*", effect: "deny" },
+          { action: "shell", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "*", effect: "deny" },
+        )
+      })
+
+      editor.update(Agent.ID.make("debug"), (item) => {
+        item.name = Agent.Name.make("Debug")
+        item.description = "Debug failing tests, crashes, and logic errors."
+        item.mode = "primary"
+        item.system = PROMPT_DEBUG
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "subagent", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "general", effect: "allow" },
+        )
+      })
+
+      editor.update(Agent.ID.make("refactor"), (item) => {
+        item.name = Agent.Name.make("Refactor")
+        item.description = "Refactor safely with test verification at each step."
+        item.mode = "primary"
+        item.system = PROMPT_REFACTOR
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "subagent", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "general", effect: "allow" },
+        )
+      })
+
+      editor.update(Agent.ID.make("docs"), (item) => {
+        item.name = Agent.Name.make("Docs")
+        item.description = "Write and update documentation, READMEs, and code comments."
+        item.mode = "primary"
+        item.system = PROMPT_DOCS
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+      })
+
+      editor.update(Agent.ID.make("security"), (item) => {
+        item.name = Agent.Name.make("Security")
+        item.description = "Audit code for vulnerabilities, secrets, and insecure patterns."
+        item.mode = "primary"
+        item.system = PROMPT_SECURITY
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "edit", resource: "*", effect: "deny" },
+          { action: "shell", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "*", effect: "deny" },
+        )
+      })
+
+      editor.update(Agent.ID.make("migrate"), (item) => {
+        item.name = Agent.Name.make("Migrate")
+        item.description = "Handle framework upgrades, dependency migrations, and breaking changes."
+        item.mode = "primary"
+        item.system = PROMPT_MIGRATE
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "subagent", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "general", effect: "allow" },
+        )
+      })
+
+      editor.update(Agent.ID.make("perf"), (item) => {
+        item.name = Agent.Name.make("Perf")
+        item.description = "Analyze and optimize performance."
+        item.mode = "primary"
+        item.system = PROMPT_PERF
+        item.permissions.push({ action: "question", resource: "*", effect: "allow" })
+        item.permissions.push(
+          { action: "subagent", resource: "*", effect: "deny" },
+          { action: "subagent", resource: "general", effect: "allow" },
+        )
       })
 
       editor.update(Agent.ID.make("general"), (item) => {

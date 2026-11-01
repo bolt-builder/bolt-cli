@@ -21,6 +21,8 @@ import { SessionEnvironment } from "./session/environment.js"
 import { SessionSchema } from "./session/schema.js"
 import { Config } from "./config.js"
 import { ToolOutput } from "./tool-output.js"
+import { Sandbox } from "./sandbox.js"
+import { SessionStore } from "./session/store.js"
 import { ShellResult } from "./shell/result.js"
 
 export class NotFoundError extends Schema.TaggedError<NotFoundError>()("Shell.NotFoundError", {
@@ -135,6 +137,7 @@ const layer = () =>
       const environment = yield* Environment.Service
       const hooks = yield* PluginHooks.Service
       const environments = yield* SessionEnvironment.Service
+      const sessions = yield* SessionStore.Service
       const config = yield* Config.Service
       const context = yield* Effect.context()
       const runFork = Effect.runForkWith(context)
@@ -285,7 +288,22 @@ const layer = () =>
         if (before) yield* before(invocation)
 
         const id = Shell.ID.ascending()
-        const args = ShellSelect.args(invocation.shell, invocation.command)
+        const session = Schema.is(SessionSchema.ID)(sessionID) ? yield* sessions.get(sessionID) : undefined
+        const wrapped = Sandbox.enabled(session?.metadata)
+          ? yield* (
+              location.workspaceID !== undefined
+                ? Effect.fail(
+                    new Sandbox.UnsupportedError({
+                      message: "Filesystem sandboxing is not available for remote workspaces.",
+                    }),
+                  )
+                : Sandbox.wrap({
+                    command: invocation.command,
+                    shell: invocation.shell,
+                    writable: Sandbox.writable([location.project.directory, location.directory, invocation.cwd]),
+                  })
+            ).pipe(Effect.mapError((cause) => new AppProcess.AppProcessError({ command: invocation.command, cause })))
+          : { exe: invocation.shell, args: ShellSelect.args(invocation.shell, invocation.command) }
         const file = path.join(outputDir, `${id}.out`)
 
         const info: Info = {
@@ -308,7 +326,7 @@ const layer = () =>
             Effect.gen(function* () {
               const handle = yield* environment.spawner
                 .spawn(
-                  ChildProcess.make(invocation.shell, args, {
+                  ChildProcess.make(wrapped.exe, wrapped.args, {
                     cwd: invocation.cwd,
                     env: invocation.env,
                     stdin: "ignore",
@@ -467,6 +485,7 @@ export const node = makeLocationNode({
     Environment.node,
     PluginHooks.node,
     SessionEnvironment.node,
+    SessionStore.node,
     Config.node,
     cleanupNode,
   ],
