@@ -35,6 +35,15 @@ describe("sandbox", () => {
     expect(wrapped.args.slice(-3)).toEqual(["/bin/sh", "-c", "bun test"])
   })
 
+  test("preserves PowerShell noninteractive arguments inside the sandbox", () => {
+    for (const shell of ["/usr/bin/pwsh", "/usr/bin/powershell"]) {
+      const input = { command: "Get-Date", shell, writable: ["/repo"] }
+      const expected = [shell, "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "Get-Date"]
+      expect(Sandbox.linux(input, "/usr/bin/bwrap").args.slice(-6)).toEqual(expected)
+      expect(Sandbox.darwin(input, "/usr/bin/sandbox-exec").args.slice(-6)).toEqual(expected)
+    }
+  })
+
   test("darwin profile denies writes outside the writable roots and escapes quotes", () => {
     const text = Sandbox.profile(['/repo/we"ird', "/tmp"])
     expect(text).toContain("(deny file-write*)")

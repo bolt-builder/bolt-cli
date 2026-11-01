@@ -21,6 +21,8 @@ beforeEach(async () => {
       requests.push(url.pathname + url.search)
       if (url.pathname === "/api/info") return Response.json({ version: "local" })
       if (url.pathname === "/api/session/ses_fixture/message") {
+        if (url.searchParams.has("cursor") && url.searchParams.has("order"))
+          return Response.json({ message: "Cursor cannot be combined with order" }, { status: 400 })
         if (fail)
           return Response.json(
             { _tag: "SessionNotFoundError", sessionID: "ses_fixture", message: "missing" },

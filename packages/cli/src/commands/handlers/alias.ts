@@ -31,7 +31,8 @@ export default Runtime.handler(
         return
       }
       const current = yield* config.get()
-      if (current.alias?.[name] === undefined)
+      const project = CliAlias.load(process.cwd(), global.config, {}, true)
+      if (Object.hasOwn(project, name) || current.alias?.[name] === undefined)
         return yield* Effect.fail(
           new Error(`Alias "${name}" is defined in a project or legacy configuration; remove it from that file`),
         )

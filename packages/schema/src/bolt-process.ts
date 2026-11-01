@@ -23,6 +23,10 @@ export const Definition = Rpc.define({
       input: Schema.toStandardSchemaV1(Schema.Struct({})),
       output: Schema.toStandardSchemaV1(Schema.Array(Info)),
     },
+    output: {
+      input: Schema.toStandardSchemaV1(Schema.Struct({ id: Schema.String })),
+      output: Schema.toStandardSchemaV1(Schema.NullOr(Schema.String)),
+    },
     cancel: {
       input: Schema.toStandardSchemaV1(Schema.Struct({ id: Schema.String })),
       output: Schema.toStandardSchemaV1(Schema.NullOr(Info)),

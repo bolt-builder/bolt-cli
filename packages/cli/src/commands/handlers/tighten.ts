@@ -29,7 +29,7 @@ const patterns: { pattern: RegExp; kind: string }[] = [
   { pattern: /\bas unknown\b/, kind: "as unknown" },
   { pattern: /:\s*any\b/, kind: ": any" },
   { pattern: /\bany\[\]/, kind: "any[]" },
-  { pattern: /<any[,>]/, kind: "<any>" },
+  { pattern: /(?:<|,)\s*any\s*[,>]/, kind: "<any>" },
   { pattern: /:\s*Function\b/, kind: ": Function" },
   { pattern: /:\s*object\b/, kind: ": object" },
   { pattern: /@ts-(?:ignore|expect-error|nocheck)/, kind: "suppression" },
@@ -39,7 +39,10 @@ const patterns: { pattern: RegExp; kind: string }[] = [
 export function loose(source: string) {
   return source.split("\n").flatMap((text, index) => {
     const trimmed = text.trim()
-    const comment = trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")
+    const comment =
+      trimmed.startsWith("//") ||
+      (trimmed.startsWith("*") && !/^\*\s*[A-Za-z_$][\w$]*\s*\(/.test(trimmed)) ||
+      trimmed.startsWith("/*")
     return patterns.flatMap((entry) => {
       if (comment && entry.kind !== "suppression") return []
       if (!entry.pattern.test(text)) return []

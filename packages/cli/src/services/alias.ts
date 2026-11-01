@@ -14,15 +14,30 @@ export function tokenize(value: string) {
   return [...value.matchAll(/'([^']*)'|"([^"]*)"|(\S+)/g)].map((match) => match[1] ?? match[2] ?? match[3])
 }
 
+export function commandIndex(args: readonly string[]) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]
+    if (arg === "--server") {
+      i++
+      continue
+    }
+    if (arg.startsWith("--server=")) continue
+    if (["--standalone", "--print-logs", "--auto", "--yolo", "--dangerously-skip-permissions"].includes(arg)) continue
+    if (arg.startsWith("-")) return -1
+    return i
+  }
+  return -1
+}
+
 export function expand(args: string[], aliases: Record<string, string>) {
-  const first = args[0]
-  if (!first || first.startsWith("-") || first === "alias" || !Object.hasOwn(aliases, first) || !aliases[first])
-    return args
-  return [...tokenize(aliases[first]), ...args.slice(1)]
+  const index = commandIndex(args)
+  const first = args[index]
+  if (index < 0 || !first || first === "alias" || !Object.hasOwn(aliases, first) || !aliases[first]) return args
+  return [...args.slice(0, index), ...tokenize(aliases[first]), ...args.slice(index + 1)]
 }
 
 /** Root-to-leaf project precedence follows V1; current V2 CLI configuration owns global writes. */
-export function load(directory: string, config: string, global: Record<string, string> = {}) {
+export function load(directory: string, config: string, global: Record<string, string> = {}, projectOnly = false) {
   const up = (dir: string): string[] => (path.dirname(dir) === dir ? [dir] : [...up(path.dirname(dir)), dir])
   const globalFiles = ["config.json", ...names].map((name) => path.join(config, name))
   const projectFiles = up(path.resolve(directory)).flatMap((dir) => [
@@ -33,14 +48,21 @@ export function load(directory: string, config: string, global: Record<string, s
     if (!fs.existsSync(file)) return {}
     const data: unknown = parse(fs.readFileSync(file, "utf8"), [], { allowTrailingComma: true })
     // V1 ignored non-string entries without discarding other aliases in the same file.
-    if (!data || typeof data !== "object" || !("alias" in data) || !data.alias || typeof data.alias !== "object")
+    if (
+      !data ||
+      typeof data !== "object" ||
+      !("alias" in data) ||
+      !data.alias ||
+      typeof data.alias !== "object" ||
+      Array.isArray(data.alias)
+    )
       return {}
     const aliases = decode({
       alias: Object.fromEntries(Object.entries(data.alias).filter((entry) => typeof entry[1] === "string")),
     })
     return aliases._tag === "Some" ? aliases.value.alias : {}
   }
-  return [...globalFiles.map(read), global, ...projectFiles.map(read)].reduce(
+  return [...(projectOnly ? [] : [...globalFiles.map(read), global]), ...projectFiles.map(read)].reduce(
     (result, aliases) => ({ ...result, ...aliases }),
     {},
   )

@@ -65,3 +65,59 @@ test("drift checks working, staged and branch deletions against docs and survivi
     await fs.rm(home, { recursive: true, force: true })
   }
 })
+
+test("drift surfaces ambiguous same-name code and docs without claiming the symbol moved", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-drift-ambiguous-"))
+  const root = path.join(home, "project")
+  await fs.mkdir(root)
+  const run = async (args: string[]) => {
+    const child = Bun.spawn(args, {
+      cwd: root,
+      env: isolatedEnv(home),
+      stdin: "ignore",
+      stdout: "pipe",
+      stderr: "pipe",
+    })
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+    return { stdout, stderr, code }
+  }
+  const git = async (...args: string[]) => expect((await run(["git", ...args])).code).toBe(0)
+  const cli = () =>
+    run([
+      process.execPath,
+      "run",
+      "--jsx-import-source=@opentui/solid",
+      path.resolve(import.meta.dir, "../src/index.ts"),
+      "drift",
+    ])
+  try {
+    await git("init", "-q", "-b", "main")
+    await Bun.write(path.join(root, "a.ts"), "export function foo() {}\n")
+    await Bun.write(path.join(root, "b.ts"), "export function foo() {}\n")
+    await Bun.write(path.join(root, "README.md"), "Use foo.\n")
+    await git("add", ".")
+    await git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "initial")
+    await Bun.write(path.join(root, "a.ts"), "export function replacement() {}\n")
+    const result = await cli()
+    expect(result.code).toBe(0)
+    expect(result.stdout).toContain("verify whether these docs refer to the removed or surviving symbol")
+    expect(result.stdout).toContain("foo (former declaration: a.ts)")
+    expect(result.stdout).toContain("code b.ts:1")
+    expect(result.stdout).toContain("docs README.md:1")
+    expect(result.stdout).toContain("No confirmed stale docs found")
+    // The same evidence can also represent a legitimate move, so retain V1's successful status.
+    await Bun.write(path.join(root, "b.ts"), "export function other() {}\n")
+    await git("add", "b.ts")
+    await git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "prepare move")
+    await Bun.write(path.join(root, "b.ts"), "export function foo() {}\n")
+    const moved = await cli()
+    expect(moved.code).toBe(0)
+    expect(moved.stdout).toContain("verify whether these docs refer to the removed or surviving symbol")
+  } finally {
+    await fs.rm(home, { recursive: true, force: true })
+  }
+})

@@ -6,6 +6,7 @@ import { Effect } from "effect"
 import { ServerConnection } from "../../../services/server-connection"
 import { errorMessage } from "../../../util/error"
 import { validModel } from "../ask"
+import { parseSessionTargetModel } from "../../../session-target"
 
 const connection = Effect.gen(function* () {
   const server = yield* ServerConnection.resolve()
@@ -56,13 +57,13 @@ export const why = (question: string, model?: string) =>
         const capped =
           evidence.text.length > 120_000 ? evidence.text.slice(0, 120_000) + "\n[dossier truncated]" : evidence.text
         process.stderr.write("Asking stored memory...\n")
-        const selected = model
-          ? { providerID: model.slice(0, model.indexOf("/")), id: model.slice(model.indexOf("/") + 1) }
+        const selected: { providerID: string; id: string; variant?: string } | null | undefined = model
+          ? parseSessionTargetModel(model)
           : (await client.model.default({ location: options.location })).data
         if (!selected) throw new Error("No model available. Connect a provider or pass --model provider/model.")
         const result = await client.experimental.generate.text({
           prompt: `${INSTRUCTIONS}\n\nQuestion:\n${question}\n\nMemory dossier:\n${capped}`,
-          model: { providerID: selected.providerID, id: selected.id },
+          model: { providerID: selected.providerID, id: selected.id, variant: selected.variant },
         })
         if (!result.text.trim()) throw new Error("The model returned an empty answer.")
         process.stdout.write(result.text.trim() + "\n")
@@ -81,7 +82,7 @@ export const why = (question: string, model?: string) =>
 const INSTRUCTIONS = [
   "You are answering a question about this project's stored agent memory.",
   "Use only the memory dossier below as evidence. Do not use tools, read repository files, or invent memories.",
-  "Answer the question, then cite the specific memory entries that support the answer: quote each supporting entry verbatim and name its file, section, and key.",
+  "Answer the question, then cite the evidence: quote memory entries with their file, section, and key; cite session digests by session ID and topic.",
   "When an entry carries metadata such as an updated date or a session id, state where and when it was learned.",
   "If nothing in the dossier supports an answer, say plainly that stored memory does not cover it.",
 ].join("\n")

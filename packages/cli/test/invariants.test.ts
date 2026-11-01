@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test"
+import fs from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 import { document, extract, parse } from "../src/commands/handlers/invariants"
 
 describe("extract", () => {
@@ -44,3 +47,40 @@ describe("document and parse", () => {
     expect(document(["src/a.ts"], ["holds"])).toBe("# Invariants\n\nFiles: src/a.ts\n\n- holds\n")
   })
 })
+
+test("rejects oversized and collectively too-large source before contacting an agent", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-invariants-size-"))
+  const entry = path.resolve(import.meta.dir, "../src/index.ts")
+  const run = async (files: string[]) => {
+    const proc = Bun.spawn(
+      [process.execPath, "run", "--jsx-import-source=@opentui/solid", entry, "invariants", "state", ...files],
+      {
+        cwd: root,
+        env: { ...process.env, XDG_STATE_HOME: path.join(root, "state") },
+        stdout: "pipe",
+        stderr: "pipe",
+        stdin: "ignore",
+      },
+    )
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+    return { stdout, stderr, code }
+  }
+  try {
+    await Bun.$`git init -q ${root}`.quiet()
+    await Bun.write(path.join(root, "large.ts"), "a".repeat(24001))
+    expect(await run(["large.ts"])).toMatchObject({
+      code: 1,
+      stderr: expect.stringContaining("File exceeds 24000 bytes"),
+    })
+    const files = ["a.ts", "b.ts", "c.ts"]
+    for (const file of files) await Bun.write(path.join(root, file), "x".repeat(22000))
+    expect(await run(files)).toMatchObject({ code: 1, stderr: expect.stringContaining("Selected files exceed") })
+    expect(await Bun.file(path.join(root, ".bolt/invariants.md")).exists()).toBe(false)
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+  }
+}, 30000)

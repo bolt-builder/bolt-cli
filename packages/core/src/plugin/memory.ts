@@ -172,17 +172,18 @@ export const Plugin = define({
             if (!(yield* control(context.sessionID, "use")))
               return { content: "Memory use is disabled for this session.", metadata: { count: 0 } }
             const status = yield* memory.status({ root })
-            if (status.state.enabled)
-              yield* permission
-                .assert({
-                  action: "memory_recall",
-                  resources: [input.mode],
-                  save: ["*"],
-                  sessionID: context.sessionID,
-                  agent: context.agent,
-                  source: { type: "tool", messageID: context.messageID, id: context.id },
-                })
-                .pipe(Effect.mapError((error) => new ToolFailure({ message: "Memory recall was denied", error })))
+            if (!status.state.enabled)
+              return { content: "Bolt memory is disabled for this project.", metadata: { sources: [], count: 0 } }
+            yield* permission
+              .assert({
+                action: "memory_recall",
+                resources: [input.mode],
+                save: ["*"],
+                sessionID: context.sessionID,
+                agent: context.agent,
+                source: { type: "tool", messageID: context.messageID, id: context.id },
+              })
+              .pipe(Effect.mapError((error) => new ToolFailure({ message: "Memory recall was denied", error })))
             const result = yield* MemoryTool.recall({
               memory,
               ctx: location,
@@ -212,17 +213,18 @@ export const Plugin = define({
             if (!(yield* control(context.sessionID, "contribute")))
               return { content: "Memory contribution is disabled for this session." }
             const status = yield* memory.status({ root })
-            if (status.state.enabled)
-              yield* permission
-                .assert({
-                  action: "memory_save",
-                  resources: [input.action],
-                  save: [],
-                  sessionID: context.sessionID,
-                  agent: context.agent,
-                  source: { type: "tool", messageID: context.messageID, id: context.id },
-                })
-                .pipe(Effect.mapError((error) => new ToolFailure({ message: "Memory save was denied", error })))
+            if (!status.state.enabled)
+              return { content: "Bolt memory is disabled for this project.", metadata: { sources: [] } }
+            yield* permission
+              .assert({
+                action: "memory_save",
+                resources: [input.action],
+                save: [],
+                sessionID: context.sessionID,
+                agent: context.agent,
+                source: { type: "tool", messageID: context.messageID, id: context.id },
+              })
+              .pipe(Effect.mapError((error) => new ToolFailure({ message: "Memory save was denied", error })))
             const result = yield* MemoryTool.save({
               memory,
               ctx: location,

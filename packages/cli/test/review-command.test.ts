@@ -23,7 +23,7 @@ async function git(...args: string[]) {
   return stdout.trim()
 }
 
-async function cli(args: string[], stdin = "") {
+async function cli(args: string[], stdin = "", directory = cwd) {
   const child = Bun.spawn(
     [
       process.execPath,
@@ -36,7 +36,7 @@ async function cli(args: string[], stdin = "") {
       server.url.toString(),
     ],
     {
-      cwd,
+      cwd: directory,
       env: { ...process.env, XDG_STATE_HOME: path.join(cwd, "state") },
       stdin: "pipe",
       stdout: "pipe",
@@ -224,4 +224,30 @@ test("why validates scope and line ranges before admitting model work", async ()
   expect(none.code).toBe(0)
   expect(none.stdout).toContain("No commits found")
   expect(prompts).toHaveLength(0)
+})
+
+test("why resolves file paths from the invocation directory and uses the committer date", async () => {
+  command = "why"
+  await repository()
+  const nested = path.join(cwd, "nested")
+  await fs.mkdir(path.join(nested, "src"), { recursive: true })
+  await Bun.write(path.join(nested, "src", "file.ts"), "export const value = 1\n")
+  await git("add", "nested/src/file.ts")
+  await git(
+    "-c",
+    "user.name=Fixture",
+    "-c",
+    "user.email=fixture@example.invalid",
+    "commit",
+    "-qm",
+    "add nested",
+    "--date=2000-01-01T00:00:00Z",
+  )
+  const sha = await git("rev-parse", "HEAD")
+  const date = await git("show", "-s", "--format=%cd", "HEAD")
+  response = `Evidence ${sha.slice(0, 7)}`
+  const result = await cli(["when?", "--file", "src/file.ts"], "", nested)
+  expect(result.code).toBe(0)
+  expect(prompts.at(-1)?.text).toContain(`date ${date}`)
+  expect(prompts.at(-1)?.text).toContain("nested/src/file.ts")
 })

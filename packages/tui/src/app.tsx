@@ -964,14 +964,23 @@ function App() {
         slash: { name: "plan" },
         run: () => {
           const current = local.agent.current()?.id
+          const agents = local.agent.list()
           if (current === "plan") {
             const target =
-              priorPlanAgent && local.agent.list().some((agent) => agent.id === priorPlanAgent)
-                ? priorPlanAgent
-                : "build"
+              agents.find((agent) => agent.id === priorPlanAgent)?.id ??
+              agents.find((agent) => agent.id === "build")?.id ??
+              agents.find((agent) => agent.id !== "plan")?.id
+            if (!target) {
+              toast.show({ variant: "warning", message: "No other agent is available" })
+              return
+            }
             local.agent.set(target)
             toast.show({ variant: "info", message: `Plan mode off, back to ${target}` })
           } else {
+            if (!agents.some((agent) => agent.id === "plan")) {
+              toast.show({ variant: "warning", message: "Plan agent is unavailable" })
+              return
+            }
             priorPlanAgent = current
             local.agent.set("plan")
             toast.show({ variant: "info", message: "Plan mode on, the agent will propose before changing files" })

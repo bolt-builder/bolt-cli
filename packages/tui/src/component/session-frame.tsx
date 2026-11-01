@@ -187,6 +187,7 @@ export function SessionFrame(props: { sessionID: string; verticalTabsWidth: numb
         id: "session.sidebar.toggle",
         slash: { name: "sidebar" },
         title: rightPane() === "sidebar" ? "Hide sidebar" : "Show sidebar",
+        enabled: () => !data.session.get(props.sessionID)?.parentID,
         group: "Session",
         palette: true,
         run: () => {

@@ -3,7 +3,7 @@ import { createStore } from "solid-js/store"
 import { useMutation } from "@tanstack/solid-query"
 import { Button } from "@opencode/ui/button"
 import { TextInput } from "@opencode/ui/text-input"
-import { Wordmark } from "@opencode/ui/wordmark"
+import { Logo } from "@opencode/ui/logo"
 import { useLanguage } from "@/runtime/i18n/language"
 import { usePlatform } from "@/runtime/platform/platform"
 import { useCheckServerHealth } from "@/runtime/server/health"
@@ -115,7 +115,7 @@ export function ConnectServerScreen(props: { url?: string } = {}) {
     <main data-component="connect-server" aria-labelledby="server-connect-title">
       <div class="server-connect-content">
         <div class="server-connect-brand" role="img" aria-label="Bolt">
-          <Wordmark />
+          <Logo viewBox="72 0 90 36" class="block w-full h-auto" />
         </div>
         <header>
           <h1 id="server-connect-title">{language.t("server.connect.title")}</h1>

@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test"
+import { logo } from "../../src/logo"
 import { epilogue } from "../../src/util/presentation"
 
 const rows = (text: string | undefined) =>
@@ -27,4 +28,9 @@ test("keeps the session continuation after an update", () => {
     "  Session   A session",
     "  Continue  bolt -s ses_123",
   ])
+})
+
+test("renders the Bolt artwork literally including underscore strokes", () => {
+  const lines = Bun.stripANSI(epilogue({ updatedVersion: "2.0.0" }) ?? "").split("\n")
+  expect(lines.slice(0, logo.left.length)).toEqual(logo.left.map((line, index) => `  ${line} ${logo.right[index]}`))
 })

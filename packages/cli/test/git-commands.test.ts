@@ -79,3 +79,68 @@ test("bench cleans temporary checkouts after success and command failure; submod
     await fs.rm(home, { recursive: true, force: true })
   }
 })
+
+test("bench exits nonzero when temporary worktree cleanup fails", async () => {
+  const home = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-bench-cleanup-"))
+  const root = path.join(home, "project")
+  const bin = path.join(home, "bin")
+  await fs.mkdir(root)
+  await fs.mkdir(bin)
+  const git = Bun.which("git")
+  if (!git) throw new Error("git is required for the fixture")
+  const raw = async (...args: string[]) => {
+    const proc = Bun.spawn([git, ...args], { cwd: root, stdout: "pipe", stderr: "pipe" })
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+    expect({ code, stderr }).toMatchObject({ code: 0 })
+    return stdout
+  }
+  try {
+    await raw("init", "-q", "-b", "main")
+    await Bun.write(path.join(root, "file"), "fixture\n")
+    await raw("add", ".")
+    await raw("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture")
+    await Bun.write(
+      path.join(bin, "git"),
+      `#!/bin/sh\ncase " $* " in *" worktree remove "*) exit 1;; esac\nexec "${git}" "$@"\n`,
+    )
+    await fs.chmod(path.join(bin, "git"), 0o755)
+    const proc = Bun.spawn(
+      [
+        process.execPath,
+        "run",
+        "--jsx-import-source=@opentui/solid",
+        path.resolve(import.meta.dir, "../src/index.ts"),
+        "bench",
+        "exit 0",
+        "--base=HEAD",
+        "--runs=1",
+        "--warmup=0",
+        "--threshold=1000000",
+      ],
+      {
+        cwd: root,
+        env: isolatedEnv(home, { PATH: `${bin}:${process.env.PATH}` }),
+        stdout: "pipe",
+        stderr: "pipe",
+        stdin: "ignore",
+      },
+    )
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+    expect(stdout).toContain("Verdict: neutral")
+    expect(code).toBe(1)
+    expect(stderr).toContain("Failed to remove the temporary worktree")
+    const list = await raw("worktree", "list", "--porcelain")
+    for (const match of list.matchAll(/^worktree (.+)$/gm))
+      if (match[1] !== root) await raw("worktree", "remove", "--force", match[1])
+  } finally {
+    await fs.rm(home, { recursive: true, force: true })
+  }
+})

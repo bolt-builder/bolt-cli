@@ -14,6 +14,25 @@ import PROMPT_SECURITY from "./agent/security.txt"
 import PROMPT_MIGRATE from "./agent/migrate.txt"
 import PROMPT_PERF from "./agent/perf.txt"
 
+// These agents are research-only. Disable Code Mode so arbitrary HTTP mutations cannot
+// bypass the restricted tool catalog; its safe tools remain available directly.
+const readOnlyMutations = [
+  "memory_save",
+  "execute",
+  "todowrite",
+  "opencode_session_rename",
+  "opencode_session_move",
+  "opencode_worktree_create",
+  "opencode_worktree_remove",
+  "opencode_artifact_create",
+  "opencode_artifact_update",
+  "opencode_artifact_delete",
+  "opencode_schedule_create",
+  "opencode_schedule_pause",
+  "opencode_schedule_resume",
+  "opencode_schedule_delete",
+] as const
+
 const PROMPT_EXPLORE = `You are a file search specialist. You excel at thoroughly navigating and exploring codebases.
 
 Guidelines:
@@ -85,6 +104,7 @@ export const Plugin = define({
         item.permissions.push({ action: "question", resource: "*", effect: "allow" })
         item.permissions.push(
           { action: "edit", resource: "*", effect: "deny" },
+          ...readOnlyMutations.map((action) => ({ action, resource: "*", effect: "deny" as const })),
           { action: "shell", resource: "*", effect: "deny" },
           { action: "subagent", resource: "*", effect: "deny" },
         )
@@ -96,7 +116,6 @@ export const Plugin = define({
         item.mode = "primary"
         item.system = PROMPT_COMMIT
         item.hidden = true
-        item.request.settings.temperature = 0.3
         item.permissions.push({ action: "*", resource: "*", effect: "deny" })
       })
 
@@ -108,6 +127,7 @@ export const Plugin = define({
         item.permissions.push({ action: "question", resource: "*", effect: "allow" })
         item.permissions.push(
           { action: "edit", resource: "*", effect: "deny" },
+          ...readOnlyMutations.map((action) => ({ action, resource: "*", effect: "deny" as const })),
           { action: "shell", resource: "*", effect: "deny" },
           { action: "subagent", resource: "*", effect: "deny" },
         )
@@ -153,6 +173,7 @@ export const Plugin = define({
         item.permissions.push({ action: "question", resource: "*", effect: "allow" })
         item.permissions.push(
           { action: "edit", resource: "*", effect: "deny" },
+          ...readOnlyMutations.map((action) => ({ action, resource: "*", effect: "deny" as const })),
           { action: "shell", resource: "*", effect: "deny" },
           { action: "subagent", resource: "*", effect: "deny" },
         )
@@ -237,5 +258,11 @@ export const Plugin = define({
         item.permissions.push({ action: "*", resource: "*", effect: "deny" })
       })
     })
+    // The V1 commit agent uses a low temperature for deterministic commit messages.
+    yield* ctx.session.hook("context", (event) =>
+      Effect.sync(() => {
+        if (event.agent === "commit") event.options.temperature = 0.3
+      }),
+    )
   }),
 })

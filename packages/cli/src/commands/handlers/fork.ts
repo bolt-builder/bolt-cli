@@ -20,7 +20,11 @@ export default Runtime.handler(Commands.commands.fork, (input) =>
         let cursor: string | undefined
         let found = false
         do {
-          const page = await client.message.list({ sessionID: input.sessionID, limit: 100, order: "asc", cursor })
+          const page = await client.message.list({
+            sessionID: input.sessionID,
+            limit: 100,
+            ...(cursor ? { cursor } : { order: "asc" }),
+          })
           for (const message of page.data) {
             if (found) return message.id
             if (message.id === anchor) found = true

@@ -171,6 +171,8 @@ test("ask and commit use disposable V2 sessions, preserve stdout and honor dry r
     const failed = await cli(["ask", "question", "--model", "test/fail"])
     expect(failed).toEqual({ code: 1, stderr: "Provider fixture failed\n", stdout: "" })
     expect(removed).toEqual(["ses_1", "ses_2"])
+    const emptyModel = await cli(["ask", "question", "--model", ""])
+    expect(emptyModel.code).toBe(1)
     const invalid = await cli(["ask", "question", "--model", "invalid"])
     expect(invalid.code).toBe(1)
     expect(created).toHaveLength(2)

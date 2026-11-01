@@ -19,6 +19,13 @@ export const Plugin = define({
           ),
         transcribe: (input, context) =>
           Effect.gen(function* () {
+            if (
+              input.audio.length > Math.ceil((25 * 1024 * 1024) / 3) * 4 ||
+              !/^[A-Za-z0-9+/]+={0,2}$/.test(input.audio)
+            )
+              return yield* new VoiceTranscription.TranscribeError({
+                message: "Audio must be valid base64 and at most 25 MB.",
+              })
             const audio = Buffer.from(input.audio, "base64")
             if (!audio.length || audio.byteLength > 25 * 1024 * 1024)
               return yield* new VoiceTranscription.TranscribeError({

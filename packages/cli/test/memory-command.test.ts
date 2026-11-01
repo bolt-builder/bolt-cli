@@ -77,6 +77,7 @@ test("memory CLI transports all management operations and keeps exports on the c
     await cli("conflicts", "--fix")
     await cli("search", "runner", "--limit", "3")
     expect((await cli("why", "why", "Bun", "--model", "fixture/model")).stdout).toBe("Evidence answer\n")
+    expect((await cli("why", "variant", "--model", "fixture/model#fast")).stdout).toBe("Evidence answer\n")
     expect((await cli("why", "default", "model")).stdout).toBe("Evidence answer\n")
     expect(operations).toEqual([
       { action: "export" },
@@ -89,9 +90,11 @@ test("memory CLI transports all management operations and keeps exports on the c
       { action: "search", query: "runner", limit: 3 },
       { action: "dossier" },
       { action: "dossier" },
+      { action: "dossier" },
     ])
-    expect(generations).toHaveLength(2)
-    expect(generations[1]?.model).toEqual({ providerID: "fixture", id: "default" })
+    expect(generations).toHaveLength(3)
+    expect(generations[1]?.model).toEqual({ providerID: "fixture", id: "model", variant: "fast" })
+    expect(generations[2]?.model).toEqual({ providerID: "fixture", id: "default" })
     expect(generations[0]?.model).toEqual({ providerID: "fixture", id: "model" })
     expect(generations[0]?.prompt).toContain("Question:\nwhy Bun")
     expect(generations[0]?.prompt).toContain("[project.md > Facts > tests] Use Bun.")

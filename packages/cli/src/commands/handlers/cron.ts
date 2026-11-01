@@ -36,6 +36,7 @@ const BOUNDS = [
 export function field(spec: string, min: number, max: number): Set<number> | undefined {
   const values = new Set<number>()
   for (const part of spec.split(",")) {
+    if (!/^(?:\*|\d+|\d+-\d+)(?:\/\d+)?$/.test(part)) return undefined
     const step = part.includes("/") ? Number(part.split("/")[1]) : 1
     if (!Number.isInteger(step) || step < 1) return undefined
     const range = part.split("/")[0]
@@ -79,7 +80,8 @@ export function matches(expr: string, date: Date) {
   // POSIX/Vixie cron: when both day-of-month and day-of-week are restricted, the
   // day matches if EITHER matches; when one is `*` it matches every day, so the
   // AND below degrades to the restricted field on its own.
-  const dayMatch = parts[2] !== "*" && parts[4] !== "*" ? domMatch || dowMatch : domMatch && dowMatch
+  const wildcard = (part: string) => part === "*" || part.startsWith("*/")
+  const dayMatch = !wildcard(parts[2]) && !wildcard(parts[4]) ? domMatch || dowMatch : domMatch && dowMatch
   return minute.has(date.getMinutes()) && hour.has(date.getHours()) && month.has(date.getMonth() + 1) && dayMatch
 }
 

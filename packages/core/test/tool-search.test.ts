@@ -4,6 +4,7 @@ import { GitTool } from "@opencode/core/tool/plugin/git"
 import { describe, expect } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
+import { pathToFileURL } from "url"
 import { Effect, Layer } from "effect"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
@@ -487,7 +488,7 @@ describe("Bolt git query tool", () => {
         await initRepo(tmp.path)
         await Bun.write(path.join(tmp.path, "file.txt"), "first\n")
         await $`git add file.txt`.cwd(tmp.path).quiet()
-        await $`git commit -m fixture`.cwd(tmp.path).quiet()
+        await $`git commit -m ${"fixture\x1esubject"}`.cwd(tmp.path).quiet()
         await Bun.write(path.join(tmp.path, "file.txt"), "second\n")
         await Bun.write(path.join(tmp.path, "new.txt"), "untracked\n")
       })
@@ -507,14 +508,14 @@ describe("Bolt git query tool", () => {
             const staged = yield* executeTool(registry, call("git", { action: "diff", staged: true }))
             expect(staged.output).toBe("no changes")
             const log = yield* executeTool(registry, call("git", { action: "log", count: 1 }))
-            expect(log.output).toContain("fixture")
+            expect(log.output).toContain("fixture\x1esubject")
             const blame = yield* executeTool(
               registry,
               call("git", { action: "blame", path: "file.txt", start: 1, end: 1 }),
             )
             expect(blame.output).toContain("second")
             const show = yield* executeTool(registry, call("git", { action: "show", sha: "HEAD" }))
-            expect(show.output).toContain("subject fixture")
+            expect(show.output).toContain("subject fixture\x1esubject")
             expect(show.output).toContain("+first")
             const injected = yield* executeTool(
               registry,
@@ -534,9 +535,49 @@ describe("Bolt git query tool", () => {
               ["blame"],
             ])
             expect(assertions[0]?.source).toEqual({ type: "tool", messageID: toolIdentity.messageID, id: "call-git" })
+            yield* Effect.promise(() => Bun.write(path.join(tmp.path, "file.txt"), "x".repeat(3 * 1024 * 1024)))
+            const large = yield* executeTool(registry, call("git", { action: "diff", path: "file.txt" }))
+            expect(large.status).toBe("completed")
+            expect(large.metadata?.truncated).toBe(true)
+            expect(large.output).toContain("Git output truncated")
           }),
         assertions,
       )
+    }),
+  )
+})
+
+describe("Git tool partial clones", () => {
+  it.live("does not lazily fetch missing objects while showing a commit", () =>
+    Effect.gen(function* () {
+      const tmp = yield* tmpdirScoped()
+      const source = path.join(tmp.path, "source")
+      const clone = path.join(tmp.path, "clone")
+      const blob = yield* Effect.promise(async () => {
+        await fs.mkdir(source)
+        await initRepo(source)
+        await Bun.write(path.join(source, "file.txt"), "remote object\n")
+        await $`git add file.txt`.cwd(source).quiet()
+        await $`git commit -m fixture`.cwd(source).quiet()
+        await $`git config uploadpack.allowFilter true`.cwd(source).quiet()
+        await $`git clone --filter=blob:none --no-checkout ${pathToFileURL(source).href} ${clone}`.quiet()
+        return (await $`git rev-parse HEAD:file.txt`.cwd(clone).text()).trim()
+      })
+      const missing = () =>
+        Bun.spawnSync(["git", "cat-file", "-e", blob], {
+          cwd: clone,
+          env: { ...process.env, GIT_NO_LAZY_FETCH: "1" },
+          stdout: "ignore",
+          stderr: "ignore",
+        }).exitCode !== 0
+      expect(missing()).toBe(true)
+      yield* withTools(clone, (registry) =>
+        Effect.gen(function* () {
+          const result = yield* executeTool(registry, call("git", { action: "show", sha: "HEAD" }))
+          expect(result.status).toBe("error")
+        }),
+      )
+      expect(missing()).toBe(true)
     }),
   )
 })

@@ -93,6 +93,11 @@ describe("git.parseLog", () => {
     expect(entries[1].author).toBe("Bob")
   })
 
+  test("preserves record separator characters in NUL-delimited subjects", () => {
+    const out = `${"a".repeat(40)}\0Alice\0${"2026-01-02"}\0one\x1etwo\0${"b".repeat(40)}\0Bob\0${"2026-01-03"}\0next\0`
+    expect(parseLog(out).map((item) => item.subject)).toEqual(["one\x1etwo", "next"])
+  })
+
   test("returns no entries for empty output", () => {
     expect(parseLog("")).toEqual([])
   })

@@ -101,7 +101,7 @@ serviceTest(
     await ensure(home, OPENCODE_VERSION)
     await old.exited
     await settled(home)
-    await stopped(home)
+    await stopped(home, "incompatible health protocol")
   },
   120_000,
 )
@@ -121,14 +121,14 @@ serviceTest(
         process.platform !== "win32" && Bun.which("lsof") ? `PID ${process.pid} (` : "another process"
       }`,
     )
-    expect(conflict).toContain("opencode service set port <port>")
+    expect(conflict).toContain("bolt service set port <port>")
     expect(await servers(home)).toEqual([])
     expect(await Bun.file(home.registration).exists()).toBe(false)
 
     await listener.stop(true)
     await cli(home, "service", "start")
     await settled(home)
-    await stopped(home)
+    await stopped(home, "Managed service port")
   },
   120_000,
 )
@@ -167,7 +167,7 @@ serviceTest(
     // A slow first boot can let a second startup attempt begin; it loses the port and exits.
     const info = await until(() => snapshot(home).then((state) => state.info))
     await observe(home, (state) => state.servers.length === 1 && state.servers[0] === info.pid)
-    await stopped(home)
+    await stopped(home, "Background service failed to start")
   },
   120_000,
 )
@@ -278,13 +278,30 @@ async function until<A>(read: () => Promise<A | undefined>, timeout = 30_000) {
   }
 }
 
-/** Stopping leaves no server, no state files, and a free port. */
-async function stopped(home: Home) {
+/** Stopping leaves no server, service state files, or occupied port. */
+async function stopped(home: Home, expectedCrash?: string) {
   await Effect.runPromise(Service.stop({ file: home.registration }).pipe(Effect.provide(NodeFileSystem.layer)))
   // Allow the OS a moment to reap exited processes; `stop` itself waits for the owner to exit.
   await until(async () => ((await servers(home)).length === 0 ? true : undefined), 2_000).catch(() => undefined)
   expect(await servers(home)).toEqual([])
-  expect(await fs.readdir(path.dirname(home.registration)).catch(() => [])).toEqual([])
+  const state = path.dirname(home.registration)
+  const entries = await fs.readdir(state).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return []
+    throw error
+  })
+  // Configuration loading keeps the lock directory, but must release every lease.
+  expect(entries.filter((entry) => entry !== "locks" && !(expectedCrash && entry === "crash"))).toEqual([])
+  if (expectedCrash) {
+    expect(entries).toContain("crash")
+    const files = await fs.readdir(path.join(state, "crash"))
+    expect(files.length).toBeGreaterThan(0)
+    const reports = await Promise.all(files.map((file) => Bun.file(path.join(state, "crash", file)).json()))
+    expect(reports.some((report) => typeof report.message === "string" && report.message.includes(expectedCrash))).toBe(true)
+  }
+  if (entries.includes("locks")) {
+    await until(async () => ((await fs.readdir(path.join(state, "locks"))).length === 0 ? true : undefined), 2_000)
+    expect(await fs.readdir(path.join(state, "locks"))).toEqual([])
+  }
   const server = Bun.serve({ hostname: "127.0.0.1", port: home.port, fetch: () => new Response() })
   await server.stop(true)
 }

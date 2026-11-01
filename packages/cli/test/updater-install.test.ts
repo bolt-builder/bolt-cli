@@ -330,7 +330,7 @@ it.live("Homebrew installs discover Bolt V2 releases and upgrade the Bolt tap fo
     expect(test.commands).toEqual([["brew", "upgrade", "bolt-builder/tap/bolt-cli"]])
     expect(test.requests).toEqual(["https://api.github.com/repos/bolt-builder/bolt-cli/releases?per_page=100"])
     expect(yield* test.updater.latest("npm")).toBe("2.3.4")
-    expect(test.requests.at(-1)).toBe("https://registry.npmjs.org/@bolt-builder/bolt-cli/latest")
+    expect(test.requests.at(-1)).toBe("https://registry.npmjs.org/@bolt-builder%2Fbolt-cli/latest")
   }),
 )
 ;(["scoop", "choco"] as const).forEach((method) => {

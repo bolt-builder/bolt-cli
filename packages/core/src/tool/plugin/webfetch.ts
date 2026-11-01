@@ -87,6 +87,14 @@ const execute = (
 ): Effect.Effect<HttpClientResponse.HttpClientResponse, Error> =>
   http.execute(request(url, format, userAgent)).pipe(
     Effect.provideService(FetchHttpClient.RequestInit, { redirect: "manual" }),
+    Effect.provideService(
+      FetchHttpClient.Fetch,
+      Object.assign(
+        (input: string | URL | Request, init?: RequestInit) =>
+          NetGuard.fetch(input instanceof Request ? input.url : input, init),
+        { preconnect: globalThis.fetch.preconnect },
+      ),
+    ),
     Effect.flatMap((response) => {
       const location = response.headers.location
       if (!redirectStatuses.has(response.status) || !location) return HttpClientResponse.filterStatusOk(response)

@@ -28,17 +28,67 @@ const WEAK = [/\.toBeTruthy\(/g, /\.toBeFalsy\(/g, /\.toBeDefined\(/g, /\.not\.t
 /** Parse a test file into its test blocks with assertion counts. */
 export function mine(source: string) {
   const blocks: Mined[] = []
+  let current: Mined | undefined
+  let parens = 0
+  let quote = ""
+  let blockComment = false
+  let escaped = false
   source.split("\n").forEach((text, index) => {
-    const match = text.match(START)
-    if (match) {
-      blocks.push({ name: match[1], line: index + 1, expects: 0, weak: 0 })
+    let start = 0
+    if (!current) {
+      const match = text.match(START)
+      if (!match) return
+      current = { name: match[1], line: index + 1, expects: 0, weak: 0 }
+      blocks.push(current)
+      parens = 1
+      start = (match.index ?? 0) + match[0].length
     }
-    const current = blocks.at(-1)
-    if (!current) return
-    // Count assertions on the start line too, for one-line arrow tests.
-    const body = match ? text.slice((match.index ?? 0) + match[0].length) : text
-    current.expects += (body.match(/\bexpect\s*\(/g) ?? []).length + (body.match(/\bassert[.(]/g) ?? []).length
-    current.weak += WEAK.reduce((sum, weak) => sum + (body.match(weak) ?? []).length, 0)
+    let body = ""
+    for (let position = start; position < text.length; position++) {
+      const char = text[position]
+      const next = text[position + 1]
+      if (blockComment) {
+        if (char === "*" && next === "/") {
+          blockComment = false
+          position++
+        }
+        continue
+      }
+      if (quote) {
+        if (escaped) {
+          escaped = false
+          continue
+        }
+        if (char === "\\") {
+          escaped = true
+          continue
+        }
+        if (char === quote) quote = ""
+        continue
+      }
+      if (char === "/" && next === "/") break
+      if (char === "/" && next === "*") {
+        blockComment = true
+        position++
+        continue
+      }
+      if (char === "'" || char === '\"' || char === "`") {
+        quote = char
+        continue
+      }
+      if (char === "(") parens++
+      if (char === ")") {
+        parens--
+        if (parens === 0) {
+          current = undefined
+          break
+        }
+      }
+      body += char
+    }
+    const block = blocks.at(-1)!
+    block.expects += (body.match(/\bexpect\s*\(/g) ?? []).length + (body.match(/\bassert[.(]/g) ?? []).length
+    block.weak += WEAK.reduce((sum, weak) => sum + (body.match(weak) ?? []).length, 0)
   })
   return blocks
 }

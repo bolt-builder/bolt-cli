@@ -13,14 +13,22 @@ const handler = Effect.fn("cli.blast")(function* (input: Runtime.Input<typeof Co
     return yield* Effect.fail(new Error("--staged and --branch cannot be used together"))
   }
   const processService = yield* AppProcess.Service
-  const run = (args: string[], options: { cwd: string }) => processService.run(ChildProcess.make("git", args, options))
+  const run = (args: string[], options: { cwd: string }) =>
+    processService.run(ChildProcess.make("git", args, { ...options, stdin: "ignore" }))
   const root = yield* run(["rev-parse", "--show-toplevel"], { cwd: process.cwd() }).pipe(
     Effect.flatMap(AppProcess.requireSuccess),
   )
   const cwd = root.stdout.toString().trim()
   const range = yield* Effect.gen(function* () {
     if (input.staged) return ["diff", "--cached"]
-    if (Option.isNone(input.branch)) return ["diff", "HEAD"]
+    if (Option.isNone(input.branch)) {
+      const head = yield* run(["rev-parse", "--verify", "HEAD"], { cwd })
+      if (head.exitCode === 0) return ["diff", "HEAD"]
+      const empty = yield* run(["hash-object", "-t", "tree", "--stdin"], { cwd }).pipe(
+        Effect.flatMap(AppProcess.requireSuccess),
+      )
+      return ["diff", empty.stdout.toString().trim()]
+    }
     const merge = yield* run(["merge-base", "HEAD", input.branch.value], { cwd }).pipe(
       Effect.flatMap(AppProcess.requireSuccess),
     )

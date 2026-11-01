@@ -9,8 +9,15 @@ export const changedFiles = Effect.fn("cli.changedFiles")(function* (
   branch: Option.Option<string>,
 ) {
   if (Option.isSome(branch) && !branch.value && files.length) {
-    branch = Option.some(files[0])
-    files = files.slice(1)
+    const index = process.argv.indexOf("--branch", 2)
+    const value = index >= 0 ? process.argv[index + 1] : undefined
+    if (value && !value.startsWith("-")) {
+      const position = files.lastIndexOf(value)
+      if (position >= 0) {
+        branch = Option.some(value)
+        files = files.filter((_, at) => at !== position)
+      }
+    }
   }
   const git = yield* Git.make
   const root = yield* git.run(["rev-parse", "--show-toplevel"])

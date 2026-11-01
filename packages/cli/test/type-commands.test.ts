@@ -47,6 +47,7 @@ test("asserts and tighten select explicit paths, working changes and committed b
     expect(await cli("tighten")).toMatchObject({ code: 1 })
     expect((await cli("asserts")).stdout).toContain("[no assertions] empty")
     await fs.mkdir(path.join(root, "nested"))
+    expect((await cli("asserts", ["space name.test.ts", "--branch", "main"])).stdout).toContain("[no assertions] empty")
     expect((await cli("tighten", ["../types.ts"], path.join(root, "nested"))).stdout).toContain("types.ts:1 [: any]")
     await git("checkout", "-qb", "feature")
     await git("add", ".")

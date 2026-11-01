@@ -1,46 +1,81 @@
 import { Plugin } from "@opencode/plugin/tui"
 import { BoltProcess } from "@opencode/schema/bolt-process"
-import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
+import type { SessionMessageInfo } from "@opencode/client"
+import { createEffect, createMemo, createSignal, on, onCleanup, onMount, Show } from "solid-js"
 import { Keymap } from "../../context/keymap"
+import { useLocation } from "../../context/location"
 import { useTheme } from "../../context/theme"
 import { DialogSelect } from "../../ui/dialog-select"
 import { DialogHeader, DialogLayout } from "../../ui/dialog"
 
-function Processes(props: { context: Plugin.Context }) {
+export function subagentText(messages: readonly SessionMessageInfo[]) {
+  const assistant = messages.findLast((message) => message.type === "assistant")
+  if (!assistant) return
+  let output = ""
+  for (let index = assistant.content.length - 1; index >= 0 && output.length < 65_536; index--) {
+    const part = assistant.content[index]
+    if (part.type !== "text") continue
+    output = (part.text.slice(-65_536) + (output ? `\n\n${output}` : "")).slice(-65_536)
+  }
+  return output
+}
+
+export function Processes(props: { context: Plugin.Context }) {
   const rpc = props.context.client.rpc(BoltProcess.Definition)
+  const location = useLocation()
   const theme = useTheme().surface("dialog")
   const [jobs, setJobs] = createSignal<readonly BoltProcess.Info[]>([])
   const [error, setError] = createSignal<string>()
   const [selected, setSelected] = createSignal<string>()
+  const [liveOutput, setLiveOutput] = createSignal<string>()
   const [busy, setBusy] = createSignal(false)
   const item = createMemo(() => jobs().find((job) => job.id === selected()))
+  const subagentOutput = createMemo(() => {
+    const job = item()
+    if (job?.type !== "subagent" || job.status !== "running") return
+    return subagentText(props.context.data.session.message.list(job.id))
+  })
   let loading = false
   let disposed = false
+  let locationVersion = 0
+  createEffect(on(() => location.ref, () => {
+    locationVersion++
+    setSelected(undefined)
+    setLiveOutput(undefined)
+    setJobs([])
+    setError(undefined)
+  }, { defer: true }))
   const load = async () => {
     if (loading) return
     loading = true
+    const version = locationVersion
     await rpc
-      .list({})
+      .list({}, { location: location.ref })
       .then(
         (result) => {
-          if (!disposed) {
+          if (!disposed && version === locationVersion) {
             setJobs(result)
             setError(undefined)
           }
         },
         (reason) => {
-          if (!disposed) setError(String(reason))
+          if (!disposed && version === locationVersion) setError(String(reason))
         },
       )
       .finally(() => {
         loading = false
       })
+    const id = selected()
+    const current = jobs().find((job) => job.id === id)
+    if (version !== locationVersion || !id || current?.status !== "running" || current.type !== "shell") return
+    const output = await rpc.output({ id }, { location: location.ref }).catch(() => null)
+    if (!disposed && version === locationVersion && selected() === id) setLiveOutput(output ?? undefined)
   }
   const cancel = async (id: string) => {
     if (busy() || jobs().find((job) => job.id === id)?.status !== "running") return
     setBusy(true)
     await rpc
-      .cancel({ id })
+      .cancel({ id }, { location: location.ref })
       .then(load, (reason) => props.context.ui.toast.show({ variant: "error", message: String(reason) }))
       .finally(() => setBusy(false))
   }
@@ -61,6 +96,7 @@ function Processes(props: { context: Plugin.Context }) {
       {
         bind: "ctrl+o",
         title: "Cancel process",
+        enabled: () => item()?.status === "running" && !busy(),
         run: () => {
           const id = selected()
           if (id) void cancel(id)
@@ -90,12 +126,22 @@ function Processes(props: { context: Plugin.Context }) {
               {error() ?? "No background processes"}
             </text>
           }
-          onSelect={(option) => setSelected(option.value)}
+          onSelect={(option) => {
+            setLiveOutput(undefined)
+            setSelected(option.value)
+            if (
+              jobs().find((job) => job.id === option.value)?.type === "subagent" &&
+              props.context.data.session.message.list(option.value).length === 0
+            )
+              void props.context.data.session.message.sync(option.value).catch(() => {})
+            void load()
+          }}
           actions={[
             {
               command: "process.cancel",
               title: "cancel",
               bind: "ctrl+o",
+              disabled: (option) => busy() || jobs().find((job) => job.id === option?.value)?.status !== "running",
               onTrigger: (option) => void cancel(option.value),
             },
           ]}
@@ -111,6 +157,7 @@ function Processes(props: { context: Plugin.Context }) {
               {
                 title: busy() ? "cancelling…" : "cancel",
                 key: "ctrl+o",
+                disabled: busy() || item()?.status !== "running",
                 onTrigger: () => {
                   const id = selected()
                   if (id) void cancel(id)
@@ -130,7 +177,7 @@ function Processes(props: { context: Plugin.Context }) {
               <Show when={job().error}>{(reason) => <text fg={theme.text.feedback.error.base}>{reason()}</text>}</Show>
               <scrollbox height={12} stickyScroll stickyStart="bottom" scrollbarOptions={{ visible: true }}>
                 <text fg={theme.text.base} wrapMode="word">
-                  {job().output || "No output yet"}
+                  {(job().status === "running" ? (job().type === "subagent" ? subagentOutput() : liveOutput()) : job().output) || "No output yet"}
                 </text>
               </scrollbox>
             </box>

@@ -67,3 +67,15 @@ describe("findings", () => {
     expect(findings([{ name: "solid", line: 1, expects: 2, weak: 1 }])).toEqual([])
   })
 })
+
+test("ignores assertions after a closed test including same-line and multiline endings", () => {
+  const source = [
+    'test("empty", () => {',
+    '  call("not a closing ) brace }")',
+    "})",
+    "expect(setup()).toBe(true)",
+    'test("inline", () => {}) ; expect(other()).toBe(true)',
+    'test("strong", () => { expect(value).toBe(2) })',
+  ].join("\n")
+  expect(findings(mine(source)).map((item) => item.block.name)).toEqual(["empty", "inline"])
+})

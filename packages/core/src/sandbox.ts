@@ -2,6 +2,7 @@ export * as Sandbox from "./sandbox"
 
 import os from "os"
 import { Effect, Schema } from "effect"
+import { ShellSelect } from "./shell/select.js"
 
 export class UnsupportedError extends Schema.TaggedError<UnsupportedError>()("SandboxUnsupportedError", {
   message: Schema.String,
@@ -42,8 +43,7 @@ export function linux(input: { command: string; shell: string; writable: string[
       "--die-with-parent",
       "--",
       input.shell,
-      "-c",
-      input.command,
+      ...ShellSelect.args(input.shell, input.command),
     ],
   }
 }
@@ -60,7 +60,7 @@ export function profile(writable: string[]) {
 
 /** sandbox-exec argv with an inline seatbelt profile. */
 export function darwin(input: { command: string; shell: string; writable: string[] }, exe: string): Wrapped {
-  return { exe, args: ["-p", profile(input.writable), input.shell, "-c", input.command] }
+  return { exe, args: ["-p", profile(input.writable), input.shell, ...ShellSelect.args(input.shell, input.command)] }
 }
 
 /** Wrap a shell command so it runs with a read-only filesystem outside the writable roots.

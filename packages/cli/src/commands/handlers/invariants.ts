@@ -91,14 +91,18 @@ export default Runtime.handler(Commands.commands.invariants, (args) =>
     if (args.action === "state") {
       if (args.files.length === 0) return yield* fail("Pass the files you are about to refactor.")
       const excerpts: string[] = []
+      let totalBytes = 0
       for (const file of args.files) {
-        const target = path.resolve(cwd, file)
-        const exists = yield* Effect.promise(() => Bun.file(target).exists())
-        if (!exists) return yield* fail(`No such file: ${file}`)
-        const content = yield* Effect.promise(() => Bun.file(target).text())
-        excerpts.push(`### ${file}\n\n${content.slice(0, FILE_LIMIT)}`)
+        const target = Bun.file(path.resolve(cwd, file))
+        if (!(yield* Effect.promise(() => target.exists()))) return yield* fail(`No such file: ${file}`)
+        if (target.size > FILE_LIMIT) return yield* fail(`File exceeds ${FILE_LIMIT} bytes: ${file}`)
+        totalBytes += target.size + Buffer.byteLength(`### ${file}\n\n`) + 2
+        if (totalBytes > TOTAL_LIMIT)
+          return yield* fail(`Selected files exceed the ${TOTAL_LIMIT} byte limit; select fewer files.`)
+        const content = yield* Effect.promise(() => target.text())
+        excerpts.push(`### ${file}\n\n${content}`)
       }
-      const body = excerpts.join("\n\n").slice(0, TOTAL_LIMIT)
+      const body = excerpts.join("\n\n")
 
       println("Stating invariants...")
       const text = yield* ask("bolt invariants: state", `${STATE}\n\n${body}`)

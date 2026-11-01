@@ -38,11 +38,11 @@ export default Plugin.define({
                     route.type === "session"
                       ? await context.client.session.get({ sessionID: route.sessionID })
                       : await context.client.session.create({ location: location.ref })
+                  if (route.type !== "session") context.ui.router.navigate({ type: "session", sessionID: session.id })
                   const result = await rpc.set(
                     { sessionID: session.id, enabled: session.metadata?.sandbox !== true },
                     { location: session.location },
                   )
-                  if (route.type !== "session") context.ui.router.navigate({ type: "session", sessionID: session.id })
                   context.ui.toast.show({
                     variant: "success",
                     message: `Filesystem sandbox ${result.enabled ? "enabled" : "disabled"}`,

@@ -110,11 +110,12 @@ export default Runtime.handler(Commands.commands.bench, (args) =>
           Effect.flatMap((removed) =>
             Exit.isSuccess(removed) && removed.value.exitCode === 0
               ? Effect.void
-              : Effect.sync(() =>
+              : Effect.sync(() => {
+                  process.exitCode ||= 1
                   process.stderr.write(
                     `Failed to remove the temporary worktree. Run "git worktree remove --force ${worktree}" to clean up.\n`,
-                  ),
-                ),
+                  )
+                }),
           ),
         ),
     )

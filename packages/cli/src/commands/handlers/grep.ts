@@ -43,7 +43,11 @@ export default Runtime.handler(Commands.commands.grep, (input) =>
             let messageCursor: string | undefined
             do {
               const messages = await client.message
-                .list({ sessionID: session.id, limit: 100, order: "asc", cursor: messageCursor })
+                .list({
+                  sessionID: session.id,
+                  limit: 100,
+                  ...(messageCursor ? { cursor: messageCursor } : { order: "asc" }),
+                })
                 .catch((error: unknown) => {
                   if (isSessionNotFoundError(error)) return { data: [], cursor: { next: undefined } }
                   throw error

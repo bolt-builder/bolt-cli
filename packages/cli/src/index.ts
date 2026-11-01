@@ -168,7 +168,7 @@ Effect.gen(function* () {
   })
   // Aliases are parsed as argv once, after the CLI configuration service applies migrations.
   // Keep the hot path lazy when an invocation cannot begin with an alias.
-  if (process.argv[2] && !process.argv[2].startsWith("-") && process.argv[2] !== "alias") {
+  if (process.argv[2] && process.argv[2] !== "alias") {
     const { CliAlias } = yield* Effect.promise(() => import("./services/alias"))
     const config = yield* Config.Service
     const global = yield* Global.Service

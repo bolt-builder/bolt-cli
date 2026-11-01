@@ -31,11 +31,11 @@ export const Splash = (props: Pick<ComponentProps<"svg">, "ref" | "class">) => {
   )
 }
 
-export const Logo = (props: { class?: string }) => {
+export const Logo = (props: { class?: string; viewBox?: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 234 42"
+      viewBox={props.viewBox ?? "0 0 234 42"}
       fill="none"
       classList={{ [props.class ?? ""]: !!props.class }}
     >

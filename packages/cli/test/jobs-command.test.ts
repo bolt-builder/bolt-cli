@@ -74,6 +74,24 @@ test("detached jobs retain logs and argv, kill descendants and cap health-driven
     } finally {
       server.stop(true)
     }
+    const ambiguousDir = path.join(home, "state/opencode/jobs")
+    await fs.mkdir(ambiguousDir, { recursive: true })
+    for (const id of ["ambiguousA", "ambiguousB"])
+      await Bun.write(
+        path.join(ambiguousDir, `${id}.json`),
+        JSON.stringify({
+          id,
+          pid: 2147483646,
+          command: "fixture",
+          cwd,
+          log: path.join(ambiguousDir, `${id}.log`),
+          started: 0,
+        }),
+      )
+    const ambiguous = await cli("jobs", "kill", "ambiguous")
+    expect(ambiguous.code).toBe(1)
+    expect(ambiguous.stderr).toContain("ambiguous")
+    expect((await cli("jobs", "kill", "ambiguousA")).stdout).toContain("not running")
     const running = await spawnJob(["flaky", "echo $$ > child.pid; exec sleep 30", "--runs=1"])
     await waitFor(async () => Bun.file(path.join(cwd, "child.pid")).exists())
     const descendant = Number(await Bun.file(path.join(cwd, "child.pid")).text())

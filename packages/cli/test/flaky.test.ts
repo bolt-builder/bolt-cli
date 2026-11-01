@@ -60,6 +60,14 @@ test("real flaky command preserves pass/fail/mixed exit codes and quarantine own
     expect(quarantined[0]).toMatchObject({ command, passes: 1, runs: 2 })
     expect((await cli(command, "--quarantine")).code).toBe(2)
     expect(await Bun.file(file).json()).toHaveLength(1)
+    const parallel = ["a", "b"].map(
+      (name) => `if [ -f ran_${name} ]; then rm ran_${name}; exit 0; else touch ran_${name}; exit 1; fi`,
+    )
+    const results = await Promise.all(parallel.map((value) => cli(value, "--quarantine")))
+    expect(results.map((value) => value.code)).toEqual([2, 2])
+    expect((await Bun.file(file).json()).map((item: { command: string }) => item.command)).toEqual(
+      expect.arrayContaining(parallel),
+    )
     await Bun.write(file, '{"invalid": true}')
     expect((await cli(command, "--quarantine")).code).toBe(2)
     expect(await Bun.file(file).text()).toBe('{"invalid": true}')

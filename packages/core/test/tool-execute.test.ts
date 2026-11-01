@@ -50,11 +50,16 @@ test("execute rejects filesystem fetches", async () => {
 describe("fetch permissions", () => {
   const hits: Array<string> = []
   let server: ReturnType<typeof Bun.serve>
+  let crossOrigin = ""
   beforeAll(() => {
     server = Bun.serve({
       port: 0,
       fetch: (request) => {
-        hits.push(`${request.method} ${new URL(request.url).pathname}`)
+        const pathname = new URL(request.url).pathname
+        hits.push(`${request.method} ${pathname}`)
+        if (pathname === "/redirect-metadata") return Response.redirect("http://169.254.169.254/latest/meta-data", 302)
+        if (pathname === "/redirect-local") return Response.redirect(new URL("/landing", request.url).href, 303)
+        if (pathname === "/redirect-cross") return Response.redirect(crossOrigin, 302)
         return new Response("ok")
       },
     })
@@ -85,6 +90,97 @@ describe("fetch permissions", () => {
         source: { type: "tool", messageID: context.messageID, id: context.id },
       },
     ])
+  })
+
+  test("blocks direct and redirected link-local requests after authorization", async () => {
+    hits.length = 0
+    const checks: Array<Permission.AssertInput> = []
+    const permission = permissionService({
+      assert: () => Effect.void,
+      assertNotDenied: (input) => Effect.sync(() => void checks.push(input)),
+    })
+    for (const url of [
+      "http://169.254.169.254/metadata",
+      "http://[fe80::1]/",
+      `${server.url.origin}/redirect-metadata`,
+    ]) {
+      const result = await Effect.runPromise(
+        createCodeMode(new Map(), permission).execute(
+          { code: `try { await fetch(${JSON.stringify(url)}) } catch (e) { return e.message }` },
+          context,
+        ),
+      )
+      expect(result.output.output).toContain("link-local")
+    }
+    expect(hits).toEqual(["GET /redirect-metadata"])
+    expect(checks.map((entry) => entry.resources)).toEqual([["http://169.254.169.254/latest/meta-data"]])
+  })
+
+  test("checks redirect permissions and preserves Fetch's POST-to-GET behavior", async () => {
+    hits.length = 0
+    const checks: Array<Permission.AssertInput> = []
+    const permission = permissionService({
+      assert: () => Effect.void,
+      assertNotDenied: (input) => Effect.sync(() => void checks.push(input)),
+    })
+    const url = `${server.url.origin}/redirect-local`
+    const result = await Effect.runPromise(
+      createCodeMode(new Map(), permission).execute(
+        {
+          code: `const r = await fetch(${JSON.stringify(url)}, { method: "POST", body: "body" }); return [r.status, r.redirected, await r.text()]`,
+        },
+        context,
+      ),
+    )
+    expect(JSON.parse(result.output.output)).toEqual([200, true, "ok"])
+    expect(hits).toEqual(["POST /redirect-local", "GET /landing"])
+    expect(checks.map((entry) => entry.resources)).toEqual([[`${server.url.origin}/landing`]])
+  })
+
+  test("does not forward authorization or cookies across origins", async () => {
+    const received: Array<{ authorization: string | null; cookie: string | null }> = []
+    const other = Bun.serve({
+      port: 0,
+      fetch: (request) => {
+        received.push({ authorization: request.headers.get("authorization"), cookie: request.headers.get("cookie") })
+        return new Response("other")
+      },
+    })
+    crossOrigin = other.url.href
+    try {
+      const permission = permissionService({ assert: () => Effect.void, assertNotDenied: () => Effect.void })
+      const result = await Effect.runPromise(
+        createCodeMode(new Map(), permission).execute(
+          {
+            code: `return await (await fetch(${JSON.stringify(`${server.url.origin}/redirect-cross`)}, { headers: { Authorization: "secret", Cookie: "session=secret" } })).text()`,
+          },
+          context,
+        ),
+      )
+      expect(result.output.output).toBe("other")
+      expect(received).toEqual([{ authorization: null, cookie: null }])
+    } finally {
+      other.stop(true)
+    }
+  })
+
+  test("does not send a request to a denied redirect", async () => {
+    hits.length = 0
+    const denied = permissionService({
+      assert: () => Effect.void,
+      assertNotDenied: (input) =>
+        Effect.fail(new Permission.BlockedError({ rules: [], permission: input.action, resources: input.resources })),
+    })
+    const result = await Effect.runPromise(
+      createCodeMode(new Map(), denied).execute(
+        {
+          code: `try { await fetch(${JSON.stringify(`${server.url.origin}/redirect-local`)}) } catch { return "denied" }`,
+        },
+        context,
+      ),
+    )
+    expect(result.output.output).toBe("denied")
+    expect(hits).toEqual(["GET /redirect-local"])
   })
 
   test("a rejection with feedback reaches the program as the error message", async () => {

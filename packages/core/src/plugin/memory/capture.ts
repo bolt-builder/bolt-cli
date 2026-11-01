@@ -111,6 +111,7 @@ export const attachCapture = Effect.fn(function* (
       Stream.runForEach((event) => {
         const sessionID = event.data.sessionID
         if (event.type === "session.execution.started") return Effect.sync(() => MemoryTurn.open({ sessionID }))
+        if (event.type === "session.execution.interrupted" && event.data.reason === "shutdown") return Effect.void
         return MemoryTurn.close({
           root,
           sessionID,

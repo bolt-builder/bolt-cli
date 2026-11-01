@@ -266,7 +266,7 @@ const make = Effect.gen(function* () {
     const tag = channel === "local" ? "latest" : channel
     const url = github
       ? "https://api.github.com/repos/bolt-builder/bolt-cli/releases?per_page=100"
-      : `https://registry.npmjs.org/@bolt-builder/bolt-cli${OPENCODE_ARTIFACT === "cli-node" ? "-node" : ""}/${encodeURIComponent(tag)}`
+      : `https://registry.npmjs.org/@bolt-builder%2Fbolt-cli${OPENCODE_ARTIFACT === "cli-node" ? "-node" : ""}/${encodeURIComponent(tag)}`
     const response = yield* Effect.tryPromise({
       try: (signal) =>
         fetch(url, {

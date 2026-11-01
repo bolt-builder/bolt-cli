@@ -64,3 +64,28 @@ test("blast analyzes working tree, index and branch changes without a server", a
     await fs.rm(cwd, { recursive: true, force: true })
   }
 })
+
+test("blast includes staged files in a repository with no initial commit", async () => {
+  const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-blast-unborn-"))
+  try {
+    expect((await Bun.$`git init -q ${cwd}`.quiet().nothrow()).exitCode).toBe(0)
+    await Bun.write(path.join(cwd, "new.ts"), "export const value = 1\n")
+    expect((await Bun.$`git add new.ts`.cwd(cwd).quiet().nothrow()).exitCode).toBe(0)
+    const child = Bun.spawn([process.execPath, "run", "--jsx-import-source=@opentui/solid", entry, "blast"], {
+      cwd,
+      env: { ...process.env, XDG_STATE_HOME: path.join(cwd, "state") },
+      stdout: "pipe",
+      stderr: "pipe",
+      stdin: "ignore",
+    })
+    const [out, err, code] = await Promise.all([
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+      child.exited,
+    ])
+    expect({ code, err }).toEqual({ code: 0, err: "" })
+    expect(out).toContain("1 file changed")
+  } finally {
+    await fs.rm(cwd, { recursive: true, force: true })
+  }
+})

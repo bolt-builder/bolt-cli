@@ -36,7 +36,8 @@ export function filter(opts: { level?: string; session?: string }) {
     }
     // Continuation line: follow the previous entry, but still honor an
     // explicit session match so orphaned lines do not leak between sessions.
-    return flags.keep
+    const session = line.match(/(?:^|\s)(?:session(?:\.id|ID|Id|_id)?)[=:]\s*["']?([^\s"',]+)/i)?.[1]
+    return flags.keep && (!opts.session || !session || session === opts.session)
   }
 }
 

@@ -23,6 +23,13 @@ test("V1 alias quoting, appended arguments, protected commands and one-level exp
     "a/b",
   ])
   expect(CliAlias.expand(["a"], aliases)).toEqual(["b"])
+  expect(CliAlias.expand(["--server", "http://localhost:3", "check", "extra"], aliases)).toEqual([
+    "--server",
+    "http://localhost:3",
+    "run",
+    "audit the deploy diff",
+    "extra",
+  ])
   for (const args of [[], ["--help"], ["alias", "check"], ["unknown"], ["constructor"], ["toString"]])
     expect(CliAlias.expand(args, aliases)).toEqual(args)
 })
@@ -88,6 +95,13 @@ test("real CLI aliases preserve config comments, expand before parsing, persist 
     await Bun.write(path.join(root, ".bolt", "bolt.json"), '{"alias": {"local": "hotspots --limit 2"}}')
     expect((await cli("local", "--help")).stdout).toContain("hotspots")
     expect((await cli("alias", "--rm", "local")).stderr).toContain("remove it from that file")
+    await Bun.write(path.join(root, ".bolt", "bolt.json"), '{"alias": {"report": "hotspots --limit 2"}}')
+    expect((await cli("alias", "report=hotspots --limit 1")).code).toBe(0)
+    expect((await cli("alias", "--rm", "report")).stderr).toContain("remove it from that file")
+    expect((await cli("alias", "report")).stdout).toContain("hotspots --limit 2")
+    await Bun.write(path.join(root, ".bolt", "bolt.json"), '{"alias": ["hotspots"]}')
+    expect((await cli("alias", "0")).code).toBe(1)
+    expect((await cli("--server", "http://localhost:1", "report", "--help")).stdout).toContain("hotspots")
   } finally {
     await fs.rm(root, { recursive: true, force: true })
   }

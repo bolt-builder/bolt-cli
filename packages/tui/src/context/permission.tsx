@@ -22,7 +22,7 @@ export const { use: usePermission, provider: PermissionProvider } = createSimple
           draft.session = { ...draft.session, permissions: next }
         })
         // An explicit interactive toggle also overrides the startup --auto flag.
-        setOverride(next)
+        if (args.auto) setOverride(next)
       },
     }
   },

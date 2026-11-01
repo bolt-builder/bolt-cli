@@ -8,6 +8,13 @@ export function keypress(byte: number | undefined): "stop" | "abort" | undefined
   if (byte === 0x03) return "abort"
 }
 
+export function chunkAction(chunk: Uint8Array) {
+  for (const byte of chunk) {
+    const action = keypress(byte)
+    if (action) return action
+  }
+}
+
 /** One-shot voice stays fully local, including transcription. */
 export async function capture(server: ServerConnection.Resolved) {
   if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(server.endpoint.url).hostname))
@@ -27,7 +34,7 @@ export async function capture(server: ServerConnection.Resolved) {
       process.stdin.setRawMode(true)
       process.stdin.resume()
       const consume = (chunk: Buffer) => {
-        const action = keypress(chunk[0])
+        const action = chunkAction(chunk)
         if (!action) return
         process.stdin.off("data", consume)
         process.stdin.setRawMode(raw)

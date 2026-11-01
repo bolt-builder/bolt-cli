@@ -106,6 +106,8 @@ export default Runtime.handler(Commands.commands.drift, (args) =>
     }
     println(`Checking ${symbols.length} removed declaration${symbols.length === 1 ? "" : "s"} against docs...`)
     const findings: { file: string; name: string; mentions: Ref[] }[] = []
+    const uncertain: { file: string; name: string; mentions: Ref[]; code: Ref[] }[] = []
+    let hasLiveMentions = false
     for (const symbol of symbols) {
       // Git already owns this command's repository. Its grep honors ignore rules for untracked files
       // and avoids importing the server's Ripgrep service into the frontend.
@@ -119,12 +121,37 @@ export default Runtime.handler(Commands.commands.drift, (args) =>
         .slice(0, 200)
         .map((match) => ({ path: match[1], line: Number(match[2]), text: match[3] }))
       const outcome = classify(refs)
-      if (outcome.alive || outcome.mentions.length === 0) continue
+      if (outcome.mentions.length === 0) continue
+      if (outcome.alive) {
+        hasLiveMentions = true
+        // A text match in another file may be an unrelated homonym or a moved symbol.
+        // Preserve V1's success status, but surface both locations for manual review.
+        const code = refs.filter((ref) => !docfile(ref.path) && !comment(ref.text) && ref.path !== symbol.file)
+        if (code.length) uncertain.push({ ...symbol, mentions: outcome.mentions, code })
+        continue
+      }
       findings.push({ file: symbol.file, name: symbol.name, mentions: outcome.mentions })
     }
     println()
+    if (uncertain.length) {
+      println(
+        "Some names also occur in other code; verify whether these docs refer to the removed or surviving symbol:",
+      )
+      for (const item of uncertain) {
+        println(`  ${item.name} (former declaration: ${item.file}):`)
+        for (const ref of item.code.slice(0, MENTION_LIMIT))
+          println(`    code ${ref.path}:${ref.line} ${ref.text.trim().slice(0, 120)}`)
+        for (const ref of item.mentions.slice(0, MENTION_LIMIT))
+          println(`    docs ${ref.path}:${ref.line} ${ref.text.trim().slice(0, 120)}`)
+      }
+      println()
+    }
     if (findings.length === 0) {
-      println("No stale docs found. Every removed symbol is gone from docs and comments too.")
+      println(
+        hasLiveMentions
+          ? "No confirmed stale docs found."
+          : "No stale docs found. Every removed symbol is gone from docs and comments too.",
+      )
       return
     }
     println(

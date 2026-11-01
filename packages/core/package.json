@@ -32,6 +32,10 @@
     "./*": "./src/*.ts"
   },
   "imports": {
+    "#guarded-network": {
+      "workerd": "./src/net-guard.workerd.ts",
+      "default": "./src/net-guard.node.ts"
+    },
     "#sqlite": {
       "workerd": "./src/database/sqlite.workerd.ts",
       "bun": "./src/database/sqlite.bun.ts",

@@ -168,7 +168,11 @@ export function jobs(): Job[] {
 }
 
 export function find(id: string) {
-  return jobs().find((job) => job.id === id || job.id.startsWith(id))
+  const all = jobs()
+  const exact = all.find((job) => job.id === id)
+  if (exact) return exact
+  const matches = all.filter((job) => job.id.startsWith(id))
+  return matches.length === 1 ? matches[0] : undefined
 }
 
 export default Runtime.handler(Commands.commands.jobs, (args) =>
@@ -190,7 +194,11 @@ export default Runtime.handler(Commands.commands.jobs, (args) =>
     }
 
     if (Option.isNone(args.id)) return yield* fail(`pass a job id: bolt jobs ${args.action} <id>`)
-    const job = find(args.id.value)
+    const id = args.id.value
+    const matches = jobs().filter((job) => job.id.startsWith(id))
+    const exact = matches.find((job) => job.id === id)
+    if (!exact && matches.length > 1) return yield* fail(`job id "${args.id.value}" is ambiguous. Use a longer prefix.`)
+    const job = exact ?? matches[0]
     if (!job) return yield* fail(`no job matching "${args.id.value}". Run: bolt jobs list`)
 
     if (args.action === "supervise") {

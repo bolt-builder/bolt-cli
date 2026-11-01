@@ -94,3 +94,42 @@ it.live("captures a completed V2 turn with the original pipeline and redacts its
     expect(prompts.join("\n")).not.toContain(secret)
   }),
 )
+
+it.live("does not capture partial work when the server shuts down", () =>
+  Effect.gen(function* () {
+    const temporary = yield* tmpdirScoped()
+    const root = path.join(temporary.path, "memory")
+    yield* Effect.promise(() => BoltMemory.enable({ root }))
+    const sessions = yield* Session.Service
+    const location = yield* Location.Service
+    const session = yield* sessions.create({
+      location: { directory: location.directory },
+      agent: Agent.ID.make("build"),
+    })
+    let reads = 0
+    const event: SessionEvent.Execution.Interrupted = {
+      id: Event.ID.create(),
+      created: Date.now(),
+      type: "session.execution.interrupted",
+      durable: { aggregateID: session.id, seq: Event.Seq.make(1), version: Event.Version.make(1) },
+      data: { sessionID: session.id, reason: "shutdown" },
+    }
+    yield* attachCapture(
+      host({
+        session: {
+          get: () =>
+            Effect.sync(() => {
+              reads++
+              return session
+            }),
+        },
+        event: { subscribe: () => Stream.make(event) },
+      }),
+      root,
+      () => Effect.succeed(true),
+    ).pipe(Effect.provide(Snapshot.noopLayer))
+    yield* Effect.sleep("100 millis")
+    expect(reads).toBe(0)
+    expect((yield* Effect.promise(() => BoltMemory.status({ root }))).state.enabled).toBe(true)
+  }),
+)

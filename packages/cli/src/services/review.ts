@@ -15,7 +15,7 @@ export function confidence(text: string) {
 }
 
 export const CONFIDENCE =
-  'End your final message with exactly one line: "Confidence: high", "Confidence: medium", or "Confidence: low". Use "low" when you are mostly guessing.'
+  'Include a line: "Confidence: high", "Confidence: medium", or "Confidence: low". Use "low" when you are mostly guessing.'
 
 export const INSTRUCTIONS = [
   "Review the following code changes. Use the read, grep, and glob tools to inspect surrounding code when the diff alone is not enough.",

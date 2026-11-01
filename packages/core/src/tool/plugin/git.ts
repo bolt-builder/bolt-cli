@@ -1,6 +1,7 @@
 export * as GitTool from "./git.js"
 
-import { Effect, Schema, Stream } from "effect"
+import { Effect, Schema } from "effect"
+import { collectStream } from "@opencode/util/process"
 import { ChildProcess } from "effect/process"
 import { ToolFailure } from "@opencode/ai/effect"
 import type { Context } from "@opencode/plugin/effect/plugin"
@@ -12,9 +13,9 @@ import DESCRIPTION from "./git.txt"
 const MAX_PATCH = 40_000
 const DEFAULT_LOG_COUNT = 20
 
-// %x1f/%x1e are unit/record separators; they cannot appear in commit subjects
-// or author names, so splitting on them is unambiguous.
-const LOG_FORMAT = "%H%x1f%an%x1f%aI%x1f%s%x1e"
+// NUL separates fields and records; commit subjects can contain record-separator bytes.
+const LOG_FORMAT = "%H%x00%an%x00%aI%x00%s"
+const MAX_GIT_OUTPUT_BYTES = 2 * 1024 * 1024
 
 export type StatusEntry = {
   path: string
@@ -118,6 +119,20 @@ export type LogEntry = {
 
 /** Parse log output produced with LOG_FORMAT into structured entries. */
 export function parseLog(text: string): LogEntry[] {
+  if (text.includes("\0")) {
+    const fields = text.split("\0")
+    const records: LogEntry[] = []
+    for (let index = 0; index + 3 < fields.length; index += 4) {
+      if (!fields[index]) continue
+      records.push({
+        sha: fields[index],
+        author: fields[index + 1],
+        date: fields[index + 2],
+        subject: fields[index + 3],
+      })
+    }
+    return records
+  }
   return text
     .split("\x1e")
     .map((record) => record.replace(/^\n/, ""))
@@ -204,25 +219,32 @@ export const Plugin = {
     const permission = yield* Permission.Service
     const run = Effect.fn("GitTool.run")(function* (args: string[], cwd: string) {
       const handle = yield* environment.spawner.spawn(
-        ChildProcess.make("git", ["--no-pager", "--no-optional-locks", "-c", "core.fsmonitor=false", ...args], {
-          cwd,
-          extendEnv: true,
-          stdin: "ignore",
-        }),
+        ChildProcess.make(
+          "git",
+          ["--no-pager", "--no-lazy-fetch", "--no-optional-locks", "-c", "core.fsmonitor=false", ...args],
+          {
+            cwd,
+            extendEnv: true,
+            env: { GIT_NO_LAZY_FETCH: "1" },
+            stdin: "ignore",
+          },
+        ),
       )
       const [stdout, stderr, code] = yield* Effect.all(
         [
-          Stream.mkString(Stream.decodeText(handle.stdout)),
-          Stream.mkString(Stream.decodeText(handle.stderr)),
+          collectStream(handle.stdout, MAX_GIT_OUTPUT_BYTES),
+          collectStream(handle.stderr, MAX_GIT_OUTPUT_BYTES),
           handle.exitCode,
         ],
         { concurrency: "unbounded" },
       )
       if (code !== 0)
         return yield* Effect.fail(
-          new ToolFailure({ message: `git ${args[0]} failed (exit ${code}): ${stderr.trim() || stdout.trim()}` }),
+          new ToolFailure({
+            message: `git ${args[0]} failed (exit ${code}): ${stderr.buffer.toString().trim() || stdout.buffer.toString().trim()}`,
+          }),
         )
-      return stdout
+      return { text: stdout.buffer.toString(), truncated: stdout.truncated || stderr.truncated }
     }, Effect.scoped)
     yield* ctx.tool
       .transform((editor) =>
@@ -235,6 +257,14 @@ export const Plugin = {
           execute: (params, context) =>
             Effect.gen(function* () {
               const cwd = location.directory
+              let truncated = false
+              const read = (args: string[]) =>
+                run(args, cwd).pipe(
+                  Effect.map((result) => {
+                    truncated ||= result.truncated
+                    return result.text
+                  }),
+                )
               if (params.path) {
                 const target = yield* access.resolve({ path: params.path, kind: "file" })
                 yield* access.authorizeExternal([target], context)
@@ -250,7 +280,7 @@ export const Plugin = {
               })
               const result = yield* Effect.gen(function* () {
                 if (params.action === "status") {
-                  const parsed = parseStatus(yield* run(["status", "--porcelain=v2", "-z"], cwd))
+                  const parsed = parseStatus(yield* read(["status", "--porcelain=v2", "-z"]))
                   const lines: string[] = []
                   if (parsed.staged.length) lines.push("staged:", ...parsed.staged.map(renderStatusEntry))
                   if (parsed.unstaged.length) lines.push("unstaged:", ...parsed.unstaged.map(renderStatusEntry))
@@ -274,7 +304,7 @@ export const Plugin = {
                     ...(params.staged ? ["--cached"] : []),
                     ...(params.path ? ["--", params.path] : []),
                   ]
-                  const patch = yield* run(args, cwd)
+                  const patch = yield* read(args)
                   const files = parsePatch(patch)
                   if (files.length === 0) {
                     return {
@@ -301,12 +331,13 @@ export const Plugin = {
                   const count = params.count ?? DEFAULT_LOG_COUNT
                   const args = [
                     "log",
+                    "-z",
                     "-n",
                     String(count),
                     `--format=${LOG_FORMAT}`,
                     ...(params.path ? ["--", params.path] : []),
                   ]
-                  const entries = parseLog(yield* run(args, cwd))
+                  const entries = parseLog(yield* read(args))
                   return {
                     title: `git log (${entries.length} commit${entries.length === 1 ? "" : "s"})`,
                     output: entries.length
@@ -330,7 +361,7 @@ export const Plugin = {
                     "--",
                     params.path,
                   ]
-                  const lines = parseBlame(yield* run(args, cwd))
+                  const lines = parseBlame(yield* read(args))
                   return {
                     title: `git blame ${params.path}`,
                     output: lines.length
@@ -347,17 +378,16 @@ export const Plugin = {
 
                 if (!params.sha)
                   return yield* Effect.fail(new ToolFailure({ message: "show requires the sha parameter" }))
-                const revision = (yield* run(
-                  ["rev-parse", "--verify", "--end-of-options", `${params.sha}^{commit}`],
-                  cwd,
-                )).trim()
-                const meta = parseLog(yield* run(["show", "-s", `--format=${LOG_FORMAT}`, revision], cwd))
+                const revision = (yield* read([
+                  "rev-parse",
+                  "--verify",
+                  "--end-of-options",
+                  `${params.sha}^{commit}`,
+                ])).trim()
+                const meta = parseLog(yield* read(["show", "-z", "-s", `--format=${LOG_FORMAT}`, revision]))
                 const entry = meta[0]
                 if (!entry) return yield* Effect.fail(new ToolFailure({ message: `no commit found for ${params.sha}` }))
-                const patch = yield* run(
-                  ["show", "--no-ext-diff", "--no-textconv", "--format=", "--patch", revision],
-                  cwd,
-                )
+                const patch = yield* read(["show", "--no-ext-diff", "--no-textconv", "--format=", "--patch", revision])
                 const files = parsePatch(patch)
                 return {
                   title: `git show ${entry.sha.slice(0, 8)}`,
@@ -374,10 +404,13 @@ export const Plugin = {
                   metadata: { sha: entry.sha, files: files.length },
                 }
               })
+              const output = truncated
+                ? `${result.output}\n\n(Git output truncated at ${MAX_GIT_OUTPUT_BYTES} bytes.)`
+                : result.output
               return {
-                output: result.output,
-                content: result.output,
-                metadata: { ...result.metadata, title: result.title },
+                output,
+                content: output,
+                metadata: { ...result.metadata, title: result.title, truncated },
               }
             }).pipe(
               Effect.mapError((error) =>

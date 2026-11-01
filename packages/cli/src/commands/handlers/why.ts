@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect"
+import path from "node:path"
 import { OpenCode } from "@opencode/client/promise"
 import { Service } from "@opencode/client/effect/service"
 import { noTimeoutFetch } from "@opencode/util/no-timeout-fetch"
@@ -28,14 +29,14 @@ export type Entry = {
   readonly subject: string
 }
 
-/** Parse `git log --format=%H%x00%an%x00%ad%x00%s%x01` output into commit entries. */
+/** Parse `git log --format=%H%x00%an%x00%cd%x00%s%x01` output into commit entries. */
 export function entries(text: string) {
   return text
     .split("\x01")
     .map((chunk) => chunk.trim())
     .filter(Boolean)
     .map((chunk) => chunk.split("\x00"))
-    .filter((parts) => parts.length === 4 && /^[0-9a-f]{40}$/.test(parts[0]))
+    .filter((parts) => parts.length === 4 && /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/.test(parts[0]))
     .map((parts) => ({ sha: parts[0], author: parts[1], date: parts[2], subject: parts[3] }) satisfies Entry)
 }
 
@@ -56,19 +57,20 @@ export function cited(text: string, shas: string[]) {
 
 export default Runtime.handler(Commands.commands.why, (input) =>
   Effect.gen(function* () {
-    const file = Option.getOrUndefined(input.file)
+    const requestedFile = Option.getOrUndefined(input.file)
     const lineSpec = Option.getOrUndefined(input.lines)
     const term = Option.getOrUndefined(input.term)
     const model = Option.getOrUndefined(input.model)
-    if (!file && !term)
+    if (!requestedFile && !term)
       return yield* Effect.fail(new Error("Point the dig somewhere: pass --file <path> and/or --term <string>."))
-    if (lineSpec && !file) return yield* Effect.fail(new Error("--lines requires --file."))
+    if (lineSpec && !requestedFile) return yield* Effect.fail(new Error("--lines requires --file."))
     if (model && !validModel(model))
       return yield* Effect.fail(new Error("Provide --model in the format provider/model."))
     const git = yield* Git.make
     const root = yield* git.run(["rev-parse", "--show-toplevel"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
     const cwd = root.stdout.toString().trim()
-    const format = "--format=%H%x00%an%x00%ad%x00%s%x01"
+    const file = requestedFile ? path.relative(cwd, path.resolve(requestedFile)) : undefined
+    const format = "--format=%H%x00%an%x00%cd%x00%s%x01"
     const log = yield* Effect.gen(function* () {
       if (lineSpec) {
         const range = span(lineSpec)
@@ -87,7 +89,7 @@ export default Runtime.handler(Commands.commands.why, (input) =>
     }
     process.stderr.write(`Found ${found.length} relevant commits. Gathering evidence...\n`)
     const patches = yield* Effect.forEach(found.slice(0, PATCHES), (entry) =>
-      git.run(["show", "--format=commit %h%nauthor %an%ndate %ad%n%n%s%n%n%b", entry.sha], cwd).pipe(
+      git.run(["show", "--format=commit %h%nauthor %an%ndate %cd%n%n%s%n%n%b", entry.sha], cwd).pipe(
         Effect.flatMap(AppProcess.requireSuccess),
         Effect.map((result) => result.stdout.toString().slice(0, PATCHCAP)),
       ),

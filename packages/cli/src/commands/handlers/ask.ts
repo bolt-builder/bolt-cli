@@ -26,7 +26,7 @@ export default Runtime.handler(Commands.commands.ask, (input) =>
     const question = input.question.join(" ").trim()
     if (!question) return yield* Effect.fail(new Error("Provide a question to ask."))
     const model = Option.getOrUndefined(input.model)
-    if (model && !validModel(model))
+    if (model !== undefined && !validModel(model))
       return yield* Effect.fail(new Error("Provide --model in the format provider/model."))
     const piped = process.stdin.isTTY ? undefined : yield* Effect.promise(() => readStdin())
     const server = yield* ServerConnection.resolve()

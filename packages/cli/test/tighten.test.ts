@@ -46,3 +46,11 @@ describe("loose", () => {
     expect(loose("const parse = (input: string): number => input.length")).toEqual([])
   })
 })
+
+test("finds later generic arguments and generator return types", () => {
+  expect(loose("type A = Record<string, any>\ntype B = Map<string, any>").map((item) => item.kind)).toEqual([
+    "<any>",
+    "<any>",
+  ])
+  expect(loose("*items(): any {}\n * comment: any").map((item) => item.kind)).toEqual([": any"])
+})

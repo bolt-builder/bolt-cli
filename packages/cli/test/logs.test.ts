@@ -154,3 +154,10 @@ test("log following buffers appended lines, preserves session filtering and stop
     await fs.rm(root, { recursive: true, force: true })
   }
 })
+
+test("session-filtered continuations cannot include another session", () => {
+  const keep = filter({ session: "ses_123" })
+  expect(keep("level=INFO session.id=ses_123 message=ok")).toBe(true)
+  expect(keep("  sessionID=ses_456 secret")).toBe(false)
+  expect(keep("  continuation for current entry")).toBe(true)
+})

@@ -49,3 +49,8 @@ describe("cited", () => {
     expect(cited("It changed at some point.", [SHA1, SHA2])).toEqual([])
   })
 })
+
+test("accepts SHA-256 commit identifiers", () => {
+  const sha = "a".repeat(64)
+  expect(entries(`${sha}\0Ada\0date\0subject\x01`)).toEqual([{ sha, author: "Ada", date: "date", subject: "subject" }])
+})

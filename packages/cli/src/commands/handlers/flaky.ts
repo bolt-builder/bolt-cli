@@ -3,6 +3,7 @@ import path from "node:path"
 import { Effect, Schema } from "effect"
 import { ChildProcess } from "effect/process"
 import { AppProcess } from "@opencode/util/process"
+import { Flock } from "@opencode/util/flock"
 import { LayerNode } from "@opencode/util/effect/layer-node"
 import { Commands } from "../commands"
 import { Runtime } from "../../framework/runtime"
@@ -75,25 +76,32 @@ export default Runtime.handler(Commands.commands.flaky, (args) =>
     }
 
     const file = path.join(cwd, FILE)
-    const existing = fs.existsSync(file)
-      ? yield* Schema.decodeUnknownEffect(
-          Schema.fromJsonString(
-            Schema.Array(
-              Schema.Struct({
-                command: Schema.String,
-                passes: Schema.Number,
-                runs: Schema.Number,
-                detected: Schema.Number,
-              }),
-            ),
-          ),
-        )(fs.readFileSync(file, "utf8"))
-      : []
-    const entry: Quarantined = { command, passes, runs, detected: Date.now() }
-    const merged = [...existing.filter((item) => item.command !== command), entry]
-    fs.mkdirSync(path.dirname(file), { recursive: true })
-    fs.writeFileSync(file, `${JSON.stringify(merged, null, 2)}\n`)
-    println(`Quarantined in ${FILE} (${merged.length} entr${merged.length === 1 ? "y" : "ies"}).`)
+    const count = yield* Effect.tryPromise({
+      try: () =>
+        Flock.withLock(`bolt-quarantine:${file}`, async () => {
+          const existing = fs.existsSync(file)
+            ? await Schema.decodeUnknownPromise(
+                Schema.fromJsonString(
+                  Schema.Array(
+                    Schema.Struct({
+                      command: Schema.String,
+                      passes: Schema.Number,
+                      runs: Schema.Number,
+                      detected: Schema.Number,
+                    }),
+                  ),
+                ),
+              )(fs.readFileSync(file, "utf8"))
+            : []
+          const entry: Quarantined = { command, passes, runs, detected: Date.now() }
+          const merged = [...existing.filter((item) => item.command !== command), entry]
+          fs.mkdirSync(path.dirname(file), { recursive: true })
+          fs.writeFileSync(file, `${JSON.stringify(merged, null, 2)}\n`)
+          return merged.length
+        }),
+      catch: (cause) => cause,
+    })
+    println(`Quarantined in ${FILE} (${count} entr${count === 1 ? "y" : "ies"}).`)
   }).pipe(
     Effect.provide(LayerNode.compile(AppProcess.node)),
     Effect.catch((error) =>

@@ -76,3 +76,10 @@ describe("matches", () => {
     expect(matches("0 0 1 * 1", otherThursday)).toBe(false)
   })
 })
+
+test("rejects malformed ranges and treats wildcard steps as unrestricted day fields", () => {
+  for (const expr of ["1-2-3 * * * *", "1//2 * * * *", "*//2 * * * *", "/2 * * * *"])
+    expect(validate(expr)).toBeDefined()
+  expect(matches("0 9 */1 * 1", new Date(2026, 10, 2, 9, 0))).toBe(true)
+  expect(matches("0 9 */1 * 1", new Date(2026, 10, 3, 9, 0))).toBe(false)
+})
