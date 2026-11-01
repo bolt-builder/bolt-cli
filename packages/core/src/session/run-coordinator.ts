@@ -106,24 +106,12 @@ export const make = <Key, E, Reason = never>(options: {
       return execution
     }
 
-    const settle = (key: Key, entry: Entry<E>, exit: Exit.Exit<void, E>) => {
-      // Coalesced wake after success chains a successor, but always complete
-      // the current entry so joiners are released promptly.
-      if (Exit.isSuccess(exit) && !entry.stopping && entry.pendingWake) {
-        const successor = makeEntry()
-        active.set(key, successor)
-        Deferred.doneUnsafe(entry.done, exit)
-        start(key, successor, false, true)
-        return
-      }
-
-      const successor = entry.pendingWake ? makeEntry() : undefined
-      if (successor === undefined) active.delete(key)
-      else {
-        active.set(key, successor)
-        start(key, successor, false, true)
-      }
-      Deferred.doneUnsafe(entry.done, exit)
+    // A doorbell that survives the execution loop (rung after the loop decided to end, or
+    // during failure or interruption cleanup) starts a fresh execution for the remaining work.
+    const settle = (key: Key, execution: Execution<E, Reason>, exit: Exit.Exit<void, E>) => {
+      if (execution.pendingWake) start(key, false, execution.pendingWake)
+      else executions.delete(key)
+      Deferred.doneUnsafe(execution.done, exit)
     }
 
     const isActive = (key: Key) => Effect.sync(() => executions.has(key))
@@ -142,12 +130,10 @@ export const make = <Key, E, Reason = never>(options: {
 
     const wake = (key: Key, scope: Promotable = "input") =>
       Effect.sync(() => {
-        const entry = active.get(key)
-        if (entry !== undefined) {
-          // Never resurrect work the interrupter thought was cancelled.
-          // Caller re-wakes after interrupt completes and a fresh entry exists.
-          if (entry.stopping) return
-          entry.pendingWake = true
+        const execution = executions.get(key)
+        if (execution !== undefined) {
+          // Coalesced wakes keep the widest scope: "input" subsumes "steer".
+          execution.pendingWake = execution.pendingWake === "input" ? "input" : scope
           return
         }
         start(key, false, scope)
