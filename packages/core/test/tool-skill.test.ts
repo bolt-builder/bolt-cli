@@ -2,15 +2,16 @@ import fs from "fs/promises"
 import path from "path"
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { PermissionV2 } from "@bolt-ai/core/permission"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { SkillV2 } from "@bolt-ai/core/skill"
-import { SkillTool } from "@bolt-ai/core/tool/skill"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Permission } from "@opencode/core/permission"
+import { AbsolutePath } from "@opencode/core/schema"
+import { Session } from "@opencode/core/session"
+import { Skill } from "@opencode/core/skill"
+import { Config } from "@opencode/core/config"
+import { Bus } from "@opencode/core/bus"
+import { SkillTool } from "@opencode/core/tool/plugin/skill"
+import { Tool } from "@opencode/core/tool"
 import { tmpdir } from "./fixture/tmpdir"
 import { Image } from "@opencode/core/image"
 import { it } from "./lib/effect"
@@ -19,7 +20,7 @@ import { permissionLayer } from "./lib/permission"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { FSUtil } from "@opencode/util/fs-util"
 import { toolIdentity, executeTool, registerToolPlugin, toolDefinitions } from "./lib/tool"
-import { registerIntegrationPolicy } from "./fixture/policy"
+import { registerIntegrationPolicy, setOrganizationPolicy } from "./fixture/policy"
 
 const skillToolNode = makeLocationNode({
   name: "test/skill-tool-plugin",
@@ -33,7 +34,6 @@ describe("SkillTool", () => {
   it.effect("refuses a policy-blocked skill before authorization or content preparation", () =>
     Effect.gen(function* () {
       const skills = yield* Skill.Service
-      const managed = yield* ManagedPolicy.Service
       const tools = yield* Tool.Service
       // This path does not exist; an attempted content scan would fail the test.
       yield* skills.transform((editor) =>
@@ -46,7 +46,7 @@ describe("SkillTool", () => {
           }),
         ),
       )
-      yield* managed.set({ statements: [{ action: "integration.use", resource: "skill:private", effect: "deny" }] })
+      yield* setOrganizationPolicy([{ action: "integration.use", resource: "skill:private", effect: "deny" }])
       yield* registerIntegrationPolicy({ skill: skills })
       expect(
         yield* executeTool(tools, {
@@ -57,7 +57,7 @@ describe("SkillTool", () => {
       ).toEqual({ status: "error", error: { type: "tool.execution", message: "Unable to load skill private" } })
     }).pipe(
       Effect.provide(
-        AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node, ManagedPolicy.node]), [
+        AppNodeBuilder.build(LayerNode.group([Tool.node, skillToolNode, Skill.node, Config.node, Bus.node]), [
           Config.node.replace(Config.testLayer()),
           Permission.node.replace(permissionLayer({ assert: () => Effect.die("Blocked skill reached authorization") })),
           Image.node.replace(imagePassthrough),
