@@ -1,5 +1,5 @@
 import { createStore, produce, reconcile } from "solid-js/store"
-import type { FileNode } from "@bolt-ai/sdk/v2"
+import type { FileNode } from "@/runtime/server/types"
 
 type DirectoryState = {
   expanded: boolean
