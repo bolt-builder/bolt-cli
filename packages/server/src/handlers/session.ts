@@ -1,8 +1,17 @@
-import { SessionV2 } from "@bolt-ai/core/session"
+import { Instance } from "@opencode/core/instance/service"
+import { Session } from "@opencode/core/session"
+import { SessionStats } from "@opencode/core/session/stats"
+import { SessionTitle } from "@opencode/core/session/title"
+import { SessionTransfer } from "@opencode/core/session/transfer"
+import { InstructionEntry } from "@opencode/core/session/instruction-entry"
+import { Form } from "@opencode/core/form"
 import { DateTime, Effect, Stream } from "effect"
+import { HttpServerResponse } from "effect/http"
 import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
+import { SessionMediaMessageResponse } from "@opencode/protocol/groups/message"
+import { SessionMediaInboxResponse } from "@opencode/protocol/groups/session"
 import { Api } from "../api"
-import { SessionsCursor } from "@bolt-ai/protocol/groups/session"
+import { wantsMediaRefs } from "../media-uri"
 import {
   ConflictError,
   CommandExecutionError,
@@ -14,10 +23,12 @@ import {
   InvalidCursorError,
   MessageNotFoundError,
   ServiceUnavailableError,
-  SessionNotFoundError,
-  UnknownError,
-} from "@bolt-ai/protocol/errors"
-import { AbsolutePath } from "@bolt-ai/core/schema"
+  SessionBusyError,
+  SkillNotFoundError,
+} from "@opencode/protocol/errors"
+import { AbsolutePath } from "@opencode/core/schema"
+import { locationErrors } from "../location"
+import { failedMessageDecode, failedSnapshot, missingMessage, missingSession } from "./session-error"
 
 function missingForm(id: Form.ID) {
   return new FormNotFoundError({ id, message: `Form not found: ${id}` })
@@ -512,6 +523,12 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
       .handle(
         "session.inbox.list",
         Effect.fn(function* (ctx) {
+          if (wantsMediaRefs(ctx.request))
+            return yield* HttpServerResponse.schemaJson(SessionMediaInboxResponse)({
+              data: yield* session
+                .inboxWithRefs(ctx.params.sessionID)
+                .pipe(Effect.catchTag("Session.NotFoundError", missingSession)),
+            }).pipe(Effect.orDie)
           return {
             data: yield* session
               .inbox(ctx.params.sessionID)
@@ -605,8 +622,16 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
         "session.message",
         Effect.fn(function* (ctx) {
           yield* session.get(ctx.params.sessionID).pipe(Effect.catchTag("Session.NotFoundError", missingSession))
-          const message = yield* session.message(ctx.params)
-          if (message) return { data: message }
+          if (wantsMediaRefs(ctx.request)) {
+            const message = yield* session.messageWithRefs(ctx.params)
+            if (message)
+              return yield* HttpServerResponse.schemaJson(SessionMediaMessageResponse)({ data: message }).pipe(
+                Effect.orDie,
+              )
+          } else {
+            const message = yield* session.message(ctx.params)
+            if (message) return { data: message }
+          }
           return yield* new MessageNotFoundError({
             sessionID: ctx.params.sessionID,
             messageID: ctx.params.messageID,
