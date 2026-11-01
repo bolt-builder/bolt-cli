@@ -1,12 +1,15 @@
 import { describe, expect, test } from "bun:test"
-import { Message, Model } from "@bolt-ai/llm"
-import * as OpenAIChat from "@bolt-ai/llm/protocols/openai-chat"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { ProviderV2 } from "@bolt-ai/core/provider"
-import { SessionMessage } from "@bolt-ai/core/session/message"
-import { AgentAttachment, FileAttachment } from "@bolt-ai/core/session/prompt"
-import { toLLMMessages } from "@bolt-ai/core/session/runner/to-llm-message"
-import { SessionV2 } from "@bolt-ai/core/session"
+import { Message, Media } from "@opencode/ai/effect"
+import { Model } from "@opencode/core/model"
+import { Provider } from "@opencode/core/provider"
+import { SessionMessage } from "@opencode/core/session/message"
+import { AgentAttachment, Base64, FileAttachment, SkillAttachment } from "@opencode/schema/prompt"
+import { Skill } from "@opencode/schema/skill"
+import { toLLMMessages } from "@opencode/core/session/runner/to-llm-message"
+import { Agent } from "@opencode/core/agent"
+import { Shell } from "@opencode/schema/shell"
+import { Location } from "@opencode/schema/location"
+import { AbsolutePath } from "@opencode/schema/schema"
 import { DateTime } from "effect"
 import path from "path"
 import { pathToFileURL } from "url"
@@ -930,7 +933,7 @@ Earlier work
     ])
   })
 
-  test("lowers failed assistant reasoning to text", () => {
+  test("drops failed assistant reasoning while preserving settled hosted tools", () => {
     const messages = toLLMMessages(
       [
         SessionMessage.Assistant.make({
@@ -980,7 +983,6 @@ Earlier work
     )
 
     expect(messages[0]?.content).toEqual([
-      { type: "text", text: "Partial thought" },
       {
         type: "tool-call",
         id: "hosted-completed",
@@ -1026,7 +1028,7 @@ Earlier work
     ])
   })
 
-  test("drops unfinished reasoning metadata from an interrupted assistant message", () => {
+  test("omits unfinished reasoning from an interrupted assistant message", () => {
     const messages = toLLMMessages(
       [
         SessionMessage.Assistant.make({
@@ -1054,7 +1056,7 @@ Earlier work
       model,
     )
 
-    expect(messages[0]?.content).toEqual([{ type: "text", text: "Completed summary part" }])
+    expect(messages).toEqual([])
   })
 
   test("drops model-scoped continuation metadata after a model switch but keeps hosted result payloads", () => {
