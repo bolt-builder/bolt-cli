@@ -1,40 +1,6 @@
-// @ts-nocheck
-import * as mod from "./markdown"
-import { create } from "@bolt-ai/ui/storybook/scaffold"
-import { markdown } from "@bolt-ai/ui/storybook/fixtures"
-
-const docs = `### Overview
-Render sanitized Markdown with code blocks, inline code, and safe links.
-
-Pair with \`Code\` for standalone code views.
-
-### API
-- Required: \`text\` Markdown string.
-- Uses the Marked context provider for parsing and sanitization.
-
-### Variants and states
-- Code blocks include copy buttons when rendered.
-
-### Behavior
-- Sanitizes HTML and auto-converts inline URL code to links.
-- Adds copy buttons to code blocks.
-
-### Accessibility
-- Copy buttons include aria-labels from i18n.
-- TODO: confirm link target behavior in sanitized output.
-
-### Theming/tokens
-- Uses \`data-component="markdown"\` and related slots for styling.
-
-`
-
-const story = create({
-  title: "UI/Markdown",
-  mod,
-  args: {
-    text: markdown,
-  },
-})
+import { markdown } from "@opencode/ui/storybook/fixtures"
+import { createSignal, onCleanup } from "solid-js"
+import { Markdown } from "./markdown"
 
 export default {
   title: "OpenCode/Conversation/Markdown response",
@@ -63,6 +29,25 @@ export const CompactResult = {
     <div class="mx-auto max-w-[560px] rounded-lg border border-border-weak-base bg-background-base px-5 py-4">
       <Markdown
         text={"Updated the Session status and verified it.\n\n- **12 tests passed**\n- `bun typecheck` passed"}
+      />
+    </div>
+  ),
+}
+
+export const Table = {
+  render: () => (
+    <div class="mx-auto max-w-[760px] rounded-lg border border-border-weak-base bg-background-base px-5 py-4">
+      <Markdown
+        text={[
+          "Crops on the outside, kitchen in the middle, farms at the bottom next to it.",
+          "",
+          "| | West | Centre | East |",
+          "| --- | --- | --- | --- |",
+          "| North | Lettuce ×2 | Tomato ×2 | Berry ×1 (pal food) |",
+          "| Middle | Wheat ×1 + Mill | Palbox + Feed Box | Hot Spring + Pal Beds |",
+          "| South | Ranch | Refrigerator · Electric Kitchen · Generator | Chest (overflow) |",
+          "| Far south | Breeding Farm A | (walkway) | Breeding Farm B |",
+        ].join("\n")}
       />
     </div>
   ),
