@@ -5,29 +5,30 @@ export interface Change {
   binary: boolean
 }
 
-/** Parse `git diff --numstat` output into per-file changes. Binary files report `-` counts. */
+/**
+ * Parse `git diff --numstat -z` output into per-file changes. Binary files report `-` counts.
+ * NUL-terminated records keep literal filenames unambiguous: a rename leaves the path field
+ * empty and follows with the old and new paths as separate records.
+ */
 export function parse(numstat: string): Change[] {
-  return numstat
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    .flatMap((line) => {
-      const parts = line.split("\t")
-      if (parts.length < 3) return []
-      const binary = parts[0] === "-" || parts[1] === "-"
-      return [
-        {
-          path: parts
-            .slice(2)
-            .join("\t")
-            .replace(/\{([^{}]*) => ([^{}]*)\}/g, "$2")
-            .replace(/^([^{}]*) => ([^{}]*)$/, "$2"),
-          additions: binary ? 0 : Number(parts[0]) || 0,
-          deletions: binary ? 0 : Number(parts[1]) || 0,
-          binary,
-        },
-      ]
+  const fields = numstat.split("\0")
+  const changes: Change[] = []
+  for (let index = 0; index < fields.length; index++) {
+    const match = fields[index].match(/^(\d+|-)\t(\d+|-)\t(.*)$/s)
+    if (!match) continue
+    const rename = match[3] === ""
+    const path = rename ? fields[index + 2] : match[3]
+    if (rename) index += 2
+    if (!path) continue
+    const binary = match[1] === "-" || match[2] === "-"
+    changes.push({
+      path,
+      additions: binary ? 0 : Number(match[1]),
+      deletions: binary ? 0 : Number(match[2]),
+      binary,
     })
+  }
+  return changes
 }
 
 /** Classify a changed path so the report can separate behavior changes from tests, docs, and config. */
