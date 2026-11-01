@@ -1,25 +1,20 @@
 import { describe, expect } from "bun:test"
-import { Effect } from "effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { SkillPlugin } from "@bolt-ai/core/plugin/skill"
-import { SkillV2 } from "@bolt-ai/core/skill"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { Config } from "@opencode/core/config"
+import { Document, Info } from "@opencode/schema/config"
+import { Effect, Layer, Stream } from "effect"
+import { SkillPlugin } from "@opencode/core/plugin/skill"
+import { Skill } from "@opencode/core/skill"
 import { testEffect } from "../lib/effect"
 import { host } from "./host"
 
-const it = testEffect(AppNodeBuilder.build(SkillV2.node))
-
-describe("SkillPlugin.Plugin", () => {
-  it.effect("registers the built-in bolt-config skill", () =>
-    Effect.gen(function* () {
-      const skill = yield* SkillV2.Service
-      yield* SkillPlugin.Plugin.effect(host({ skill: { ...skill, reload: skill.reload } }))
-
-      expect(yield* skill.list()).toContainEqual(
-        expect.objectContaining({
-          name: "bolt-config",
-          description: expect.stringContaining("bolt's own configuration"),
-        }),
-      )
+const it = testEffect(AppNodeBuilder.build(Skill.node))
+const config = (plugins: Info["plugins"] = []) =>
+  Layer.succeed(
+    Config.Service,
+    Config.Service.of({
+      entries: () => Effect.succeed([new Document({ type: "document", info: new Info({ plugins }) })]),
+      changes: () => Stream.never,
     }),
   )
 
