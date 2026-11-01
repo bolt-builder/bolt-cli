@@ -3,7 +3,7 @@ title: Solução de Problemas
 description: Problemas comuns e como resolvê-los.
 ---
 
-Para depurar problemas com o bolt, comece verificando os logs e os dados locais que ele armazena no disco.
+Para depurar problemas com o opencode, comece verificando os logs e os dados locais que ele armazena no disco.
 
 ---
 
@@ -39,13 +39,13 @@ Este diretório contém:
 
 ## Aplicativo de Desktop
 
-O opencode Desktop executa um servidor Bolt local (o sidecar `opencode-cli`) em segundo plano. A maioria dos problemas é causada por um plugin com mau funcionamento, um cache corrompido ou uma configuração de servidor incorreta.
+O opencode Desktop executa um servidor opencode local (o sidecar `opencode-cli`) em segundo plano. A maioria dos problemas é causada por um plugin com mau funcionamento, um cache corrompido ou uma configuração de servidor incorreta.
 
 ### Verificações rápidas
 
 - Saia completamente do aplicativo e reinicie-o.
 - Se o aplicativo mostrar uma tela de erro, clique em **Reiniciar** e copie os detalhes do erro.
-- Apenas macOS: menu `Bolt` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
+- Apenas macOS: menu `OpenCode` -> **Recarregar Webview** (ajuda se a interface estiver em branco/congelada).
 
 ---
 
@@ -57,15 +57,15 @@ Se o aplicativo de desktop estiver travando ao iniciar, pendurado ou se comporta
 
 Abra seu arquivo de configuração global e procure uma chave `plugin`.
 
-- **macOS/Linux**: `~/.config/opencode/bolt.jsonc` (ou `~/.config/opencode/bolt.json`)
-- **macOS/Linux** (instalações mais antigas): `~/.local/share/opencode/bolt.jsonc`
-- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\opencode\bolt.jsonc`
+- **macOS/Linux**: `~/.config/opencode/opencode.jsonc` (ou `~/.config/opencode/opencode.json`)
+- **macOS/Linux** (instalações mais antigas): `~/.local/share/opencode/opencode.jsonc`
+- **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\opencode\opencode.jsonc`
 
 Se você tiver plugins configurados, desative-os temporariamente removendo a chave ou definindo-a como um array vazio:
 
 ```jsonc
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "plugin": [],
 }
 ```
@@ -78,7 +78,7 @@ O opencode também pode carregar plugins locais do disco. Mova-os temporariament
   - **macOS/Linux**: `~/.config/opencode/plugins/`
   - **Windows**: Pressione `WIN+R` e cole `%USERPROFILE%\.config\opencode\plugins`
 - **Plugins de projeto** (apenas se você usar configuração por projeto)
-  - `<your-project>/.bolt/plugins/`
+  - `<your-project>/.opencode/plugins/`
 
 Se o aplicativo voltar a funcionar, reative os plugins um por um para descobrir qual está causando o problema.
 
@@ -111,13 +111,13 @@ Na tela inicial, clique no nome do servidor (com o ponto de status) para abrir o
 
 #### Removendo `server.port` / `server.hostname` da sua configuração
 
-Se seu `bolt.json(c)` contiver uma seção `server`, remova-a temporariamente e reinicie o aplicativo de desktop.
+Se seu `opencode.json(c)` contiver uma seção `server`, remova-a temporariamente e reinicie o aplicativo de desktop.
 
 #### Verificando as variáveis de ambiente
 
-Se você tiver `BOLT_PORT` definido em seu ambiente, o aplicativo de desktop tentará usar essa porta para o servidor local.
+Se você tiver `OPENCODE_PORT` definido em seu ambiente, o aplicativo de desktop tentará usar essa porta para o servidor local.
 
-- Desfaça `BOLT_PORT` (ou escolha uma porta livre) e reinicie.
+- Desfaça `OPENCODE_PORT` (ou escolha uma porta livre) e reinicie.
 
 ---
 
@@ -138,7 +138,7 @@ No Windows, o opencode Desktop requer o **WebView2 Runtime** do Microsoft Edge. 
 
 ### Windows: Problemas gerais de desempenho
 
-Se você estiver enfrentando desempenho lento, problemas de acesso a arquivos ou problemas no terminal no Windows, tente usar [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). O WSL fornece um ambiente Linux que funciona de forma mais integrada com os recursos do bolt.
+Se você estiver enfrentando desempenho lento, problemas de acesso a arquivos ou problemas no terminal no Windows, tente usar [WSL (Windows Subsystem for Linux)](/docs/windows-wsl). O WSL fornece um ambiente Linux que funciona de forma mais integrada com os recursos do opencode.
 
 ---
 
@@ -158,8 +158,8 @@ Se o aplicativo não iniciar e você não conseguir limpar as configurações pe
 1. Saia do opencode Desktop.
 2. Encontre e exclua estes arquivos (eles estão no diretório de dados do aplicativo opencode Desktop):
 
-- `bolt.settings.dat` (URL do servidor padrão do desktop)
-- `bolt.global.dat` e `bolt.workspace.*.dat` (estado da interface como servidores/projetos recentes)
+- `opencode.settings.dat` (URL do servidor padrão do desktop)
+- `opencode.global.dat` e `opencode.workspace.*.dat` (estado da interface como servidores/projetos recentes)
 
 Para encontrar o diretório rapidamente:
 
@@ -177,7 +177,7 @@ Se você estiver enfrentando problemas com o opencode:
 
    A melhor maneira de relatar bugs ou solicitar recursos é através do nosso repositório no GitHub:
 
-   [**https://github.com/Bolt-builder/bolt-cli/issues**](https://github.com/Bolt-builder/bolt-cli/issues)
+   [**github.com/anomalyco/opencode/issues**](https://github.com/anomalyco/opencode/issues)
 
    Antes de criar um novo problema, pesquise problemas existentes para ver se seu problema já foi relatado.
 
@@ -185,7 +185,7 @@ Se você estiver enfrentando problemas com o opencode:
 
    Para ajuda em tempo real e discussão da comunidade, junte-se ao nosso servidor Discord:
 
-   [**bolt.ai/discord**](https://bolt.ai/discord)
+   [**opencode.ai/discord**](https://opencode.ai/discord)
 
 ---
 
