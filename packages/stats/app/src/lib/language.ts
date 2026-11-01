@@ -22,7 +22,7 @@ export type { Locale } from "../../../../console/app/src/lib/language"
 export { prefersMarkdown } from "../../../../console/app/src/lib/content-negotiation"
 
 export const basePath = "/data"
-export const baseUrl = "https://bolt.ai"
+export const baseUrl = "https://opencode.ai"
 
 function normalizeDataPathname(pathname: string) {
   const next = localeStrip(pathname)
