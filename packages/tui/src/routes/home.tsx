@@ -1,14 +1,9 @@
 import { Prompt, type PromptRef } from "../component/prompt"
-import { batch, createEffect, createMemo, createSignal, Match, onMount, Show, Switch } from "solid-js"
-import { RGBA } from "@opentui/core"
+import { createEffect, createMemo, createSignal, onMount, Show, untrack } from "solid-js"
 import { Logo } from "../component/logo"
-import { SessionSidebar } from "../component/session-sidebar"
-import { useSync } from "../context/sync"
-import { Toast } from "../ui/toast"
 import { useArgs } from "../context/args"
 import { useRouteData } from "../context/route"
 import { usePromptRef } from "../context/prompt"
-import { useKV } from "../context/kv.tsx"
 import { useLocal } from "../context/local"
 import { useEditorContext } from "../context/editor"
 import { useData } from "../context/data"
@@ -16,10 +11,10 @@ import { useLocation } from "../context/location"
 import { FormPrompt } from "./session/form"
 import { Slot } from "../plugin/render"
 import { useTerminalDimensions } from "@opentui/solid"
-import { useTuiConfig } from "../config"
-import { useDialog } from "../ui/dialog"
-import { BOLT_BASE_MODE, useBindings } from "../keymap"
-import { HomeSessionDestinationProvider } from "./home/session-destination"
+import { useTheme } from "../context/theme"
+import { useUpdateNotification } from "../context/update-notification"
+import { useExit } from "../context/exit"
+import { FadeInText } from "../component/fade-in-text"
 
 let once = false
 const placeholder = {
@@ -43,58 +38,13 @@ export function Home() {
   const forms = createMemo(() => data.session.form.list("global", currentLocation()) ?? [])
   let sent = false
 
-  const kv = useKV()
-  const dialog = useDialog()
-  const [sidebarPref, setSidebarPref] = kv.signal<"auto" | "hide">("home_sidebar", "auto")
-  const [sidebarOpen, setSidebarOpen] = createSignal(false)
-  const wide = createMemo(() => dimensions().width > 120)
-  const sidebarVisible = createMemo(() => {
-    if (sidebarOpen()) return true
-    return sidebarPref() === "auto" && wide()
+  // Track only the route location and (when absent) the default location; location.set
+  // reads other signals internally and tracking them would re-assert the route location
+  // after the user overrides it with /cd.
+  createEffect(() => {
+    const target = currentLocation()
+    untrack(() => location.set(target))
   })
-  const toggleSidebar = () => {
-    batch(() => {
-      const isVisible = sidebarVisible()
-      setSidebarPref(() => (isVisible ? "hide" : "auto"))
-      // On wide terminals the "auto" preference alone shows the sidebar; only
-      // narrow terminals need the transient open signal for the overlay.
-      setSidebarOpen(isVisible ? false : !wide())
-    })
-  }
-  // Dismissing the transient overlay must not touch the persisted preference,
-  // otherwise the automatic sidebar stops appearing on wide terminals.
-  const dismissSidebar = () => setSidebarOpen(false)
-
-  useBindings(() => ({
-    commands: [
-      {
-        namespace: "palette",
-        name: "session.sidebar.toggle",
-        title: sidebarVisible() ? "Hide sidebar" : "Show sidebar",
-        category: "Home",
-        slashName: "sidebar",
-        run: () => {
-          toggleSidebar()
-          dialog.clear()
-        },
-      },
-    ],
-  }))
-  useBindings(() => ({
-    mode: BOLT_BASE_MODE,
-    bindings: tuiConfig.keybinds.gather("home", ["session.sidebar.toggle"]),
-  }))
-  useBindings(() => ({
-    enabled: sidebarVisible() && !wide(),
-    bindings: [
-      {
-        key: "escape",
-        desc: "Close sidebar",
-        group: "Home",
-        cmd: () => dismissSidebar(),
-      },
-    ],
-  }))
 
   onMount(() => {
     editor.clearSelection()
@@ -129,55 +79,29 @@ export function Home() {
   })
 
   return (
-    <HomeSessionDestinationProvider>
-      <box flexDirection="row" flexGrow={1} minHeight={0}>
-        <Show when={sidebarVisible()}>
-          <Switch>
-            <Match when={wide()}>
-              <SessionSidebar />
-            </Match>
-            <Match when={!wide()}>
-              <box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                zIndex={1001}
-                alignItems="flex-start"
-                backgroundColor={RGBA.fromInts(0, 0, 0, 70)}
-              >
-                <box position="absolute" top={0} left={0} right={0} bottom={0} onMouseDown={() => dismissSidebar()} />
-                <SessionSidebar overlay />
-              </box>
-            </Match>
-          </Switch>
-        </Show>
+    <>
+      <box
+        flexGrow={1}
+        alignItems="center"
+        paddingLeft={dimensions().width < 44 ? 1 : 2}
+        paddingRight={dimensions().width < 44 ? 1 : 2}
+      >
+        <box flexGrow={1} minHeight={0} />
+        <box height={3} minHeight={0} flexShrink={1} />
         <box
-          flexGrow={1}
-          minHeight={0}
-          alignItems="center"
-          paddingTop={2}
-          paddingBottom={1}
-          paddingLeft={2}
-          paddingRight={2}
+          flexShrink={0}
+          onSizeChange={function () {
+            setLogoWidth(this.width)
+          }}
         >
-          <box height={4} minHeight={0} flexShrink={1} />
-          <box flexShrink={0}>
-            <pluginRuntime.Slot name="home_logo" mode="replace">
-              <Logo />
-            </pluginRuntime.Slot>
-          </box>
-          <box height={1} minHeight={0} flexShrink={1} />
-          <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
-            <pluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
-              <Prompt ref={bind} right={<pluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
-            </pluginRuntime.Slot>
-          </box>
-          <pluginRuntime.Slot name="home_bottom" />
-          <box flexGrow={1} minHeight={0} />
-          <Toast />
+          <Logo />
         </box>
+        <box height={1} flexShrink={0} />
+        <UpdateNotification width={logoWidth()} />
+        <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1} flexShrink={0} position="relative">
+          <Prompt ref={bind} placeholders={placeholder} disabled={forms().length > 0} />
+        </box>
+        <box flexGrow={1} minHeight={0} />
       </box>
       <box width="100%" flexShrink={0}>
         <Slot path="home.footer" />
