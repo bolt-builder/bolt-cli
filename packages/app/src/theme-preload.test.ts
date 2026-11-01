@@ -4,6 +4,7 @@ const src = await Bun.file(new URL("../public/oc-theme-preload.js", import.meta.
 
 const run = () => Function(src)()
 
+// SAFETY: the preload reads only the matches field of this media query fixture.
 const setSystemDark = (matches: boolean) =>
   Object.defineProperty(window, "matchMedia", {
     value: () => ({ matches }) as MediaQueryList,
@@ -21,10 +22,10 @@ beforeEach(() => {
 
 describe("theme preload", () => {
   test.each([
-    { stored: undefined, systemDark: false, scheme: "light", background: "#fafafa" },
-    { stored: "dark", systemDark: false, scheme: "dark", background: "#080808" },
-    { stored: "light", systemDark: true, scheme: "light", background: "#fafafa" },
-    { stored: "system", systemDark: true, scheme: "dark", background: "#080808" },
+    { stored: undefined, systemDark: false, scheme: "light", background: "#ffffff" },
+    { stored: "dark", systemDark: false, scheme: "dark", background: "#050814" },
+    { stored: "light", systemDark: true, scheme: "light", background: "#ffffff" },
+    { stored: "system", systemDark: true, scheme: "dark", background: "#050814" },
   ])(
     "paints the default theme in $scheme for stored scheme $stored (system dark: $systemDark)",
     ({ stored, systemDark, scheme, background }) => {
@@ -33,11 +34,18 @@ describe("theme preload", () => {
       if (stored) localStorage.setItem("opencode-color-scheme", stored)
       run()
 
-      expect(document.documentElement.dataset.theme).toBe("oc-2")
+      expect(document.documentElement.dataset.theme).toBe("bolt")
       expect(document.documentElement.dataset.colorScheme).toBe(scheme)
       expect(document.documentElement.style.backgroundColor).toBe(background)
     },
   )
+
+  test("preserves the explicitly selected OpenCode theme", () => {
+    localStorage.setItem("opencode-theme-id", "oc-2")
+    run()
+    expect(document.documentElement.dataset.theme).toBe("oc-2")
+    expect(document.documentElement.style.backgroundColor).toBe("#fafafa")
+  })
 
   test.each([
     { scheme: undefined, key: "opencode-theme-css-light", css: "--background-base:#fff;", expected: "light" },

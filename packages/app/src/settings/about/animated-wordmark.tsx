@@ -3,6 +3,7 @@ import { createStore } from "solid-js/store"
 import { prefersReducedMotion } from "@opencode/ui/motion"
 
 const target = ["b", "o", "l", "t"] as const
+
 const positions = [72, 102, 132, 144]
 
 const choices = ["b", "o", "l", "t"] as const
