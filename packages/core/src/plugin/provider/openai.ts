@@ -1,15 +1,17 @@
-import { createServer } from "node:http"
-import type { IntegrationOAuthMethodRegistration } from "@bolt-ai/plugin/v2/effect/integration"
-import { define } from "@bolt-ai/plugin/v2/effect/plugin"
-import { Deferred, Effect } from "effect"
-import type { Scope } from "effect"
-import { Credential } from "../../credential"
-import { InstallationVersion } from "../../installation/version"
-import { Integration } from "../../integration"
-import { ModelV2 } from "../../model"
-import { OauthCallbackPage } from "../../oauth/page"
-import { ProviderV2 } from "../../provider"
-import type { PluginInternal } from "../internal"
+import type { IntegrationOAuthMethodRegistration } from "@opencode/plugin/effect/integration"
+import { define } from "@opencode/plugin/effect/plugin"
+import type { SessionRequest } from "@opencode/plugin/effect/session"
+import { Deferred, Effect, Option, Schema, Semaphore, Stream } from "effect"
+import type { Server } from "node:http"
+import { App } from "../../app.js"
+import { Credential } from "../../credential.js"
+import { Bus } from "../../bus.js"
+import { Integration } from "../../integration.js"
+import { OauthCallbackPage } from "../../oauth/page.js"
+import { Provider } from "../../provider.js"
+import { SessionAffinity } from "../../session/affinity.js"
+import type { PluginInternal } from "../internal.js"
+import { configuredSettings } from "./configured.js"
 
 const clientID = "app_EMoamEEZ73f0CkXaXp7hrann"
 const issuer = "https://auth.openai.com"
@@ -23,6 +25,8 @@ const browserMethodID = Integration.MethodID.make("chatgpt-browser")
 const headlessMethodID = Integration.MethodID.make("chatgpt-headless")
 // Codex rejects gpt-5.5 and older models, including gpt-5.3-codex-spark, for ChatGPT accounts.
 const codexDisallowed = new Set(["gpt-5.6"])
+// The image models the Codex client generates and edits with on the Codex login.
+const codexImageModels = new Set(["gpt-image-2"])
 
 type Pkce = {
   verifier: string
@@ -239,11 +243,16 @@ export const OpenAIPlugin = define({
       const credential = connection
         ? yield* ctx.integration.connection.resolve(connection).pipe(Effect.orElseSucceed(() => undefined))
         : undefined
+      const previous = chatgpt
       chatgpt =
         credential?.type === "oauth" &&
         (credential.methodID === browserMethodID || credential.methodID === headlessMethodID)
           ? credential
           : undefined
+      return (
+        (previous === undefined) !== (chatgpt === undefined) ||
+        previous?.metadata?.accountID !== chatgpt?.metadata?.accountID
+      )
     })
 
     yield* ctx.integration.transform((editor) => {
@@ -283,6 +292,11 @@ export const OpenAIPlugin = define({
             return
           }
           const apiID = draft.modelID ?? draft.id
+          if (draft.type === "image") {
+            if (codexImageModels.has(apiID)) draft.cost = []
+            else draft.enabled = false
+            return
+          }
           const match = apiID.match(/^gpt-(\d+)(?:\.(\d+))?/)
           const major = Number(match?.[1])
           const minor = Number(match?.[2] ?? 0)
@@ -317,7 +331,7 @@ export const OpenAIPlugin = define({
       })
     for (const name of ["context", "compaction"] as const)
       yield* ctx.session.hook(name, omitOutputLimit, { providerID: Provider.ID.openai })
-    const refresh = () => loading.withPermit(load().pipe(Effect.andThen(ctx.provider.reload())))
+    const refresh = () => loading.withPermit(load().pipe(Effect.flatMap((changed) => (changed ? ctx.provider.reload() : Effect.void))))
     yield* bus.subscribe(Credential.Event.Switched).pipe(
       Stream.filter((event) => event.data.integrationID === Integration.ID.make("openai")),
       Stream.runForEach(refresh),
@@ -406,7 +420,7 @@ function authorizeURL(redirect: string, pkce: Pkce, state: string) {
     id_token_add_organizations: "true",
     codex_cli_simplified_flow: "true",
     state,
-    originator: "bolt",
+    originator: "opencode",
   })}`
 }
 
