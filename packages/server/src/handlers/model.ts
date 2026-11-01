@@ -1,4 +1,4 @@
-import { Catalog } from "@bolt-ai/core/catalog"
+import { Model } from "@opencode/core/model"
 import { Effect } from "effect"
 import { HttpApiBuilder } from "effect/http-api"
 import { Api } from "../api"
@@ -9,10 +9,10 @@ export const ModelHandler = HttpApiBuilder.group(Api, "server.model", (handlers)
     return handlers
       .handle(
         "model.list",
-        Effect.fn(function* () {
+        Effect.fn(function* (ctx) {
           yield* awaitPlugins
           const models = yield* Model.Service
-          return yield* response(models.available())
+          return yield* response(models.available(ctx.query.types))
         }),
       )
       .handle(
