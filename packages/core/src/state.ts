@@ -31,7 +31,23 @@ export interface Transformable<Editor> {
   readonly reload: Reload
 }
 
-const CurrentBatch = Context.Reference<Set<Reload> | undefined>("@bolt/State/CurrentBatch", {
+export interface Failure {
+  readonly state: string
+  readonly cause: unknown
+}
+
+type GroupedRegistration = {
+  readonly remove: () => boolean
+  readonly notify: Effect.Effect<void>
+}
+
+type RegistrationGroup = {
+  failed: boolean
+  readonly registrations: Set<GroupedRegistration>
+  readonly report: (failure: Failure, refresh: Effect.Effect<void>) => void
+}
+
+const CurrentGroup = Context.Reference<RegistrationGroup | undefined>("@opencode/State/CurrentGroup", {
   defaultValue: () => undefined,
 })
 
@@ -108,6 +124,25 @@ export function reconcile(
     if (Exit.isFailure(exit) && root.state._tag === "Closed" && Cause.hasInterruptsOnly(exit.cause)) return
     yield* exit
   })
+}
+
+/**
+ * Runs `notify` only when the serialized projection of `project(state)` differs from the last
+ * notified value. The first notification always runs so a freshly booted Location announces its
+ * current catalog even when empty.
+ */
+export function changes<State>(
+  project: (state: State) => unknown,
+  notify: (state: State) => Effect.Effect<void>,
+): (state: State) => Effect.Effect<void> {
+  let published: string | undefined
+  return (state) =>
+    Effect.suspend(() => {
+      const next = JSON.stringify(project(state)) ?? ""
+      if (next === published) return Effect.void
+      published = next
+      return notify(state)
+    })
 }
 
 export const inherit = Effect.fnUntraced(function* () {
