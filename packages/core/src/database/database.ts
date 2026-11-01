@@ -1,11 +1,12 @@
 export * as Database from "./database.js"
 
-import { EffectDrizzleSqlite } from "@bolt-ai/effect-drizzle-sqlite"
-import { layer as sqliteLayer } from "#sqlite"
-import { Context, Effect, Layer } from "effect"
-import { Global } from "../global"
-import { Flag } from "../flag/flag"
-import { existsSync, copyFileSync } from "fs"
+import { EffectDrizzleSqlite } from "./drizzle.js"
+import { sqliteLayer, supportsForeignKeyToggle, supportsTuningPragmas } from "#sqlite"
+import { Context, Effect, Layer, Schema, Semaphore } from "effect"
+import type { SqlClient } from "effect/sql"
+import { Global } from "@opencode/util/global"
+import { closeSync, existsSync, openSync } from "node:fs"
+import { chmod } from "node:fs/promises"
 import { isAbsolute, join } from "path"
 import { DatabaseMigration } from "./migration.js"
 import { makeGlobalNode } from "@opencode/util/effect/app-node"
@@ -17,7 +18,10 @@ export interface Interface {
   db: DatabaseShape
 }
 
-export class Service extends Context.Service<Service, Interface>()("@bolt/v2/storage/Database") {}
+export const Options = Schema.Struct({
+  path: Schema.optional(Schema.String),
+})
+export type Options = typeof Options.Type
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/storage/Database") {}
 
@@ -106,27 +110,13 @@ export function configured(options?: Options) {
   return makeGlobalNode({ service: Service, layer: layer(options), deps: [Global.node] })
 }
 
-export function path() {
-  if (Flag.BOLT_DB) {
-    if (Flag.BOLT_DB === ":memory:" || isAbsolute(Flag.BOLT_DB)) return Flag.BOLT_DB
-    return join(Global.Path.data, Flag.BOLT_DB)
-  }
-  if (
-    ["latest", "beta", "prod"].includes(InstallationChannel) ||
-    process.env.BOLT_DISABLE_CHANNEL_DB === "1" ||
-    process.env.BOLT_DISABLE_CHANNEL_DB === "true"
-  )
-    return join(Global.Path.data, "bolt.db")
-  const next = join(Global.Path.data, `bolt-${InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")}.db`)
-  const legacy = join(Global.Path.data, `opencode-${InstallationChannel.replace(/[^a-zA-Z0-9._-]/g, "-")}.db`)
-  if (!existsSync(next) && existsSync(legacy)) {
-    try {
-      copyFileSync(legacy, next)
-    } catch {
-      // fall through to opening legacy path via next on next boot
-    }
-  }
-  return next
+/** `configured`, but over an injected SqlClient layer instead of a filesystem path. */
+export function configuredClient(client: Layer.Layer<SqlClient.SqlClient>) {
+  return makeGlobalNode({
+    service: Service,
+    layer: layerFromClient.pipe(Layer.provide(client)),
+    deps: [Global.node],
+  })
 }
 
 export const node = configured({ path: ":memory:" })
