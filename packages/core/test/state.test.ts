@@ -1,9 +1,7 @@
 import { describe, expect } from "bun:test"
-import { State } from "@bolt-ai/core/state"
-import { Deferred, Effect, Exit, Fiber, Layer, Scope } from "effect"
-import { testEffect } from "./lib/effect"
-
-const it = testEffect(Layer.empty)
+import { State } from "@opencode/core/state"
+import { Cause, Deferred, Effect, Exit, Fiber, Scope } from "effect"
+import { it } from "./lib/effect"
 
 describe("State", () => {
   it.effect("commits a transform atomically when its updater is interrupted", () =>
@@ -202,6 +200,37 @@ describe("State", () => {
       expect(finalized).toBe(1)
       yield* state.reload()
       expect(finalized).toBe(2)
+    }),
+  )
+
+  it.effect("publishes the initial projection and skips unchanged reloads", () =>
+    Effect.gen(function* () {
+      let notifications = 0
+      let label = "first"
+      const state = State.create({
+        initial: () => ({ items: [] as { name: string; execute: () => void }[] }),
+        editor: (editor) => ({
+          add: (name: string) => editor.items.push({ name, execute: () => {} }),
+        }),
+        notify: State.changes(
+          (data) => data.items.map((item) => ({ name: item.name })),
+          () => Effect.sync(() => void notifications++),
+        ),
+      })
+
+      yield* state.transform(() => {})
+      expect(notifications).toBe(1)
+      yield* state.reload()
+      expect(notifications).toBe(1)
+
+      yield* state.transform((editor) => editor.add(label))
+      expect(notifications).toBe(2)
+      yield* state.reload()
+      expect(notifications).toBe(2)
+
+      label = "second"
+      yield* state.reload()
+      expect(notifications).toBe(3)
     }),
   )
 })
