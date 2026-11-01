@@ -3,8 +3,8 @@ import { sanitizeServerActionRequest } from "../src/lib/server-action"
 
 describe("server action referer", () => {
   test("preserves same-origin return locations", () => {
-    const request = new Request("https://dev.bolt.ai/_server?id=action", {
-      headers: { referer: "https://dev.bolt.ai/auth?next=%2Fconsole" },
+    const request = new Request("https://dev.opencode.ai/_server?id=action", {
+      headers: { referer: "https://dev.opencode.ai/auth?next=%2Fconsole" },
     })
 
     expect(sanitizeServerActionRequest(request)).toBe(request)
@@ -16,16 +16,16 @@ describe("server action referer", () => {
     expect(
       referers.map((referer) =>
         sanitizeServerActionRequest(
-          new Request("https://dev.bolt.ai/_server?id=action", {
+          new Request("https://dev.opencode.ai/_server?id=action", {
             headers: referer === undefined ? undefined : { referer },
           }),
         ).headers.get("referer"),
       ),
-    ).toEqual(["https://dev.bolt.ai", "https://dev.bolt.ai", "https://dev.bolt.ai"])
+    ).toEqual(["https://dev.opencode.ai", "https://dev.opencode.ai", "https://dev.opencode.ai"])
   })
 
   test("does not change other routes", () => {
-    const request = new Request("https://dev.bolt.ai/auth", {
+    const request = new Request("https://dev.opencode.ai/auth", {
       headers: { referer: "https://evil.example/phishing-login" },
     })
 
