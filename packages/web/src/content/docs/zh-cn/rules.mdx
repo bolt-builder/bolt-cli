@@ -68,7 +68,7 @@ opencode 还支持从多个位置读取 `AGENTS.md` 文件，不同的位置有�
 
 ### Claude Code 兼容性
 
-对于从 Claude Code 迁移过来的用户，Bolt 支持 Claude Code 的文件约定作为回退方案：
+对于从 Claude Code 迁移过来的用户，OpenCode 支持 Claude Code 的文件约定作为回退方案：
 
 - **项目规则**：项目目录中的 `CLAUDE.md`（在没有 `AGENTS.md` 的情况下使用）
 - **全局规则**：`~/.claude/CLAUDE.md`（在没有 `~/.config/opencode/AGENTS.md` 的情况下使用）
@@ -77,9 +77,9 @@ opencode 还支持从多个位置读取 `AGENTS.md` 文件，不同的位置有�
 要禁用 Claude Code 兼容性，请设置以下环境变量之一：
 
 ```bash
-export BOLT_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
-export BOLT_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
-export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
+export OPENCODE_DISABLE_CLAUDE_CODE=1        # Disable all .claude support
+export OPENCODE_DISABLE_CLAUDE_CODE_PROMPT=1 # Disable only ~/.claude/CLAUDE.md
+export OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 ```
 
 ---
@@ -98,22 +98,22 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 ## 自定义指令
 
-您可以在 `bolt.json` 或全局配置文件 `~/.config/opencode/bolt.json` 中指定自定义指令文件。这允许您和团队复用现有规则，而无需将它们复制到 AGENTS.md 中。
+您可以在 `opencode.json` 或全局配置文件 `~/.config/opencode/opencode.json` 中指定自定义指令文件。这允许您和团队复用现有规则，而无需将它们复制到 AGENTS.md 中。
 
 示例：
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["CONTRIBUTING.md", "docs/guidelines.md", ".cursor/rules/*.md"]
 }
 ```
 
 您还可以使用远程 URL 从网络加载指令。
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["https://raw.githubusercontent.com/my-org/shared-rules/main/style.md"]
 }
 ```
@@ -128,13 +128,13 @@ export BOLT_DISABLE_CLAUDE_CODE_SKILLS=1 # Disable only .claude/skills
 
 虽然 opencode 不会自动解析 `AGENTS.md` 中的文件引用，但您可以通过以下两种方式实现类似的功能：
 
-### 使用 bolt.json
+### 使用 opencode.json
 
-推荐的方式是使用 `bolt.json` 中的 `instructions` 字段：
+推荐的方式是使用 `opencode.json` 中的 `instructions` 字段：
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "instructions": ["docs/development-standards.md", "test/testing-guidelines.md", "packages/*/AGENTS.md"]
 }
 ```
@@ -176,5 +176,5 @@ Read the following file immediately as it's relevant to all workflows: @rules/ge
 - 确保 opencode 仅在特定任务需要时才加载文件
 
 :::tip
-对于 monorepo 或具有共享标准的项目，使用 `bolt.json` 配合 glob 模式（如 `packages/*/AGENTS.md`）比手动指定指令更易于维护。
+对于 monorepo 或具有共享标准的项目，使用 `opencode.json` 配合 glob 模式（如 `packages/*/AGENTS.md`）比手动指定指令更易于维护。
 :::
