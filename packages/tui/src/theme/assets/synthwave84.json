@@ -1,5 +1,5 @@
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "background": "#262335",
     "backgroundAlt": "#1e1a29",
