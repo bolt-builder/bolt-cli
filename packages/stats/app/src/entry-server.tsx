@@ -1,6 +1,5 @@
 // @refresh reload
-import type { Asset, PageEvent } from "@solidjs/start"
-import { createHandler, StartServer } from "@solidjs/start/server"
+import { createHandler, StartServer, type Asset, type PageEvent } from "@solidjs/start/server"
 import ibmPlexMonoMediumLatin1 from "@ibm/plex/IBM-Plex-Mono/fonts/split/woff2/IBMPlexMono-Medium-Latin1.woff2?url"
 import { getRequestEvent } from "solid-js/web"
 import { dir, localeFromRequest, tag } from "./lib/language"
@@ -9,7 +8,7 @@ import statsStylesheetUrl from "./routes/index.css?url"
 const statsThemePreloadScript = `;(function () {
   var preference = "system"
   try {
-    var stored = localStorage.getItem("bolt:stats-theme")
+    var stored = localStorage.getItem("opencode:stats-theme")
     if (stored === "dark" || stored === "light" || stored === "system") preference = stored
   } catch (_) {}
   document.documentElement.dataset.statsTheme = preference
