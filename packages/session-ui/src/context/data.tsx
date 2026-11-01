@@ -1,6 +1,11 @@
-import type { Message, Session, Part, SnapshotFileDiff, SessionStatus, Provider } from "@bolt-ai/sdk/v2"
-import type { FileDiffInfo } from "@bolt-ai/client/promise"
-import { createSimpleContext } from "@bolt-ai/ui/context"
+import type {
+  FileDiffInfo,
+  SessionInfo,
+  SessionStatus,
+  ShellOutputInput,
+  ShellOutputOutput,
+} from "@opencode/client/promise"
+import { createSimpleContext } from "@opencode/ui/context"
 import { PreloadMultiFileDiffResult } from "@pierre/diffs/ssr"
 
 export type SessionSummary = Pick<SessionInfo, "id" | "parentID" | "title" | "time">
@@ -46,15 +51,27 @@ export type NavigateToSessionFn = (sessionID: string) => void
 
 export type SessionHrefFn = (sessionID: string) => string
 
-export const { use: useData, provider: DataProvider } = createSimpleContext({
+export type ReadMediaUrlFn = (uri: string, mime: string, signal?: AbortSignal) => Promise<string | undefined>
+
+export type PeekMediaUrlFn = (uri: string, mime: string) => string | undefined
+
+export const {
+  use: useData,
+  provider: DataProvider,
+  context: DataContext,
+} = createSimpleContext({
   name: "Data",
   init: (props: {
     data: Data
     directory: string
     sessionID?: string
+    /** Whether message meta names the agent; the app follows its Show agent setting. Defaults to true. */
+    agents?: boolean
     shellRunning?: (id: string) => boolean
     shellOutput?: (input: ShellOutputInput) => Promise<ShellOutputOutput>
     turnDiff?: TurnDiffSource
+    readMedia?: ReadMediaUrlFn
+    peekMedia?: PeekMediaUrlFn
     onNavigateToSession?: NavigateToSessionFn
     onSessionHref?: SessionHrefFn
     /** Whether `experimental.background_compaction` is on for this location; automatic compactions then show quietly. */
@@ -70,6 +87,9 @@ export const { use: useData, provider: DataProvider } = createSimpleContext({
       get sessionID() {
         return props.sessionID
       },
+      get agents() {
+        return props.agents ?? true
+      },
       get backgroundCompaction() {
         return props.backgroundCompaction === true
       },
@@ -77,7 +97,11 @@ export const { use: useData, provider: DataProvider } = createSimpleContext({
       sessionHref: props.onSessionHref,
       shellRunning: props.shellRunning,
       shellOutput: props.shellOutput,
-      turnDiff: props.turnDiff,
+      get turnDiff() {
+        return props.turnDiff
+      },
+      readMedia: props.readMedia,
+      peekMedia: props.peekMedia,
     }
   },
 })
