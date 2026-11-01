@@ -1,11 +1,11 @@
 import { Meta, Title } from "@solidjs/meta"
-import { ProviderIcon } from "@bolt-ai/ui/provider-icon"
+import { ProviderIcon } from "@opencode/ui/provider-icon"
 import {
   type LabUsageModelEntry,
   type MarketDay,
   type ModelUsagePoint,
   type StatsLabData,
-} from "@bolt-ai/stats-core/domain/home"
+} from "@opencode/stats-core/domain/home"
 import { createAsync, query, useParams } from "@solidjs/router"
 import { createMemo, createSignal, createUniqueId, For, onMount, Show, type JSX } from "solid-js"
 import { getRequestEvent } from "solid-js/web"
@@ -15,6 +15,7 @@ import { LocaleLinks } from "../../component/locale-links"
 import { NotFoundMeta } from "../../component/not-found-meta"
 import { useI18n } from "../../context/i18n"
 import { useLanguage } from "../../context/language"
+import { dismissChartTooltipOnExit } from "../../lib/chart-tooltip"
 import { fromFirstUsage } from "../../lib/format"
 import { localizedUrl } from "../../lib/language"
 import { loadLabPage, type LabPageData } from "../../lib/page-data"
@@ -122,7 +123,7 @@ export default function StatsLab() {
               <FormatLinks path={labPath()} />
               <LastModified value={stats()?.updatedAt} />
               <Meta property="og:type" content="website" />
-              <Meta property="og:site_name" content="Bolt" />
+              <Meta property="og:site_name" content="OpenCode" />
               <Meta property="og:title" content={labTitle()} />
               <Meta property="og:description" content={labDescription()} />
               <Meta property="og:url" content={labUrl()} />
@@ -329,6 +330,12 @@ function LabUsageSection(props: { lab: ModelCatalogLab; data: StatsLabData | nul
   const activeLineClipId = createUniqueId()
   const activeLineMaskId = createUniqueId()
   const [activeIndex, setActiveIndex] = createSignal<number>()
+  let chartRef: HTMLDivElement | undefined
+  dismissChartTooltipOnExit({
+    chart: () => chartRef,
+    open: () => activeIndex() !== undefined,
+    dismiss: () => setActiveIndex(undefined),
+  })
   const usage = createMemo(() => props.data?.usage ?? [])
   const tokenMax = createMemo(() => Math.max(0, ...usage().map((item) => item.tokens)) || 1)
   const userMax = createMemo(() => Math.max(0, ...usage().map((item) => item.users)) || 1)
@@ -381,6 +388,7 @@ function LabUsageSection(props: { lab: ModelCatalogLab; data: StatsLabData | nul
         fallback={<LabEmptyState title={i18n.t("lab.noUsageTitle")} description={i18n.t("lab.noUsageDescription")} />}
       >
         <div
+          ref={chartRef}
           data-component="model-usage-chart"
           data-variant="lab-usage"
           data-dense-labels={isLabUsageDense(usage().length) ? "true" : undefined}
@@ -705,7 +713,7 @@ function LabModelTooltip(props: { state: LabModelTooltipState }) {
           </span>
           <strong>{props.state.model.name}</strong>
         </div>
-        <p>{props.state.model.description ?? "Recent Bolt usage, share, context, and output limits."}</p>
+        <p>{props.state.model.description ?? "Recent OpenCode usage, share, context, and output limits."}</p>
       </div>
       <div data-slot="tooltip-divider" />
       <div data-slot="lab-model-tooltip-metrics">
