@@ -25,17 +25,19 @@ export interface Issue {
 }
 
 /**
- * Extract reported defects from a review response. The review agent is asked
- * to report each issue as a list item with a severity, so only list items
- * carrying a severity word count; the verdict marker line never does.
+ * Extract reported defects from a review response. The code-review agent reports
+ * each issue as `file:line — [SEVERITY] ...`, and the instructions allow list items
+ * that name a severity, so a bracketed severity tag or a list item carrying a
+ * severity word counts. The verdict marker line never does.
  */
 export function issues(text: string): Issue[] {
   return text
     .split("\n")
     .map((line) => line.trim())
-    .filter((line) => /^(?:[-*]|\d+[.)])\s+/.test(line))
     .flatMap((line) => {
-      const match = line.match(/\b(critical|major|minor)\b/i)
+      const match =
+        line.match(/\[(critical|major|minor)\]/i) ??
+        (/^(?:[-*]|\d+[.)])\s+/.test(line) ? line.match(/\b(critical|major|minor)\b/i) : null)
       if (!match) return []
       return [{ severity: match[1].toLowerCase() as Severity, line }]
     })
