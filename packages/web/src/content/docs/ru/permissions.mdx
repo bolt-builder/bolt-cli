@@ -23,9 +23,9 @@ opencode использует конфигурацию `permission`, чтобы 
 
 Вы можете устанавливать разрешения глобально (с помощью `*`) и переопределять определенные инструменты.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "*": "ask",
     "bash": "allow",
@@ -36,9 +36,9 @@ opencode использует конфигурацию `permission`, чтобы 
 
 Вы также можете установить все разрешения одновременно:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": "allow"
 }
 ```
@@ -49,9 +49,9 @@ opencode использует конфигурацию `permission`, чтобы 
 
 Для большинства разрешений вы можете использовать объект для применения различных действий на основе входных данных инструмента.
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",
@@ -88,15 +88,15 @@ opencode использует конфигурацию `permission`, чтобы 
 
 ### Внешние каталоги
 
-Используйте `external_directory`, чтобы разрешить вызовы инструментов, затрагивающие пути за пределами рабочего каталога, в котором был запущен bolt. Это применимо к любому инструменту, который принимает путь в качестве входных данных (например, `read`, `edit`, `glob`, `grep` и многие команды `bash`).
+Используйте `external_directory`, чтобы разрешить вызовы инструментов, затрагивающие пути за пределами рабочего каталога, в котором был запущен opencode. Это применимо к любому инструменту, который принимает путь в качестве входных данных (например, `read`, `edit`, `glob`, `grep` и многие команды `bash`).
 
 Расширение дома (например, `~/...`) влияет только на запись шаблона. Он не делает внешний путь частью текущего рабочего пространства, поэтому пути за пределами рабочего каталога все равно должны быть разрешены через `external_directory`.
 
 Например, это позволяет получить доступ ко всему, что находится под `~/projects/personal/`:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -107,9 +107,9 @@ opencode использует конфигурацию `permission`, чтобы 
 
 Любой каталог, разрешенный здесь, наследует те же настройки по умолчанию, что и текущая рабочая область. Поскольку для [`read` по умолчанию установлено значение `allow`](#defaults), чтение также разрешено для записей под `external_directory`, если оно не переопределено. Добавьте явные правила, когда инструмент должен быть ограничен в этих путях, например, блокировать редактирование при сохранении чтения:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "external_directory": {
       "~/projects/personal/**": "allow"
@@ -152,7 +152,7 @@ opencode использует конфигурацию `permission`, чтобы 
 - `doom_loop` и `external_directory` по умолчанию равны `"ask"`.
 - `read` — это `"allow"`, но файлы `.env` по умолчанию запрещены:
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
   "permission": {
     "read": {
@@ -187,9 +187,9 @@ opencode использует конфигурацию `permission`, чтобы 
 Более подробные примеры сопоставления с образцом см. в разделе [Детальные правила (синтаксис объекта)](#granular-rules-object-syntax) выше.
 :::
 
-```json title="bolt.json"
+```json title="opencode.json"
 {
-  "$schema": "https://bolt.ai/config.json",
+  "$schema": "https://opencode.ai/config.json",
   "permission": {
     "bash": {
       "*": "ask",
