@@ -1,11 +1,15 @@
-import { describe, expect } from "bun:test"
-import { Duration, Effect, Exit, Fiber, Scope, Stream } from "effect"
-import * as TestClock from "effect/testing/TestClock"
-import { Credential } from "@bolt-ai/core/credential"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { EventV2 } from "@bolt-ai/core/event"
-import { Integration } from "@bolt-ai/core/integration"
+import { describe, expect, test } from "bun:test"
+import path from "path"
+import { Cause, Clock, Duration, Effect, Exit, Fiber, Layer, Scope, Stream } from "effect"
+import { TestClock } from "effect/testing"
+import { Credential } from "@opencode/core/credential"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { makeGlobalNode } from "@opencode/util/effect/app-node"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Bus } from "@opencode/core/bus"
+import { Integration } from "@opencode/core/integration"
+import { State } from "@opencode/core/state"
+import { tmpdirScoped } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(AppNodeBuilder.build(LayerNode.group([Integration.node, Credential.node, Bus.node])))
@@ -14,6 +18,7 @@ const failingCredentialNode = makeGlobalNode({
   layer: Layer.succeed(
     Credential.Service,
     Credential.Service.of({
+      lock: () => Effect.die("unused Credential.lock"),
       all: () => Effect.succeed([]),
       list: () => Effect.succeed([]),
       get: () => Effect.undefined,
