@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "@bolt-ai/stats-server",
-  "version": "1.20.7",  "private": true,
+  "name": "@opencode/stats-server",
+  "version": "2.2.5",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "main": "./src/stat-sync.ts",
@@ -15,7 +16,7 @@
   },
   "dependencies": {
     "@effect/platform-node": "catalog:",
-    "@bolt-ai/stats-core": "workspace:*",
+    "@opencode/stats-core": "workspace:*",
     "effect": "catalog:",
     "sst": "catalog:"
   },
