@@ -1,12 +1,22 @@
 export * as SessionMessage from "./session-message.js"
 
 import { Schema } from "effect"
-import { ProviderMetadata, ToolContent } from "./llm"
-import { Model } from "./model"
-import { FileAttachment, Prompt } from "./prompt"
-import { DateTimeUtcFromMillis, RelativePath, optional, statics } from "./schema"
-import { SessionID } from "./session-id"
-import { ascending } from "./identifier"
+import { optional } from "./schema.js"
+import { Content } from "./tool.js"
+import { Location } from "./location.js"
+import { Model } from "./model.js"
+import { Project } from "./project.js"
+import { Attachment, Prompt } from "./prompt.js"
+import { DateTimeUtcFromMillis, PositiveInt, RelativePath, statics } from "./schema.js"
+import { ascending } from "./identifier.js"
+import { Shell as ShellSchema } from "./shell.js"
+import { FinishReason } from "./llm.js"
+import { SessionError } from "./session-error.js"
+import { Agent } from "./agent.js"
+import { Skill as SkillSchema } from "./skill.js"
+import { Money } from "./money.js"
+import { Snapshot } from "./snapshot.js"
+import { TokenUsage } from "./token-usage.js"
 
 export const ID = Schema.String.check(Schema.isStartingWith("msg_")).pipe(
   Schema.brand("Session.Message.ID"),
@@ -72,6 +82,13 @@ export const User = Schema.Struct({
   skills: Prompt.fields.skills,
   type: Schema.tag("user"),
 }).annotate({ identifier: "Session.Message.User" })
+
+/** A {@link User} whose files may stay on the server, for clients that opt into `experimental-media-uri`. */
+export interface MediaUser extends Schema.Schema.Type<typeof MediaUser> {}
+export const MediaUser = Schema.Struct({
+  ...User.fields,
+  files: Schema.Array(Attachment).pipe(optional),
+}).annotate({ identifier: "Session.Message.MediaUser" })
 
 export interface Synthetic extends Schema.Schema.Type<typeof Synthetic> {}
 export const Synthetic = Schema.Struct({
@@ -310,3 +327,19 @@ export type Info =
   | Compaction
   | Idle
 export type Type = Info["type"]
+
+/** {@link Info} with {@link MediaUser} for clients that opt into `experimental-media-uri`. */
+export const MediaInfo = Schema.Union([
+  AgentSelected,
+  ModelSelected,
+  LocationSwitched,
+  MediaUser,
+  Synthetic,
+  System,
+  Skill,
+  Shell,
+  Assistant,
+  Compaction,
+  Idle,
+]).annotate({ identifier: "Session.Message.MediaInfo" })
+export type MediaInfo = Exclude<Info, User> | MediaUser
