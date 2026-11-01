@@ -6,7 +6,7 @@ description: Interagisci con il server opencode via HTTP.
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Il comando `opencode serve` avvia un server HTTP headless che espone un endpoint OpenAPI utilizzabile da un client bolt.
+Il comando `opencode serve` avvia un server HTTP headless che espone un endpoint OpenAPI utilizzabile da un client opencode.
 
 ---
 
@@ -18,13 +18,13 @@ opencode serve [--port <number>] [--hostname <string>] [--cors <origin>]
 
 #### Opzioni
 
-| Flag            | Descrizione                             | Predefinito  |
-| --------------- | --------------------------------------- | ------------ |
-| `--port`        | Porta su cui ascoltare                  | `4096`       |
-| `--hostname`    | Hostname su cui ascoltare               | `127.0.0.1`  |
-| `--mdns`        | Abilita la scoperta mDNS                | `false`      |
-| `--mdns-domain` | Nome di dominio personalizzato mDNS     | `bolt.local` |
-| `--cors`        | Origin browser aggiuntive da permettere | `[]`         |
+| Flag            | Descrizione                             | Predefinito      |
+| --------------- | --------------------------------------- | ---------------- |
+| `--port`        | Porta su cui ascoltare                  | `4096`           |
+| `--hostname`    | Hostname su cui ascoltare               | `127.0.0.1`      |
+| `--mdns`        | Abilita la scoperta mDNS                | `false`          |
+| `--mdns-domain` | Nome di dominio personalizzato mDNS     | `opencode.local` |
+| `--cors`        | Origin browser aggiuntive da permettere | `[]`             |
 
 `--cors` puo essere passato piu volte:
 
@@ -36,10 +36,10 @@ opencode serve --cors http://localhost:5173 --cors https://app.example.com
 
 ### Autenticazione
 
-Imposta `BOLT_SERVER_PASSWORD` per proteggere il server con HTTP basic auth. Lo username predefinito e `opencode`, oppure imposta `BOLT_SERVER_USERNAME` per sovrascriverlo. Questo vale sia per `opencode serve` sia per `opencode web`.
+Imposta `OPENCODE_SERVER_PASSWORD` per proteggere il server con HTTP basic auth. Lo username predefinito e `opencode`, oppure imposta `OPENCODE_SERVER_USERNAME` per sovrascriverlo. Questo vale sia per `opencode serve` sia per `opencode web`.
 
 ```bash
-BOLT_SERVER_PASSWORD=your-password opencode serve
+OPENCODE_SERVER_PASSWORD=your-password opencode serve
 ```
 
 ---
@@ -62,7 +62,7 @@ Puoi eseguire `opencode serve` per avviare un server standalone. Se la TUI di op
 
 Quando avvii la TUI assegna casualmente porta e hostname. In alternativa puoi passare i [flag](/docs/cli) `--hostname` e `--port` e poi usare questi valori per connetterti al suo server.
 
-L'endpoint [`/tui`](#tui) puo essere usato per pilotare la TUI tramite il server. Per esempio, puoi precompilare o eseguire un prompt. Questa configurazione e usata dai plugin [IDE](/docs/ide) di Bolt.
+L'endpoint [`/tui`](#tui) puo essere usato per pilotare la TUI tramite il server. Per esempio, puoi precompilare o eseguire un prompt. Questa configurazione e usata dai plugin [IDE](/docs/ide) di OpenCode.
 
 ---
 
