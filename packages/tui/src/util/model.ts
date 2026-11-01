@@ -1,5 +1,3 @@
-import type { Provider } from "@bolt-ai/sdk/v2"
-
 export function parse(value: string) {
   const [providerID, ...modelID] = value.split("/")
   return { providerID, modelID: modelID.join("/") }
