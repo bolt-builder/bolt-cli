@@ -45,7 +45,7 @@ export const make = Effect.gen(function* () {
         if (ref.startsWith(`${remote}/`) && ref.length > remote.length + 1) return ref
       }
     }
-    const branches = (yield* run(["for-each-ref", "--format=%(refname:short)", "refs/heads"], cwd)).stdout
+    const branches = (yield* run(["for-each-ref", "--format=%(refname:lstrip=2)", "refs/heads"], cwd)).stdout
       .toString()
       .trim()
       .split(/\r?\n/)
