@@ -1,27 +1,30 @@
 export * as SessionEvent from "./session-event.js"
 
 import { Schema } from "effect"
-import { Event } from "./event"
-import { ProviderMetadata, ToolContent } from "./llm"
-import { Delivery } from "./session-delivery"
-import { Model } from "./model"
-import { DateTimeUtcFromMillis, NonNegativeInt, RelativePath, optional } from "./schema"
-import { FileAttachment, Prompt } from "./prompt"
-import { SessionID } from "./session-id"
-import { Location } from "./location"
-import { SessionMessage } from "./session-message"
-import { Revert } from "./revert"
-
-export { FileAttachment }
-
-export const Source = Schema.Struct({
-  start: NonNegativeInt,
-  end: NonNegativeInt,
-  text: Schema.String,
-}).annotate({
-  identifier: "session.next.event.source",
-})
-export interface Source extends Schema.Schema.Type<typeof Source> {}
+import { optional } from "./schema.js"
+import { Event } from "./event.js"
+import { FinishReason } from "./llm.js"
+import { Content } from "./tool.js"
+import { Model } from "./model.js"
+import { NonNegativeInt, PositiveInt, RelativePath } from "./schema.js"
+import { SessionID } from "./session-id.js"
+import { SessionMetadata } from "./session-metadata.js"
+import { Location } from "./location.js"
+import { SessionMessage } from "./session-message.js"
+import { Revert } from "./session-revert.js"
+import { Shell as ShellSchema } from "./shell.js"
+import { SessionError } from "./session-error.js"
+import { Instruction } from "./instruction.js"
+import { InstructionEntry } from "./instruction-entry.js"
+import { Agent } from "./agent.js"
+import { Skill as SkillSchema } from "./skill.js"
+import { Money } from "./money.js"
+import { Snapshot } from "./snapshot.js"
+import { TokenUsage } from "./token-usage.js"
+import { SessionInbox } from "./session-inbox.js"
+import { Project } from "./project.js"
+import { SessionFork } from "./session-fork.js"
+import { Permission } from "./permission.js"
 
 const Base = {
   sessionID: SessionID,
