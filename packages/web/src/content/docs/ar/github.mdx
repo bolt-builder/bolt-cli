@@ -1,17 +1,17 @@
 ---
 title: GitHub
-description: استخدم Bolt في GitHub Issues وPull Requests.
+description: استخدم OpenCode في GitHub Issues وPull Requests.
 ---
 
-يتكامل Bolt مع سير عمل GitHub لديك. اذكر `/opencode` أو `/oc` في تعليقك، وسيقوم Bolt بتنفيذ المهام داخل GitHub Actions runner لديك.
+يتكامل OpenCode مع سير عمل GitHub لديك. اذكر `/opencode` أو `/oc` في تعليقك، وسيقوم OpenCode بتنفيذ المهام داخل GitHub Actions runner لديك.
 
 ---
 
 ## الميزات
 
-- **فرز Issues**: اطلب من Bolt الاطلاع على Issue وشرحها لك.
-- **إصلاح وتنفيذ**: اطلب من Bolt إصلاح Issue أو تنفيذ ميزة. وسيعمل على فرع جديد ويقدّم PR يضم كل التغييرات.
-- **آمن**: يعمل Bolt داخل GitHub runners لديك.
+- **فرز Issues**: اطلب من OpenCode الاطلاع على Issue وشرحها لك.
+- **إصلاح وتنفيذ**: اطلب من OpenCode إصلاح Issue أو تنفيذ ميزة. وسيعمل على فرع جديد ويقدّم PR يضم كل التغييرات.
+- **آمن**: يعمل OpenCode داخل GitHub runners لديك.
 
 ---
 
@@ -37,9 +37,9 @@ opencode github install
 
 2. **إضافة الـworkflow**
 
-   أضف ملف الـworkflow التالي إلى `.github/workflows/bolt.yml` في مستودعك. تأكد من ضبط `model` المناسب ومفاتيح API المطلوبة ضمن `env`.
+   أضف ملف الـworkflow التالي إلى `.github/workflows/opencode.yml` في مستودعك. تأكد من ضبط `model` المناسب ومفاتيح API المطلوبة ضمن `env`.
 
-   ```yml title=".github/workflows/bolt.yml" {24,26}
+   ```yml title=".github/workflows/opencode.yml" {24,26}
    name: opencode
 
    on:
@@ -63,8 +63,8 @@ opencode github install
              fetch-depth: 1
              persist-credentials: false
 
-          - name: Run Bolt
-           uses: bolt-builder/bolt-cli/github@latest
+         - name: Run OpenCode
+           uses: anomalyco/opencode/github@latest
            env:
              ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
            with:
@@ -80,13 +80,12 @@ opencode github install
 
 ## الإعدادات
 
-- `model`: النموذج الذي سيستخدمه Bolt. يأخذ الصيغة `provider/model`. هذا **مطلوب**.
+- `model`: النموذج الذي سيستخدمه OpenCode. يأخذ الصيغة `provider/model`. هذا **مطلوب**.
 - `agent`: الـagent الذي سيتم استخدامه. يجب أن يكون agent أساسيًا. يعود افتراضيًا إلى `default_agent` من الإعدادات أو `"build"` إذا لم يُعثر عليه.
-- `share`: هل تتم مشاركة جلسة Bolt. القيمة الافتراضية **true** للمستودعات العامة.
-- `prompt`: موجه مخصص اختياري لتجاوز السلوك الافتراضي. استخدمه لتخصيص كيفية معالجة Bolt للطلبات.
-- `token`: GitHub access token اختياري لتنفيذ عمليات مثل إنشاء التعليقات، وcommit للتغييرات، وفتح Pull Requests. افتراضيًا يستخدم Bolt installation access token الخاص بـBolt GitHub App، لذا تظهر commits والتعليقات وPull Requests وكأنها صادرة من التطبيق.
+- `prompt`: موجه مخصص اختياري لتجاوز السلوك الافتراضي. استخدمه لتخصيص كيفية معالجة OpenCode للطلبات.
+- `token`: GitHub access token اختياري لتنفيذ عمليات مثل إنشاء التعليقات، وcommit للتغييرات، وفتح Pull Requests. افتراضيًا يستخدم OpenCode installation access token الخاص بـOpenCode GitHub App، لذا تظهر commits والتعليقات وPull Requests وكأنها صادرة من التطبيق.
 
-  بدلًا من ذلك، يمكنك استخدام [`GITHUB_TOKEN` المدمج](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) في GitHub Action runner دون تثبيت Bolt GitHub App. فقط تأكد من منح الأذونات المطلوبة في الـworkflow:
+  بدلًا من ذلك، يمكنك استخدام [`GITHUB_TOKEN` المدمج](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token) في GitHub Action runner دون تثبيت OpenCode GitHub App. فقط تأكد من منح الأذونات المطلوبة في الـworkflow:
 
   ```yaml
   permissions:
@@ -102,23 +101,23 @@ opencode github install
 
 ## الأحداث المدعومة
 
-يمكن تشغيل Bolt عبر أحداث GitHub التالية:
+يمكن تشغيل OpenCode عبر أحداث GitHub التالية:
 
-| نوع الحدث                     | يتم تشغيله عبر                 | التفاصيل                                                                                            |
-| ----------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `issue_comment`               | تعليق على Issue أو PR          | اذكر `/opencode` أو `/oc` في تعليقك. يقرأ Bolt السياق ويمكنه إنشاء فروع، وفتح PRs، أو الرد.         |
-| `pull_request_review_comment` | تعليق على أسطر كود محددة في PR | اذكر `/opencode` أو `/oc` أثناء مراجعة الكود. يستلم Bolt مسار الملف وأرقام الأسطر وسياق الـdiff.    |
-| `issues`                      | فتح Issue أو تعديلها           | تشغيل Bolt تلقائيًا عند إنشاء Issues أو تعديلها. يتطلب إدخال `prompt`.                              |
-| `pull_request`                | فتح PR أو تحديثه               | تشغيل Bolt تلقائيًا عند فتح PRs أو مزامنتها أو إعادة فتحها. مفيد للمراجعات الآلية.                  |
-| `schedule`                    | جدول يعتمد على Cron            | تشغيل Bolt وفق جدول. يتطلب إدخال `prompt`. يذهب الناتج إلى logs وPRs (لا يوجد Issue للتعليق عليها). |
-| `workflow_dispatch`           | تشغيل يدوي من واجهة GitHub     | تشغيل Bolt عند الطلب عبر Actions tab. يتطلب إدخال `prompt`. يذهب الناتج إلى logs وPRs.              |
+| نوع الحدث                     | يتم تشغيله عبر                 | التفاصيل                                                                                                |
+| ----------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `issue_comment`               | تعليق على Issue أو PR          | اذكر `/opencode` أو `/oc` في تعليقك. يقرأ OpenCode السياق ويمكنه إنشاء فروع، وفتح PRs، أو الرد.         |
+| `pull_request_review_comment` | تعليق على أسطر كود محددة في PR | اذكر `/opencode` أو `/oc` أثناء مراجعة الكود. يستلم OpenCode مسار الملف وأرقام الأسطر وسياق الـdiff.    |
+| `issues`                      | فتح Issue أو تعديلها           | تشغيل OpenCode تلقائيًا عند إنشاء Issues أو تعديلها. يتطلب إدخال `prompt`.                              |
+| `pull_request`                | فتح PR أو تحديثه               | تشغيل OpenCode تلقائيًا عند فتح PRs أو مزامنتها أو إعادة فتحها. مفيد للمراجعات الآلية.                  |
+| `schedule`                    | جدول يعتمد على Cron            | تشغيل OpenCode وفق جدول. يتطلب إدخال `prompt`. يذهب الناتج إلى logs وPRs (لا يوجد Issue للتعليق عليها). |
+| `workflow_dispatch`           | تشغيل يدوي من واجهة GitHub     | تشغيل OpenCode عند الطلب عبر Actions tab. يتطلب إدخال `prompt`. يذهب الناتج إلى logs وPRs.              |
 
 ### مثال للجدولة
 
-شغّل Bolt وفق جدول لتنفيذ مهام آلية:
+شغّل OpenCode وفق جدول لتنفيذ مهام آلية:
 
 ```yaml title=".github/workflows/opencode-scheduled.yml"
-name: Scheduled Bolt Task
+name: Scheduled OpenCode Task
 
 on:
   schedule:
@@ -138,8 +137,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Run Bolt
-        uses: bolt-builder/bolt-cli/github@latest
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         with:
@@ -149,7 +148,7 @@ jobs:
             If you find issues worth addressing, open an issue to track them.
 ```
 
-بالنسبة لأحداث `schedule`، يكون إدخال `prompt` **مطلوبًا** لعدم وجود تعليق لاستخراج التعليمات منه. تعمل عمليات الـworkflow المجدولة دون سياق مستخدم للتحقق من الأذونات، لذا يجب أن يمنح الـworkflow صلاحيات `contents: write` و`pull-requests: write` إذا كنت تتوقع أن ينشئ Bolt فروعًا أو PRs.
+بالنسبة لأحداث `schedule`، يكون إدخال `prompt` **مطلوبًا** لعدم وجود تعليق لاستخراج التعليمات منه. تعمل عمليات الـworkflow المجدولة دون سياق مستخدم للتحقق من الأذونات، لذا يجب أن يمنح الـworkflow صلاحيات `contents: write` و`pull-requests: write` إذا كنت تتوقع أن ينشئ OpenCode فروعًا أو PRs.
 
 ---
 
@@ -176,7 +175,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -190,7 +189,7 @@ jobs:
             - Suggest improvements
 ```
 
-بالنسبة لأحداث `pull_request`، إذا لم يتم توفير `prompt`، فإن Bolt يراجع Pull Request افتراضيًا.
+بالنسبة لأحداث `pull_request`، إذا لم يتم توفير `prompt`، فإن OpenCode يراجع Pull Request افتراضيًا.
 
 ---
 
@@ -232,7 +231,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: bolt-builder/bolt-cli/github@latest
+      - uses: anomalyco/opencode/github@latest
         if: steps.check.outputs.result == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -251,10 +250,10 @@ jobs:
 
 ## الموجهات المخصصة
 
-قم بتجاوز الموجه الافتراضي لتخصيص سلوك Bolt ضمن الـworkflow لديك.
+قم بتجاوز الموجه الافتراضي لتخصيص سلوك OpenCode ضمن الـworkflow لديك.
 
-```yaml title=".github/workflows/bolt.yml"
-- uses: bolt-builder/bolt-cli/github@latest
+```yaml title=".github/workflows/opencode.yml"
+- uses: anomalyco/opencode/github@latest
   with:
     model: anthropic/claude-sonnet-5-5
     prompt: |
@@ -270,7 +269,7 @@ jobs:
 
 ## أمثلة
 
-إليك بعض الأمثلة على كيفية استخدام Bolt في GitHub.
+إليك بعض الأمثلة على كيفية استخدام OpenCode في GitHub.
 
 - **شرح Issue**
 
@@ -280,7 +279,7 @@ jobs:
   /opencode explain this issue
   ```
 
-  سيقرأ Bolt كامل النقاش، بما في ذلك جميع التعليقات، ويرد بشرح واضح.
+  سيقرأ OpenCode كامل النقاش، بما في ذلك جميع التعليقات، ويرد بشرح واضح.
 
 - **إصلاح Issue**
 
@@ -290,7 +289,7 @@ jobs:
   /opencode fix this
   ```
 
-  وسيُنشئ Bolt فرعًا جديدًا، وينفّذ التغييرات، ويفتح PR يتضمنها.
+  وسيُنشئ OpenCode فرعًا جديدًا، وينفّذ التغييرات، ويفتح PR يتضمنها.
 
 - **مراجعة PRs وإجراء تغييرات**
 
@@ -300,18 +299,18 @@ jobs:
   Delete the attachment from S3 when the note is removed /oc
   ```
 
-  سينفّذ Bolt التغيير المطلوب ويعمل له commit إلى نفس PR.
+  سينفّذ OpenCode التغيير المطلوب ويعمل له commit إلى نفس PR.
 
 - **مراجعة أسطر كود محددة**
 
-  اترك تعليقًا مباشرة على أسطر الكود في تبويب "Files" داخل PR. يكتشف Bolt تلقائيًا الملف وأرقام الأسطر وسياق الـdiff لتقديم ردود دقيقة.
+  اترك تعليقًا مباشرة على أسطر الكود في تبويب "Files" داخل PR. يكتشف OpenCode تلقائيًا الملف وأرقام الأسطر وسياق الـdiff لتقديم ردود دقيقة.
 
   ```
   [Comment on specific lines in Files tab]
   /oc add error handling here
   ```
 
-  عند التعليق على أسطر محددة، يستلم Bolt:
+  عند التعليق على أسطر محددة، يستلم OpenCode:
   - الملف الدقيق الذي تتم مراجعته
   - أسطر الكود المحددة
   - سياق الـdiff المحيط
