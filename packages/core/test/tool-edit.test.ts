@@ -2,18 +2,19 @@ import fs from "fs/promises"
 import path from "path"
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { FileMutation } from "@bolt-ai/core/file-mutation"
-import { FSUtil } from "@bolt-ai/core/fs-util"
-import { Location } from "@bolt-ai/core/location"
-import { LocationMutation } from "@bolt-ai/core/location-mutation"
-import { PermissionV2 } from "@bolt-ai/core/permission"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
-import { EditTool } from "@bolt-ai/core/tool/edit"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Environment } from "@opencode/core/environment/index"
+import { FileMutation } from "@opencode/core/file-mutation"
+import { Formatter } from "@opencode/core/formatter"
+import { Location } from "@opencode/core/location"
+import { FileAccess } from "@opencode/core/file-access"
+import { Permission } from "@opencode/core/permission"
+import { AbsolutePath } from "@opencode/core/schema"
+import { Session } from "@opencode/core/session"
+import { Tool } from "@opencode/core/tool"
+import { EditTool } from "@opencode/core/tool/plugin/edit"
+import { transformEnvironmentFiles } from "./fixture/environment"
 import { location } from "./fixture/location"
 import { tmpdir, withTempDir } from "./fixture/tmpdir"
 import { makeLocationNode } from "@opencode/util/effect/app-node"
@@ -42,17 +43,20 @@ const makeEditFixture = () => {
     writes: string[]
     reads: number
     denyAction?: string
+    readAllowed: boolean
     afterRead: () => Effect.Effect<void>
     formatFile: (target: string) => Effect.Effect<boolean>
   } = {
     assertions: [],
     writes: [],
     reads: 0,
+    readAllowed: true,
     afterRead: () => Effect.void,
     formatFile: () => Effect.succeed(false),
   }
 
   const permission = permissionLayer({
+    allows: (input) => Effect.succeed(input.action === "read" && fixture.readAllowed),
     assert: (input) =>
       Effect.sync(() => fixture.assertions.push(input)).pipe(
         Effect.andThen(
@@ -424,6 +428,62 @@ describe("EditTool", () => {
               expect(edit.writes).toEqual([])
             }),
           ),
+        ),
+      )
+    }),
+  )
+
+  it.live("points a missed oldString at the closest lines, or at newString already applied, when read is allowed", () =>
+    withTempDir((tmp) => {
+      const edit = makeEditFixture()
+      const target = path.join(tmp.path, "miss.ts")
+      const miss = (oldString: string, newString: string) =>
+        withTool(tmp.path, edit, (registry) => executeTool(registry, call({ path: "miss.ts", oldString, newString })))
+      const missed = "Could not find oldString in miss.ts. It must match exactly, including whitespace and indentation."
+      return Effect.promise(() =>
+        fs.writeFile(
+          target,
+          "import { a } from './a'\n\nexport function run() {\n  const value = a()\n  return value + 1\n}\n",
+        ),
+      ).pipe(
+        Effect.andThen(
+          Effect.gen(function* () {
+            expect(yield* miss("export function run() {\n\tconst value = a()\n\treturn value + 2\n}", "x")).toEqual({
+              status: "error",
+              error: {
+                type: "tool.execution",
+                message: `${missed}\n\nThe closest lines in the file:\n3: export function run() {\n4:   const value = a()\n5:   return value + 1\n6: }`,
+              },
+            })
+            expect(yield* miss("  return value + 2", "  return value + 1")).toEqual({
+              status: "error",
+              error: { type: "tool.execution", message: missed },
+            })
+            expect(yield* miss("const value = b()", "  const value = a()\n  return value + 1")).toEqual({
+              status: "error",
+              error: {
+                type: "tool.execution",
+                message: `${missed}\n\nnewString is already in the file, so this edit may already be applied.`,
+              },
+            })
+            expect(yield* miss("nothing like it", "anything")).toEqual({
+              status: "error",
+              error: { type: "tool.execution", message: missed },
+            })
+            expect(yield* miss("import { a } from './a'\n\n\n\n\n\n", "x")).toEqual({
+              status: "error",
+              error: {
+                type: "tool.execution",
+                message: `${missed}\n\nThe closest lines in the file:\n1: import { a } from './a'`,
+              },
+            })
+            edit.readAllowed = false
+            expect(yield* miss("export function run() {\n\tconst value = a()\n\treturn value + 2\n}", "x")).toEqual({
+              status: "error",
+              error: { type: "tool.execution", message: missed },
+            })
+            expect(edit.writes).toEqual([])
+          }),
         ),
       )
     }),
