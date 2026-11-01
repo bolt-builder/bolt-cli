@@ -2,12 +2,12 @@
 
 ## Sources
 
-- PR #10086: https://github.com/Bolt-builder/bolt-cli/pull/10086
+- PR #10086: https://github.com/anomalyco/opencode/pull/10086
 
 ## Do Not Translate (Locale Additions)
 
-- `Bolt` (preserve casing in prose; keep `opencode` only in commands, package names, paths, or code)
-- `Bolt CLI`
+- `OpenCode` (preserve casing in prose; keep `opencode` only in commands, package names, paths, or code)
+- `OpenCode CLI`
 - `CLI`, `TUI`, `MCP`, `OAuth`
 - Locale code `br` in repo config, code, and paths (repo alias for Brazilian Portuguese)
 
