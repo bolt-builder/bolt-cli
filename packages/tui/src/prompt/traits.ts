@@ -1,6 +1,6 @@
 import type { EditorTraits } from "@opentui/core"
 
-export type PromptMode = "normal" | "shell" | "btw"
+export type PromptMode = "normal" | "shell"
 
 export interface PromptTraitsInput {
   mode: PromptMode
@@ -8,7 +8,7 @@ export interface PromptTraitsInput {
 }
 
 export type PromptTraits = EditorTraits & {
-  owner: "bolt"
+  owner: "opencode"
   role: "prompt"
 }
 
@@ -22,8 +22,8 @@ export function computePromptTraits(input: PromptTraitsInput): PromptTraits {
       : undefined
   return {
     capture,
-    status: input.mode === "shell" ? "SHELL" : input.mode === "btw" ? "BTW" : undefined,
-    owner: "bolt",
+    status: input.mode === "shell" ? "SHELL" : undefined,
+    owner: "opencode",
     role: "prompt",
   }
 }
