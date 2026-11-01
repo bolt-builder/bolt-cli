@@ -1,6 +1,6 @@
 import { ServerConnection } from "@/runtime/server/registry"
 
-export const SESSION_TABS_REMOVED_EVENT = "bolt:session-tabs-removed"
+export const SESSION_TABS_REMOVED_EVENT = "opencode:session-tabs-removed"
 
 export type SessionTabsRemovedDetail = {
   server: ServerConnection.Key
