@@ -1,12 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import { Effect } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { Integration } from "@bolt-ai/core/integration"
-import { PluginV2 } from "@bolt-ai/core/plugin"
-import { PluginHost } from "@bolt-ai/core/plugin/host"
-import { ProviderPlugins } from "@bolt-ai/core/plugin/provider"
-import { LLMGatewayPlugin } from "@bolt-ai/core/plugin/provider/llmgateway"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Integration } from "@opencode/core/integration"
+import { Plugin } from "@opencode/core/plugin"
+import { PluginHost } from "@opencode/core/plugin/host"
+import { ProviderPlugins } from "@opencode/core/plugin/provider"
+import { LLMGatewayPlugin } from "@opencode/core/plugin/provider/llmgateway"
+import { Provider } from "@opencode/core/provider"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -42,9 +41,9 @@ describe("LLMGatewayPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.get(Provider.ID.make("llmgateway")))?.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://bolt.ai/",
-        "X-Title": "bolt",
-        "X-Source": "bolt",
+        "HTTP-Referer": "https://opencode.ai/",
+        "X-Title": "opencode",
+        "X-Source": "opencode",
       })
       expect((yield* catalog.get(Provider.ID.openrouter))?.headers).toBeUndefined()
     }),
