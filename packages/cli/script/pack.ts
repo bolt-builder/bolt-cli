@@ -4,9 +4,13 @@ import pkg from "../package.json"
 import { Script } from "@opencode/script"
 import { archiveDir, npmDir } from "@opencode/script/pack"
 import { existsSync } from "fs"
-import { chmod, copyFile, mkdir, mkdtemp, rm, utimes } from "node:fs/promises"
+import { mkdir } from "node:fs/promises"
+import { createReadStream, createWriteStream } from "node:fs"
+import { Readable, Writable } from "node:stream"
+import { pipeline } from "node:stream/promises"
+import { createGzip } from "node:zlib"
+import { BlobReader, ZipWriter } from "@zip.js/zip.js"
 import path from "node:path"
-import os from "node:os"
 
 // Packs the built CLI (dist/) into npm tarballs in dist/npm and standalone archives in dist/archives at
 // the repository root. The release workflow signs the macOS and Windows packages and archives afterwards.
@@ -121,22 +125,60 @@ async function archive(bin: string, target: string, binary: string, command: str
   const suffix = target.startsWith("windows-") ? ".exe" : ""
   const executable = `${command}${suffix}`
   const original = path.join(bin, `${binary}${suffix}`)
-  if (!(await Bun.file(original).exists()) || !Bun.file(original).size) throw new Error(`Missing binary: ${original}`)
-  const staging = await mkdtemp(path.join(os.tmpdir(), "bolt-archive-"))
-  try {
-    const source = path.join(staging, executable)
-    await copyFile(original, source)
-    // Artifact downloads lose execute bits. Fixed timestamps make retries reproducible.
-    await chmod(source, 0o755)
-    await utimes(source, new Date("1980-01-01T00:00:00Z"), new Date("1980-01-01T00:00:00Z"))
-    const extension = target.startsWith("linux-") ? "tar.gz" : "zip"
-    const output = path.join(archiveDir, `${name}-${target}.${extension}`)
-    await rm(output, { force: true })
-    if (extension === "tar.gz")
-      await $`tar --mtime=@0 --owner=0 --group=0 --numeric-owner -czf ${output} -C ${staging} ${executable}`
-    if (extension === "zip") await $`zip -X -q ${output} ${executable}`.cwd(staging)
+  const file = Bun.file(original)
+  if (!(await file.exists()) || !file.size) throw new Error(`Missing binary: ${original}`)
+  const extension = target.startsWith("linux-") ? "tar.gz" : "zip"
+  const output = path.join(archiveDir, `${name}-${target}.${extension}`)
+  if (extension === "tar.gz") {
+    // A CLI archive contains exactly one regular file. Emit a portable USTAR header
+    // with fixed ownership, time and executable mode, independently of the build host.
+    // Stream the binary so packing never needs a second full copy in memory.
+    if (file.size >= 8 ** 11) throw new Error(`Binary exceeds the USTAR size limit: ${original}`)
+    const header = Buffer.alloc(512)
+    header.write(executable, 0, 100, "ascii")
+    header.write("0000755\0", 100, "ascii")
+    header.write("0000000\0", 108, "ascii")
+    header.write("0000000\0", 116, "ascii")
+    header.write(file.size.toString(8).padStart(11, "0") + "\0", 124, "ascii")
+    header.write("00000000000\0", 136, "ascii")
+    header.fill(32, 148, 156)
+    header.write("0", 156, "ascii")
+    header.write("ustar\0", 257, "ascii")
+    header.write("00", 263, "ascii")
+    header.write(
+      header
+        .reduce((sum, byte) => sum + byte, 0)
+        .toString(8)
+        .padStart(6, "0") + "\0 ",
+      148,
+      "ascii",
+    )
+    await pipeline(
+      Readable.from(
+        (async function* () {
+          yield header
+          yield* createReadStream(original)
+          yield Buffer.alloc(((512 - (file.size % 512)) % 512) + 1024)
+        })(),
+      ),
+      createGzip(),
+      createWriteStream(output),
+    )
     return output
-  } finally {
-    await rm(staging, { recursive: true, force: true })
   }
+  // Native zip is absent on Windows runners. The same codec writes both host
+  // targets, with no machine timestamps and with Unix execute bits for macOS.
+  const stream = createWriteStream(output)
+  // Node's web-stream adapter implements the standard writable interface consumed by zip.js.
+  const writer = new ZipWriter(Writable.toWeb(stream) as unknown as WritableStream<Uint8Array>, {
+    extendedTimestamp: false,
+  })
+  await writer.add(executable, new BlobReader(file), {
+    useWebWorkers: false,
+    lastModDate: new Date("1980-01-01T00:00:00Z"),
+    externalFileAttributes: 0o100755 << 16,
+    msDosCompatible: false,
+  })
+  await writer.close()
+  return output
 }

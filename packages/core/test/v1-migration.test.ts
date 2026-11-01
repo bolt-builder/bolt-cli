@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { SqliteClient } from "@effect/sql-sqlite-bun"
 import { EffectDrizzleSqlite } from "@opencode/core/database/drizzle"
 import { Database } from "@opencode/core/database/database"
+import initialMigration from "@opencode/core/database/migration/20260127222353_familiar_lady_ursula"
 import { DatabaseMigration } from "@opencode/core/database/migration"
 import { V1Migration } from "@opencode/core/database/v1-migration"
 import { SessionMessage } from "@opencode/core/session/message"
@@ -22,6 +23,7 @@ import { tmpdir } from "./fixture/tmpdir"
 import { initRepo } from "./fixture/git"
 import fs from "fs/promises"
 import path from "path"
+import { withEnv } from "./fixture/env"
 
 const makeDb = EffectDrizzleSqlite.makeWithDefaults()
 const run = <A, E>(effect: Effect.Effect<A, E, SqlClient | Scope.Scope | Global.Service>) =>
@@ -902,6 +904,74 @@ describe("V1Migration database workflow", () => {
       }),
     )
 
+  test("imports a classic Bolt database without replacing V2 sessions/events and does not resurrect deleted imports", async () => {
+    await using tmp = await tmpdir()
+    const filename = path.join(tmp.path, "bolt.db")
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const db = yield* makeDb
+          yield* DatabaseMigration.applyOnly(db, [initialMigration])
+          yield* db.run(sql`INSERT INTO project (id, worktree, name, time_created, time_updated, sandboxes)
+        VALUES ('legacy-project', '/tmp/legacy-project', 'Legacy project', 1, 2, '[]')`)
+          for (const [id, parent] of [
+            ["ses_legacy_parent", null],
+            ["ses_legacy_child", "ses_legacy_parent"],
+            ["ses_existing", null],
+          ]) {
+            yield* db.run(sql`INSERT INTO session (id, project_id, parent_id, slug, directory, title, version, time_created, time_updated)
+          VALUES (${id}, 'legacy-project', ${parent}, ${id}, '/tmp/legacy-project', 'Original Bolt', '1', 1, 2)`)
+            const message = user(`msg_${id}`, { sessionID: id })
+            yield* db.run(sql`INSERT INTO message (id, session_id, time_created, time_updated, data)
+          VALUES (${message.id}, ${id}, ${message.time_created}, ${message.time_updated}, ${message.data})`)
+          }
+        }).pipe(
+          Effect.provide(SqliteClient.layer({ filename, disableWAL: true })),
+          Effect.provideService(Global.Service, Global.make({ data: tmp.path })),
+        ),
+      ),
+    )
+    const before = Bun.hash(await Bun.file(filename).arrayBuffer())
+    await database(
+      Effect.gen(function* () {
+        const { db } = yield* Database.Service
+        yield* db.run(
+          sql`INSERT INTO project (id, worktree, time_created, time_updated, sandboxes) VALUES ('current', '/tmp/current', 1, 2, '[]')`,
+        )
+        yield* db.run(sql`INSERT INTO session_v2 (id, project_id, slug, directory, title, version, time_created, time_updated)
+        VALUES ('ses_existing', 'current', 'existing', '/tmp/current', 'Keep current', '2', 1, 2)`)
+        yield* db.run(sql`INSERT INTO session (id, project_id, slug, directory, title, version, time_created, time_updated)
+        VALUES ('ses_existing', 'current', 'old-existing', '/tmp/current', 'Old current', '1', 1, 2)`)
+        yield* db.run(sql`INSERT INTO session_message (id, session_id, type, seq, time_created, time_updated, data)
+        VALUES ('msg_keep', 'ses_existing', 'user', 0, 1, 2, '{"text":"Keep V2","time":{"created":1}}')`)
+        yield* db.run(sql`INSERT INTO event_sequence (aggregate_id, seq) VALUES ('ses_existing', 1)`)
+        yield* db.run(
+          sql`INSERT INTO event (id, aggregate_id, seq, created, type, data) VALUES ('evt_keep', 'ses_existing', 1, 1, 'session.renamed.1', '{}')`,
+        )
+        expect(yield* V1Migration.run({ boltDatabasePaths: [filename] })).toEqual({ status: "completed" })
+        expect(yield* db.all(sql`SELECT id, title, parent_id FROM session_v2 ORDER BY id`)).toEqual([
+          { id: "ses_existing", title: "Keep current", parent_id: null },
+          { id: "ses_legacy_child", title: "Original Bolt", parent_id: "ses_legacy_parent" },
+          { id: "ses_legacy_parent", title: "Original Bolt", parent_id: null },
+        ])
+        expect(yield* db.all(sql`SELECT type FROM session_message ORDER BY session_id`)).toEqual([
+          { type: "user" },
+          { type: "user" },
+          { type: "user" },
+        ])
+        expect(yield* db.get(sql`SELECT id FROM session_message WHERE id = 'msg_keep'`)).toEqual({ id: "msg_keep" })
+        expect(yield* db.get(sql`SELECT id FROM event WHERE id = 'evt_keep'`)).toEqual({ id: "evt_keep" })
+        expect(yield* db.get(sql`SELECT name FROM project WHERE id = 'legacy-project'`)).toEqual({
+          name: "Legacy project",
+        })
+        yield* db.run(sql`DELETE FROM session_v2 WHERE id = 'ses_legacy_child'`)
+        yield* V1Migration.run({ boltDatabasePaths: [filename] })
+        expect(yield* db.get(sql`SELECT id FROM session_v2 WHERE id = 'ses_legacy_child'`)).toBeUndefined()
+      }),
+    )
+    expect(Bun.hash(await Bun.file(filename).arrayBuffer())).toBe(before)
+  })
+
   test("reports required and completed status and completes an empty database idempotently", async () => {
     await database(
       Effect.gen(function* () {
@@ -910,6 +980,71 @@ describe("V1Migration database workflow", () => {
         expect(yield* V1Migration.status()).toEqual({ status: "completed" })
         expect(yield* V1Migration.run()).toEqual({ status: "completed" })
       }),
+    )
+  })
+
+  test("discovers Bolt channel databases, retries unsupported sources, and leaves memory-only runs isolated", async () => {
+    await using tmp = await tmpdir()
+    const data = path.join(tmp.path, "opencode")
+    const legacy = path.join(tmp.path, "bolt")
+    await fs.mkdir(data)
+    await fs.mkdir(legacy)
+    const filename = path.join(legacy, "bolt-dev.db")
+    const sqlite = await import("bun:sqlite")
+    const source = new sqlite.Database(filename)
+    source.run("CREATE TABLE project (id text PRIMARY KEY); CREATE TABLE session (id text PRIMARY KEY)")
+    source.close()
+    await database(
+      Effect.gen(function* () {
+        const { db } = yield* Database.Service
+        yield* V1Migration.run({ boltDatabasePaths: [] })
+        expect(yield* V1Migration.status()).toEqual({ status: "completed" })
+        yield* V1Migration.run()
+        expect(yield* db.get(sql`SELECT key FROM kv WHERE key LIKE 'migration.bolt-history.%'`)).toBeUndefined()
+        yield* withEnv({ OPENCODE_DB: undefined }, () =>
+          Effect.gen(function* () {
+            expect(yield* V1Migration.status()).toEqual({ status: "required" })
+            const failed = yield* V1Migration.run().pipe(Effect.exit)
+            expect(failed._tag).toBe("Failure")
+            expect(yield* db.get(sql`SELECT key FROM kv WHERE key LIKE 'migration.bolt-history.%'`)).toBeUndefined()
+            expect(yield* V1Migration.status()).toEqual({ status: "required" })
+            yield* Effect.promise(() => fs.unlink(filename))
+            yield* Effect.scoped(
+              Effect.gen(function* () {
+                const source = yield* makeDb
+                yield* DatabaseMigration.applyOnly(source, [initialMigration])
+                yield* source.run(sql`INSERT INTO project (id, worktree, time_created, time_updated, sandboxes)
+            VALUES ('discovered-project', ${tmp.path}, 1, 2, '[]')`)
+                yield* source.run(sql`INSERT INTO session (id, project_id, slug, directory, title, version, time_created, time_updated)
+            VALUES ('ses_discovered', 'discovered-project', 'discovered', ${tmp.path}, 'Recovered history', '1', 1, 2)`)
+              }).pipe(Effect.provide(SqliteClient.layer({ filename, disableWAL: true }))),
+            )
+            expect(yield* V1Migration.run()).toEqual({ status: "completed" })
+            expect(yield* db.get(sql`SELECT title FROM session_v2 WHERE id = 'ses_discovered'`)).toEqual({
+              title: "Recovered history",
+            })
+            expect(yield* V1Migration.status()).toEqual({ status: "completed" })
+            const custom = path.join(legacy, "personal.sqlite")
+            yield* Effect.promise(() => fs.rename(filename, custom))
+            const extra = new sqlite.Database(custom)
+            extra.run(
+              "INSERT INTO session (id, project_id, slug, directory, title, version, time_created, time_updated) VALUES ('ses_custom', 'discovered-project', 'custom', ?, 'Custom database', '1', 1, 2)",
+              [tmp.path],
+            )
+            extra.close()
+            yield* withEnv({ BOLT_DB: "personal.sqlite" }, () =>
+              Effect.gen(function* () {
+                expect(yield* V1Migration.status()).toEqual({ status: "required" })
+                yield* V1Migration.run()
+                expect(yield* db.get(sql`SELECT title FROM session_v2 WHERE id = 'ses_custom'`)).toEqual({
+                  title: "Custom database",
+                })
+                expect(yield* V1Migration.status()).toEqual({ status: "completed" })
+              }),
+            )
+          }),
+        )
+      }).pipe(Effect.provideService(Global.Service, Global.make({ data }))),
     )
   })
 
@@ -942,12 +1077,14 @@ describe("V1Migration database workflow", () => {
     )
   })
 
-  test("imports previous V2 sessions and messages containing apostrophes", async () => {
-    await using tmp = await tmpdir()
-    const filename = path.join(tmp.path, "opencode-next.db")
-    const sqlite = await import("bun:sqlite")
-    const source = new sqlite.Database(filename)
-    source.run(`
+  test.each(["next", "bolt", "bolt-v2"] as const)(
+    "imports %s V2 sessions and messages containing apostrophes",
+    async (kind) => {
+      await using tmp = await tmpdir()
+      const filename = path.join(tmp.path, "opencode-next.db")
+      const sqlite = await import("bun:sqlite")
+      const source = new sqlite.Database(filename)
+      source.run(`
       CREATE TABLE project (
         id text PRIMARY KEY, worktree text NOT NULL, vcs text, name text, icon_url text, icon_url_override text,
         icon_color text, time_created integer NOT NULL, time_updated integer NOT NULL, time_initialized integer,
@@ -982,83 +1119,91 @@ describe("V1Migration database workflow", () => {
         ('msg_source_existing', 'ses_existing', 'user', 2, 12, 13, '{"text":"source","time":{"created":12}}'),
         ('msg_orphan', 'ses_orphan', 'user', 0, 12, 13, '{"text":"orphan","time":{"created":12}}');
     `)
-    source.close()
+      if (kind === "bolt-v2") source.run("ALTER TABLE session RENAME TO session_v2")
+      source.close()
+      const before = Bun.hash(await Bun.file(filename).arrayBuffer())
 
-    await database(
-      Effect.gen(function* () {
-        const { db } = yield* Database.Service
-        yield* db.run(sql`
+      await database(
+        Effect.gen(function* () {
+          const { db } = yield* Database.Service
+          yield* db.run(sql`
           INSERT INTO project (id, worktree, name, time_created, time_updated, sandboxes)
           VALUES ('next-project', '/tmp/current', 'Current project', 1, 2, '[]')
         `)
-        yield* db.run(sql`
+          yield* db.run(sql`
           INSERT INTO session_v2 (id, project_id, slug, directory, title, version, time_created, time_updated)
           VALUES ('ses_existing', 'next-project', 'current-existing', '/tmp/current', 'Current existing', '2', 1, 2)
         `)
-        yield* db.run(sql`
+          yield* db.run(sql`
           INSERT INTO session_message (id, session_id, type, seq, time_created, time_updated, data)
           VALUES ('msg_current_existing', 'ses_existing', 'user', 0, 1, 2, '{"text":"current","time":{"created":1}}')
         `)
 
-        expect(yield* V1Migration.status()).toEqual({
-          status: "required",
-        })
-        expect(yield* V1Migration.run({ nextDatabasePath: filename })).toEqual({ status: "completed" })
-        expect(yield* V1Migration.status()).toEqual({
-          status: "completed",
-        })
-        expect(yield* db.get(sql`SELECT title, agent, model FROM session_v2 WHERE id = 'ses_next'`)).toEqual({
-          title: "Imported",
-          agent: "build",
-          model: '{"id":"model","providerID":"provider"}',
-        })
-        expect(
-          yield* db
-            .select({ directory: SessionTable.directory })
-            .from(SessionTable)
-            .where(eq(SessionTable.id, SessionSchema.ID.make("ses_next")))
-            .get(),
-        ).toEqual({ directory: process.platform === "win32" ? "C:\\Users\\sewer" : "C:/Users/sewer" })
-        expect(yield* db.all(sql`SELECT id, seq, data FROM session_message WHERE session_id = 'ses_next'`)).toEqual([
-          {
-            id: "msg_next",
+          expect(yield* V1Migration.status()).toEqual({
+            status: "required",
+          })
+          expect(
+            yield* V1Migration.run(
+              kind === "next" ? { nextDatabasePath: filename } : { boltDatabasePaths: [filename] },
+            ),
+          ).toEqual({ status: "completed" })
+          expect(yield* V1Migration.status()).toEqual({
+            status: "completed",
+          })
+          expect(yield* db.get(sql`SELECT title, agent, model FROM session_v2 WHERE id = 'ses_next'`)).toEqual({
+            title: "Imported",
+            agent: "build",
+            model: '{"id":"model","providerID":"provider"}',
+          })
+          expect(
+            yield* db
+              .select({ directory: SessionTable.directory })
+              .from(SessionTable)
+              .where(eq(SessionTable.id, SessionSchema.ID.make("ses_next")))
+              .get(),
+          ).toEqual({ directory: process.platform === "win32" ? "C:\\Users\\sewer" : "C:/Users/sewer" })
+          expect(yield* db.all(sql`SELECT id, seq, data FROM session_message WHERE session_id = 'ses_next'`)).toEqual([
+            {
+              id: "msg_next",
+              seq: 4,
+              data: '{"text":"from next\'s history","time":{"created":12}}',
+            },
+          ])
+          expect(yield* db.get(sql`SELECT seq, owner_id FROM event_sequence WHERE aggregate_id = 'ses_next'`)).toEqual({
             seq: 4,
-            data: '{"text":"from next\'s history","time":{"created":12}}',
-          },
-        ])
-        expect(yield* db.get(sql`SELECT seq, owner_id FROM event_sequence WHERE aggregate_id = 'ses_next'`)).toEqual({
-          seq: 4,
-          owner_id: null,
-        })
-        expect(yield* db.get(sql`SELECT title FROM session_v2 WHERE id = 'ses_existing'`)).toEqual({
-          title: "Current existing",
-        })
-        expect(yield* db.all(sql`SELECT id FROM session_message WHERE session_id = 'ses_existing'`)).toEqual([
-          { id: "msg_current_existing" },
-        ])
-        expect(yield* db.get(sql`SELECT project_id FROM session_v2 WHERE id = 'ses_orphan'`)).toEqual({
-          project_id: "global",
-        })
-        expect(yield* db.get(sql`SELECT name, worktree FROM project WHERE id = 'next-project'`)).toEqual({
-          name: "Current project",
-          worktree: "/tmp/current",
-        })
-        yield* db.run(sql`UPDATE project SET worktree = 'C:/Users/sewer' WHERE id = 'next-project'`)
-        expect(
-          yield* db
-            .select({ worktree: ProjectTable.worktree })
-            .from(ProjectTable)
-            .where(eq(ProjectTable.id, Project.ID.make("next-project")))
-            .get(),
-        ).toEqual({
-          worktree: AbsolutePath.make(process.platform === "win32" ? "C:\\Users\\sewer" : "C:/Users/sewer"),
-        })
-        expect(yield* db.get(sql`SELECT value FROM kv WHERE key = 'migration.v1-v2'`)).toEqual({
-          value: '{"phase":"completed"}',
-        })
-      }),
-    )
-  })
+            owner_id: null,
+          })
+          expect(yield* db.get(sql`SELECT title FROM session_v2 WHERE id = 'ses_existing'`)).toEqual({
+            title: "Current existing",
+          })
+          expect(yield* db.all(sql`SELECT id FROM session_message WHERE session_id = 'ses_existing'`)).toEqual([
+            { id: "msg_current_existing" },
+          ])
+          expect(yield* db.get(sql`SELECT project_id FROM session_v2 WHERE id = 'ses_orphan'`)).toEqual({
+            project_id: "global",
+          })
+          expect(yield* db.get(sql`SELECT name, worktree FROM project WHERE id = 'next-project'`)).toEqual({
+            name: "Current project",
+            worktree: "/tmp/current",
+          })
+          yield* db.run(sql`UPDATE project SET worktree = 'C:/Users/sewer' WHERE id = 'next-project'`)
+          expect(
+            yield* db
+              .select({ worktree: ProjectTable.worktree })
+              .from(ProjectTable)
+              .where(eq(ProjectTable.id, Project.ID.make("next-project")))
+              .get(),
+          ).toEqual({
+            worktree: AbsolutePath.make(process.platform === "win32" ? "C:\\Users\\sewer" : "C:/Users/sewer"),
+          })
+          expect(yield* db.get(sql`SELECT value FROM kv WHERE key = 'migration.v1-v2'`)).toEqual({
+            value: '{"phase":"completed"}',
+          })
+        }),
+      )
+      expect(Bun.hash(await Bun.file(filename).arrayBuffer())).toBe(before)
+    },
+  )
 
   test("imports previous V2 databases missing newer nullable columns", async () => {
     await using tmp = await tmpdir()

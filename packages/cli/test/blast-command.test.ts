@@ -8,7 +8,7 @@ const entry = path.resolve(import.meta.dir, "../src/index.ts")
 test("blast analyzes working tree, index and branch changes without a server", async () => {
   const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-blast-"))
   const git = async (...args: string[]) => {
-    const child = Bun.spawn(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
+    const child = Bun.spawn(["git", "-c", "core.autocrlf=false", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
     const stderr = await new Response(child.stderr).text()
     expect({ code: await child.exited, stderr }).toEqual({ code: 0, stderr: "" })
   }

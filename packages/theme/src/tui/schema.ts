@@ -42,10 +42,7 @@ const HueColorValue = Schema.Union([
 ])
 
 const HueScaleDefinition = Schema.Record(HueStep, HexColor)
-const HueValueDefinition = Schema.Union([
-  Schema.String.check(Schema.isPattern(/^\$hue\..+$/)),
-  HueScaleDefinition,
-])
+const HueValueDefinition = Schema.Union([Schema.String.check(Schema.isPattern(/^\$hue\..+$/)), HueScaleDefinition])
 type HueValueDefinition = Schema.Schema.Type<typeof HueValueDefinition>
 const HueRecord = Schema.Record(HueName, HueValueDefinition)
 const HueDefinition = HueRecord.check(
@@ -56,8 +53,7 @@ const HueDefinition = HueRecord.check(
     return missing.length ? `Missing required semantic hues: ${missing.join(", ")}` : undefined
   }),
 )
-export type HueDefinition = Schema.Schema.Type<typeof HueDefinition> &
-  Readonly<Record<SemanticHue, HueValueDefinition>>
+export type HueDefinition = Schema.Schema.Type<typeof HueDefinition> & Readonly<Record<SemanticHue, HueValueDefinition>>
 
 const StatefulColorDefinition = Schema.Struct({
   base: Schema.optional(ColorValue),
@@ -190,7 +186,13 @@ const DiffDefinition = Schema.Struct({
 })
 export type DiffDefinition = Schema.Schema.Type<typeof DiffDefinition>
 
+const BrandDefinition = Schema.Struct({
+  primary: Schema.optional(ColorValue),
+  accent: Schema.optional(ColorValue),
+})
+
 const ThemeTokensDefinition = Schema.Struct({
+  brand: Schema.optional(BrandDefinition),
   text: Schema.optional(TextDefinition),
   background: Schema.optional(BackgroundDefinition),
   border: Schema.optional(Schema.Struct({ base: Schema.optional(ColorValue) })),
@@ -226,6 +228,7 @@ const CompleteTextFeedbackDefinition = Schema.Struct({ base: ColorValue, muted: 
 const CompleteBackgroundFeedbackDefinition = Schema.Struct({ base: ColorValue })
 
 const CompleteThemeTokensDefinition = Schema.Struct({
+  brand: Schema.optional(BrandDefinition),
   text: Schema.Struct({
     base: ColorValue,
     muted: ColorValue,

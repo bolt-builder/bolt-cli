@@ -17,6 +17,7 @@ export interface Sources {
   /** macOS MDM managed preferences plist (`ai.opencode.managed`), when one is deployed. */
   readonly preferences?: AbsolutePath
   readonly global?: AbsolutePath
+  readonly legacyGlobal?: { readonly path: AbsolutePath; readonly present: boolean }
   readonly explicit?: AbsolutePath
   readonly direct: readonly AbsolutePath[]
   readonly project: readonly { readonly path: AbsolutePath; readonly present: boolean }[]
@@ -66,9 +67,11 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     return systemDirectory()
   })()
   const globalDirectory = AbsolutePath.make(global.config)
+  const legacyDirectory = Global.boltDirectory(global.config)
+  const legacyGlobal = legacyDirectory ? AbsolutePath.make(legacyDirectory) : undefined
   const globalAgentsDirectory = AbsolutePath.make(path.join(global.home, ".agents"))
   const globalClaudeDirectory = AbsolutePath.make(path.join(global.home, ".claude"))
-  const configDirectories = [...(system ? [system] : []), globalDirectory]
+  const configDirectories = [...(system ? [system] : []), ...(legacyGlobal ? [legacyGlobal] : []), globalDirectory]
   const globalRoots = yield* Effect.forEach(
     [...configDirectories, globalClaudeDirectory, globalAgentsDirectory],
     (item) => fs.resolve(item),
@@ -139,6 +142,8 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     system: globalEnabled && system ? { path: system, present: yield* fs.isDir(system) } : undefined,
     preferences,
     global: globalEnabled ? globalDirectory : undefined,
+    legacyGlobal:
+      globalEnabled && legacyGlobal ? { path: legacyGlobal, present: yield* fs.isDir(legacyGlobal) } : undefined,
     explicit: options?.file ? AbsolutePath.make(path.resolve(options.file)) : undefined,
     direct: visible
       .filter((item) => ![".agents", ".claude", ".opencode", ".bolt"].includes(path.basename(item)))

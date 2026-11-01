@@ -136,6 +136,8 @@ export function resolveThemeVariant(variant: ThemeVariant, isDark: boolean): Res
   }
 
   const tokens: ResolvedTheme = {}
+  tokens["brand-primary"] = colors.primary
+  tokens["brand-accent"] = colors.accent
 
   tokens["background-base"] = neutral[0]
   tokens["background-weak"] = neutral[2]

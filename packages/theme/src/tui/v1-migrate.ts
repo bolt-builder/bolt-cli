@@ -115,6 +115,7 @@ function migrateMode(theme: Theme, mode: Mode): ThemeDefinition {
       neutral: "$hue.gray",
     } as HueDefinition,
     categorical: uniqueCategorical.length ? uniqueCategorical : ["neutral"],
+    brand: { primary: color("primary"), accent: color("accent") },
     text: {
       base: text,
       muted: textMuted,

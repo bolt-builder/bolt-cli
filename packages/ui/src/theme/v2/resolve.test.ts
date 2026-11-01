@@ -1,9 +1,30 @@
 import { describe, expect, test } from "bun:test"
+import { resolveThemeVariant } from "../resolve"
 import { contrastRatio } from "../color"
 import type { DesktopTheme, HexColor, ResolvedV2Theme } from "../types"
 import { resolveThemeV2, resolveThemeVariantV2, themeV2ToCss } from "./resolve"
 
 const theme: DesktopTheme = await Bun.file(new URL("../themes/oc-2.json", import.meta.url)).json()
+const bolt: DesktopTheme = await Bun.file(new URL("../themes/bolt.json", import.meta.url)).json()
+
+test.each(["light", "dark"] as const)("Bolt %s keeps warnings distinct and drawer controls raised", (mode) => {
+  const tokens = resolveThemeV2(bolt)[mode]
+  const color = (name: string): string => {
+    const value = tokens[name]
+    return value.startsWith("var(--") ? color(value.slice(6, -1)) : value
+  }
+  expect(color("v2-yellow-600")).not.toBe(color("v2-blue-600"))
+  expect(color("v2-background-bg-deep")).not.toBe(
+    color(mode === "light" ? "v2-background-bg-base" : "v2-background-bg-layer-01"),
+  )
+})
+
+test.each([false, true])("brand gradient uses the selected theme's original endpoints (dark: %s)", (dark) => {
+  const variant = { palette: { ...bolt.dark.palette!, primary: "#123456" as const, accent: "#abcdef" as const } }
+  const tokens = resolveThemeVariant(variant, dark)
+  expect(tokens["brand-primary"]).toBe("#123456")
+  expect(tokens["brand-accent"]).toBe("#abcdef")
+})
 
 describe("icon emphasis", () => {
   test.each(["light", "dark"] as const)("OC-2 %s icons increase in contrast from faint to base", (mode) => {

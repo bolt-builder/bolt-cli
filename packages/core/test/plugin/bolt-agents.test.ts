@@ -16,7 +16,9 @@ const it = testEffect(AppNodeBuilder.build(LayerNode.group([Agent.node, Bus.node
 it.effect("registers Bolt specialist agents and preserves their V1 execution restrictions", () =>
   Effect.gen(function* () {
     const agents = yield* Agent.Service
-    yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agents) }))
+    yield* AgentPlugin.Plugin.effect(
+      host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+    )
     for (const id of [
       "code",
       "ask",

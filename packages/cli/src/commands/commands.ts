@@ -82,6 +82,103 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
     prompt: Flag.String("prompt").pipe(Flag.withDescription("Prompt to use"), Flag.optional),
   },
   commands: [
+    Spec.make("bisect", {
+      description: "Find the commit that broke a command in an isolated worktree",
+      globalFlags: ServerFlags,
+      params: {
+        command: Argument.String("command"),
+        good: Flag.String("good").pipe(Flag.withAlias("g")),
+        fix: Flag.Boolean("fix").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("mutate", {
+      description: "Mutate a source file and verify that the tests catch bugs",
+      params: {
+        file: Argument.String("file"),
+        command: Flag.String("command").pipe(Flag.withAlias("c"), Flag.optional),
+        limit: Flag.Int("limit").pipe(Flag.withAlias("n"), Flag.withDefault(25)),
+        timeout: Flag.Int("timeout").pipe(Flag.withDefault(120000)),
+      },
+    }),
+    Spec.make("mux", {
+      description: "Run parallel Bolt sessions in tmux split panes",
+      params: {
+        dirs: Argument.String("dirs").pipe(Argument.variadic()),
+        count: Flag.Int("count").pipe(Flag.withAlias("n"), Flag.withDefault(2)),
+        layout: Flag.Literals("layout", [
+          "tiled",
+          "even-horizontal",
+          "even-vertical",
+          "main-horizontal",
+          "main-vertical",
+        ]).pipe(Flag.withDefault("tiled")),
+        name: Flag.String("name").pipe(Flag.withDefault("bolt")),
+      },
+    }),
+    Spec.make("codemod", {
+      description: "Generate an ast-grep transform, preview it and apply with --apply",
+      globalFlags: ServerFlags,
+      params: {
+        description: Argument.String("description").pipe(Argument.optional),
+        pattern: Flag.String("pattern").pipe(Flag.optional),
+        rewrite: Flag.String("rewrite").pipe(Flag.optional),
+        lang: Flag.String("lang").pipe(Flag.optional),
+        apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("checkpoint", {
+      description: "Save and rewind named repository and conversation checkpoints",
+      globalFlags: ServerFlags,
+      commands: [
+        Spec.make("save", {
+          description: "Save the repository and current conversation",
+          params: {
+            name: Argument.String("name"),
+            session: Flag.String("session").pipe(Flag.withAlias("s"), Flag.optional),
+            repoOnly: Flag.Boolean("repo-only").pipe(Flag.withDefault(false)),
+          },
+        }),
+        Spec.make("list", { description: "List saved checkpoints", aliases: ["ls"] }),
+        Spec.make("rewind", {
+          description: "Restore a named checkpoint",
+          params: { name: Argument.String("name") },
+        }),
+        Spec.make("remove", {
+          description: "Remove a named checkpoint",
+          aliases: ["rm"],
+          params: { name: Argument.String("name") },
+        }),
+      ],
+    }),
+    Spec.make("batch", {
+      description: "Run queued prompts sequentially or in parallel with a summary",
+      globalFlags: ServerFlags,
+      params: {
+        file: Argument.String("file"),
+        parallel: Flag.Int("parallel").pipe(Flag.withDefault(1)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        agent: Flag.String("agent").pipe(Flag.optional),
+      },
+    }),
+    Spec.make("exec", {
+      description: "Run a Markdown playbook, stopping at the first failed step",
+      globalFlags: ServerFlags,
+      params: {
+        file: Flag.String("file").pipe(Flag.withAlias("f")),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        agent: Flag.String("agent").pipe(Flag.optional),
+      },
+    }),
+    Spec.make("undo", {
+      description: "Roll back the last agent turn, including files and conversation",
+      globalFlags: ServerFlags,
+      params: {
+        session: Flag.String("session").pipe(Flag.withAlias("s"), Flag.optional),
+        redo: Flag.Boolean("redo").pipe(Flag.withDefault(false)),
+      },
+    }),
     Spec.make("cron", {
       description: "Schedule recurring agent chores through persistent background jobs",
       params: {
@@ -738,10 +835,124 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
         demo: Flag.Boolean("demo").pipe(Flag.withDefault(false), Flag.withHidden),
       },
     }),
+    Spec.make("config", {
+      description: "Inspect and manage project and global configuration",
+      globalFlags: ServerFlags,
+      commands: [
+        Spec.make("get", {
+          description: "Print a resolved configuration value",
+          params: { key: Argument.String("key") },
+        }),
+        Spec.make("set", {
+          description: "Set a configuration value, preserving JSONC comments",
+          params: {
+            key: Argument.String("key"),
+            value: Argument.String("value"),
+            global: Flag.Boolean("global").pipe(Flag.withDefault(false)),
+          },
+        }),
+        Spec.make("unset", {
+          description: "Remove a configuration value",
+          params: { key: Argument.String("key"), global: Flag.Boolean("global").pipe(Flag.withDefault(false)) },
+        }),
+        Spec.make("edit", { description: "Open global configuration in $EDITOR or $VISUAL" }),
+        Spec.make("doctor", { description: "Show configuration sources and winning keys" }),
+        Spec.make("diff", {
+          description: "Compare project configuration with HEAD",
+          params: { patch: Flag.Boolean("patch").pipe(Flag.withDefault(false)) },
+        }),
+      ],
+    }),
+    Spec.make("warm", {
+      description: "Preload project configuration, model metadata and the source index",
+      globalFlags: ServerFlags,
+      params: { index: Flag.Boolean("index").pipe(Flag.withDefault(true)) },
+    }),
+    Spec.make("worktree", {
+      description: "Create, list and clean agent worktrees",
+      globalFlags: ServerFlags,
+      commands: [
+        Spec.make("list", { description: "List agent worktrees", aliases: ["ls"] }),
+        Spec.make("create", {
+          description: "Create an isolated agent worktree",
+          params: {
+            name: Argument.String("name").pipe(Argument.optional),
+            start: Flag.String("start").pipe(Flag.optional),
+          },
+        }),
+        Spec.make("remove", {
+          description: "Remove a clean agent worktree and its branch",
+          aliases: ["rm"],
+          params: { worktree: Argument.String("worktree") },
+        }),
+        Spec.make("clean", {
+          description: "Preview or remove all agent worktrees",
+          params: { apply: Flag.Boolean("apply").pipe(Flag.withDefault(false)) },
+        }),
+      ],
+    }),
+    Spec.make("refactor", {
+      description: "Refactor with a test-verified repair loop",
+      globalFlags: ServerFlags,
+      params: {
+        instruction: Argument.String("instruction"),
+        test: Flag.String("test"),
+        attempts: Flag.Int("attempts").pipe(Flag.withDefault(5)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+        confidence: Flag.Boolean("confidence").pipe(Flag.withDefault(false)),
+        selfReview: Flag.Boolean("self-review").pipe(Flag.withDefault(false)),
+      },
+    }),
+    Spec.make("pipeline", {
+      description: "Run a plan, code, review agent pipeline on a task",
+      globalFlags: ServerFlags,
+      params: {
+        task: Argument.String("task"),
+        attempts: Flag.Int("attempts").pipe(Flag.withDefault(2)),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("guard", {
+      description: "Generate and verify a failing regression test before fixing a bug",
+      globalFlags: ServerFlags,
+      params: {
+        bug: Argument.String("bug"),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("proptest", {
+      description: "Generate and run property tests for pure exported functions",
+      globalFlags: ServerFlags,
+      params: {
+        file: Argument.String("file"),
+        name: Flag.String("name").pipe(Flag.optional),
+        model: Flag.String("model").pipe(Flag.withAlias("m"), Flag.optional),
+      },
+    }),
+    Spec.make("arena", {
+      description: "Race agents in isolated worktrees and keep the best result",
+      globalFlags: ServerFlags,
+      params: {
+        message: Argument.String("message").pipe(Argument.variadic({ min: 0 })),
+        models: Flag.String("models"),
+        judge: Flag.String("judge").pipe(Flag.optional),
+        agent: Flag.String("agent").pipe(Flag.optional),
+        variant: Flag.String("variant").pipe(Flag.optional),
+        format: Flag.Literals("format", ["default", "json"]).pipe(Flag.withDefault("default")),
+        cleanup: Flag.Boolean("cleanup").pipe(Flag.withDefault(false)),
+        ...PermissionParams,
+      },
+    }),
     Spec.make("run", {
       description: "Run Bolt with a message",
       globalFlags: ServerFlags,
       params: {
+        bestOf: Flag.String("best-of").pipe(
+          Flag.optional,
+          Flag.withDescription("Race comma-separated provider/model entries and judge their answers"),
+        ),
+        judge: Flag.String("judge").pipe(Flag.optional),
+        variant: Flag.String("variant").pipe(Flag.optional),
         background: Flag.Boolean("background").pipe(Flag.withAlias("bg"), Flag.withDefault(false)),
         voice: Flag.Boolean("voice").pipe(
           Flag.withDefault(false),

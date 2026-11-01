@@ -73,6 +73,9 @@ async function installSessionSwitchProbe(
 
           if (root) {
             const view = root.getBoundingClientRect()
+            // The composer covers the inset at the bottom of the scroll viewport.
+            const visibleBottom =
+              view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
 
             const inViewport = (element: HTMLElement) => {
               if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false
@@ -80,7 +83,7 @@ async function installSessionSwitchProbe(
               const clip = element.closest<HTMLElement>("[data-timeline-key]")?.getBoundingClientRect() ?? view
 
               return (
-                Math.min(rect.bottom, clip.bottom, view.bottom) > Math.max(rect.top, clip.top, view.top) &&
+                Math.min(rect.bottom, clip.bottom, visibleBottom) > Math.max(rect.top, clip.top, view.top) &&
                 Math.min(rect.right, clip.right, view.right) > Math.max(rect.left, clip.left, view.left)
               )
             }
@@ -115,7 +118,7 @@ async function installSessionSwitchProbe(
               last: visible.includes(lastID),
               requiredPartVisible,
               bottomAnchorRequired: requireBottomAnchor !== false,
-              bottomErrorPx: spacer ? spacer.bottom - view.bottom : undefined,
+              bottomErrorPx: spacer ? spacer.bottom - visibleBottom : undefined,
               review,
             })
           } else {
@@ -264,19 +267,21 @@ export async function waitForStableTimeline(page: Page, lastID: string) {
                     }
 
                     const view = root.getBoundingClientRect()
+                    const visibleBottom =
+                      view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
 
                     const last = [...root.querySelectorAll<HTMLElement>("[data-message-id]")].some((element) => {
                       if (element.dataset.messageId !== lastID) return false
                       const rect = element.getBoundingClientRect()
 
-                      return rect.bottom > view.top && rect.top < view.bottom
+                      return rect.bottom > view.top && rect.top < visibleBottom
                     })
 
                     const spacer = root
                       .querySelector<HTMLElement>('[data-timeline-row="bottom-spacer"]')
                       ?.getBoundingClientRect()
 
-                    resolve({ last, bottomErrorPx: spacer ? spacer.bottom - view.bottom : undefined })
+                    resolve({ last, bottomErrorPx: spacer ? spacer.bottom - visibleBottom : undefined })
                   }, 0),
                 )
               }),

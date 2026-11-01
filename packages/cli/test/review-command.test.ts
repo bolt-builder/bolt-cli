@@ -13,10 +13,10 @@ let events: ReadableStreamDefaultController<Uint8Array> | undefined
 let server: ReturnType<typeof Bun.serve>
 
 async function git(...args: string[]) {
-  const child = Bun.spawn(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
+  const child = Bun.spawn(["git", "-c", "core.autocrlf=false", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
   const [stdout, stderr, code] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
+    new Response(child.stdout).text().then((text) => text.replaceAll("\r\n", "\n")),
+    new Response(child.stderr).text().then((text) => text.replaceAll("\r\n", "\n")),
     child.exited,
   ])
   expect({ code, stderr }).toEqual({ code: 0, stderr: "" })
@@ -46,8 +46,8 @@ async function cli(args: string[], stdin = "", directory = cwd) {
   child.stdin.write(stdin)
   child.stdin.end()
   const [stdout, stderr, code] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
+    new Response(child.stdout).text().then((text) => text.replaceAll("\r\n", "\n")),
+    new Response(child.stderr).text().then((text) => text.replaceAll("\r\n", "\n")),
     child.exited,
   ])
   return { stdout, stderr, code }

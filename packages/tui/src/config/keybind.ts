@@ -50,6 +50,7 @@ export const Definitions = {
   "app.debug": keybind("none", "Toggle debug panel"),
   "app.console": keybind("none", "Toggle console"),
   "app.scrap": keybind("none", "Open scrap screen"),
+  "app.toggle.fire": keybind("none", "Toggle Bolt fire animation"),
   "app.toggle.animations": keybind("none", "Toggle animations"),
   "app.toggle.file_context": keybind("none", "Toggle file context"),
   "app.toggle.diffwrap": keybind("none", "Toggle diff wrapping"),
@@ -100,6 +101,9 @@ export const Definitions = {
   "terminal.toggle": keybind("<leader>t", "Toggle terminal pane"),
   "terminal.close": keybind("<leader>up", "Close terminal pane"),
   "session.toggle.scrollbar": keybind("none", "Toggle session scrollbar"),
+  "session.toggle.timestamps": keybind("none", "Toggle message timestamps"),
+  "session.toggle.compact": keybind("none", "Toggle compact transcript view"),
+  "session.todos": keybind("none", "View session todos"),
   "opencode.status": keybind("<leader>s", "View status"),
   "opencode.debug": keybind("none", "View debug info"),
 

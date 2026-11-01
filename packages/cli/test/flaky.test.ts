@@ -50,7 +50,9 @@ test("real flaky command preserves pass/fail/mixed exit codes and quarantine own
   try {
     expect((await cli("exit 0")).code).toBe(0)
     expect((await cli("exit 3")).code).toBe(1)
-    const command = "if [ -f ran ]; then rm ran; exit 0; else touch ran; exit 1; fi"
+    const alternating = (name: string) =>
+      `"${process.execPath}" -e "const fs=require('node:fs');if(fs.existsSync('${name}')){fs.unlinkSync('${name}');process.exit(0)}fs.writeFileSync('${name}','');process.exit(1)"`
+    const command = alternating("ran")
     const mixed = await cli(command, "--quarantine")
     expect(mixed.code).toBe(2)
     expect(mixed.stdout).toContain("1/2 passed.")
@@ -60,9 +62,7 @@ test("real flaky command preserves pass/fail/mixed exit codes and quarantine own
     expect(quarantined[0]).toMatchObject({ command, passes: 1, runs: 2 })
     expect((await cli(command, "--quarantine")).code).toBe(2)
     expect(await Bun.file(file).json()).toHaveLength(1)
-    const parallel = ["a", "b"].map(
-      (name) => `if [ -f ran_${name} ]; then rm ran_${name}; exit 0; else touch ran_${name}; exit 1; fi`,
-    )
+    const parallel = ["a", "b"].map((name) => alternating(`ran_${name}`))
     const results = await Promise.all(parallel.map((value) => cli(value, "--quarantine")))
     expect(results.map((value) => value.code)).toEqual([2, 2])
     expect((await Bun.file(file).json()).map((item: { command: string }) => item.command)).toEqual(

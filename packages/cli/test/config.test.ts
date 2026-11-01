@@ -175,6 +175,7 @@ test("migrates tui and kv config into cli.json", async () => {
       exploration_grouping: false,
       dismissed_getting_started: true,
       animations_enabled: false,
+      fire_animation_enabled: false,
       skipped_version: "9.9.9",
       which_key_layout: "overlay",
     }),
@@ -206,6 +207,7 @@ test("migrates tui and kv config into cli.json", async () => {
     prompt: { editor: false, paste: "full" },
     session: { sidebar: "hide", scrollbar: true, thinking: "show", grouping: "none" },
     animations: false,
+    fire: false,
     mouse: false,
   })
   expect(config).not.toHaveProperty("skipped_version")
@@ -587,3 +589,91 @@ async function waitForFile(file: string, exited: Promise<number>) {
   ])
   if (!found) throw new Error(`timed out waiting for ${file}`)
 }
+
+test("imports sibling V1 Bolt appearance settings while V2 state wins and originals remain intact", async () => {
+  await using directory = await tmpdir()
+  const current = path.join(directory.path, "opencode")
+  const legacy = path.join(directory.path, "bolt")
+  const tui = JSON.stringify({ theme: "legacy-custom", keybinds: { app_toggle_fire: "ctrl+f" } })
+  const kv = JSON.stringify({ fire_animation_enabled: false, animations_enabled: false, theme_mode_lock: "light" })
+  await Bun.write(path.join(legacy, "tui.json"), tui)
+  await Bun.write(path.join(legacy, "kv.json"), kv)
+  await Bun.write(path.join(current, "kv.json"), JSON.stringify({ theme_mode_lock: "dark" }))
+  const result = await run(
+    current,
+    Effect.flatMap(Config.Service, (service) => service.get()),
+  )
+  expect(result.theme).toEqual({ name: "legacy-custom", mode: "dark" })
+  expect(result.fire).toBe(false)
+  expect(result.animations).toBe(false)
+  expect(result.keybinds).toEqual({ "app.toggle.fire": "ctrl+f" })
+  expect(await Bun.file(path.join(legacy, "tui.json")).text()).toBe(tui)
+  expect(await Bun.file(path.join(legacy, "kv.json")).text()).toBe(kv)
+})
+
+test("backfills V1 appearance into existing V2 settings once without overriding or resurrecting choices", async () => {
+  await using directory = await tmpdir()
+  const current = path.join(directory.path, "opencode")
+  const legacy = path.join(directory.path, "bolt")
+  await Bun.write(path.join(legacy, "tui.json"), '{"theme":"old","keybinds":{"app_toggle_fire":"ctrl+f"}}')
+  await Bun.write(
+    path.join(legacy, "kv.json"),
+    '{"fire_animation_enabled":false,"animations_enabled":false,"theme_mode_lock":"light"}',
+  )
+  await Bun.write(path.join(current, "cli.json"), '{// V2 choices win\n"fire":true,"theme":{"name":"custom"}}')
+  const result = await run(
+    current,
+    Effect.flatMap(Config.Service, (service) => service.get()),
+  )
+  expect(result).toMatchObject({
+    fire: true,
+    animations: false,
+    theme: { name: "custom", mode: "light" },
+    keybinds: { "app.toggle.fire": "ctrl+f" },
+  })
+  expect(await Bun.file(path.join(current, "cli.json")).text()).toContain("// V2 choices win")
+  await run(
+    current,
+    Effect.flatMap(Config.Service, (service) =>
+      service.update((draft) => {
+        delete draft.animations
+      }),
+    ),
+  )
+  expect(
+    await run(
+      current,
+      Effect.flatMap(Config.Service, (service) => service.get()),
+    ),
+  ).not.toHaveProperty("animations")
+})
+
+test("migrates legacy timestamps, compact details and their binding without overwriting current choices", async () => {
+  await using directory = await tmpdir()
+  await Bun.write(
+    path.join(directory.path, "tui.json"),
+    JSON.stringify({ keybinds: { session_toggle_timestamps: "f9" } }),
+  )
+  const kv = JSON.stringify({ timestamps: "show", tool_details_visibility: false })
+  await Bun.write(path.join(directory.path, "kv.json"), kv)
+  const first = await run(
+    directory.path,
+    Config.Service.use((service) => service.get()),
+  )
+  expect(first.session).toMatchObject({ timestamps: "show", details: false })
+  expect(first.keybinds?.["session.toggle.timestamps"]).toBe("f9")
+  await run(
+    directory.path,
+    Config.Service.use((service) =>
+      service.update((draft) => {
+        draft.session = { ...draft.session, timestamps: "hide", details: true }
+      }),
+    ),
+  )
+  const next = await run(
+    directory.path,
+    Config.Service.use((service) => service.get()),
+  )
+  expect(next.session).toMatchObject({ timestamps: "hide", details: true })
+  expect(await Bun.file(path.join(directory.path, "kv.json")).text()).toBe(kv)
+})

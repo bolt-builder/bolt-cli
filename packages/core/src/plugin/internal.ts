@@ -76,6 +76,8 @@ import { PatchTool } from "../tool/plugin/patch.js"
 import { EditTool } from "../tool/plugin/edit.js"
 import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
+import { TaskTools } from "../tool/plugin/tasks.js"
+import { NotebookTool } from "../tool/plugin/notebook.js"
 import { GitTool } from "../tool/plugin/git.js"
 import { SemanticSearchTool } from "../tool/plugin/semantic-search.js"
 import { ImageGenerateTool } from "../tool/plugin/image-generate.js"
@@ -105,6 +107,7 @@ import { VoicePlugin } from "./voice.js"
 import { SandboxPlugin } from "./sandbox.js"
 import { MemoryPlugin } from "./memory.js"
 import { ProcessPlugin } from "./process.js"
+import { CheckpointPlugin } from "./checkpoint.js"
 import { GoalPlugin } from "./goal.js"
 import { ModelsDevPlugin } from "./models-dev.js"
 import { McpCodeModeDefaultsPlugin } from "./mcp-codemode-defaults.js"
@@ -247,6 +250,7 @@ const pre = [
   CommandPlugin.Plugin,
   GoalPlugin.Plugin,
   ProcessPlugin.Plugin,
+  CheckpointPlugin.Plugin,
   MemoryPlugin.Plugin,
   SandboxPlugin.Plugin,
   VoicePlugin.Plugin,
@@ -265,6 +269,8 @@ const pre = [
   GrepTool.Plugin,
   SemanticSearchTool.Plugin,
   GitTool.Plugin,
+  NotebookTool.Plugin,
+  TaskTools.Plugin,
   ImageGenerateTool.Plugin,
   OpenCodeTools.Plugin,
   McpResourceTools.Plugin,

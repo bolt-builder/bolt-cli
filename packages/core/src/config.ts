@@ -327,7 +327,19 @@ export const layer = (options?: Options) =>
         // Integration documents load right after managed policies: every remote, user, and project layer overrides
         // their settings, and since policies evaluate earliest-loaded first, only managed policies outrank theirs.
         // Global entries sit below explicit and direct files; project directories rank above them.
-        const globalSupplementary = sources.global ? yield* loadDirectory(sources.global).pipe(Effect.orDie) : []
+        const legacyGlobal = sources.legacyGlobal?.present
+          ? [
+              ...(yield* loadFile(path.join(sources.legacyGlobal.path, "config.json")).pipe(
+                Effect.map((info) => (info ? [info] : [])),
+                Effect.orDie,
+              )),
+              ...(yield* loadDirectory(sources.legacyGlobal.path).pipe(Effect.orDie)),
+            ]
+          : []
+        const globalSupplementary = [
+          ...legacyGlobal,
+          ...(sources.global ? yield* loadDirectory(sources.global).pipe(Effect.orDie) : []),
+        ]
         const projectSupplementary = yield* Effect.forEach(
           sources.project.filter((root) => root.present),
           (root) => loadDirectory(root.path),

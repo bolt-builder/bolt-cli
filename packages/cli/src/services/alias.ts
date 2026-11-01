@@ -4,6 +4,7 @@ import path from "node:path"
 import fs from "node:fs"
 import { parse } from "jsonc-parser"
 import { Schema } from "effect"
+import { Global } from "@opencode/util/global"
 
 const Aliases = Schema.Struct({ alias: Schema.Record(Schema.String, Schema.String) })
 const decode = Schema.decodeUnknownOption(Aliases)
@@ -39,7 +40,10 @@ export function expand(args: string[], aliases: Record<string, string>) {
 /** Root-to-leaf project precedence follows V1; current V2 CLI configuration owns global writes. */
 export function load(directory: string, config: string, global: Record<string, string> = {}, projectOnly = false) {
   const up = (dir: string): string[] => (path.dirname(dir) === dir ? [dir] : [...up(path.dirname(dir)), dir])
-  const globalFiles = ["config.json", ...names].map((name) => path.join(config, name))
+  const legacy = Global.boltDirectory(config)
+  const globalFiles = [...(legacy ? [legacy] : []), config].flatMap((dir) =>
+    ["config.json", ...names].map((name) => path.join(dir, name)),
+  )
   const projectFiles = up(path.resolve(directory)).flatMap((dir) => [
     ...names.map((name) => path.join(dir, name)),
     ...[".opencode", ".bolt"].flatMap((dot) => names.map((name) => path.join(dir, dot, name))),

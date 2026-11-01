@@ -1,4 +1,6 @@
 import type { OpenCodeClient } from "@opencode/client/promise"
+import type { PermissionRule, SessionPromptInput } from "@opencode/client/promise"
+import { parseSessionTargetModel } from "../session-target"
 import { SessionMessage } from "@opencode/schema/session-message"
 
 type Input = {
@@ -7,6 +9,12 @@ type Input = {
   agent: string
   model?: string
   title: string
+  directory?: string
+  auto?: boolean
+  sessionID?: string
+  retain?: boolean
+  files?: SessionPromptInput["files"]
+  permissions?: PermissionRule[]
 }
 
 /** Run an agent in a disposable session, returning only its final answer. */
@@ -16,19 +24,16 @@ export async function answer(input: Input) {
 
 /** Retain successful tool outcomes for commands that must verify their work before cleanup. */
 export async function execute(input: Input) {
-  const model = input.model
-    ? {
-        providerID: input.model.slice(0, input.model.indexOf("/")),
-        id: input.model.slice(input.model.indexOf("/") + 1),
-      }
-    : undefined
-  const session = await input.client.session.create({
-    title: input.title,
-    agent: input.agent,
-    model,
-    location: { directory: process.cwd() },
-    permissions: [{ action: "question", resource: "*", effect: "deny" }],
-  })
+  const model = input.model ? parseSessionTargetModel(input.model) : undefined
+  const session = input.sessionID
+    ? await input.client.session.get({ sessionID: input.sessionID })
+    : await input.client.session.create({
+        title: input.title,
+        agent: input.agent,
+        model,
+        location: { directory: input.directory ?? process.cwd() },
+        permissions: [...(input.permissions ?? []), { action: "question", resource: "*", effect: "deny" }],
+      })
   const controller = new AbortController()
   const stream = input.client.event.subscribe({ signal: controller.signal })[Symbol.asyncIterator]()
   const owned = new Map<string, Promise<boolean>>([[session.id, Promise.resolve(true)]])
@@ -62,8 +67,10 @@ export async function execute(input: Input) {
           await input.client.permission.reply({
             sessionID: event.data.sessionID,
             requestID: event.data.id,
-            decision: "reject",
-            message: "This one-shot command cannot request permission. Continue without this action.",
+            decision: input.auto ? "once" : "reject",
+            message: input.auto
+              ? undefined
+              : "This one-shot command cannot request permission. Continue without this action.",
           })
           continue
         }
@@ -98,7 +105,7 @@ export async function execute(input: Input) {
     // Attach a handler immediately; a failed event can arrive before prompt admission returns.
     void consuming.catch(() => {})
     await input.client.session.prompt(
-      { sessionID: session.id, id: SessionMessage.ID.create(), text: input.text },
+      { sessionID: session.id, id: SessionMessage.ID.create(), text: input.text, files: input.files },
       { signal: controller.signal },
     )
     await consuming
@@ -112,7 +119,7 @@ export async function execute(input: Input) {
             .trim()
         : ""
     if (!text) throw new Error("The model returned an empty answer.")
-    return { text, tools }
+    return { text, tools, sessionID: session.id }
   } finally {
     process.off("SIGINT", interrupt)
     controller.abort()
@@ -120,6 +127,6 @@ export async function execute(input: Input) {
     if (!finished) await input.client.session.interrupt({ sessionID: session.id }).catch(() => {})
     await stream.return?.().catch(() => {})
     // Piped content and generated diffs must not remain in durable session history.
-    await input.client.session.remove({ sessionID: session.id }).catch(() => {})
+    if (!input.retain) await input.client.session.remove({ sessionID: session.id }).catch(() => {})
   }
 }

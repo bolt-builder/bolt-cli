@@ -21,6 +21,9 @@ export type RunCommandInput = {
   fork?: boolean
   worktree?: string | true
   model?: string
+  bestOf?: string
+  judge?: string
+  variant?: string
   agent?: string
   format: "default" | "json"
   file: string[]
@@ -71,6 +74,11 @@ export function runNonInteractiveWithOptions(input: RunCommandInput, options: Ex
 }
 
 async function run(input: RunCommandInput, options: ExecutionOptions) {
+  if (input.bestOf && (input.continue || input.session || input.fork || input.worktree !== undefined || input.model))
+    fail(
+      "--best-of starts independent sessions and cannot be combined with --continue, --session, --fork, --worktree or --model",
+    )
+  if (input.judge !== undefined && input.bestOf === undefined) fail("--judge requires --best-of")
   if (input.fork && !input.continue && !input.session) fail("--fork requires --continue or --session")
   if (input.worktree !== undefined && (input.continue || input.session))
     fail("--worktree starts a new session and cannot be combined with --continue or --session")
@@ -91,6 +99,23 @@ async function execute(input: RunCommandInput, prepared: Prepared, endpoint: End
     // Bun's default five-minute deadline terminates the event stream used by long-running sessions.
     fetch: noTimeoutFetch,
   })
+  if (input.bestOf !== undefined) {
+    const { tournament } = await import("../services/tournament")
+    const result = await tournament({
+      client,
+      models: input.bestOf,
+      judge: input.judge,
+      variant: input.variant,
+      directory: prepared.directory ?? process.cwd(),
+      message: prepared.message,
+      files: prepared.files.map((file) => ({ uri: file.url, filename: file.filename, mime: file.mime })),
+      agent: input.agent,
+      auto: input.auto,
+    })
+    process.stdout.write(input.format === "json" ? JSON.stringify(result) + "\n" : (result.winner?.text ?? "") + "\n")
+    if (!result.winner) process.exitCode ||= 1
+    return
+  }
   const explicit = parseRunModel(input.model)
   const location = prepared.directory ? { directory: prepared.directory } : undefined
   const worktree =
@@ -116,7 +141,7 @@ async function execute(input: RunCommandInput, prepared: Prepared, endpoint: End
     prepare: async (next) => {
       const selected =
         next.model ??
-        (options.variant
+        ((input.variant ?? options.variant)
           ? await client.model
               .default({ location: { directory: next.location.directory } })
               .then((result) => result.data)
@@ -125,10 +150,10 @@ async function execute(input: RunCommandInput, prepared: Prepared, endpoint: End
         ? {
             providerID: selected.providerID,
             id: selected.id,
-            variant: options.variant ?? ("variant" in selected ? selected.variant : undefined),
+            variant: input.variant ?? options.variant ?? ("variant" in selected ? selected.variant : undefined),
           }
         : undefined
-      if ((options.variant ?? explicit?.variant) && !model)
+      if ((input.variant ?? options.variant ?? explicit?.variant) && !model)
         throw new RunTargetError("Cannot select a variant before selecting a model", next.session?.id)
       return { model, agent: next.agent }
     },

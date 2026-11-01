@@ -142,7 +142,7 @@ test("ask and commit use disposable V2 sessions, preserve stdout and honor dry r
     return { stdout, stderr, code }
   }
   const git = async (...args: string[]) => {
-    const child = Bun.spawn(["git", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
+    const child = Bun.spawn(["git", "-c", "core.autocrlf=false", ...args], { cwd, stdout: "pipe", stderr: "pipe" })
     const [stdout, stderr, code] = await Promise.all([
       new Response(child.stdout).text(),
       new Response(child.stderr).text(),

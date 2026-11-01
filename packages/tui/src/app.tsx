@@ -182,6 +182,7 @@ const appBindingCommands = [
   "terminal.suspend",
   "terminal.title.toggle",
   "app.toggle.animations",
+  "app.toggle.fire",
   "app.toggle.file_context",
   "app.toggle.diffwrap",
   "app.toggle.paste_summary",
@@ -1270,6 +1271,20 @@ function App() {
           void config
             .update((draft) => {
               draft.terminal = { ...draft.terminal, title: next }
+            })
+            .catch(toast.error)
+          dialog.clear()
+        },
+      },
+      {
+        name: "app.toggle.fire",
+        title: (config.data.fire ?? true) ? "Disable fire animation" : "Enable fire animation",
+        category: "System",
+        palette: undefined,
+        run: () => {
+          void config
+            .update((draft) => {
+              draft.fire = !(config.data.fire ?? true)
             })
             .catch(toast.error)
           dialog.clear()

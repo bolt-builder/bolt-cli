@@ -16,7 +16,8 @@ export function session() {
   return Object.fromEntries(
     Object.entries(process.env).filter(
       (entry): entry is [string, string] =>
-        entry[1] !== undefined && entry[0] !== "OPENCODE_PASSWORD" && entry[0] !== "OPENCODE_SERVER_PASSWORD",
+        entry[1] !== undefined &&
+        !["OPENCODE_PASSWORD", "OPENCODE_SERVER_PASSWORD", "BOLT_PASSWORD", "BOLT_SERVER_PASSWORD"].includes(entry[0]),
     ),
   )
 }

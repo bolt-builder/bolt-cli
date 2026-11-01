@@ -6,6 +6,7 @@ import { Commands } from "../commands"
 import { Runtime } from "../../framework/runtime"
 import { spawnJob } from "./jobs"
 import { errorMessage } from "../../util/error"
+import { restoreState } from "../../services/legacy-state"
 const DIR = path.join(Global.Path.state, "cron")
 const println = (text = "") => process.stdout.write(text + "\n")
 const fail = (text: string) => Effect.fail(new Error(text))
@@ -101,6 +102,13 @@ function entries(): Entry[] {
 
 export default Runtime.handler(Commands.commands.cron, (args) =>
   Effect.gen(function* () {
+    yield* Effect.tryPromise({
+      try: () =>
+        restoreState("cron", (text) =>
+          Option.getOrUndefined(Schema.decodeUnknownOption(Schema.fromJsonString(EntryInfo))(text)),
+        ),
+      catch: (cause) => cause,
+    })
     if (args.action === "add") {
       const [schedule, prompt] = args.args
       if (!schedule || !prompt) return yield* fail('usage: bolt cron add "*/30 * * * *" "triage new issues"')

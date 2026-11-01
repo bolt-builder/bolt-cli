@@ -3,23 +3,14 @@ import { createQuads, type Quads, type Rgba } from "./pin-quads"
 import { PinSound } from "./pin-sound"
 import { prefersReducedMotion } from "@opencode/ui/motion"
 
-// The wordmark as a 78×14 pin grid: 1 = counter shadow, 2 = "open", 3 = "code".
-const GRID = [
-  "..................................................................33..........",
-  "..................................................................33..........",
-  "22222222..22222222..22222222..222222....33333333..33333333..33333333..33333333",
-  "22222222..22222222..22222222..222222....33333333..33333333..33333333..33333333",
-  "22....22..22....22..22....22..22....22..33........33....33..33....33..33....33",
-  "22....22..22....22..22....22..22....22..33........33....33..33....33..33....33",
-  "22111122..22111122..22222222..22111122..33111111..33111133..33111133..33333333",
-  "22111122..22111122..22222222..22111122..33111111..33111133..33111133..33333333",
-  "22111122..22111122..22111111..22111122..33111111..33111133..33111133..33111111",
-  "22111122..22111122..22111111..22111122..33111111..33111133..33111133..33111111",
-  "22222222..22222222..22222222..22111122..33333333..33333333..33333333..33333333",
-  "22222222..22222222..22222222..22111122..33333333..33333333..33333333..33333333",
-  "..........22..................................................................",
-  "..........22..................................................................",
-]
+// Bolt in the existing 78×14 grid; preserve the pin board's layout and physics.
+const GRID = Array.from({ length: 14 }, (_, row) => {
+  if (row >= 12) return ".".repeat(78)
+  const b = row < 2 ? "22......" : row < 4 || row >= 10 ? "22222222" : row < 6 ? "22....22" : "22111122"
+  const o = row < 2 ? "........" : row < 4 || row >= 10 ? "22222222" : row < 6 ? "22....22" : "22111122"
+  const t = (row >= 2 && row < 4) || row >= 10 ? "333333" : "33...."
+  return ".".repeat(24) + [b, o, "33", t].join("..") + ".".repeat(24)
+})
 const COLS = 78
 const ROWS = 14
 
@@ -124,7 +115,7 @@ export function NewSessionPinBoard(props: {
         ref={back}
         aria-hidden="true"
         data-slot="new-session-pins"
-        class="pointer-events-none absolute left-0 top-0 -z-10"
+        class="pointer-events-none absolute left-0 top-0 z-0"
       />
       <canvas
         ref={front}
@@ -364,8 +355,12 @@ function mountPinBoard(
     const cy = view.y0 + (ROWS * view.pitch) / 2
     // In game mode the board leans only slightly after the ball, so the bricks stay readable.
     const lean = view.game ? 0.12 : 0.6
-    const tx = pointer.inside ? lerp(REST_TILT[0], clamp(((cx - pointer.x) / (view.w * 0.5)) * 1.4), lean) : REST_TILT[0]
-    const ty = pointer.inside ? lerp(REST_TILT[1], clamp(((cy - pointer.y) / (view.h * 0.5)) * 1.4), lean) : REST_TILT[1]
+    const tx = pointer.inside
+      ? lerp(REST_TILT[0], clamp(((cx - pointer.x) / (view.w * 0.5)) * 1.4), lean)
+      : REST_TILT[0]
+    const ty = pointer.inside
+      ? lerp(REST_TILT[1], clamp(((cy - pointer.y) / (view.h * 0.5)) * 1.4), lean)
+      : REST_TILT[1]
     const ease = 1 - Math.exp(-dt * 4)
     tilt.x += (tx - tilt.x) * ease
     tilt.y += (ty - tilt.y) * ease
@@ -570,12 +565,28 @@ function mountPinBoard(
         for (const p of band) {
           if (p.lv !== lv) continue
           const fx = p.hx + ox * p.fd + sx * half
-          quads.quad(fx, p.hy + oy * p.fd - half, ox * (p.bd - p.fd), oy * (p.bd - p.fd), 0, size, colors.side[lv][sideX])
+          quads.quad(
+            fx,
+            p.hy + oy * p.fd - half,
+            ox * (p.bd - p.fd),
+            oy * (p.bd - p.fd),
+            0,
+            size,
+            colors.side[lv][sideX],
+          )
         }
         for (const p of band) {
           if (p.lv !== lv) continue
           const fy = p.hy + oy * p.fd + sy * half
-          quads.quad(p.hx + ox * p.fd - half, fy, size, 0, ox * (p.bd - p.fd), oy * (p.bd - p.fd), colors.side[lv][sideY])
+          quads.quad(
+            p.hx + ox * p.fd - half,
+            fy,
+            size,
+            0,
+            ox * (p.bd - p.fd),
+            oy * (p.bd - p.fd),
+            colors.side[lv][sideY],
+          )
         }
       }
       for (const p of band)
@@ -906,18 +917,18 @@ function createPin(c: number, r: number, lv: number): Pin {
   }
 }
 
-// Radial chain-reaction from the starter pin in the "e" (column 75, row 3).
+// Radial chain-reaction from the starter pin in the Bolt "o" (column 39, row 3).
 function chainOf(p: Pin, age: number) {
-  const dist = Math.hypot(p.c - 75, (p.r - 3) * 1.4)
+  const dist = Math.hypot(p.c - 39, (p.r - 3) * 1.4)
   const u = (age - (dist / 76) * 0.62) / 0.36
   if (u <= 0) return 0
   if (u >= 1) return 1
   return 1 - Math.pow(1 - u, 3)
 }
 
-// Reverse wave reeling pins from left ("o") back into the "e" hole when the lodger is tucked back in.
+// Reverse wave reels pins back into the "o" counter when the lodger is tucked back in.
 function closeOf(p: Pin, closeAge: number) {
-  const dist = Math.hypot(p.c - 75, (p.r - 3) * 1.4)
+  const dist = Math.hypot(p.c - 39, (p.r - 3) * 1.4)
   const u = (closeAge - (0.32 + ((76 - dist) / 76) * 0.48)) / 0.32
   if (u <= 0) return 1
   if (u >= 1) return 0
@@ -942,11 +953,11 @@ function readColors(stage: HTMLElement) {
   const levels = [
     bg,
     mix(bg, faint, 0.5),
-    token("--v2-icon-icon-muted", "#808080"),
-    token("--v2-icon-icon-base", "#dbdbdb"),
+    token("--brand-accent", "#63d9ff"),
+    token("--brand-primary", "#2d7bff"),
     faint,
   ]
-  const brand = token("--v2-orange-500", "#ffa478")
+  const brand = token("--brand-primary", "#2d7bff")
   const dark = bg[0] * 0.2126 + bg[1] * 0.7152 + bg[2] * 0.0722 < 128
   const black = [0, 0, 0]
   const shades = (fn: (t: number) => readonly number[]) =>

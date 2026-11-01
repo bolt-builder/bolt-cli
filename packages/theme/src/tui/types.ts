@@ -23,6 +23,7 @@ export type StatefulColor = Readonly<Record<ResolvedActionState, RGBA>> & {
 export type FormfieldColor = StatefulColor
 
 export type ResolvedThemeTokens = {
+  readonly brand: { readonly primary: RGBA; readonly accent: RGBA }
   readonly hue: Hue
   readonly categorical: Categorical
   readonly source: (color: RGBA) => HueSource | undefined

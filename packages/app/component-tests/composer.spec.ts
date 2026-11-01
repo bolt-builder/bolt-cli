@@ -570,7 +570,7 @@ story("ignores a detached suggestion boundary", async ({ mount }) => {
 // leaves every --v2-* variable at its previous value. Switch themes through the theme global instead.
 for (const [theme, background] of [
   ["light", "rgb(255, 255, 255)"],
-  ["dark", "rgb(36, 36, 36)"],
+  ["dark", "rgb(14, 18, 31)"],
 ] as const) {
   story(`raises the docked composer only in dark mode (${theme})`, async ({ mount }) => {
     const component = await mount("opencode-composer-flow--empty-draft", { globals: { theme } })

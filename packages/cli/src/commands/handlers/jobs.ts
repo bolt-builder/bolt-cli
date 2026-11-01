@@ -10,6 +10,7 @@ import { Tail } from "../../util/tail"
 import { Commands } from "../commands"
 import { Runtime } from "../../framework/runtime"
 import { errorMessage } from "../../util/error"
+import { restoreState } from "../../services/legacy-state"
 const DIR = path.join(Global.Path.state, "jobs")
 const println = (text = "") => process.stdout.write(text + "\n")
 const fail = (text: string) => Effect.fail(new Error(text))
@@ -27,6 +28,11 @@ export type Restart = {
   at: number
   reason: string
 }
+
+const restore = () =>
+  restoreState("jobs", (text) =>
+    Option.getOrUndefined(Schema.decodeUnknownOption(Schema.fromJsonString(JobInfo))(text)),
+  )
 
 export type Job = {
   id: string
@@ -109,6 +115,7 @@ export function killJob(pid: number, signal: NodeJS.Signals | number = "SIGTERM"
  * to respawn an existing job in place, keeping its id, log, and restart history.
  */
 export async function spawnJob(argv: string[], cwd: string, meta?: { id: string; restarts: Restart[] }): Promise<Job> {
+  await restore()
   fs.mkdirSync(DIR, { recursive: true })
   const id = meta?.id ?? Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
   const log = path.join(DIR, `${id}.log`)
@@ -147,13 +154,38 @@ export async function spawnJob(argv: string[], cwd: string, meta?: { id: string;
 
 export function jobs(): Job[] {
   if (!fs.existsSync(DIR)) return []
+  const marker = path.join(DIR, ".bolt-v1-imported")
+  const imported = fs.existsSync(marker)
+    ? Option.getOrElse(
+        Schema.decodeUnknownOption(Schema.fromJsonString(Schema.Array(Schema.String)))(fs.readFileSync(marker, "utf8")),
+        () => [],
+      )
+    : []
+  const legacy = Global.boltDirectory(Global.Path.state)
   return fs
     .readdirSync(DIR)
     .filter((file) => file.endsWith(".json"))
     .flatMap((file) => {
-      const parsed = Schema.decodeUnknownOption(Schema.fromJsonString(JobInfo))(
+      const current = Schema.decodeUnknownOption(Schema.fromJsonString(JobInfo))(
         fs.readFileSync(path.join(DIR, file), "utf8"),
       )
+      // A V1 supervisor can still be running and replace its child's PID. Follow
+      // updates only for imported IDs, and never replace an existing V2 collision.
+      const source =
+        legacy && Option.isSome(current) && imported.includes(current.value.id)
+          ? path.join(legacy, "jobs", file)
+          : undefined
+      const previous =
+        source && fs.existsSync(source)
+          ? Schema.decodeUnknownOption(Schema.fromJsonString(JobInfo))(fs.readFileSync(source, "utf8"))
+          : Option.none()
+      const parsed =
+        Option.isSome(previous) &&
+        Option.isSome(current) &&
+        previous.value.id === current.value.id &&
+        previous.value.started > current.value.started
+          ? previous
+          : current
       return Option.isSome(parsed)
         ? [
             {
@@ -177,6 +209,7 @@ export function find(id: string) {
 
 export default Runtime.handler(Commands.commands.jobs, (args) =>
   Effect.gen(function* () {
+    yield* Effect.tryPromise({ try: restore, catch: (cause) => cause })
     const processService = yield* AppProcess.Service
     if (args.action === "list") {
       const all = jobs()

@@ -56,6 +56,7 @@ export function createSessionRows(
   const revertBoundary = () => data.session.get(sessionID())?.revert?.messageID
   const turnTokens = () => Boolean(config.data.debug?.turn_tokens)
   const verbosity = () => config.data.session?.verbosity ?? defaultVerbosity
+  const showDetails = () => config.data.session?.details !== false
 
   function reduce() {
     const messages = data.session.message.list(sessionID())
@@ -66,8 +67,18 @@ export function createSessionRows(
     )
     const visible = queued.size === 0 ? messages : messages.filter((message) => !queued.has(message.id))
     const boundary = revertBoundary()
+    const transcript = showDetails()
+      ? visible
+      : visible.map((message) =>
+          message.type !== "assistant"
+            ? message
+            : {
+                ...message,
+                content: message.content.filter((part) => part.type !== "tool" || part.state.status !== "completed"),
+              },
+        )
     const rows = reduceSessionRows(
-      boundary ? visible.filter((message) => message.id < boundary) : visible,
+      boundary ? transcript.filter((message) => message.id < boundary) : transcript,
       inputs,
       turnTokens(),
       verbosity(),
@@ -187,7 +198,7 @@ export function createSessionRows(
     ),
   )
 
-  createEffect(on([turnTokens, verbosity], rebuild, { defer: true }))
+  createEffect(on([turnTokens, verbosity, showDetails], rebuild, { defer: true }))
 
   const appendMessage = (messageID: string) =>
     setRows(
@@ -303,6 +314,9 @@ export function createSessionRows(
           { messageID: event.data.assistantMessageID, partID: event.data.id },
           { type: "tool", name: event.data.name },
         )
+    }),
+    data.on("session.tool.success", (event) => {
+      if (event.data.sessionID === sessionID() && !showDetails()) rebuild()
     }),
     data.on("session.retry.scheduled", (event) => {
       if (event.data.sessionID === sessionID()) appendFooter(event.data.assistantMessageID)

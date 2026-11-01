@@ -44,6 +44,7 @@
     "@opentunnel/client": "0.6.1",
     "@parcel/watcher": "2.5.1",
     "@silvia-odwyer/photon-node": "0.3.4",
+    "@zip.js/zip.js": "2.7.62",
     "diff": "catalog:",
     "effect": "catalog:",
     "immer": "11.1.4",

@@ -125,7 +125,7 @@ export function makeFetch(resolver: Resolver = systemResolver, env: Environment 
               }
               const stream = decode ? response.pipe(decode) : response
               // SAFETY: Node's toWeb adapter yields the byte stream expected by the web Response constructor.
-              const web = Readable.toWeb(stream) as ReadableStream<Uint8Array>
+              const web = Readable.toWeb(stream) as unknown as ReadableStream<Uint8Array>
               const status = response.statusCode ?? 500
               const result = new Response(
                 [101, 204, 205, 304].includes(status) || init.method?.toUpperCase() === "HEAD" ? null : web,

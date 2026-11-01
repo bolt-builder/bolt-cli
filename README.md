@@ -22,10 +22,15 @@ Bolt is a terminal-first AI coding agent built on the [OpenCode](https://github.
 
 ## Status
 
-`dev` tracks upstream OpenCode V2 (`anomalyco/opencode`, branch `dev`) plus the Bolt overlay: the `bolt` command, Bolt branding, the AGPL-3.0 license, and Bolt's release and repository automation.
+<!-- coderabbit-ai-generated:v1 -->
 
-The latest published release is [v1.21.0](https://github.com/bolt-builder/bolt-cli/releases/tag/v1.21.0). It was built from the V1 codebase (`packages/opencode`), which upstream retired in favor of V2. That codebase, and the Bolt features written against it (blast radius, project memory, the extra agents and CLI commands, and more), now live in [`legacy/`](./legacy/README.md). They are kept intact for porting onto V2 and are not part of the current build.
+<!-- coderabbit-ai-generated-section:v1:02784b777cf0c37d48f9258b3f5fe3735d7f69a78ab7ead6df1856c00958b14b -->
 
+Bolt uses the OpenCode V2 engine while restoring the original Bolt identity and workflows. The active workspace includes Bolt branding, themes and terminal effects, project memory, voice, sandbox controls, extra agents and CLI commands.
+
+Restoration is in progress. [The parity checklist](legacy/V1-PARITY.md) and [interaction inventory](legacy/V1-SURFACES.md) distinguish tested behavior from remaining work. The pre-sync V1 commit is the reference; archived source in `legacy/` is excluded from production builds.
+
+<!-- /coderabbit-ai-generated:v1 -->
 ## Install
 
 ```bash
@@ -52,7 +57,13 @@ Run tests from a package directory, never from the repository root:
 cd packages/core && bun run test
 ```
 
-`packages/cli` ships three entry points that start the same CLI: `bolt`, `opencode`, and `opencode2`. Configuration files and environment variables keep their upstream names (`opencode.json`, `.opencode/`, `OPENCODE_*`), so existing OpenCode configuration works unchanged.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:34607b63a7a1fa6fd0ed8a00e11a55dd6ac183ab34505030e70cb4afcd0141de -->
+
+`packages/cli` ships three entry points that start the same CLI: `bolt`, `opencode`, and `opencode2`. Existing `opencode.json`, `.opencode/` and `OPENCODE_*` configuration remains supported. Bolt configuration names and selected `BOLT_*` aliases are also recognized; explicit V2 environment settings take precedence. V1 history, credentials, appearance preferences and background-job metadata are imported without deleting their source data. See the parity checklist for migration coverage and remaining compatibility checks.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) and [AGENTS.md](./AGENTS.md) for the development workflow and style guide.
 
