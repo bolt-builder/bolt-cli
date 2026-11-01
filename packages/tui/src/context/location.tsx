@@ -1,5 +1,8 @@
-import type { LocationRef } from "@bolt-ai/sdk/v2"
-import { createContext, useContext, type Accessor, type ParentProps } from "solid-js"
+import { isLocationNotFoundError, type LocationGetOutput, type LocationRef } from "@opencode/client"
+import { retry } from "@opencode/util/retry"
+import { createContext, createMemo, createSignal, onCleanup, useContext, type ParentProps } from "solid-js"
+import { useClient } from "./client"
+import { useData } from "./data"
 
 const context = createContext<{
   readonly current: LocationGetOutput | undefined
