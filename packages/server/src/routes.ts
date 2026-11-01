@@ -1,19 +1,45 @@
-import { Database } from "@bolt-ai/core/database/database"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { httpClient } from "@bolt-ai/core/effect/app-node-platform"
-import { AppNodeBuilder } from "@bolt-ai/core/effect/app-node-builder"
-import { EventV2 } from "@bolt-ai/core/event"
-import { Credential } from "@bolt-ai/core/credential"
-import { PermissionSaved } from "@bolt-ai/core/permission/saved"
-import { PtyTicket } from "@bolt-ai/core/pty/ticket"
-import { SessionV2 } from "@bolt-ai/core/session"
-import { SessionExecution } from "@bolt-ai/core/session/execution"
-import { LocationServiceMap } from "@bolt-ai/core/location-service-map"
-import { SessionExecutionLocal } from "@bolt-ai/core/session/execution/local"
-import { ToolOutputStore } from "@bolt-ai/core/tool-output-store"
-import { HttpRouter, HttpServer } from "effect/unstable/http"
-import { HttpApiBuilder } from "effect/unstable/httpapi"
-import { Layer, Option } from "effect"
+import { Database } from "@opencode/core/database/database"
+import { V1Migration } from "@opencode/core/database/v1-migration"
+import { App } from "@opencode/core/app"
+import { LayerNode } from "@opencode/util/effect/layer-node"
+import { Node } from "@opencode/util/effect/app-node"
+import { httpClient } from "@opencode/util/effect/app-node-platform"
+import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+import { Bus } from "@opencode/core/bus"
+import { EventLogger } from "@opencode/core/event-logger"
+import { FileSystemSearch } from "@opencode/core/filesystem/search"
+import { Credential } from "@opencode/core/credential"
+import { Config } from "@opencode/core/config"
+import { PermissionSaved } from "@opencode/core/permission/saved"
+import { PtyTicket } from "@opencode/core/pty/ticket"
+import { PersistentPty } from "@opencode/core/persistent-pty"
+import { Project } from "@opencode/core/project"
+import { Worktree } from "@opencode/core/worktree"
+import { Session } from "@opencode/core/session"
+import { Instance } from "@opencode/core/instance/service"
+import { SessionTransfer } from "@opencode/core/session/transfer"
+import { InstructionEntry } from "@opencode/core/session/instruction-entry"
+import { ShellSelect } from "@opencode/core/shell/select"
+import { Job } from "@opencode/core/job"
+import { KV } from "@opencode/core/kv"
+import { Mcp } from "@opencode/core/mcp/index"
+import { Global } from "@opencode/util/global"
+import { FSUtil } from "@opencode/util/fs-util"
+import { InstructionDiscovery } from "@opencode/core/instruction-discovery"
+import { LocationServiceMap } from "@opencode/core/location-service-map"
+import { LocationActivity } from "@opencode/core/location-activity"
+import { ModelsDev } from "@opencode/core/models-dev"
+import { SessionRestart } from "@opencode/core/session/execution/restart"
+import { Schedule } from "@opencode/core/schedule"
+import { PluginUpdate } from "@opencode/core/plugin/update"
+import { SdkPlugins } from "@opencode/core/plugin/sdk"
+import { WellKnown } from "@opencode/core/wellknown"
+import { Workspace } from "@opencode/core/workspace"
+import { Watcher } from "@opencode/core/filesystem/watcher"
+import { FileWatch } from "@opencode/core/filesystem/file-watch"
+import { HttpRouter } from "effect/http"
+import { HttpApiBuilder } from "effect/http-api"
+import { Context, Effect, Layer, Option } from "effect"
 import { Api } from "./api"
 import { ServerAuth } from "./auth"
 import { CorsConfig } from "./cors"
@@ -31,6 +57,7 @@ const applicationServiceNodes = [
   Global.node,
   FSUtil.node,
   Database.node,
+  KV.node,
   Bus.node,
   EventLogger.node,
   httpClient,
@@ -53,7 +80,9 @@ const applicationServiceNodes = [
   LocationServiceMap.node,
   LocationActivity.node,
   SessionRestart.node,
+  Schedule.node,
   Workspace.node,
+  FileWatch.node,
 ] as const
 const applicationServices = LayerNode.group(applicationServiceNodes)
 
@@ -63,8 +92,8 @@ export function createRoutes(
   overrides: LayerNode.Replacements = [],
 ) {
   return makeRoutes(
-    password
-      ? ServerAuth.Config.configLayer({ username: "bolt", password: Option.some(password) })
+    options.password
+      ? ServerAuth.Config.configLayer({ password: Option.some(options.password) })
       : ServerAuth.Config.layer,
     options,
     serviceURLs,
@@ -72,8 +101,16 @@ export function createRoutes(
   )
 }
 
-export function createEmbeddedRoutes() {
-  return makeRoutes(ServerAuth.Config.configLayer({ username: "bolt", password: Option.none() }))
+type InstanceNode = (
+  replacements: () => LayerNode.Replacements,
+) => LayerNode.Provider<Instance.Service, never, typeof Node.tags.values.global>
+
+export function createEmbeddedRoutes(
+  options: ServerOptions = {},
+  overrides: LayerNode.Replacements = [],
+  instances?: InstanceNode,
+) {
+  return makeRoutes(ServerAuth.Config.configLayer({ password: Option.none() }), options, () => [], overrides, instances)
 }
 
 function makeRoutes<AuthError, AuthServices>(
@@ -91,6 +128,7 @@ function makeRoutes<AuthError, AuthServices>(
     App.node.replace(App.configured(options.app)),
     ModelsDev.node.replace(ModelsDev.configured(options.models)),
     Watcher.node.replace(Watcher.configured({ enabled: options.fs?.filewatcher })),
+    FileWatch.node.replace(FileWatch.configured({ enabled: options.fs?.filewatcher })),
     FileSystemSearch.node.replace(FileSystemSearch.configured({ fff: options.fs?.fff })),
     Global.node.replace(Global.layerWith(options.config?.directory ? { config: options.config.directory } : {})),
     Config.node.replace(
