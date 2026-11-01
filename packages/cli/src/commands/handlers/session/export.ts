@@ -114,7 +114,8 @@ export default Runtime.handler(
     }).pipe(
       Effect.catch((error) =>
         Effect.sync(() => {
-          process.stderr.write(errorMessage(error) + EOL)
+          if (input.json) Envelope.printError(error instanceof Error ? error.name : "Error", errorMessage(error))
+          else process.stderr.write(errorMessage(error) + EOL)
           process.exitCode = 1
         }),
       ),
