@@ -9,10 +9,7 @@ import { CrossSpawnSpawner } from "@opencode/util/cross-spawn-spawner"
 import { LayerNodePlatform } from "@opencode/util/effect/app-node-platform"
 import { LayerNode } from "@opencode/util/effect/layer-node"
 import { Effect, FileSystem } from "effect"
-import { LayerNodePlatform } from "@bolt-ai/core/effect/app-node-platform"
-import { LayerNode } from "@bolt-ai/core/effect/layer-node"
-import { FSUtil } from "@bolt-ai/core/fs-util"
-import { ReadToolFileSystem } from "@bolt-ai/core/tool/read-filesystem"
+import { ChildProcessSpawner } from "effect/process"
 import { testEffect } from "./lib/effect"
 
 const it = testEffect(LayerNode.compile(LayerNode.group([CrossSpawnSpawner.node, LayerNodePlatform.filesystem])))
