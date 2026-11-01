@@ -3,9 +3,9 @@ title: Teme
 description: Izaberite ugradenu temu ili napravite svoju.
 ---
 
-U Bolt mozete birati izmedu vise ugradenih tema, koristiti temu koja se prilagodava terminalu ili definisati vlastitu temu.
+U OpenCode mozete birati izmedu vise ugradenih tema, koristiti temu koja se prilagodava terminalu ili definisati vlastitu temu.
 
-Po defaultu, Bolt koristi nasu `opencode` temu.
+Po defaultu, OpenCode koristi nasu `opencode` temu.
 
 ---
 
@@ -23,7 +23,7 @@ Bez truecolor podrske, teme mogu imati slabiju preciznost boja ili pasti na najb
 
 ## Ugrađene teme
 
-Bolt dolazi sa vise ugradenih tema.
+OpenCode dolazi sa vise ugradenih tema.
 
 | Naziv                  | Opis                                                                       |
 | ---------------------- | -------------------------------------------------------------------------- |
@@ -53,7 +53,7 @@ I jos mnogo njih, stalno dodajemo nove teme.
 
 System tema je za korisnike koji:
 
-- Zele da Bolt odgovara izgledu njihovog terminala
+- Zele da OpenCode odgovara izgledu njihovog terminala
 - Koriste prilagodene seme boja terminala
 - Preferiraju konzistentan izgled kroz sve terminalske aplikacije
 
@@ -65,7 +65,7 @@ Temu mozete izabrati preko selektora tema komandom `/theme`. Ili je možete nave
 
 ```json title="tui.json" {3}
 {
-  "$schema": "https://bolt.ai/tui.json",
+  "$schema": "https://opencode.ai/tui.json",
   "theme": "tokyonight"
 }
 ```
@@ -74,7 +74,7 @@ Temu mozete izabrati preko selektora tema komandom `/theme`. Ili je možete nave
 
 ## Prilagođene teme
 
-Bolt podrzava fleksibilan sistem tema baziran na JSON-u koji olaksava kreiranje i prilagodavanje tema.
+OpenCode podrzava fleksibilan sistem tema baziran na JSON-u koji olaksava kreiranje i prilagodavanje tema.
 
 ---
 
@@ -84,8 +84,8 @@ Teme se ucitavaju iz vise direktorija ovim redoslijedom, gdje kasniji direktorij
 
 1. **Ugradene teme** - Ugradene su u binarni fajl
 2. **Korisnicki config direktorij** - `~/.config/opencode/themes/*.json` ili `$XDG_CONFIG_HOME/opencode/themes/*.json`
-3. **Korijenski direktorij projekta** - `<project-root>/.bolt/themes/*.json`
-4. **Trenutni radni direktorij** - `./.bolt/themes/*.json`
+3. **Korijenski direktorij projekta** - `<project-root>/.opencode/themes/*.json`
+4. **Trenutni radni direktorij** - `./.opencode/themes/*.json`
 
 Ako vise direktorija sadrzi temu istog naziva, koristit ce se tema iz direktorija s vecim prioritetom.
 
@@ -105,8 +105,8 @@ vim ~/.config/opencode/themes/my-theme.json
 I za teme specificne za projekat.
 
 ```bash no-frame
-mkdir -p .bolt/themes
-vim .bolt/themes/my-theme.json
+mkdir -p .opencode/themes
+vim .opencode/themes/my-theme.json
 ```
 
 ---
@@ -144,7 +144,7 @@ Evo primjera prilagodene teme:
 
 ```json title="my-theme.json"
 {
-  "$schema": "https://bolt.ai/theme.json",
+  "$schema": "https://opencode.ai/theme.json",
   "defs": {
     "nord0": "#2E3440",
     "nord1": "#3B4252",
