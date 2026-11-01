@@ -1,5 +1,4 @@
-import type { TuiPlugin, TuiPluginApi } from "@bolt-ai/plugin/tui"
-import type { BuiltinTuiPlugin } from "../builtins"
+import { Plugin } from "@opencode/plugin/tui"
 import { createMemo, Show } from "solid-js"
 import { useTerminalDimensions } from "@opentui/solid"
 import { FilePath } from "../../ui/file-path"
@@ -7,15 +6,14 @@ import { useWorkingDirectoryActions } from "../../ui/working-directory-actions"
 import { usePromptMove } from "../../component/prompt/move"
 import { hasConnectedProvider } from "../../util/connected-provider"
 
-const id = "internal:sidebar-footer"
-
-function View(props: { api: TuiPluginApi; sessionID: string }) {
-  const paths = useTuiPaths()
-  const theme = () => props.api.theme.current
-  const has = createMemo(() =>
-    props.api.state.provider.some(
-      (item) => item.id !== "bolt" || Object.values(item.models).some((model) => model.cost?.input !== 0),
-    ),
+export function SidebarOnboarding(props: { context: Plugin.Context; sessionID: string }) {
+  const dimensions = useTerminalDimensions()
+  const [onboarding, updateOnboarding] = props.context.storage.store("getting-started", {
+    initial: { dismissed: false },
+  })
+  const session = createMemo(() => props.context.data.session.get(props.sessionID))
+  const integrations = createMemo(() =>
+    props.context.data.location.integration.list(session()?.location ?? props.context.location),
   )
   const showOnboarding = createMemo(() => {
     if (dimensions().height < 22) return false
@@ -25,32 +23,24 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   })
 
   return (
-    <box gap={1}>
-      <Show when={show()}>
-        <box
-          backgroundColor={theme().backgroundElement}
-          paddingTop={1}
-          paddingBottom={1}
-          paddingLeft={2}
-          paddingRight={2}
-          flexDirection="row"
-          gap={1}
-        >
-          <text flexShrink={0} fg={theme().text}>
-            ⬖
-          </text>
-          <box flexGrow={1} gap={1}>
-            <box flexDirection="row" justifyContent="space-between">
-              <text fg={theme().text}>
-                <b>Getting started</b>
-              </text>
-              <text fg={theme().textMuted} onMouseDown={() => props.api.kv.set("dismissed_getting_started", true)}>
-                ✕
-              </text>
-            </box>
-            <text fg={theme().textMuted}>Bolt includes free models so you can start immediately.</text>
-            <text fg={theme().textMuted}>
-              Connect from 75+ providers to use other models, including Claude, GPT, Gemini etc
+    <Show when={showOnboarding()}>
+      <box
+        id="sidebar.footer.getting-started"
+        backgroundColor={props.context.theme.background.raised.high}
+        paddingTop={1}
+        paddingBottom={1}
+        paddingLeft={2}
+        paddingRight={2}
+        flexDirection="row"
+        gap={1}
+      >
+        <text flexShrink={0} fg={props.context.theme.text.base}>
+          ⬖
+        </text>
+        <box flexGrow={1} gap={1}>
+          <box flexDirection="row" justifyContent="space-between">
+            <text fg={props.context.theme.text.base}>
+              <b>Getting started</b>
             </text>
             <text
               id="sidebar.footer.getting-started.dismiss"
@@ -119,13 +109,6 @@ function SidebarFooter(props: { context: Plugin.Context; sessionID: string }) {
           </box>
         )}
       </Show>
-      <text>
-        <span style={{ fg: theme().textMuted }}>{path().parent}/</span>
-        <span style={{ fg: theme().text }}>{path().name}</span>
-      </text>
-      <text fg={theme().textMuted}>
-        <span style={{ fg: theme().success }}>•</span> <b>Bolt</b> <span>{props.api.app.version}</span>
-      </text>
     </box>
   )
 }
