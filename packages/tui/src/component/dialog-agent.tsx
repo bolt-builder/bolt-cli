@@ -7,25 +7,22 @@ export function DialogAgent() {
   const local = useLocal()
   const dialog = useDialog()
 
-  const options = createMemo(() => [
-    {
-      value: "auto",
-      title: "Auto",
-      description: "Automatically select default agent",
-    },
-    ...local.agent.list().map((item) => {
+  const options = createMemo(() =>
+    local.agent.list().map((item) => {
       return {
         value: item.id,
         title: item.id,
         description: item.description,
       }
     }),
-  ])
+  )
 
   return (
     <DialogSelect
       title="Select agent"
-      current={local.agent.current()?.name ?? "auto"}
+      searchInTitle
+      titlePlaceholder="Search agents"
+      current={local.agent.current()?.id}
       options={options()}
       onSelect={(option) => {
         local.agent.set(option.value)
