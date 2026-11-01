@@ -1,6 +1,6 @@
-import { Location } from "@bolt-ai/core/location"
-import { Project } from "@bolt-ai/core/project"
-import { AbsolutePath } from "@bolt-ai/core/schema"
+import { Location } from "@opencode/core/location"
+import { Project } from "@opencode/core/project"
+import { AbsolutePath } from "@opencode/core/schema"
 import { Effect, Layer } from "effect"
 import { tmpdir } from "./tmpdir"
 
