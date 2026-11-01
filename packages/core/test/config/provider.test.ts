@@ -2,14 +2,20 @@ import { describe, expect } from "bun:test"
 import { Money } from "@opencode/schema/money"
 import { Document, Info, type Entry } from "@opencode/schema/config"
 import { Effect, Schema } from "effect"
-import { Catalog } from "@bolt-ai/core/catalog"
-import { Config } from "@bolt-ai/core/config"
-import { ConfigProviderPlugin } from "@bolt-ai/core/config/plugin/provider"
-import { Integration } from "@bolt-ai/core/integration"
-import { ModelV2 } from "@bolt-ai/core/model"
-import { PluginV2 } from "@bolt-ai/core/plugin"
-import { PluginHost } from "@bolt-ai/core/plugin/host"
-import { ProviderV2 } from "@bolt-ai/core/provider"
+import { Config } from "@opencode/core/config"
+import { ConfigProviderPlugin } from "@opencode/core/config/plugin/provider"
+import { ConfigNormalize } from "@opencode/core/config/normalize"
+import { Integration } from "@opencode/core/integration"
+import { Model } from "@opencode/core/model"
+import { ModelResolver } from "@opencode/core/model-resolver"
+import { Plugin } from "@opencode/core/plugin"
+import { PluginHost } from "@opencode/core/plugin/host"
+import { AzurePlugin } from "@opencode/core/plugin/provider/azure"
+import { OpenAIPlugin } from "@opencode/core/plugin/provider/openai"
+import { PromptCacheKeyPlugin } from "@opencode/core/plugin/provider/prompt-cache-key"
+import { XAIPlugin } from "@opencode/core/plugin/provider/xai"
+import { Provider } from "@opencode/core/provider"
+import { withEnv } from "../fixture/env"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "../plugin/fixture"
 
@@ -31,32 +37,21 @@ const decode = Schema.decodeUnknownSync(Info)
 describe("ConfigProviderPlugin.Plugin", () => {
   it.effect("inherits the provider compaction setting with model overrides and rejects unsupported routes", () =>
     Effect.gen(function* () {
-      const catalog = yield* Catalog.Service
-      const providerID = ProviderV2.ID.bolt
-      const modelID = ModelV2.ID.make("alpha-gpt-next")
-      const config = Config.Service.of({
-        entries: () =>
-          Effect.succeed([
-            new Config.Document({
-              type: "document",
-              info: decode({
-                providers: {
-                  opencode: {
-                    api: { type: "aisdk", package: "@ai-sdk/openai", url: "https://bolt.test/v1" },
-                    models: {
-                      "alpha-gpt-next": {
-                        variants: [
-                          {
-                            id: "high",
-                            body: {
-                              reasoningEffort: "high",
-                              reasoningSummary: "auto",
-                              include: ["reasoning.encrypted_content"],
-                            },
-                          },
-                        ],
-                      },
-                    },
+      const models = yield* Model.Service
+      const providers = yield* Provider.Service
+      yield* addPlugin([
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              custom: {
+                package: "@opencode/ai/providers/openai/responses",
+                settings: { compaction: { type: "native" } },
+                models: {
+                  native: {},
+                  local: {
+                    settings: { compaction: { type: "summary" } },
+                    package: "@opencode/ai/providers/openai/chat",
                   },
                   unsupported: { package: "@opencode/ai/providers/openai/chat" },
                 },
@@ -399,6 +394,68 @@ describe("ConfigProviderPlugin.Plugin", () => {
       const model = required(yield* models.get(providerID, modelID))
       expect(model.capabilities).toEqual({ tools: true, input: ["text", "image"], output: ["text"] })
       expect(model.limit).toEqual({ context: 200_000, output: 32_000 })
+    }),
+  )
+
+  it.effect("lists a custom model by its configured type and an untyped one as chat", () =>
+    Effect.gen(function* () {
+      const models = yield* Model.Service
+      const entries = [
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              custom: {
+                package: "aisdk:@ai-sdk/openai-compatible",
+                models: { chat: {}, painter: { type: "image" } },
+              },
+            },
+          }),
+        }),
+      ]
+
+      yield* addPlugin(entries)
+
+      expect((yield* models.available()).map((model) => model.id)).toEqual([Model.ID.make("chat")])
+      expect((yield* models.available(["image"])).map((model) => model.id)).toEqual([Model.ID.make("painter")])
+      expect(yield* models.get(Provider.ID.make("custom"), Model.ID.make("painter"))).toBeUndefined()
+    }),
+  )
+
+  it.effect("lets config change a catalog model's type and keeps it when unset", () =>
+    Effect.gen(function* () {
+      const providers = yield* Provider.Service
+      const models = yield* Model.Service
+      const providerID = Provider.ID.make("custom")
+      const retypedID = Model.ID.make("retyped")
+      const keptID = Model.ID.make("kept")
+      yield* providers.transform((editor) => {
+        editor.models.update(providerID, retypedID, () => {})
+        editor.models.update(providerID, keptID, (model) => {
+          model.type = "decision"
+        })
+      })
+      const entries = [
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              custom: {
+                package: "aisdk:@ai-sdk/openai-compatible",
+                models: { retyped: { type: "image" }, kept: { name: "Kept" } },
+              },
+            },
+          }),
+        }),
+      ]
+
+      yield* addPlugin(entries)
+
+      expect(yield* models.available()).toEqual([])
+      expect((yield* models.available(["image"])).map((model) => model.id)).toEqual([retypedID])
+      expect((yield* models.available(["decision"])).map((model) => [model.id, model.name])).toEqual([
+        [keptID, "Kept"],
+      ])
     }),
   )
 
@@ -761,6 +818,57 @@ describe("ConfigProviderPlugin.Plugin", () => {
     }),
   )
 
+  it.effect("preserves plugin-supplied variants on custom models when config omits variants", () =>
+    Effect.gen(function* () {
+      const models = yield* Model.Service
+      const customID = Provider.ID.make("custom")
+      const perModelID = Provider.ID.make("per-model")
+      const customTiers = ["none", "low", "medium", "xhigh"].map((id) => ({
+        id: Model.VariantID.make(id),
+        settings: { reasoningEffort: id },
+      }))
+      yield* models.transform((editor) => {
+        for (const id of ["plain", "same-package"])
+          editor.update(customID, Model.ID.make(id), (model) => {
+            model.variants = structuredClone(customTiers)
+          })
+        editor.update(perModelID, Model.ID.make("only-model-package"), (model) => {
+          model.variants = structuredClone(customTiers)
+        })
+      })
+      yield* addPlugin([
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              custom: {
+                package: "aisdk:@ai-sdk/openai-compatible",
+                models: {
+                  plain: { name: "Plain" },
+                  "same-package": { package: "aisdk:@ai-sdk/openai-compatible" },
+                },
+              },
+              "per-model": {
+                models: {
+                  "only-model-package": { package: "aisdk:@ai-sdk/openai-compatible" },
+                },
+              },
+            },
+          }),
+        }),
+      ])
+
+      const ids = (providerID: Provider.ID, id: string) =>
+        models
+          .get(providerID, Model.ID.make(id))
+          .pipe(Effect.map((model) => required(model).variants.map((variant) => variant.id)))
+      const expected = customTiers.map((variant) => variant.id)
+      expect(yield* ids(customID, "plain")).toEqual(expected)
+      expect(yield* ids(customID, "same-package")).toEqual(expected)
+      expect(yield* ids(perModelID, "only-model-package")).toEqual(expected)
+    }),
+  )
+
   it.effect("respells inherited variants when config moves a catalog model to another package", () =>
     Effect.gen(function* () {
       const providers = yield* Provider.Service
@@ -992,18 +1100,29 @@ describe("ConfigProviderPlugin.Plugin", () => {
 
   it.effect("keeps layered model variant bodies unchanged", () =>
     Effect.gen(function* () {
-      const catalog = yield* Catalog.Service
-      const providerID = ProviderV2.ID.bolt
-      const modelID = ModelV2.ID.make("alpha-gpt-next")
-      const config = Config.Service.of({
-        entries: () =>
-          Effect.succeed([
-            new Config.Document({
-              type: "document",
-              info: decode({
-                providers: {
-                  opencode: {
-                    api: { type: "aisdk", package: "@ai-sdk/openai", url: "https://bolt.test/v1" },
+      const models = yield* Model.Service
+      const providerID = Provider.ID.opencode
+      const modelID = Model.ID.make("alpha-gpt-next")
+      const entries = [
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              opencode: {
+                package: "aisdk:@ai-sdk/openai",
+                settings: { baseURL: "https://opencode.test/v1" },
+              },
+            },
+          }),
+        }),
+        new Document({
+          type: "document",
+          info: decode({
+            providers: {
+              opencode: {
+                models: {
+                  "alpha-gpt-next": {
+                    variants: [{ id: "high", body: { reasoningEffort: "high" } }],
                   },
                 },
               },
