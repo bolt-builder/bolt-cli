@@ -75,28 +75,32 @@ export default Runtime.handler(Commands.commands.bisect, (input) =>
     yield* run(["checkout", "--detach", sha]).pipe(Effect.flatMap(AppProcess.requireSuccess))
     process.stdout.write(`Bisecting between ${input.good} (good) and HEAD (bad)...\n`)
     yield* run(["bisect", "start", sha, goodSHA]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-    // Git for Windows invokes bisect commands through its POSIX shell, which
-    // reparses cmd.exe quoting. Drive the same good/bad/skip protocol directly.
-    const result = yield* process.platform === "win32"
-      ? Effect.gen(function* () {
-          while (true) {
-            const current = yield* run(["rev-parse", "HEAD"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-            const bad = yield* run(["rev-parse", "refs/bisect/bad"]).pipe(Effect.flatMap(AppProcess.requireSuccess))
-            if (current.stdout.equals(bad.stdout)) return bad
-            const checked = yield* execute
-            if (checked.exitCode >= 128)
-              return yield* Effect.fail(
-                new Error(`Bisect command aborted (exit ${checked.exitCode}).\n${checked.stderr}`),
-              )
-            yield* run(["bisect", checked.exitCode === 0 ? "good" : checked.exitCode === 125 ? "skip" : "bad"]).pipe(
-              Effect.flatMap(AppProcess.requireSuccess),
-            )
-          }
-        })
-      : run(["bisect", "run", "sh", "-c", input.command])
-    const culprit = yield* run(["rev-parse", "--verify", "refs/bisect/bad"])
-    if (result.exitCode !== 0 || culprit.exitCode !== 0)
-      return yield* Effect.fail(new Error(result.stderr.toString().trim() || "git bisect run failed to converge"))
+    // Run through the platform shell directly so Git for Windows cannot reparse
+    // cmd.exe quoting. Git can finish with HEAD still on the last good commit;
+    // convergence means only the bad revision remains outside the good ancestry.
+    while (true) {
+      const candidates = yield* run([
+        "rev-list",
+        "--count",
+        "refs/bisect/bad",
+        "--not",
+        "--glob=refs/bisect/good-*",
+      ]).pipe(Effect.flatMap(AppProcess.requireSuccess))
+      if (candidates.stdout.toString().trim() === "1") break
+      const checked = yield* execute
+      if (checked.exitCode >= 128)
+        return yield* Effect.fail(new Error(`Bisect command aborted (exit ${checked.exitCode}).\n${checked.stderr}`))
+      const marked = yield* run(["bisect", checked.exitCode === 0 ? "good" : checked.exitCode === 125 ? "skip" : "bad"])
+      if (marked.exitCode !== 0)
+        return yield* Effect.fail(
+          new Error(
+            marked.stderr.toString().trim() || marked.stdout.toString().trim() || "git bisect failed to converge",
+          ),
+        )
+    }
+    const culprit = yield* run(["rev-parse", "--verify", "refs/bisect/bad"]).pipe(
+      Effect.flatMap(AppProcess.requireSuccess),
+    )
     const commit = culprit.stdout.toString().trim()
     const summary = yield* run([
       "show",

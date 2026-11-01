@@ -7,7 +7,7 @@ import { isolatedEnv } from "./fixture/environment"
 import { workflowServer } from "./fixture/workflow-server"
 
 const entry = path.resolve(import.meta.dir, "../src/index.ts")
-for (const mode of ["locate", "fix", "passing HEAD", "failing good"] as const)
+for (const mode of ["locate", "fix", "passing HEAD", "failing good", "skipped revisions", "aborted command"] as const)
   test(`bisect preserves the checkout and cleans worktrees: ${mode}`, async () => {
     const home = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-bisect-command-"))
     const project = path.join(home, "project")
@@ -108,6 +108,22 @@ for (const mode of ["locate", "fix", "passing HEAD", "failing good"] as const)
         const fail = await cli(`"${process.execPath}" -e "process.exit(1)"`)
         expect(fail.code).toBe(1)
         expect(fail.stderr).toContain("also fails on --good")
+      }
+      if (mode === "skipped revisions" || mode === "aborted command") {
+        const command = path.join(home, "check.cjs")
+        await Bun.write(
+          command,
+          `const source = require("node:fs").readFileSync("state.cjs", "utf8")
+process.exitCode = source.startsWith("// later") ? 1 : source.includes("process.exitCode = 0") ? 0 : ${mode === "skipped revisions" ? 125 : 128}
+`,
+        )
+        const fail = await cli(`"${process.execPath}" "${command}"`)
+        expect(fail.code, fail.stderr).toBe(1)
+        expect(fail.stderr).toContain(
+          mode === "skipped revisions" ? "only 'skip'ped commits left" : "aborted (exit 128)",
+        )
+        expect(fail.stdout).not.toContain("Culprit found")
+        expect(fixture.sessions.size).toBe(0)
       }
     } finally {
       fixture.server.stop(true)

@@ -22,6 +22,10 @@ A registered name does not establish parity. **Verified** means the named behavi
 | Reduced motion | Integrated | Global animations suppresses fire; OS/browser reduced-motion and all animations audit pending |
 | Shared web/desktop Bolt logo/theme | Integrated | Shared cloud About/light/dark checks; production browser regression 80/80, theme unit 13/13; native window verification pending |
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:aba2bef2b54345688ce02b7d89adea6739c4339c43d7c47fb2d57d4d6fbd31af -->
+
 ## CLI commands and flags
 
 Each source below is read from the reference commit. Nested commands retain their source context. The flag column lists explicit V1 options in that source, including its subcommands; inherited globals and aliases require the separate global parser audit.
@@ -36,7 +40,7 @@ Each source below is read from the reference commit. Nested commands retain thei
 | `asserts [files..]` | `--branch`, `--suggest`, `--model` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/asserts.ts` |
 | `batch <file>` | `--parallel`, `--model`, `--agent` | Integrated; detailed parity pending | test/workflow-commands.test.ts (parallel retained sessions) | `packages/cli/src/commands/handlers/batch.ts` |
 | `bench <command>` | `--base`, `--runs`, `--warmup`, `--threshold` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/bench.ts` |
-| `bisect <command>` | `--good`, `--fix`, `--model` | Integrated; native platforms pending | Real Git/SSE integration: 1 test / 61 assertions; culprit, readonly proposal, boundary failures and worktree cleanup | `packages/cli/src/commands/handlers/bisect.ts` |
+| `bisect <command>` | `--good`, `--fix`, `--model` | Integrated; native platforms pending | Real Git/SSE integration: 6 cases / 150 assertions; exact culprit, readonly proposal, boundary/skip/abort failures and checkout/worktree preservation; shared native shell protocol avoids the Windows completion loop | `packages/cli/src/commands/handlers/bisect.ts` |
 | `blast` | `--staged`, `--branch` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/blast.ts` |
 | `checkpoint` | `--session`, `--repo-only` | Integrated; detailed parity pending | test/checkpoint-command.test.ts; Core bolt-checkpoint/snapshot/session-revert suites (14 tests / 64 assertions) | `packages/cli/src/commands/handlers/checkpoint.ts` |
 | `checkpoint save <name>` | `--session`, `--repo-only` | Integrated; detailed parity pending | test/checkpoint-command.test.ts; Core bolt-checkpoint/snapshot/session-revert suites (14 tests / 64 assertions) | `packages/cli/src/commands/handlers/checkpoint.ts` |
@@ -114,6 +118,8 @@ Each source below is read from the reference commit. Nested commands retain thei
 | `worktree create [name]` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
 | `worktree remove <worktree>` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
 | `worktree clean` | `--start`, `--apply` | Integrated; detailed parity pending | Existing V2 handler; behavior/flag audit pending | `packages/cli/src/commands/handlers/worktree.ts` |
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Run and Mini restoration evidence
 
@@ -229,18 +235,23 @@ The restoration remains in progress. None of the pending rows is covered by a ge
 
 <!-- coderabbit-ai-generated-section:v1:06060329b1f486995a2b2e89b3cabc703ad9a9c6396c8aeac08af9267be6b4fa -->
 
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:f26d368dc36ef0d6ba82838009045b5fdb1a79db4d222ab87931d52de41ac4b1 -->
+
 ## Native CI repair checkpoint
 
 The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizzle glob importing the SQL tool, Windows shell quoting/path/archive problems, and assertions tied to the upstream brand/palette. Repairs preserve the database schema, user data and V2 permission paths.
 
-- Canonical root check passed: 36/36 packages. Official Core, CLI and TUI TypeScript checks passed at this checkpoint.
-- CLI repair selection passed 36 tests / 684 assertions after canonicalizing Windows path aliases, preserving native porcelain EOL, fixing jq CRLF metadata and cleaning Windows process trees. Split bisect integration cases retain the original checkout/worktree/read-only assertions within each test deadline. Native unit reruns remain required.
-- TUI history/lifecycle/commands selection passed 56 tests; appearance/config/theme selection passed 28 tests. Prior full lifecycle/dialog selection passed 75 tests; unchanged regressions also passed ten repetitions.
+- Canonical root check passed: 36/36 packages. Official Core, CLI, TUI, App and E2E TypeScript checks passed for the affected source. Changed-file GUI lint now has zero findings in all 21 changed files.
+- CLI repair selection passed 36 tests / 684 assertions after canonicalizing Windows path aliases, preserving native porcelain EOL, fixing jq CRLF metadata and cleaning Windows process trees. Windows confirmed those repairs at `996072d`; bisect alone still looped after Git finished on a good HEAD. The shared platform-shell loop now detects convergence using Git's remaining-candidate count, preserves skip/abort semantics and reports ambiguity. Its six real Git/SSE cases pass locally with exact culprit, readonly proposal, boundary failures, original checkout bytes and worktree cleanup assertions; fresh native unit rerun is required.
+- Native Linux CI exposed context_replay being dropped during config normalization; the schema-owned normalizer now preserves true/false and diagnoses malformed input. Existing normalization property expectations remain unchanged. Config consumers pass 98 tests / 596 assertions. A voice-route fixture now clears the previous test's draft stash; paired prompt-offset/voice cases pass 3 tests / 5 assertions without weakening the production route guard.
+- TUI history/lifecycle/commands selection passed 56 tests; appearance/config/theme selection passed 28 tests. Prior full lifecycle/dialog selection passed 75 tests; unchanged regressions also passed ten repetitions. Native Windows TUI passed 1669 tests with 18 existing platform skips at `996072d`.
 - Bolt pin-board interaction/reduced motion and light/dark composer component cases passed 60 repetitions with no retries.
 - Migration/SQL selection passed 46 tests / 125 assertions after naming the tool module `sql-query.ts`; no database schema or migration changed. Regenerated OpenAPI passes its generated-output check.
-- Linux Node SEA production build and compiled service smoke passed. Packed SDK Node/Bun/workerd imports, bundling and actual worker boot passed. The newer history controls still require a fresh compiled build.
-- At head `c8d9d6c`, all five Node builds, Linux/Windows builds, all six desktop builds and Linux/Windows browser suites passed. Linux unit CI found stale generated OpenAPI; Windows unit CI found the command/fixture failures repaired above. Signing/installers and fresh unit reruns are tracked separately; builds do not prove native installation or full V1 parity.
-- Production browser fixture selection passed 129/130 initially. The remaining Go-limit fixture injected its refusal before the model catalog was selected; waiting for the actual selected model fixes its owning readiness condition, and 20/20 fresh repetitions passed. About-page loading/failure cases passed 20/20 on the new production web build.
+- Current history/fire source compiled into a Linux Node SEA production binary and passed an actual isolated terminal smoke: history outside tabs, changing WASM fire, persisted animation/fire settings, cleanup confirmation/cancellation, Experiments menu and narrow layout. Terminal captures are attached to the coding task. Packed SDK Node/Bun/workerd imports, bundling and actual worker boot also passed.
+- At `996072d`, all five Node builds, Linux/Windows builds, all six desktop builds, npm/Docker builds and every Linux/Windows browser suite passed. Signing/installers and fresh unit reruns are tracked separately; builds do not prove native installation or full V1 parity.
+- Production browser fixture selection passed 129/130 initially. The Go-limit fixture needed actual model-catalog readiness; its repaired keeper passes 20/20. About loading/failure cases pass 20/20. All four composer persistence benchmark scenarios pass with the full 44,223-byte prompt, eight context attachments, exact stored bytes/cursor and submission cleanup. The shared draft reader now follows the existing inline/text-chunk storage contract; its original long-quote reload consumer also passes. Workloads and timing/count measurement boundaries are retained.
 - Full Effect pattern scan retains 34 findings already present in `dev`; the two new background-tool import aliases were removed and the scoped scan passes. Effect rule fixtures and simplification scan pass. This baseline failure is not reported as a passing full scan.
 
 ## Requested session history controls
@@ -249,7 +260,9 @@ The first PR #421 native run exposed fire WASM packaging in Node builds, a Drizz
 - `/clear-data` (alias `/clear-history`) snapshots all root conversations from the connected Bolt server, shows their count and requires typing `DELETE`. It uses normal V2 deletion, reports partial failures and preserves settings, credentials, memory and project files. This is conversation cleanup: it cannot delete provider-held data, reset Zen usage limits or enable unlimited usage. No real user history was deleted during verification.
 - New designs is removed from the Experiments menu. Existing saved layout preferences and the reusable Experiments framework are retained.
 - The About Bolt wordmark now uses the original cyan-to-blue gradient at full opacity while retaining the existing reduced-motion behavior; verified in the shared cloud browser against a production build.
-- Evidence: TUI `test/session-history.test.tsx` uses the actual app fixture for pagination, opening an older conversation, deletion events, cancellation and explicit deletion with partial failures. Full supported-platform and V1 parity gates above remain open.
+- Evidence: TUI `test/session-history.test.tsx` uses the actual app fixture for pagination, opening an older conversation, deletion events, cancellation and explicit deletion with partial failures. The current packaged terminal smoke independently exercised history, fire/settings, the menu and cleanup cancellation. Full supported-platform and V1 parity gates above remain open.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 
 <!-- /coderabbit-ai-generated:v1 -->

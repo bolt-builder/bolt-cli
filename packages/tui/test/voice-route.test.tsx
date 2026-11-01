@@ -4,12 +4,14 @@ import os from "node:os"
 import path from "node:path"
 import { TextareaRenderable } from "@opentui/core"
 import { voice } from "../src/voice"
+import { takeDraft } from "../src/component/prompt/draft-stash"
 import { createAppFixture } from "./fixture/app"
 import { directory, json } from "./fixture/tui-client"
 
 test.skipIf(process.platform === "win32")(
   "a voice transcription never inserts into the prompt of a different route",
   async () => {
+    takeDraft(undefined)
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-voice-route-"))
     const previousPath = process.env.PATH
     const ready = path.join(root, "ready")
@@ -75,6 +77,7 @@ setInterval(() => {}, 1000)
       expect(editor.plainText).toBe("new route draft")
     } finally {
       await voice.reset()
+      takeDraft(undefined)
       recorder.mockRestore()
       if (previousPath === undefined) delete process.env.PATH
       else process.env.PATH = previousPath

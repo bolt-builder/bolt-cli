@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
-import type { ConfigEntry, OpenCodeEvent, SessionMessageInfo, WorktreeDirectory } from "@opencode/client/promise"
+import type { ConfigEntry, OpenCodeEvent, WorktreeDirectory } from "@opencode/client/promise"
 import { NO_PROVIDER, REMOTE_SERVER, SERVER, holdRoute, project, seed, session } from "../utils/app"
 import { mockMissingLocation, mockOpenCodeServer } from "../utils/mock-server"
 import { mockRemoteServer, mockWorkspace, openSession, openSettings, type WorkspaceInput } from "../utils/workspace"
@@ -256,7 +256,7 @@ for (const locale of ["en", "ar"]) {
       ],
       sessionStatus: { [id]: { type: "busy" }, [childID]: { type: "busy" } },
       seed: { locale },
-      pageMessages: (): { items: SessionMessageInfo[] } => ({
+      pageMessages: (): ReturnType<NonNullable<WorkspaceInput["pageMessages"]>> => ({
         items: [
           { id: "msg_activity_user", type: "user", text: "Inspect the activity capsule", time: { created: 1 } },
           {
