@@ -1,9 +1,9 @@
 import { Meta, Title } from "@solidjs/meta"
-import { ProviderIcon } from "@bolt-ai/ui/provider-icon"
+import { ProviderIcon } from "@opencode/ui/provider-icon"
 import { scaleSqrt } from "d3-scale"
 import countryCodesSource from "i18n-iso-countries/codes.json?raw"
-import { type CountryEntry, type ModelUsagePoint } from "@bolt-ai/stats-core/domain/home"
-import { statModel } from "@bolt-ai/stats-core/domain/model-normalization"
+import { type CountryEntry, type ModelUsagePoint } from "@opencode/stats-core/domain/home"
+import { statModel } from "@opencode/stats-core/domain/model-normalization"
 import { createAsync, query, useParams } from "@solidjs/router"
 import { createMemo, createSignal, createUniqueId, For, onMount, Show, type JSX } from "solid-js"
 import { getRequestEvent } from "solid-js/web"
@@ -13,6 +13,7 @@ import { LocaleLinks } from "../../component/locale-links"
 import { NotFoundMeta } from "../../component/not-found-meta"
 import { useI18n } from "../../context/i18n"
 import { useLanguage } from "../../context/language"
+import { dismissChartTooltipOnExit } from "../../lib/chart-tooltip"
 import { fromFirstUsage } from "../../lib/format"
 import { localizedUrl } from "../../lib/language"
 import { loadModelPage, type ModelPageData } from "../../lib/page-data"
@@ -144,7 +145,7 @@ export default function StatsModel() {
           <FormatLinks path={modelPath()} />
           <LastModified value={stats()?.updatedAt} />
           <Meta property="og:type" content="website" />
-          <Meta property="og:site_name" content="Bolt" />
+          <Meta property="og:site_name" content="OpenCode" />
           <Meta property="og:title" content={modelTitle()} />
           <Meta property="og:description" content={modelDescription()} />
           <Meta property="og:url" content={modelUrl()} />
@@ -390,7 +391,7 @@ function ModelHero(props: {
               <ModelHeroSparkline data={data()} />
             </span>
             <span>across last week's</span>
-            <span data-slot="model-hero-pill">Bolt</span>
+            <span data-slot="model-hero-pill">OpenCode</span>
             <span>usage with</span>
             <span data-slot="model-hero-pill">{formatPercent(data().tokenShare)}</span>
             <span>of observed</span>
@@ -644,6 +645,12 @@ function ModelTrendSection(props: {
   const activeLineMaskId = createUniqueId()
   const areaGradientId = createUniqueId()
   const [activeIndex, setActiveIndex] = createSignal<number>()
+  let chartRef: HTMLDivElement | undefined
+  dismissChartTooltipOnExit({
+    chart: () => chartRef,
+    open: () => activeIndex() !== undefined,
+    dismiss: () => setActiveIndex(undefined),
+  })
   const highlightBars = createMemo(() => props.highlightBars ?? true)
   const lineScale = 326 / 450
   const areaBottom = 100 / lineScale
@@ -690,6 +697,7 @@ function ModelTrendSection(props: {
         fallback={<ModelEmptyState title={props.emptyTitle} description={props.emptyDescription} />}
       >
         <div
+          ref={chartRef}
           data-component="model-usage-chart"
           data-variant="model-trend"
           data-highlight-bars={highlightBars() ? "true" : undefined}
