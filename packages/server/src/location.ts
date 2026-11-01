@@ -1,15 +1,20 @@
-import { Location } from "@bolt-ai/core/location"
-import { LocationServiceMap } from "@bolt-ai/core/location-services"
-import { AbsolutePath } from "@bolt-ai/core/schema"
-import { WorkspaceV2 } from "@bolt-ai/core/workspace"
-import { Effect, Layer } from "effect"
-import { HttpServerRequest } from "effect/unstable/http"
-import { HttpApiMiddleware } from "effect/unstable/httpapi"
+import { FileSystem } from "@opencode/core/filesystem"
+import { Location } from "@opencode/core/location"
+import { Plugin } from "@opencode/core/plugin"
+import { LocationServiceMap } from "@opencode/core/location-services"
+import { AbsolutePath } from "@opencode/core/schema"
+import { Session } from "@opencode/core/session"
+import { LocationNotFoundError, InvalidRequestError, ServiceUnavailableError } from "@opencode/protocol/errors"
+import { Effect, Layer, Schema } from "effect"
+import { HttpServerRequest } from "effect/http"
+import { HttpApiMiddleware } from "effect/http-api"
+import { missingSession } from "./handlers/session-error"
 
 export type LocationServices = Layer.Success<ReturnType<(typeof LocationServiceMap.Service)["get"]>>
 
 export class LocationMiddleware extends HttpApiMiddleware.Service<LocationMiddleware, { provides: LocationServices }>()(
-  "@bolt/HttpApiLocation",
+  "@opencode/HttpApiLocation",
+  { error: [LocationNotFoundError] },
 ) {}
 
 export function locationErrors<A, E, R>(effect: Effect.Effect<A, E, R>) {
