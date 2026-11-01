@@ -1,7 +1,13 @@
-import { AgentV2 } from "@bolt-ai/core/agent"
-import { SessionMessage } from "@bolt-ai/core/session/message"
-import { ToolRegistry } from "@bolt-ai/core/tool/registry"
-import { Effect } from "effect"
+import { Agent } from "@opencode/core/agent"
+import { CodeModeCatalog } from "@opencode/core/codemode/catalog"
+import type { Permission } from "@opencode/core/permission"
+import { SessionMessage } from "@opencode/core/session/message"
+import { toSessionError } from "@opencode/core/session/to-session-error"
+import type { SessionError } from "@opencode/schema/session-error"
+import { Tool } from "@opencode/core/tool"
+import type { Context } from "@opencode/plugin/effect/plugin"
+import { Effect, type Scope } from "effect"
+import { host } from "../plugin/host"
 
 export const toolIdentity = {
   agent: Agent.ID.make("build"),
