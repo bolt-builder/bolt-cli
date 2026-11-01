@@ -11,8 +11,8 @@ This codebase uses Effect for typed, composable TypeScript services, schemas, an
 
 Use the current Effect v4 source, not memory or older Effect v2/v3 examples.
 
-1. If `.bolt/references/effect-smol` is missing, clone `https://github.com/Effect-TS/effect-smol` there. Do this in the project, not in the skill folder.
-2. Search `.bolt/references/effect-smol` for exact APIs, examples, tests, and naming patterns before answering or implementing Effect-specific code.
+1. If `.opencode/references/effect` is missing, clone `https://github.com/Effect-TS/effect` there. Do this in the project, not in the skill folder.
+2. Search `.opencode/references/effect` for exact APIs, examples, tests, and naming patterns before answering or implementing Effect-specific code.
 3. Also inspect existing repo code for local house style before introducing new patterns.
 4. Prefer answers and implementations backed by specific source files or nearby repo examples.
 
@@ -27,7 +27,7 @@ Use the current Effect v4 source, not memory or older Effect v2/v3 examples.
 - Keep layer composition explicit. Avoid broad hidden provisioning that makes missing dependencies hard to see.
 - In tests, prefer the repo's existing Effect test helpers and live tests for filesystem, git, child process, locks, or timing behavior.
 - Do not introduce `any`, non-null assertions, unchecked casts, or older Effect APIs just to satisfy types.
-- Do not answer from memory. Verify against `.bolt/references/effect-smol` or nearby code first.
+- Do not answer from memory. Verify against `.opencode/references/effect` or nearby code first.
 
 ## Testing Patterns
 
