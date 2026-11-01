@@ -1,10 +1,21 @@
-import { ToolOutput, type LLMEvent, type ProviderMetadata, type ToolResultValue, type Usage } from "@bolt-ai/llm"
-import { DateTime, Effect } from "effect"
-import { EventV2 } from "../../event"
-import { ModelV2 } from "../../model"
-import { SessionEvent } from "../event"
-import { SessionMessage } from "../message"
-import { SessionSchema } from "../schema"
+import { type LLMEvent, type ProviderMetadata, type ToolResultValue } from "@opencode/ai/effect"
+import { isRecord } from "@opencode/util/record"
+import type { Agent } from "@opencode/schema/agent"
+import type { Model } from "@opencode/schema/model"
+import type { RelativePath } from "@opencode/schema/schema"
+import type { Snapshot } from "@opencode/schema/snapshot"
+import type { TokenUsage } from "@opencode/schema/token-usage"
+import { Effect, Fiber, Iterable } from "effect"
+import { isReadonlyArrayNonEmpty } from "effect/Array"
+import { Bus } from "../../bus.js"
+import { SessionEvent } from "../event.js"
+import { SessionMessage } from "../message.js"
+import { SessionSchema } from "../schema.js"
+import { SessionError } from "@opencode/schema/session-error"
+import { Money } from "@opencode/schema/money"
+import { contentFilterError } from "../to-session-error.js"
+import type { Tool } from "../../tool.js"
+import { stringify } from "../../tool/runtime.js"
 
 type Input = {
   readonly sessionID: SessionSchema.ID
@@ -579,8 +590,6 @@ export const createLLMEventPublisher = (bus: Pick<Bus.Interface, "publish">, inp
     }
   }, Effect.uninterruptible)
 
-  const publishTraced = Effect.fn("SessionRunner.publishLLMEvent")(publish)
-
   const progress = Effect.fnUntraced(function* (id: string, update: Tool.Metadata) {
     const tool = tools.get(id)
     if (!tool?.called || tool.settled) return yield* Effect.die(new Error(`Tool progress outside running call: ${id}`))
@@ -614,11 +623,7 @@ export const createLLMEventPublisher = (bus: Pick<Bus.Interface, "publish">, inp
   })
 
   return {
-    publish: (event: LLMEvent) => {
-      if (event.type === "text-delta" || event.type === "reasoning-delta" || event.type === "tool-input-delta")
-        return publish(event)
-      return publishTraced(event)
-    },
+    publish: (event: LLMEvent): Effect.Effect<void> => publish(event),
     progress,
     toolExecution,
     flush,
