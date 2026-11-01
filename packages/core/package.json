@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "1.20.7",
-  "name": "@bolt-ai/core",  "type": "module",
+  "version": "2.2.5",
+  "name": "@opencode/core",
+  "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -18,11 +19,14 @@
     "db": "bun drizzle-kit",
     "migration": "bun run script/migration.ts",
     "fix-node-pty": "bun run script/fix-node-pty.ts",
-    "test": "bun test --only-failures",
-    "typecheck": "tsgo --noEmit"
-  },
-  "bin": {
-    "bolt": "./bin/bolt"
+    "benchmark:location": "bun run script/benchmark-location.ts",
+    "benchmark:location-memory": "bun run script/benchmark-location-memory.ts",
+    "build": "bun run script/build.ts",
+    "pack": "bun run script/pack.ts",
+    "update-models-snapshot": "bun run script/update-models-snapshot.ts",
+    "test": "bun run script/test.ts",
+    "typecheck": "bun check --no-script -b -p tsconfig.tests.json",
+    "typecheck:tsc": "tsc -b tsconfig.json tsconfig.tests.json"
   },
   "exports": {
     "./*": "./src/*.ts"
@@ -39,6 +43,10 @@
       "bun": "./src/pty/pty.bun.ts",
       "node": "./src/pty/pty.node.ts",
       "default": "./src/pty/pty.bun.ts"
+    },
+    "#claude-agent-sdk": {
+      "workerd": "./src/plugin/provider/claude-agent/claude/agent-sdk.workerd.ts",
+      "default": "./src/plugin/provider/claude-agent/claude/agent-sdk.ts"
     },
     "#persistent-pty-binary": {
       "workerd": "./src/persistent-pty/binary.workerd.ts",
@@ -58,12 +66,6 @@
       "node": "./src/image/photon-wasm.node.ts",
       "default": "./src/image/photon-wasm.bun.ts"
     },
-    "#shell-parser-wasm": {
-      "workerd": "./src/shell/parser-wasm.workerd.ts",
-      "bun": "./src/shell/parser-wasm.bun.ts",
-      "node": "./src/shell/parser-wasm.node.ts",
-      "default": "./src/shell/parser-wasm.bun.ts"
-    },
     "#v1-migration": {
       "types": "./src/database/v1-migration.bun.ts",
       "bun": "./src/database/v1-migration.bun.ts",
@@ -73,16 +75,10 @@
     }
   },
   "devDependencies": {
-    "@tsconfig/bun": "catalog:",
-    "@types/bun": "catalog:",
-    "@types/cross-spawn": "catalog:",
-    "@types/mime-types": "3.0.1",
-    "@types/node": "catalog:",
-    "@types/npm-package-arg": "6.1.4",
-    "@types/npmcli__arborist": "6.3.3",
-    "@types/semver": "catalog:",
-    "@types/turndown": "5.0.5",
-    "@types/which": "3.0.4",
+    "@ai-sdk/openai-compatible": "2.0.41",
+    "@anthropic-ai/claude-agent-sdk": "0.3.301",
+    "@effect/platform-node": "catalog:",
+    "@opencode/http-recorder": "workspace:*",
     "@parcel/watcher-darwin-arm64": "2.5.1",
     "@parcel/watcher-darwin-x64": "2.5.1",
     "@parcel/watcher-linux-arm64-glibc": "2.5.1",
@@ -91,31 +87,31 @@
     "@parcel/watcher-linux-x64-musl": "2.5.1",
     "@parcel/watcher-win32-arm64": "2.5.1",
     "@parcel/watcher-win32-x64": "2.5.1",
-    "@bolt-ai/http-recorder": "workspace:*",
-    "drizzle-kit": "catalog:"
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "@types/which": "3.0.4",
+    "drizzle-kit": "catalog:",
+    "fast-check": "catalog:"
   },
   "dependencies": {
-    "@ai-sdk/cohere": "3.0.27",
-    "@ai-sdk/perplexity": "3.0.26",
-    "@ai-sdk/provider": "3.0.8",
-    "@ai-sdk/provider-utils": "4.0.23",
-    "@ai-sdk/vercel": "2.0.39",
+    "@ai-sdk/provider": "3.0.19",
+    "@ai-sdk/provider-utils": "4.0.62",
+    "@effect/sql-sqlite-bun": "catalog:",
+    "@effect/sql-sqlite-node": "catalog:",
     "@ff-labs/fff-bun": "0.10.5",
     "@ff-labs/fff-node": "0.10.5",
     "@lydell/node-pty": "catalog:",
-    "@ff-labs/fff-bun": "0.9.4",
-    "@npmcli/arborist": "9.4.0",
-    "@npmcli/config": "10.8.1",
-    "@bolt-ai/effect-drizzle-sqlite": "workspace:*",
-    "@bolt-ai/effect-sqlite-node": "workspace:*",
-    "@bolt-ai/llm": "workspace:*",
-    "@bolt-ai/memory": "workspace:*",
-    "@bolt-ai/schema": "workspace:*",
-    "@bolt-ai/plugin": "workspace:*",
-    "@opentelemetry/api": "1.9.0",
-    "@opentelemetry/context-async-hooks": "2.6.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.214.0",
-    "@opentelemetry/sdk-trace-base": "2.6.1",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/core": "2.3.1",
+    "@modelcontextprotocol/server": "2.3.1",
+    "@opencode/pty": "0.4.0",
+    "@opencode/ai": "workspace:*",
+    "@opencode/codemode": "workspace:*",
+    "@opencode/plugin": "workspace:*",
+    "@opencode/plugin-browser": "workspace:*",
+    "@opencode/schema": "workspace:*",
+    "@opencode/util": "workspace:*",
     "@parcel/watcher": "2.5.1",
     "@silvia-odwyer/photon-node": "0.3.4",
     "@standard-schema/spec": "catalog:",
@@ -124,7 +120,7 @@
     "drizzle-orm": "catalog:",
     "effect": "catalog:",
     "fuzzysort": "3.1.0",
-    "gitlab-ai-provider": "6.19.0",
+    "gitlab-ai-provider": "6.23.1",
     "gray-matter": "4.0.3",
     "htmlparser2": "8.0.2",
     "http-proxy-agent": "7.0.2",
@@ -133,10 +129,15 @@
     "jose": "6.0.11",
     "jsonc-parser": "3.3.1",
     "mime-types": "3.0.2",
-    "tree-sitter-bash": "0.25.0",
-    "tree-sitter-powershell": "0.25.10",
-    "web-tree-sitter": "0.25.10",
     "which": "6.0.1",
     "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.301"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/claude-agent-sdk": {
+      "optional": true
+    }
   }
 }
