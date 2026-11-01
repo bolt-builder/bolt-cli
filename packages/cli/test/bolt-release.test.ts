@@ -281,6 +281,19 @@ test("preview tagging preserves the built tree and refuses to replace an existin
       "user.name=Fixture",
       "-c",
       "user.email=fixture@example.invalid",
+      "tag",
+      "-a",
+      "v0.0.0-dev-125",
+      "-m",
+      "annotated",
+    )
+    await git("push", "-q", "origin", "v0.0.0-dev-125")
+    expect((await f.run("tag-release.sh", [], { ...env, OPENCODE_VERSION: "0.0.0-dev-125" })).code).toBe(0)
+    await git(
+      "-c",
+      "user.name=Fixture",
+      "-c",
+      "user.email=fixture@example.invalid",
       "commit",
       "-qm",
       "new fixture",
