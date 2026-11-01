@@ -93,7 +93,7 @@ export const cleanup = Effect.fn("Shell.cleanup")(function* () {
   const global = yield* Global.Service
   const directory = path.join(global.data, DIRECTORY)
   const projects = yield* fs.readDirectoryEntries(directory).pipe(
-    Effect.map((entries) => entries.filter((entry) => entry.type === "directory")),
+    Effect.map((entries) => entries.filter((entry) => entry.type === "Directory")),
     Effect.orElseSucceed(() => []),
   )
   const files = yield* Effect.forEach(
@@ -102,7 +102,7 @@ export const cleanup = Effect.fn("Shell.cleanup")(function* () {
       fs.readDirectoryEntries(path.join(directory, project.name)).pipe(
         Effect.map((entries) =>
           entries.flatMap((entry) =>
-            entry.type === "file" && /^sh_[0-9a-f]{12}.*\.out$/.test(entry.name)
+            entry.type === "File" && /^sh_[0-9a-f]{12}.*\.out$/.test(entry.name)
               ? [path.join(directory, project.name, entry.name)]
               : [],
           ),
@@ -124,14 +124,22 @@ const cleanupNode = makeGlobalNode({
   deps: [FSUtil.node, Global.node],
 })
 
-export function gitbash() {
-  if (process.platform !== "win32") return
-  if (Flag.BOLT_GIT_BASH_PATH) return Flag.BOLT_GIT_BASH_PATH
-  const git = which("git")
-  if (!git) return
-  const file = path.join(git, "..", "..", "bin", "bash.exe")
-  if (stat(file)?.size) return file
-}
+const layer = () =>
+  Layer.effect(
+    Service,
+    Effect.gen(function* () {
+      const bus = yield* Bus.Service
+      const location = yield* Location.Service
+      const global = yield* Global.Service
+      const shell = yield* ShellSelect.Service
+      const environment = yield* Environment.Service
+      const hooks = yield* PluginHooks.Service
+      const environments = yield* SessionEnvironment.Service
+      const config = yield* Config.Service
+      const context = yield* Effect.context()
+      const runFork = Effect.runForkWith(context)
+      const commands = new Map<Shell.ID, Active>()
+      const exitOrder: Shell.ID[] = []
 
       const outputDir = path.join(global.data, DIRECTORY, location.project.id)
       const { mkdir, unlink } = yield* Effect.promise(() => import("fs/promises"))
@@ -182,41 +190,9 @@ export function gitbash() {
           .map((command) => command.info)
       })
 
-export function args(file: string, command: string, cwd: string) {
-  const n = name(file)
-  if (n === "nu" || n === "fish") return ["-c", command]
-  if (n === "zsh") {
-    return [
-      "-l",
-      "-c",
-      `
-        [[ -f ~/.zshenv ]] && source ~/.zshenv >/dev/null 2>&1 || true
-        [[ -f "\${ZDOTDIR:-$HOME}/.zshrc" ]] && source "\${ZDOTDIR:-$HOME}/.zshrc" >/dev/null 2>&1 || true
-        cd -- "$1"
-        eval ${JSON.stringify(command)}
-      `,
-      "bolt",
-      cwd,
-    ]
-  }
-  if (n === "bash") {
-    return [
-      "-l",
-      "-c",
-      `
-        shopt -s expand_aliases
-        [[ -f ~/.bashrc ]] && source ~/.bashrc >/dev/null 2>&1 || true
-        cd -- "$1"
-        eval ${JSON.stringify(command)}
-      `,
-      "bolt",
-      cwd,
-    ]
-  }
-  if (n === "cmd") return ["/c", command]
-  if (ps(file)) return ["-NoProfile", "-Command", command]
-  return ["-c", command]
-}
+      const get = Effect.fn("Shell.get")(function* (id: Shell.ID) {
+        return (yield* require(id)).info
+      })
 
       const wait = Effect.fn("Shell.wait")(function* (id: Shell.ID) {
         return yield* Deferred.await((yield* require(id)).done)
