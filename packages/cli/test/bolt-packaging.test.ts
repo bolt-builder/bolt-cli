@@ -1,5 +1,7 @@
 import { expect, test } from "bun:test"
 import { createHash } from "node:crypto"
+import { fileURLToPath } from "node:url"
+import { BlobReader, ZipReader } from "@zip.js/zip.js"
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -12,7 +14,10 @@ test("Bolt npm packages and archives match the existing installer and survive re
   const npm = path.join(root, "output", "npm")
   const archives = path.join(root, "output", "archives")
   const run = async (args: string[], cwd = root) => {
-    const child = Bun.spawn(args, { cwd, stdout: "pipe", stderr: "pipe" })
+    const child = Bun.spawn(
+      args[0] === "tar" ? ["tar", ...args.slice(1).map((arg) => arg.replaceAll("\\", "/"))] : args,
+      { cwd, stdout: "pipe", stderr: "pipe" },
+    )
     const [stdout, stderr, code] = await Promise.all([
       new Response(child.stdout).text(),
       new Response(child.stderr).text(),
@@ -23,6 +28,13 @@ test("Bolt npm packages and archives match the existing installer and survive re
   }
   try {
     await fs.mkdir(path.join(cli, "script"), { recursive: true })
+    // The copied script keeps its real archive codec; only the release destinations are synthetic.
+    await fs.mkdir(path.join(root, "node_modules", "@zip.js"), { recursive: true })
+    await fs.symlink(
+      path.dirname(fileURLToPath(import.meta.resolve("@zip.js/zip.js"))),
+      path.join(root, "node_modules", "@zip.js", "zip.js"),
+      "junction",
+    )
     await fs.copyFile(path.join(import.meta.dir, "../script/pack.ts"), path.join(cli, "script/pack.ts"))
     await fs.copyFile(path.join(import.meta.dir, "../script/postinstall.mjs"), path.join(cli, "script/postinstall.mjs"))
     await fs.writeFile(path.join(cli, "package.json"), JSON.stringify({ name: "@opencode/cli", license: "MIT" }))
@@ -59,9 +71,23 @@ test("Bolt npm packages and archives match the existing installer and survive re
       "bolt-cli-linux-x64.tar.gz",
       "bolt-cli-windows-x64.zip",
     ])
-    expect((await run(["tar", "-tzf", path.join(archives, "bolt-cli-linux-x64.tar.gz")])).trim()).toBe("bolt")
-    expect((await run(["unzip", "-Z1", path.join(archives, "bolt-cli-darwin-arm64.zip")])).trim()).toBe("bolt")
-    expect((await run(["unzip", "-Z1", path.join(archives, "bolt-cli-windows-x64.zip")])).trim()).toBe("bolt.exe")
+    expect((await run(["tar", "-tzf", "bolt-cli-linux-x64.tar.gz"], archives)).trim()).toBe("bolt")
+    for (const [target, name] of [
+      ["darwin-arm64", "bolt"],
+      ["windows-x64", "bolt.exe"],
+    ]) {
+      const reader = new ZipReader(new BlobReader(Bun.file(path.join(archives, `bolt-cli-${target}.zip`))))
+      const entries = await reader.getEntries()
+      expect(entries.map((entry) => entry.filename)).toEqual([name])
+      expect((entries[0].externalFileAttributes >>> 16) & 0o777).toBe(0o755)
+      await reader.close()
+    }
+    // The tar header preserves executable mode and has reproducible ownership/time.
+    const tar = Buffer.from(
+      Bun.gunzipSync(new Uint8Array(await Bun.file(path.join(archives, "bolt-cli-linux-x64.tar.gz")).arrayBuffer())),
+    )
+    expect(tar.subarray(100, 107).toString()).toBe("0000755")
+    expect(tar.subarray(136, 147).toString()).toBe("00000000000")
     const digest = createHash("sha256")
       .update(await fs.readFile(path.join(archives, "bolt-cli-linux-x64.tar.gz")))
       .digest("hex")
@@ -76,14 +102,7 @@ test("Bolt npm packages and archives match the existing installer and survive re
     for (const name of ["bolt-cli", "bolt-cli-linux-x64"]) {
       const directory = path.join(install, name)
       await fs.mkdir(directory, { recursive: true })
-      await run([
-        "tar",
-        "-xzf",
-        path.join(npm, `bolt-builder-${name}-2.3.4.tgz`),
-        "--strip-components=1",
-        "-C",
-        directory,
-      ])
+      await run(["tar", "-xzf", `bolt-builder-${name}-2.3.4.tgz`, "--strip-components=1", "-C", directory], npm)
     }
     const wrapper = path.join(install, "bolt-cli")
     const manifest = JSON.parse(await fs.readFile(path.join(wrapper, "package.json"), "utf8"))

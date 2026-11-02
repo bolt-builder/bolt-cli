@@ -16187,6 +16187,9 @@
           "$schema": {
             "type": "string"
           },
+          "redact": {
+            "type": "boolean"
+          },
           "shell": {
             "type": "string"
           },
@@ -16535,6 +16538,12 @@
           "experimental": {
             "type": "object",
             "properties": {
+              "context_replay": {
+                "type": "boolean"
+              },
+              "redact": {
+                "type": "boolean"
+              },
               "portable_shell_scanner": {
                 "type": "boolean"
               },

@@ -92,7 +92,11 @@ test("detached jobs retain logs and argv, kill descendants and cap health-driven
     expect(ambiguous.code).toBe(1)
     expect(ambiguous.stderr).toContain("ambiguous")
     expect((await cli("jobs", "kill", "ambiguousA")).stdout).toContain("not running")
-    const running = await spawnJob(["flaky", "echo $$ > child.pid; exec sleep 30", "--runs=1"])
+    const running = await spawnJob([
+      "flaky",
+      `"${process.execPath}" -e "require('node:fs').writeFileSync('child.pid',String(process.pid));setInterval(()=>{},1000)"`,
+      "--runs=1",
+    ])
     await waitFor(async () => Bun.file(path.join(cwd, "child.pid")).exists())
     const descendant = Number(await Bun.file(path.join(cwd, "child.pid")).text())
     expect(alive(descendant)).toBe(true)
@@ -162,9 +166,11 @@ test("detached jobs retain logs and argv, kill descendants and cap health-driven
   } finally {
     for (const job of created) {
       try {
-        process.kill(-job.pid, "SIGKILL")
+        if (process.platform === "win32")
+          Bun.spawnSync(["taskkill", "/pid", String(job.pid), "/T", "/F"], { stdout: "ignore", stderr: "ignore" })
+        if (process.platform !== "win32") process.kill(-job.pid, "SIGKILL")
       } catch {}
     }
-    await fs.rm(home, { recursive: true, force: true })
+    await fs.rm(home, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }, 60000)

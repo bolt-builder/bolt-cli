@@ -71,6 +71,7 @@ function migrateMode(theme: Theme, mode: Mode): ThemeDefinition {
 
   return referenceHues({
     ...paletteHues(theme, neutral.scale, (color) => hueScale(color, mode, neutral)),
+    brand: { primary: color("primary"), accent: color("accent") },
     text: {
       base: "$hue.neutral.100",
       muted: "$hue.neutral.200",

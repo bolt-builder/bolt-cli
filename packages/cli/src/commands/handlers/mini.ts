@@ -26,6 +26,10 @@ export default Runtime.handler(Commands.commands.mini, (input) =>
           reconnect: service ? (signal) => runServicePromise(service.reconnect(), { signal }) : undefined,
         },
         continue: input.continue,
+        auto: input.auto || input.yolo || input.dangerouslySkipPermissions,
+        file: [...input.file],
+        variant: Option.getOrUndefined(input.variant),
+        title: Option.getOrUndefined(input.title),
         session: Option.getOrUndefined(input.session),
         fork: input.fork,
         model: Option.getOrUndefined(input.model),
@@ -34,7 +38,9 @@ export default Runtime.handler(Commands.commands.mini, (input) =>
         replay: Option.getOrUndefined(input.replay) ?? resolved.mini?.replay ?? true,
         replayLimit: Option.getOrUndefined(input.replayLimit) ?? resolved.mini?.replay_limit,
         demo: input.demo,
-        tuiConfig: resolved,
+        tuiConfig: Option.isNone(input.thinking)
+          ? resolved
+          : { ...resolved, mini: { ...resolved.mini, thinking: input.thinking.value ? "show" : "hide" } },
         config: {
           update: (update) => runServicePromise(config.update(update)),
         },

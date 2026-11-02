@@ -2,6 +2,7 @@ import { useVim, vimToggleCommand } from "./vim-mode"
 import {
   BoxRenderable,
   RGBA,
+  rgbToHex,
   TextareaRenderable,
   MouseEvent,
   PasteEvent,
@@ -70,6 +71,7 @@ import { useDirectoryRecents } from "../../prompt/directory-recents"
 import { directoryRecentValue } from "../../prompt/directory-completion"
 import { useWorkingDirectoryActions } from "../../ui/working-directory-actions"
 import { truncateFilePath } from "../../ui/file-path"
+import { createFire, FireStrip } from "../fire-frame"
 import { PromptMetadataRow } from "./metadata"
 import { limitLabel, useUsageLimits } from "../usage"
 
@@ -187,6 +189,7 @@ function argumentSlash(input: string, commands: readonly KeymapCommand[]) {
 export function Prompt(props: PromptProps) {
   let input: TextareaRenderable
   let anchor: BoxRenderable
+  const [fireWidth, setFireWidth] = createSignal(0)
   const [inputTarget, setInputTarget] = createSignal<TextareaRenderable | undefined>()
 
   const enabled = useInteractivity()
@@ -223,6 +226,18 @@ export function Prompt(props: PromptProps) {
   const theme = useTheme()
   const { currentSyntax: syntax } = useThemes()
   const animationsEnabled = createMemo(() => config.animations ?? true)
+  const fire = createFire(
+    () => Math.max(1, fireWidth() - 1),
+    () =>
+      animationsEnabled() &&
+      (config.fire ?? true) &&
+      props.visible !== false &&
+      !disabled() &&
+      status() === "running" &&
+      fireWidth() > 0 &&
+      dimensions().height >= 30,
+    () => rgbToHex(theme.brand.primary),
+  )
   const list = createMemo(() => props.placeholders?.normal ?? [])
   const shell = createMemo(() => props.placeholders?.shell ?? [])
   const fileContextEnabled = createMemo(() => config.prompt?.editor ?? true)
@@ -1705,7 +1720,15 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
-      <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
+      <FireStrip rows={fire()} />
+      <box
+        ref={(r: BoxRenderable) => (anchor = r)}
+        onSizeChange={function () {
+          setFireWidth(this.width)
+        }}
+        visible={props.visible !== false}
+        width="100%"
+      >
         <box
           width="100%"
           border={["left"]}

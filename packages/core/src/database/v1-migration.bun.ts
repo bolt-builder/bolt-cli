@@ -12,7 +12,7 @@ import { EventSequenceTable } from "../event/sql.js"
 import { eq, sql } from "drizzle-orm"
 import { Global } from "@opencode/util/global"
 import { FSUtil } from "@opencode/util/fs-util"
-import { existsSync } from "node:fs"
+import { existsSync, realpathSync } from "node:fs"
 import path from "node:path"
 import type { Database as SQLiteDatabase } from "bun:sqlite"
 import { Agent } from "@opencode/schema/agent"
@@ -95,6 +95,7 @@ type RunResult = {
 
 type Options = {
   readonly nextDatabasePath?: string
+  readonly boltDatabasePaths?: readonly string[]
 }
 
 type MigrationState = { readonly phase: "sessions"; readonly cursor?: string } | { readonly phase: "completed" }
@@ -119,7 +120,7 @@ type NextProject = {
   readonly commands: string | null
 }
 
-type NextColumns<A> = Record<keyof A, "required" | "nullable" | { readonly fallback: keyof A & string }>
+type NextColumns<A> = Record<keyof A, "required" | "nullable" | 0 | { readonly fallback: keyof A & string }>
 
 const NEXT_PROJECT_COLUMNS = {
   id: "required",
@@ -497,9 +498,20 @@ export function transformSession(input: TransformInput): TransformResult {
   }
 }
 
-export function status(): Effect.Effect<Status, never, Database.Service> {
+export function status(): Effect.Effect<Status, never, Database.Service | Global.Service> {
   return Effect.gen(function* () {
     const db = (yield* Database.Service).db
+    const global = yield* Global.Service
+    const targets = yield* db.all<{ file: string }>(sql`PRAGMA database_list`).pipe(Effect.orDie)
+    for (const source of boltDatabasePaths(global.data)) {
+      if (
+        targets.some((target) => target.file && realpathSync(target.file) === realpathSync(source)) ||
+        (yield* boltImported(db, source))
+      )
+        continue
+      if (runtimeState.status === "running" || runtimeState.status === "error") return runtimeState
+      return { status: "required" as const }
+    }
     if (!(yield* hasLegacySessions(db))) return { status: "completed" as const }
     const state = yield* readState(db)
     if (runtimeState.status === "running") return runtimeState
@@ -545,9 +557,12 @@ export function run(
     Effect.gen(function* () {
       const db = (yield* Database.Service).db
       const global = yield* Global.Service
+      const complete = importBoltHistory(db, options.boltDatabasePaths ?? boltDatabasePaths(global.data)).pipe(
+        Effect.as({ status: "completed" as const }),
+      )
       const state = yield* readState(db)
-      if (state?.phase === "completed") return { status: "completed" as const }
-      if (!(yield* hasLegacySessions(db))) return { status: "completed" as const }
+      if (state?.phase === "completed") return yield* complete
+      if (!(yield* hasLegacySessions(db))) return yield* complete
       const now = Date.now()
       yield* db.run(sql`
           INSERT OR IGNORE INTO project (id, worktree, time_created, time_updated, time_active, sandboxes)
@@ -560,7 +575,9 @@ export function run(
               while (true) {
                 yield* tx.run(sql`
                     DELETE FROM event
-                    WHERE rowid IN (SELECT rowid FROM event LIMIT ${EVENT_DELETE_BATCH_SIZE})
+                    WHERE rowid IN (SELECT rowid FROM event
+                      WHERE NOT EXISTS (SELECT 1 FROM session_v2 WHERE session_v2.id = event.aggregate_id)
+                      LIMIT ${EVENT_DELETE_BATCH_SIZE})
                   `)
                 const deleted = (yield* tx.get<{ value: number }>(sql`SELECT changes() AS value`))?.value ?? 0
                 if (deleted < EVENT_DELETE_BATCH_SIZE) break
@@ -647,6 +664,8 @@ export function run(
                   set: { value: { phase: "sessions", cursor: nextID.id }, time_updated: Date.now() },
                 })
                 .run()
+              // A completed V2 projection is canonical; retries and colliding V1 IDs cannot replace it.
+              if (nextID.imported) return
               if (projectID !== nextID.project_id)
                 yield* Effect.logWarning("Reassigned V1 session with missing project", {
                   sessionID: nextID.id,
@@ -758,7 +777,7 @@ export function run(
           }),
         )
         .pipe(Effect.orDie)
-      return { status: "completed" as const }
+      return yield* complete
     }).pipe(Effect.orDie),
   )
 }
@@ -796,6 +815,181 @@ function resolveDirectory(directory: string) {
   })
 }
 
+function boltDatabasePaths(data: string): string[] {
+  if (process.env.OPENCODE_DB === ":memory:" || process.env.BOLT_DB === ":memory:") return []
+  const roots = [data, Global.boltDirectory(data)].filter((root) => root !== undefined)
+  const explicit = process.env.BOLT_DB
+    ? path.resolve(Global.boltDirectory(data) ?? data, process.env.BOLT_DB)
+    : undefined
+  return [
+    ...new Set([
+      ...(explicit && existsSync(explicit) ? [explicit] : []),
+      ...roots.flatMap((root) =>
+        existsSync(root)
+          ? Array.from(new Bun.Glob("bolt*.db").scanSync({ cwd: root, onlyFiles: true }))
+              .filter((name) => /^bolt(?:-[a-zA-Z0-9._-]+)?\.db$/.test(name))
+              .sort((a, b) => (a === "bolt.db" ? -1 : b === "bolt.db" ? 1 : a.localeCompare(b)))
+              .map((name) => path.join(root, name))
+          : [],
+      ),
+    ]),
+  ]
+}
+
+const boltKey = (source: string) => `migration.bolt-history.v1/${path.resolve(source)}`
+const boltImported = (db: Database.Interface["db"], source: string) =>
+  db.get(sql`SELECT key FROM kv WHERE key = ${boltKey(source)}`).pipe(
+    Effect.map((row) => row !== undefined),
+    Effect.orDie,
+  )
+
+function importBoltHistory(db: Database.Interface["db"], sources: readonly string[]) {
+  return Effect.gen(function* () {
+    const targets = yield* db.all<{ file: string }>(sql`PRAGMA database_list`)
+    for (const sourcePath of sources) {
+      if (
+        !existsSync(sourcePath) ||
+        targets.some((target) => target.file && realpathSync(target.file) === realpathSync(sourcePath)) ||
+        (yield* boltImported(db, sourcePath))
+      )
+        continue
+      yield* Effect.scoped(
+        Effect.gen(function* () {
+          const source = yield* openNextDatabase(sourcePath)
+          const tables = new Set(
+            source
+              .query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type = 'table'")
+              .all()
+              .map((row) => row.name),
+          )
+          if (!tables.has("project") || (!tables.has("session") && !tables.has("session_v2")))
+            return yield* Effect.fail(new Error(`Unrecognized Bolt history database: ${sourcePath}; source retained`))
+          source.run("BEGIN")
+          yield* Effect.addFinalizer(() =>
+            Effect.sync(() => {
+              if (source.inTransaction) source.run("ROLLBACK")
+            }),
+          )
+          const now = Date.now()
+          yield* db.run(sql`INSERT OR IGNORE INTO project (id, worktree, time_created, time_updated, time_active, sandboxes)
+          VALUES (${Project.ID.global}, ${path.parse(sourcePath).root}, ${now}, ${now}, ${now}, '[]')`)
+          if (tables.has("session_v2") && !tables.has("session_message"))
+            return yield* Effect.fail(
+              new Error(`Bolt history has no message projection: ${sourcePath}; source retained`),
+            )
+          if (!tables.has("session_message") && !(tables.has("message") && tables.has("part")))
+            return yield* Effect.fail(
+              new Error(`Bolt history has no supported message tables: ${sourcePath}; source retained`),
+            )
+          // Prior V2 histories use the original migration adapter; V1 rows are converted below.
+          if (tables.has("session_v2")) yield* importNextDatabase(db, sourcePath, () => {}, "session_v2")
+          else if (tables.has("session_message"))
+            yield* importNextDatabase(
+              db,
+              sourcePath,
+              () => {},
+              "session",
+              (session) =>
+                !tables.has("message") ||
+                source.query("SELECT 1 FROM session_message WHERE session_id = ? LIMIT 1").get(session.id) !== null,
+            )
+          if (tables.has("session") && tables.has("message") && tables.has("part")) {
+            const projects = new Map(
+              selectNextRows<NextProject>(source, "project", NEXT_PROJECT_COLUMNS).map((item) => [item.id, item]),
+            )
+            const definition = {
+              ...NEXT_SESSION_COLUMNS,
+              cost: 0,
+              tokens_input: 0,
+              tokens_output: 0,
+              tokens_reasoning: 0,
+              tokens_cache_read: 0,
+              tokens_cache_write: 0,
+            } as const
+            for (const session of selectNextRows<NextSession>(source, "session", definition)) {
+              yield* db.transaction((tx) =>
+                Effect.gen(function* () {
+                  // Existing V2 sessions, messages and event history always win an ID collision.
+                  if (yield* tx.get(sql`SELECT id FROM session_v2 WHERE id = ${session.id}`)) return
+                  const project = projects.get(session.project_id)
+                  if (project)
+                    yield* tx.run(sql`INSERT OR IGNORE INTO project
+                (id, worktree, vcs, name, icon_url, icon_url_override, icon_color, time_created, time_updated, time_initialized, time_active, sandboxes, commands)
+                VALUES (${project.id}, ${project.worktree}, ${project.vcs}, ${project.name}, ${project.icon_url}, ${project.icon_url_override}, ${project.icon_color},
+                  ${project.time_created}, ${project.time_updated}, ${project.time_initialized}, ${project.time_updated}, ${project.sandboxes}, ${project.commands})`)
+                  const copied = {
+                    ...session,
+                    project_id: project ? session.project_id : Project.ID.global,
+                    permission: null,
+                    time_suspended: null,
+                    directory: storedAbsolutePath(session.directory) ?? project?.worktree ?? "",
+                  }
+                  const columns = Object.keys(NEXT_SESSION_COLUMNS) as (keyof NextSession)[]
+                  yield* tx.run(sql`INSERT INTO session_v2 (${sql.join(
+                    columns.map((column) => sql.identifier(column)),
+                    sql`, `,
+                  )})
+                VALUES (${sql.join(
+                  columns.map((column) => sql`${copied[column]}`),
+                  sql`, `,
+                )})`)
+                  const next = yield* tx
+                    .select()
+                    .from(SessionTable)
+                    .where(eq(SessionTable.id, SessionSchema.ID.make(session.id)))
+                    .get()
+                  if (!next) return yield* Effect.fail(new Error("Unable to copy Bolt history"))
+                  const messages = source
+                    .query<
+                      SourceMessage,
+                      [string]
+                    >("SELECT id, session_id, time_created, time_updated, data FROM message WHERE session_id = ?")
+                    .all(session.id)
+                  const parts = source
+                    .query<
+                      SourcePart,
+                      [string]
+                    >("SELECT id, message_id, session_id, time_created, time_updated, data FROM part WHERE session_id = ?")
+                    .all(session.id)
+                  const transformed = transformSession({ session: next, messages, parts })
+                  yield* Effect.forEach(transformed.warnings, (warning) =>
+                    Effect.logWarning("Skipped V1 migration row", warning),
+                  )
+                  yield* Effect.forEach(transformed.messages, (message) =>
+                    tx
+                      .insert(SessionMessageTable)
+                      .values({
+                        ...message,
+                        id: SessionMessage.ID.make(message.id),
+                        session_id: SessionSchema.ID.make(message.session_id),
+                        data: sql`${JSON.stringify(message.data)}`,
+                      })
+                      .run(),
+                  )
+                  yield* tx
+                    .update(SessionTable)
+                    .set({ ...transformed.session, time_updated: next.time_updated })
+                    .where(eq(SessionTable.id, next.id))
+                    .run()
+                  yield* tx
+                    .insert(EventSequenceTable)
+                    .values({ aggregate_id: next.id, seq: transformed.watermark })
+                    .run()
+                }),
+              )
+              yield* Effect.yieldNow
+            }
+          }
+          yield* db.run(
+            sql`INSERT INTO kv (key, value, time_created, time_updated) VALUES (${boltKey(sourcePath)}, 'true', ${now}, ${now})`,
+          )
+          source.run("COMMIT")
+        }),
+      )
+    }
+  }).pipe(Effect.orDie)
+}
+
 function nextPath(options: Options, data: string) {
   if (options.nextDatabasePath) return options.nextDatabasePath
   if (process.env.OPENCODE_DB === ":memory:") return undefined
@@ -827,12 +1021,14 @@ function importNextDatabase(
   db: Database.Interface["db"],
   sourcePath: string | undefined,
   onProgress: (completed: number) => void,
+  sessionTable: "session" | "session_v2" = "session",
+  include: (session: NextSession) => boolean = () => true,
 ): Effect.Effect<void, unknown> {
   if (!sourcePath || !existsSync(sourcePath)) return Effect.void
   return Effect.scoped(
     Effect.gen(function* () {
       const source = yield* openNextDatabase(sourcePath)
-      if (!isNextDatabase(source)) {
+      if (!isNextDatabase(source, sessionTable)) {
         yield* Effect.logWarning("Skipped incompatible opencode-next.db", { path: sourcePath })
         return
       }
@@ -845,8 +1041,9 @@ function importNextDatabase(
       const projects = new Map(
         selectNextRows<NextProject>(source, "project", NEXT_PROJECT_COLUMNS).map((project) => [project.id, project]),
       )
-      const sessions = selectNextRows<NextSession>(source, "session", NEXT_SESSION_COLUMNS)
+      const sessions = selectNextRows<NextSession>(source, sessionTable, NEXT_SESSION_COLUMNS)
       for (const [index, session] of sessions.entries()) {
+        if (!include(session)) continue
         const project = projects.get(session.project_id)
         const projectID = project ? session.project_id : Project.ID.global
         if (!project) {
@@ -933,17 +1130,21 @@ function importNextDatabase(
   )
 }
 
-function isNextDatabase(source: SQLiteDatabase) {
+function isNextDatabase(source: SQLiteDatabase, sessionTable = "session") {
   const tables = new Set(
     source
       .query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type = 'table'")
       .all()
       .map((table) => table.name),
   )
-  return tables.has("project") && tables.has("session") && tables.has("session_message")
+  return tables.has("project") && tables.has(sessionTable) && tables.has("session_message")
 }
 
-function selectNextRows<A>(source: SQLiteDatabase, table: "project" | "session", definition: NextColumns<A>) {
+function selectNextRows<A>(
+  source: SQLiteDatabase,
+  table: "project" | "session" | "session_v2",
+  definition: NextColumns<A>,
+) {
   const columns = new Set(
     source
       .query<{ name: string }, [string]>("SELECT name FROM pragma_table_info(?)")
@@ -957,6 +1158,7 @@ function selectNextRows<A>(source: SQLiteDatabase, table: "project" | "session",
     throw new Error(`Incompatible opencode-next.db: ${table} is missing required columns: ${missing.join(", ")}`)
   const projection = Object.entries(definition).map(([column, strategy]) => {
     if (columns.has(column)) return `"${column}"`
+    if (strategy === 0) return `0 AS "${column}"`
     if (
       typeof strategy === "object" &&
       strategy !== null &&
@@ -968,7 +1170,7 @@ function selectNextRows<A>(source: SQLiteDatabase, table: "project" | "session",
     return `NULL AS "${column}"`
   })
   return source
-    .query<A, []>(`SELECT ${projection.join(", ")} FROM "${table}"${table === "session" ? ' ORDER BY "id" DESC' : ""}`)
+    .query<A, []>(`SELECT ${projection.join(", ")} FROM "${table}"${table !== "project" ? ' ORDER BY "id" DESC' : ""}`)
     .all()
 }
 

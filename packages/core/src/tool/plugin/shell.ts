@@ -45,6 +45,10 @@ const description = (shell?: string) =>
 
 export const Input = Schema.Struct({
   command: Schema.String.annotate({ description: "Shell command string to execute" }),
+  stdin: Schema.optionalKey(Schema.Boolean).annotate({
+    description: "Keep stdin open for background_stdin writes. Defaults to false.",
+  }),
+  title: Schema.optionalKey(Schema.String),
   workdir: Schema.optionalKey(Schema.String).annotate({
     description:
       "Working directory to execute the command in. Defaults to the current working directory. When possible, avoid changing directories in the command and set the working directory here instead.",
@@ -197,6 +201,7 @@ export const Plugin = {
               const info = yield* shell.create(
                 {
                   command: input.command,
+                  stdin: input.stdin,
                   cwd: input.workdir,
                   timeout,
                   shell: yield* compatibleShell,
@@ -234,8 +239,8 @@ export const Plugin = {
                 // CodeMode children share a tool-call ID, but each shell must own its job.
                 id: info.id,
                 type: name,
-                title: info.command,
-                metadata: { sessionID: context.sessionID, shellID: info.id },
+                title: input.title ?? info.command,
+                metadata: { sessionID: context.sessionID, shellID: info.id, command: info.command },
                 recovery: {
                   kind: "shell",
                   sessionID: context.sessionID,

@@ -42,11 +42,7 @@ export default Runtime.handler(Commands.commands.flaky, (args) =>
     const codes: number[] = []
     for (let index = 0; index < runs; index++) {
       const child = yield* processService.run(
-        ChildProcess.make(
-          process.platform === "win32" ? "cmd" : "sh",
-          process.platform === "win32" ? ["/c", command] : ["-c", command],
-          { cwd, stdout: "ignore", stderr: "ignore" },
-        ),
+        ChildProcess.make(command, { shell: true, cwd, stdout: "ignore", stderr: "ignore" }),
       )
       const code = child.exitCode
       codes.push(code)

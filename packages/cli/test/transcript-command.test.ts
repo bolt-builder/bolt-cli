@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test"
 import fs from "node:fs/promises"
 import os from "node:os"
+import { EOL } from "node:os"
 import path from "node:path"
 
 const entry = path.resolve(import.meta.dir, "../src/index.ts")
@@ -192,6 +193,6 @@ test("export JSON, JSONL and porcelain preserve their format contracts", async (
   ).toEqual(["user", "assistant"])
   const tsv = await cli("export", "ses_fixture", "--porcelain")
   expect(tsv.code).toBe(0)
-  expect(tsv.stdout).toContain("message\tmsg_user\tuser\tbilling user\\nsecond line\n")
+  expect(tsv.stdout).toContain(`message\tmsg_user\tuser\tbilling user\\nsecond line${EOL}`)
   expect((await cli("export", "ses_fixture", "--html", "--md")).code).toBe(1)
 })

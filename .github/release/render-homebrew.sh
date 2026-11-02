@@ -4,7 +4,7 @@
 . "$(dirname "$0")/lib.sh"
 
 macos=$1 archives=$2 tap=$3
-sum() { sha256 "$1" | cut -c1-64; }
+sum() { sha256 < "$1" | cut -c1-64; }
 base="https://github.com/bolt-builder/bolt-cli/releases/download/v$OPENCODE_VERSION"
 cat > "$tap/bolt-cli.rb" <<FORMULA
 # typed: false

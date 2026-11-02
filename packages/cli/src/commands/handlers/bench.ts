@@ -78,11 +78,7 @@ export default Runtime.handler(Commands.commands.bench, (args) =>
         const execute = Effect.gen(function* () {
           const started = performance.now()
           const proc = yield* processService.run(
-            ChildProcess.make(
-              process.platform === "win32" ? "cmd" : "sh",
-              process.platform === "win32" ? ["/c", command] : ["-c", command],
-              { cwd: dir, stdout: "ignore", stderr: "ignore" },
-            ),
+            ChildProcess.make(command, { shell: true, cwd: dir, stdout: "ignore", stderr: "ignore" }),
           )
           return { code: proc.exitCode, elapsed: performance.now() - started }
         })

@@ -4,7 +4,7 @@
 # package.json is read as data and must match. macOS and Windows CLI packages must come from a signed dir.
 . "$(dirname "$0")/lib.sh"
 
-npm_dir=$1
+npm_dir=$(posix "$1")
 shift
 targets="linux-arm64 linux-x64 linux-x64-baseline linux-arm64-musl linux-x64-musl linux-x64-baseline-musl darwin-arm64 darwin-x64 darwin-x64-baseline windows-arm64 windows-x64 windows-x64-baseline"
 expected="@bolt-builder/bolt-cli"
@@ -25,13 +25,13 @@ fi
 
 shopt -s nullglob
 files=()
-for dir in "$@"; do files+=("$dir"/*.tgz); done
+for dir in "$@"; do files+=("$(posix "$dir")"/*.tgz); done
 files+=("$npm_dir"/*.tgz)
 list=$(mktemp)
 for file in "${files[@]}"; do
   IFS=$'\t' read -r name version config install < <(tar -xzOf "$file" package/package.json |
     jq -r '[.name, .version, ((.publishConfig // {}) | keys - ["access"] | length > 0),
-      ((.scripts // {}) | (has("preinstall") or has("install") or has("postinstall")))] | @tsv')
+      ((.scripts // {}) | (has("preinstall") or has("install") or has("postinstall")))] | @tsv' | tr -d '\r')
   if [[ "$name" == @opencode/* ]]; then
     # shellcheck disable=SC2086 # $internal is the fixed workspace library allowlist.
     printf '%s\n' $internal | grep -qxF -- "${name#@opencode/}" || die "Unexpected internal package $name"

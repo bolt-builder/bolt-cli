@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
-import type { ConfigEntry, OpenCodeEvent, SessionMessageInfo, WorktreeDirectory } from "@opencode/client/promise"
+import type { ConfigEntry, OpenCodeEvent, WorktreeDirectory } from "@opencode/client/promise"
 import { NO_PROVIDER, REMOTE_SERVER, SERVER, holdRoute, project, seed, session } from "../utils/app"
 import { mockMissingLocation, mockOpenCodeServer } from "../utils/mock-server"
 import { mockRemoteServer, mockWorkspace, openSession, openSettings, type WorkspaceInput } from "../utils/workspace"
@@ -256,7 +256,7 @@ for (const locale of ["en", "ar"]) {
       ],
       sessionStatus: { [id]: { type: "busy" }, [childID]: { type: "busy" } },
       seed: { locale },
-      pageMessages: () => ({
+      pageMessages: (): ReturnType<NonNullable<WorkspaceInput["pageMessages"]>> => ({
         items: [
           { id: "msg_activity_user", type: "user", text: "Inspect the activity capsule", time: { created: 1 } },
           {
@@ -952,7 +952,7 @@ test.describe("pages open before slow data", () => {
       await expect(settings.getByRole("link", { name: "935 others", exact: true })).toBeVisible()
       await expect(settings.getByRole("button", { name: "Back to app" })).toBeVisible()
 
-      const website = settings.getByRole("link", { name: "www.opencode.ai", exact: true })
+      const website = settings.getByRole("link", { name: "github.com/bolt-builder/bolt-cli", exact: true })
       await website.focus()
 
       const settled = fails
@@ -1818,7 +1818,7 @@ test("the add server dialog pairs from a one-time link and explains a spent one"
 
   const spent = await addServer()
   await expect(spent.getByRole("alert")).toHaveText(
-    "This pairing link expired or was already used. Run opencode pair to get a new one.",
+    "This pairing link expired or was already used. Run bolt pair to get a new one.",
   )
 })
 

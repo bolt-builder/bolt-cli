@@ -134,7 +134,7 @@ test("the free usage limit opens the Go dialog once, leaves a readable notice, a
           : []),
       ],
       connected: state.authorized ? ["opencode", "opencode-go"] : ["opencode"],
-      default: { build: "opencode/big-pickle" },
+      default: { providerID: "opencode", modelID: "big-pickle" },
     }),
     integrations: () => [
       {
@@ -315,7 +315,7 @@ for (const action of ["tray", "picker"] as const) {
           },
         ],
         connected: ["opencode", "opencode-go"],
-        default: { build: "opencode-go/glm-5-go" },
+        default: { providerID: "opencode-go", modelID: "glm-5-go" },
       }),
       pageMessages: () => ({
         items: [
@@ -326,6 +326,9 @@ for (const action of ["tray", "picker"] as const) {
     })
 
     await expect(page.getByText("Refactor the parser", { exact: true })).toBeVisible()
+    // The model catalog must be selected before injecting its refusal; its initial
+    // resolution is a model change and dismisses an earlier limit notification.
+    await expect(page.locator('[data-action="composer-model"]')).toContainText("GLM-5 Go")
 
     // The refusal OpenCode Console sends a Go subscriber at a limit, as core records it.
     const body = {
@@ -855,7 +858,11 @@ test("keeps a line added at the end of a scrolling prompt clear of the bottom fa
         const viewport = element.closest('[data-component="composer-scroll"]')!
         const range = document.createRange()
         range.selectNodeContents(element)
-        const line = Array.from(range.getClientRects()).reduce((last, rect) => (rect.bottom > last.bottom ? rect : last))
+
+        const line = Array.from(range.getClientRects()).reduce((last, rect) =>
+          rect.bottom > last.bottom ? rect : last,
+        )
+
         const fade = parseFloat(getComputedStyle(viewport).getPropertyValue("--composer-fade-bottom"))
 
         return Math.max(0, Math.round(line.bottom - (viewport.getBoundingClientRect().bottom - fade)))

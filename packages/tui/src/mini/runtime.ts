@@ -57,6 +57,7 @@ type RunRuntimeInput = {
   createSession?: CreateSession
   reconnect?: Reconnect
   files: RunInput["files"]
+  auto?: boolean
   initialInput?: string
   replay?: boolean
   replayLimit?: number
@@ -76,6 +77,7 @@ export type RunDeferredInput = {
   model: RunInput["model"]
   variant: RunInput["variant"]
   files: RunInput["files"]
+  auto?: boolean
   initialInput?: string
   replay?: boolean
   replayLimit?: number
@@ -284,7 +286,10 @@ async function runInteractiveRuntime(input: RunRuntimeInput, deps: RunRuntimeDep
     onFormCancel: async (next) => {
       if (state.demo?.formCancel(next)) return
       try {
-        await state.sdk.session.form.cancel(next, formRequestOptions(next.sessionID === "global" ? next.location : undefined))
+        await state.sdk.session.form.cancel(
+          next,
+          formRequestOptions(next.sessionID === "global" ? next.location : undefined),
+        )
       } catch (error) {
         if (!formAlreadySettled(error)) throw error
       }
@@ -799,6 +804,7 @@ async function runInteractiveRuntime(input: RunRuntimeInput, deps: RunRuntimeDep
         location: state.location,
         sessionID: state.sessionID,
         thinking: thinking(),
+        auto: input.auto,
         tools: configState.current.tools === "show",
         replay: input.replay,
         replayLimit: input.replayLimit,
@@ -1101,6 +1107,7 @@ export async function runInteractiveDeferredMode(input: RunDeferredInput, deps?:
       host: input.host,
       directory: input.directory,
       files: input.files,
+      auto: input.auto,
       initialInput: input.initialInput,
       replay: input.replay,
       replayLimit: input.replayLimit,

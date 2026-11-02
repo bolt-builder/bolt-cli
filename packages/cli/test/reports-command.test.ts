@@ -19,7 +19,7 @@ test("map, architecture and ownership reports run through the V2 CLI", async () 
   const cli = (...args: string[]) =>
     run([process.execPath, "run", "--jsx-import-source=@opentui/solid", entry, ...args])
   const git = async (...args: string[]) => {
-    const result = await run(["git", ...args])
+    const result = await run(["git", "-c", "core.autocrlf=false", ...args])
     expect({ code: result.code, stderr: result.stderr }).toEqual({ code: 0, stderr: "" })
   }
   try {

@@ -178,6 +178,61 @@ const call = (input: typeof ShellTool.Input.Type, id = "call-shell") => ({
   call: { type: "tool-call" as const, id, name: "shell", input },
 })
 
+productionIt.live("test_run detects commands, parses results, times out and preserves shell permissions", () =>
+  Effect.gen(function* () {
+    reset()
+    const tmp = yield* tmpdirScoped()
+    const directory = tmp.path
+    yield* Effect.promise(async () => {
+      await fs.writeFile(
+        path.join(directory, "package.json"),
+        JSON.stringify({ scripts: { test: "bun run tests.cjs" } }),
+      )
+      await fs.writeFile(path.join(directory, "bun.lock"), "")
+      await fs.writeFile(path.join(directory, "tests.cjs"), "console.log('3 pass'); console.log('0 fail')")
+    })
+    yield* withSession(directory, (registry) =>
+      Effect.gen(function* () {
+        const run = (input: { command?: string; timeout?: number }) =>
+          executeTool(registry, {
+            sessionID,
+            ...toolIdentity,
+            call: { type: "tool-call", id: "call-tests", name: "test_run", input },
+          })
+        expect(yield* run({})).toMatchObject({
+          status: "completed",
+          output: { status: "pass", command: "bun run test", passed: true, counts: { pass: 3, fail: 0 } },
+        })
+        expect(assertions.some((input) => input.action === "shell")).toBe(true)
+        yield* Effect.promise(() =>
+          fs.writeFile(
+            path.join(directory, "tests.cjs"),
+            "console.log('--- FAIL: TestBroken (0.00s)'); console.log('1 fail'); process.exit(1)",
+          ),
+        )
+        expect(yield* run({})).toMatchObject({
+          status: "completed",
+          output: { status: "fail", exit: 1, passed: false, failures: [{ name: "TestBroken" }] },
+        })
+        yield* Effect.promise(() => fs.writeFile(path.join(directory, "tests.cjs"), "setInterval(() => {}, 1000)"))
+        expect(yield* run({ timeout: 30 })).toMatchObject({
+          status: "completed",
+          output: { status: "timeout", passed: false },
+        })
+        denyAction = "shell"
+        yield* Effect.promise(() =>
+          fs.writeFile(
+            path.join(directory, "tests.cjs"),
+            "require('node:fs').writeFileSync('should-not-exist', 'mutation')",
+          ),
+        )
+        expect(yield* run({})).toMatchObject({ status: "error" })
+        expect(yield* Effect.promise(() => Bun.file(path.join(directory, "should-not-exist")).exists())).toBe(false)
+      }),
+    )
+  }).pipe(Effect.ensuring(Effect.sync(reset))),
+)
+
 const isWindows = process.platform === "win32"
 const cwdCommand = isWindows ? "(Get-Location).Path; Start-Sleep -Milliseconds 100" : "pwd"
 const helloCommand = isWindows ? "[Console]::Out.Write('hello'); Start-Sleep -Milliseconds 100" : "printf hello"

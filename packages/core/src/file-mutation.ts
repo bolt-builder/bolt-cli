@@ -135,7 +135,6 @@ export const node = makeLocationNode({ service: Service, layer, deps: [Environme
  */
 // TODO: Publish watcher/file-edit events after watcher integration exists.
 // TODO: Add snapshots / undo after snapshot design exists.
-// TODO: Notify LSP and collect diagnostics after LSP runtime exists.
 // TODO: Design multi-file transactions / rollback if patch needs atomic edits.
 // Until then, edits are sequential and report partial application.
 // TODO: Define crash recovery and idempotency for side effects between Tool.Called and durable settlement.

@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import "./env-compat"
 import { ensurePluginRuntime } from "@opencode/plugin/runtime"
 import { NodeRuntime, NodeServices } from "@effect/platform-node"
 import { Cause, Effect } from "effect"
@@ -41,6 +42,28 @@ if (process.env.OPENCODE_SSH_ASKPASS_PORT) {
 }
 
 const Handlers = Runtime.handlers(Commands, {
+  figma: () => import("./commands/handlers/figma"),
+  eval: () => import("./commands/handlers/eval"),
+  split: () => import("./commands/handlers/split"),
+  stack: () => import("./commands/handlers/stack"),
+  daemon: () => import("./commands/handlers/daemon"),
+  rebase: () => import("./commands/handlers/rebase"),
+  resolve: () => import("./commands/handlers/resolve"),
+  watch: () => import("./commands/handlers/watch"),
+  doctor: () => import("./commands/handlers/doctor"),
+  push: () => import("./commands/handlers/push"),
+  pull: () => import("./commands/handlers/pull"),
+  port: () => import("./commands/handlers/port"),
+  bisect: () => import("./commands/handlers/bisect"),
+  mutate: () => import("./commands/handlers/mutate"),
+  mux: () => import("./commands/handlers/mux"),
+  codemod: () => import("./commands/handlers/codemod"),
+  checkpoint: {
+    save: () => import("./commands/handlers/checkpoint/save"),
+    list: () => import("./commands/handlers/checkpoint/list"),
+    rewind: () => import("./commands/handlers/checkpoint/rewind"),
+    remove: () => import("./commands/handlers/checkpoint/remove"),
+  },
   $: () => import("./commands/handlers/default"),
   cron: () => import("./commands/handlers/cron"),
   jobs: () => import("./commands/handlers/jobs"),
@@ -76,6 +99,29 @@ const Handlers = Runtime.handlers(Commands, {
   review: () => import("./commands/handlers/review"),
   "diff-gate": () => import("./commands/handlers/diff-gate"),
   learn: () => import("./commands/handlers/learn"),
+  batch: () => import("./commands/handlers/batch"),
+  exec: () => import("./commands/handlers/exec"),
+  undo: () => import("./commands/handlers/undo"),
+  arena: () => import("./commands/handlers/arena"),
+  pipeline: () => import("./commands/handlers/pipeline"),
+  guard: () => import("./commands/handlers/guard"),
+  proptest: () => import("./commands/handlers/proptest"),
+  config: {
+    get: () => import("./commands/handlers/config/get"),
+    set: () => import("./commands/handlers/config/set"),
+    unset: () => import("./commands/handlers/config/unset"),
+    edit: () => import("./commands/handlers/config/editor"),
+    doctor: () => import("./commands/handlers/config/doctor"),
+    diff: () => import("./commands/handlers/config/diff"),
+  },
+  warm: () => import("./commands/handlers/warm"),
+  refactor: () => import("./commands/handlers/refactor"),
+  worktree: {
+    list: () => import("./commands/handlers/worktree/list"),
+    create: () => import("./commands/handlers/worktree/create"),
+    remove: () => import("./commands/handlers/worktree/remove"),
+    clean: () => import("./commands/handlers/worktree/clean"),
+  },
   ask: () => import("./commands/handlers/ask"),
   commit: () => import("./commands/handlers/commit"),
   map: () => import("./commands/handlers/map"),
@@ -99,6 +145,7 @@ const Handlers = Runtime.handlers(Commands, {
     switch: () => import("./commands/handlers/auth/switch"),
   },
   debug: {
+    context: () => import("./commands/handlers/debug/context"),
     agents: () => import("./commands/handlers/debug/agents"),
     config: () => import("./commands/handlers/debug/config"),
     "heap-dump": () => import("./commands/handlers/debug/heap-dump"),
@@ -120,7 +167,7 @@ const Handlers = Runtime.handlers(Commands, {
   models: () => import("./commands/handlers/models"),
   stats: () => import("./commands/handlers/stats"),
   mini: () => import("./commands/handlers/mini"),
-  run: () => import("./commands/handlers/run"),
+  run: () => import("./commands/handlers/run-dispatch"),
   pair: () => import("./commands/handlers/pair"),
   reload: () => import("./commands/handlers/reload"),
   session: {

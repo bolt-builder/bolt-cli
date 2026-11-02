@@ -29,6 +29,7 @@ import {
   addDefaultParsers,
   TextAttributes,
   RGBA,
+  rgbToHex,
   MouseEvent,
 } from "@opentui/core"
 import { Prompt, type PromptRef } from "../../component/prompt"
@@ -72,9 +73,11 @@ import { statusLabel } from "../../component/dialog-workspace-file-changes"
 import { DialogMessage } from "./dialog-message"
 import { DialogFork } from "./dialog-fork"
 import { DialogTimeline } from "./dialog-timeline"
+import { DialogTodos } from "./dialog-todos"
 import { DialogGoUpsell } from "../../component/dialog-go-upsell"
 import { UsageLimitNotice, useLimitNotice, useUsageAlerts } from "../../component/usage"
 import { useStorage } from "../../context/storage"
+import { SessionHeader } from "./header"
 import { Composer } from "./composer"
 import { filetype } from "../../util/filetype"
 import parsers from "../../parsers-config"
@@ -197,7 +200,11 @@ export function Session(props: {
 
   createEffect(() => {
     const title = Locale.truncate(session()?.title ?? "", 50)
-    epilogue.session({ title, sessionID: session()?.id })
+    epilogue.session({
+      title,
+      sessionID: session()?.id,
+      brand: { primary: rgbToHex(theme.brand.primary), accent: rgbToHex(theme.brand.accent) },
+    })
   })
   onCleanup(() => epilogue.session())
   const descendantSessionIDs = createMemo(() => {
@@ -246,6 +253,7 @@ export function Session(props: {
   const diffWrapMode = createMemo(() => config.diffs?.wrap ?? "word")
   const groupExploration = createMemo(() => config.session?.grouping !== "none")
   const verbosity = createMemo(() => config.session?.verbosity ?? defaultVerbosity)
+  const compactMode = () => config.session?.timestamps !== "show" && config.session?.details === false
   // High opens exploration and instruction summaries by default; everything else starts collapsed.
   const groupExpanded = (groupID: string, kind: GroupKind) =>
     sessionTabs.groupExpanded(sessionID, groupID) ??
@@ -1117,6 +1125,43 @@ export function Session(props: {
       },
     },
     {
+      title: "View todos",
+      id: "session.todos",
+      group: "Session",
+      slash: { name: "todos", aliases: ["todo"] },
+      run: () => dialog.replace(() => <DialogTodos sessionID={route.sessionID} />),
+    },
+    {
+      title: compactMode() ? "Disable compact mode" : "Enable compact mode",
+      id: "session.toggle.compact",
+      group: "Session",
+      slash: { name: "compact-view", aliases: ["density"] },
+      run: () => {
+        const compact = compactMode()
+        void configState
+          .update((draft) => {
+            draft.session = { ...draft.session, timestamps: compact ? "show" : "hide", details: compact }
+          })
+          .catch(toast.error)
+        dialog.clear()
+      },
+    },
+    {
+      title: config.session?.timestamps === "show" ? "Hide timestamps" : "Show timestamps",
+      id: "session.toggle.timestamps",
+      group: "Session",
+      slash: { name: "timestamps", aliases: ["toggle-timestamps"] },
+      run: () => {
+        const show = config.session?.timestamps !== "show"
+        void configState
+          .update((draft) => {
+            draft.session = { ...draft.session, timestamps: show ? "show" : "hide" }
+          })
+          .catch(toast.error)
+        dialog.clear()
+      },
+    },
+    {
       title: "Undo previous message",
       id: "session.undo",
       group: "Session",
@@ -1278,7 +1323,9 @@ export function Session(props: {
       },
       run: () => {
         const lastAssistantMessage = messagesBeforeRevert().findLast(
-          (msg) => msg.type === "assistant" || (msg.type === "compaction" && msg.status === "completed" && msg.summary.trim() !== ""),
+          (msg) =>
+            msg.type === "assistant" ||
+            (msg.type === "compaction" && msg.status === "completed" && msg.summary.trim() !== ""),
         )
         if (!lastAssistantMessage) {
           toast.show({ message: "No assistant messages found", variant: "error" })
@@ -1328,6 +1375,7 @@ export function Session(props: {
       title: "Copy session transcript",
       id: "session.copy",
       group: "Session",
+      slash: { name: "copy-session" },
       run: async () => {
         try {
           const sessionData = session()
@@ -1520,6 +1568,9 @@ export function Session(props: {
           paddingRight={dimensions().width < 44 ? 1 : 2}
         >
           <Show when={session()}>
+            <Show when={dimensions().height >= 24}>
+              <SessionHeader sessionID={route.sessionID} width={contentWidth()} />
+            </Show>
             <box flexGrow={1} minHeight={0} position="relative">
               <scrollbox
                 ref={(r) => {
@@ -1582,9 +1633,7 @@ export function Session(props: {
                   onMouseOut={() => setLatestHovered(false)}
                   onMouseUp={toBottom}
                 >
-                  <text
-                    fg={latestHovered() ? theme.text.action.secondary.hovered : theme.text.action.secondary.base}
-                  >
+                  <text fg={latestHovered() ? theme.text.action.secondary.hovered : theme.text.action.secondary.base}>
                     Jump to latest ↓
                   </text>
                 </box>
@@ -1630,12 +1679,7 @@ export function Session(props: {
                     }}
                   </Show>
                 </Match>
-                <Match
-                  when={
-                    session() &&
-                    currentLocation.error?.location.directory === session()!.location.directory
-                  }
-                >
+                <Match when={session() && currentLocation.error?.location.directory === session()!.location.directory}>
                   <SessionLocationMissing
                     directory={session()!.location.directory}
                     projectID={session()!.projectID}
@@ -2064,6 +2108,9 @@ function AssistantFooter(props: { message: SessionMessageAssistant }) {
           <Show when={interrupted()}>
             <span style={{ fg: theme.text.muted }}> · interrupted</span>
           </Show>
+          <Show when={config.data.session.timestamps === "show"}>
+            <span style={{ fg: theme.text.muted }}> · {Locale.time(props.message.time.created)}</span>
+          </Show>
         </text>
       </box>
     </>
@@ -2424,6 +2471,11 @@ function UserMessage(props: { message: SessionMessageUser }) {
           flexShrink={0}
         >
           <text fg={theme.text.base}>{props.message.text}</text>
+          <Show when={ctx.config.session.timestamps === "show"}>
+            <text id={`message-timestamp-${props.message.id}`} fg={theme.text.muted}>
+              {Locale.time(props.message.time.created)}
+            </text>
+          </Show>
           <Show when={skills().length}>
             <box flexDirection="row" paddingTop={1} gap={1} flexWrap="wrap">
               <For each={skills()}>
@@ -2929,9 +2981,7 @@ function BlockTool(props: BlockToolProps) {
               <Show
                 when={props.spinner}
                 fallback={
-                  <text
-                    fg={permission() ? theme.text.feedback.warning.base : (props.headerColor ?? theme.text.muted)}
-                  >
+                  <text fg={permission() ? theme.text.feedback.warning.base : (props.headerColor ?? theme.text.muted)}>
                     {title()}
                   </text>
                 }
@@ -3119,11 +3169,7 @@ function ShellDisplay(props: {
           <Show
             when={isRunning()}
             fallback={
-              <text
-                fg={theme.text.base}
-                wrapMode={expanded() ? "word" : "char"}
-                maxHeight={expanded() ? undefined : 2}
-              >
+              <text fg={theme.text.base} wrapMode={expanded() ? "word" : "char"} maxHeight={expanded() ? undefined : 2}>
                 {limitedInput()}
               </text>
             }
@@ -3224,7 +3270,9 @@ function Read(props: ToolProps) {
         Read {pathFormatter.format(stringValue(props.input.path))}
         <Show when={props.input.offset !== undefined || props.input.limit !== undefined}>
           :{finiteNumber(props.input.offset) || 1}-
-          {props.input.limit ? (finiteNumber(props.input.offset) || 1) + (finiteNumber(props.input.limit) || 0) - 1 : ""}
+          {props.input.limit
+            ? (finiteNumber(props.input.offset) || 1) + (finiteNumber(props.input.limit) || 0) - 1
+            : ""}
         </Show>
       </InlineTool>
       <For each={loaded()}>

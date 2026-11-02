@@ -1,4 +1,5 @@
 import { expect } from "bun:test"
+import path from "node:path"
 import { Context, Effect, Layer, Schema } from "effect"
 import { Command } from "@opencode/core/command"
 import { Agent } from "@opencode/core/agent"
@@ -86,7 +87,9 @@ it.live("ports memory RPC, commands and full V1 tool actions with session contro
     expect((yield* client.manage({ action: "search", query: "dragonfruit", limit: 2 })).text).toContain("dragonfruit")
     expect((yield* client.manage({ action: "conflicts", fix: false })).text).toContain("No conflicting facts")
     expect((yield* client.manage({ action: "dossier" })).text).toContain("dragonfruit")
-    expect((yield* client.manage({ action: "team", operation: "init" })).text).toContain(".bolt/memory.md")
+    expect((yield* client.manage({ action: "team", operation: "init" })).text).toContain(
+      path.join(".bolt", "memory.md"),
+    )
     expect((yield* client.manage({ action: "team", operation: "init" })).text).toContain("already exists")
     yield* command("purge confirm")
     yield* command("on")

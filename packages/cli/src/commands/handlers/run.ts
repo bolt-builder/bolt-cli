@@ -44,6 +44,16 @@ export default Runtime.handler(Commands.commands.run, (input) =>
     yield* Effect.promise(() =>
       runNonInteractive({
         server,
+        json: input.json,
+        porcelain: input.porcelain,
+        emit: Option.getOrUndefined(input.emit),
+        maxCost: Option.getOrUndefined(input.maxCost),
+        maxTokens: Option.getOrUndefined(input.maxTokens),
+        timeout: Option.getOrUndefined(input.timeout),
+        retries: input.retries,
+        outputSchema: Option.getOrUndefined(input.outputSchema),
+        costReport: input.costReport,
+        autoAgent: input.autoAgent,
         message: [
           ...input.message,
           ...(transcript ? [transcript] : []),
@@ -54,11 +64,14 @@ export default Runtime.handler(Commands.commands.run, (input) =>
         fork: input.fork,
         worktree: Option.getOrUndefined(input.worktree),
         model: Option.getOrUndefined(input.model),
+        bestOf: Option.getOrUndefined(input.bestOf),
+        judge: Option.getOrUndefined(input.judge),
+        variant: Option.getOrUndefined(input.variant),
         agent: Option.getOrUndefined(input.agent),
         format: input.format,
         file: [...input.file],
         title: Option.getOrUndefined(input.title),
-        thinking: input.thinking,
+        thinking: Option.getOrUndefined(input.thinking),
         auto: input.auto || input.yolo || input.dangerouslySkipPermissions,
       }),
     )

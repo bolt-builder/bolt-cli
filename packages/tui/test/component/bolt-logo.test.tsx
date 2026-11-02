@@ -1,5 +1,6 @@
 /** @jsxImportSource @opentui/solid */
 import { testRender } from "@opentui/solid"
+import { RGBA } from "@opentui/core"
 import { expect, test } from "bun:test"
 import { Logo } from "../../src/component/logo"
 import { ConfigProvider } from "../../src/config"
@@ -42,3 +43,30 @@ test.each([
     app.renderer.destroy()
   }
 })
+
+for (const mode of ["dark", "light"] as const) {
+  test(`original Bolt gradient and literal strokes in ${mode} mode`, async () => {
+    await using temporary = await tmpdir()
+    const app = await testRender(
+      () => (
+        <TestTuiContexts paths={{ state: temporary.path }}>
+          <ConfigProvider config={createTuiResolvedConfig({ theme: { name: "bolt", mode } })}>
+            <ThemeProvider mode={mode} source={emptyThemeSource}>
+              <Logo />
+            </ThemeProvider>
+          </ConfigProvider>
+        </TestTuiContexts>
+      ),
+      { width: 100, height: 40 },
+    )
+    try {
+      await app.renderOnce()
+      const spans = app.captureSpans().lines.flatMap((line) => line.spans)
+      expect(spans.some((span) => span.fg.equals(RGBA.fromHex(mode === "dark" ? "#63d9ff" : "#1f5fbf")))).toBe(true)
+      expect(spans.some((span) => span.fg.equals(RGBA.fromHex(mode === "dark" ? "#2d7bff" : "#3b7dd8")))).toBe(true)
+      expect(app.captureCharFrame()).toContain("|_______/")
+    } finally {
+      app.renderer.destroy()
+    }
+  })
+}

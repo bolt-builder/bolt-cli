@@ -18,6 +18,12 @@ import PROMPT_PERF from "./agent/perf.txt"
 // bypass the restricted tool catalog; its safe tools remain available directly.
 const readOnlyMutations = [
   "memory_save",
+  "test_run",
+  "http",
+  "profile",
+  "frames",
+  "task_create",
+  "task_update",
   "execute",
   "todowrite",
   "opencode_session_rename",

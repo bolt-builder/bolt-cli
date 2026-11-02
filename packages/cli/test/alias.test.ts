@@ -106,3 +106,17 @@ test("real CLI aliases preserve config comments, expand before parsing, persist 
     await fs.rm(root, { recursive: true, force: true })
   }
 })
+
+test("V1 global aliases load below existing V2 and CLI aliases", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "bolt-global-alias-"))
+  try {
+    const current = path.join(root, "opencode")
+    const legacy = path.join(root, "bolt", "config.json")
+    await Bun.write(legacy, JSON.stringify({ alias: { old: "run old", shared: "run legacy" } }))
+    await Bun.write(path.join(current, "bolt.json"), JSON.stringify({ alias: { shared: "run current" } }))
+    expect(CliAlias.load(root, current, { shared: "run cli" })).toEqual({ old: "run old", shared: "run cli" })
+    expect(await Bun.file(legacy).json()).toEqual({ alias: { old: "run old", shared: "run legacy" } })
+  } finally {
+    await fs.rm(root, { recursive: true, force: true })
+  }
+})

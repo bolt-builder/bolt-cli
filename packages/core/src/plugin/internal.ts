@@ -53,6 +53,12 @@ import { Integration } from "../integration.js"
 import { Job } from "../job.js"
 import { KV } from "../kv.js"
 import { Location } from "../location.js"
+import { LSP } from "../lsp.js"
+import { LspTool } from "../tool/plugin/lsp.js"
+import { LspReferencesTool } from "../tool/plugin/lsp-references.js"
+import { LspRenameTool } from "../tool/plugin/lsp-rename.js"
+import { DiagnosticsTool } from "../tool/plugin/diagnostics.js"
+import { LspPlugin } from "./lsp.js"
 import { ModelsDev } from "../models-dev.js"
 import { Mcp } from "../mcp/index.js"
 import { Npm } from "@opencode/util/npm"
@@ -76,6 +82,15 @@ import { PatchTool } from "../tool/plugin/patch.js"
 import { EditTool } from "../tool/plugin/edit.js"
 import { GlobTool } from "../tool/plugin/glob.js"
 import { GrepTool } from "../tool/plugin/grep.js"
+import { TaskTools } from "../tool/plugin/tasks.js"
+import { MultiEditTool } from "../tool/plugin/multiedit.js"
+import { ProfileTool } from "../tool/plugin/profile.js"
+import { SqlTool } from "../tool/plugin/sql-query.js"
+import { FramesTool } from "../tool/plugin/frames.js"
+import { HttpTool } from "../tool/plugin/http.js"
+import { CoverageTool } from "../tool/plugin/coverage.js"
+import { TestRunTool } from "../tool/plugin/testrun.js"
+import { NotebookTool } from "../tool/plugin/notebook.js"
 import { GitTool } from "../tool/plugin/git.js"
 import { SemanticSearchTool } from "../tool/plugin/semantic-search.js"
 import { ImageGenerateTool } from "../tool/plugin/image-generate.js"
@@ -87,6 +102,7 @@ import { ReadTool } from "../tool/plugin/read.js"
 import { ArtifactTools } from "../tool/plugin/artifact.js"
 import { ScheduleTools } from "../tool/plugin/schedule.js"
 import { ShellTool } from "../tool/plugin/shell.js"
+import { BackgroundTools } from "../tool/plugin/background.js"
 import { SkillTool } from "../tool/plugin/skill.js"
 import { SubagentTool } from "../tool/plugin/subagent.js"
 import { TodoTool } from "../tool/plugin/todo.js"
@@ -98,6 +114,7 @@ import { WellKnown } from "../wellknown.js"
 import { WriteTool } from "../tool/plugin/write.js"
 import { AgentPlugin } from "./agent.js"
 import BrowserPlugin from "@opencode/plugin-browser"
+import { BrowserTool } from "../tool/plugin/browser.js"
 import { CommandPlugin } from "./command.js"
 import { IdentityPlugin } from "./identity.js"
 import { PlanPlugin } from "./plan.js"
@@ -105,6 +122,7 @@ import { VoicePlugin } from "./voice.js"
 import { SandboxPlugin } from "./sandbox.js"
 import { MemoryPlugin } from "./memory.js"
 import { ProcessPlugin } from "./process.js"
+import { CheckpointPlugin } from "./checkpoint.js"
 import { GoalPlugin } from "./goal.js"
 import { ModelsDevPlugin } from "./models-dev.js"
 import { McpCodeModeDefaultsPlugin } from "./mcp-codemode-defaults.js"
@@ -148,6 +166,7 @@ const services = [
   KV.Service,
   LLMClient.Service,
   Location.Service,
+  LSP.Service,
   ModelsDev.Service,
   Mcp.Service,
   Npm.Service,
@@ -205,6 +224,7 @@ export const requirements = LayerNode.group([
   KV.node,
   llmClient,
   Location.node,
+  LSP.node,
   ModelsDev.node,
   Mcp.node,
   Npm.node,
@@ -247,6 +267,7 @@ const pre = [
   CommandPlugin.Plugin,
   GoalPlugin.Plugin,
   ProcessPlugin.Plugin,
+  CheckpointPlugin.Plugin,
   MemoryPlugin.Plugin,
   SandboxPlugin.Plugin,
   VoicePlugin.Plugin,
@@ -261,10 +282,13 @@ const pre = [
   VerbosityPlugin.Plugin,
   IdentityPlugin.Plugin,
   EditTool.Plugin,
+  MultiEditTool.Plugin,
   GlobTool.Plugin,
   GrepTool.Plugin,
   SemanticSearchTool.Plugin,
   GitTool.Plugin,
+  NotebookTool.Plugin,
+  TaskTools.Plugin,
   ImageGenerateTool.Plugin,
   OpenCodeTools.Plugin,
   McpResourceTools.Plugin,
@@ -273,6 +297,18 @@ const pre = [
   ArtifactTools.Plugin,
   ScheduleTools.Plugin,
   ShellTool.Plugin,
+  BackgroundTools.Plugin,
+  TestRunTool.Plugin,
+  CoverageTool.Plugin,
+  LspTool.Plugin,
+  LspReferencesTool.Plugin,
+  LspRenameTool.Plugin,
+  DiagnosticsTool.Plugin,
+  LspPlugin.Plugin,
+  HttpTool.Plugin,
+  FramesTool.Plugin,
+  SqlTool.Plugin,
+  ProfileTool.Plugin,
   SkillTool.Plugin,
   SubagentTool.Plugin,
   TodoTool.Plugin,
@@ -286,6 +322,7 @@ const post = [
   ConfigInstructionPlugin.Plugin,
   ConfigReferencePlugin.Plugin,
   ConfigAgentPlugin.Plugin,
+  BrowserTool.Plugin,
   BrowserPlugin,
   ConfigCommandPlugin.Plugin,
   ConfigCompactionPlugin.Plugin,

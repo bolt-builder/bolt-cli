@@ -533,13 +533,13 @@ test("narrow vertical session tabs collapse to a compact rail with the terminal"
     },
   })
   await setup.ready
-  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 10).trim() === "⌕")
+  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 6).trim() === "⌕")
 
   setup.resize(68, 30)
-  await setup.waitForFrame((frame) => frame.split("\n")[0].includes(session.title))
+  await setup.waitForFrame((frame) => frame.includes(session.title))
   expect(setup.captureCharFrame()).not.toContain("⌕")
   setup.resize(80, 30)
-  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 10).trim() === "⌕")
+  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 6).trim() === "⌕")
 })
 
 test("automatic rename refreshes the displayed title before settling, even without a renamed event", async () => {
@@ -2515,21 +2515,24 @@ test("free usage limit claims suppression atomically across two TUI instances an
   }
   first.events.emit(event)
   second.events.emit(event)
-  await Promise.all([
-    first.waitForFrame((frame) => frame.includes("You've used today's free messages. They reset at")),
-    second.waitForFrame((frame) => frame.includes("You've used today's free messages. They reset at")),
-  ])
   await first.waitForFrame(
     () =>
       first.captureCharFrame().includes("Free limit reached") ||
       second.captureCharFrame().includes("Free limit reached"),
   )
-  await Bun.sleep(30)
-  await Promise.all([first.renderOnce(), second.renderOnce()])
-  const opened = [first.captureCharFrame(), second.captureCharFrame()].filter((frame) =>
-    frame.includes("Free limit reached"),
-  )
+  const opened = [first, second].filter((setup) => setup.captureCharFrame().includes("Free limit reached"))
   expect(opened).toHaveLength(1)
+
+  // The modal can cover the inline explanation. Dismiss it before checking both explanations.
+  await opened[0].mockInput.pressEscape()
+  await Promise.all(
+    [first, second].map((setup) =>
+      setup.waitForFrame(
+        (frame) =>
+          !frame.includes("Free limit reached") && frame.includes("You've used today's free messages. They reset at"),
+      ),
+    ),
+  )
 
   // Typing draft protection: does not overwrite a draft or open Free limit reached while typing.
   await using typingState = await tmpdir()

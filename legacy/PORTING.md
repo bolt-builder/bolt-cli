@@ -71,7 +71,13 @@ Pure V1 algorithms retain their original contract tests. Git and process operati
 
 <!-- coderabbit-ai-generated-section:v1:017dbb0cd3e22f014f16ab85e0b13fc4c2c1f1f8fd067e8ab77c6998b7c0cc55 -->
 
-| Validation and delivery | Run affected gates after each integration, complete the remaining parity audit and visual checks, and add verified changes to PR #420 |
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:c50a566f5c64eb0b709fa986053a50fdf9687876117a8ce2c1a43fbe6a33f43b -->
+
+| Validation and delivery | PR #420 is merged. Finish the parity checklist, production and platform gates, then open a new PR against `dev` |
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 <!-- /coderabbit-ai-generated:v1 -->
 
@@ -83,7 +89,13 @@ Remaining legacy CLI handler files (this is an audit queue; existing V2 equivale
 
 The declared Bun 1.4.4 is installed task-locally and the canonical root `bun run check` has passed. Earlier Bun 1.4.2 and parallel compiler limitations are superseded. New source changes require current checks; the detailed validation record lives in workspace context outside repository commits. Real Linux standalone CLI compilation, embedded web assets, service election/authentication/plugin loading/shutdown, and npm package/archive/postinstall fixtures have passed. macOS/Windows builds, native signing, physical recording and live providers have not been exercised.
 
-The user opened [PR #420](https://github.com/bolt-builder/bolt-cli/pull/420). Full V1 parity and the remaining audit are still in progress.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:aee4d84e84aae13de3613449616feb210ca88397442274719a39c78df426fe95 -->
+
+[PR #420](https://github.com/bolt-builder/bolt-cli/pull/420) is merged. This restoration builds on it and will be delivered in a new PR against `dev` after the remaining parity and verification gates. [V1-PARITY.md](V1-PARITY.md) and [V1-SURFACES.md](V1-SURFACES.md) are the current audit queue and evidence; the older handler list above is historical and includes commands restored since #420.
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 
 

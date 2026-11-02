@@ -14,6 +14,63 @@ import { tmpdir } from "./fixture/tmpdir"
 import { testEffect } from "./lib/effect"
 
 describe("Snapshot", () => {
+  testEffect(Layer.empty).live(
+    "imports immutable V1 objects into an existing V2 store and captures full-project checkpoints from a subdirectory",
+    () =>
+      Effect.acquireUseRelease(
+        Effect.promise(() => tmpdir()),
+        (tmp) =>
+          Effect.gen(function* () {
+            const project = path.join(tmp.path, "project")
+            const scope = path.join(project, "sub")
+            const staged = path.join(tmp.path, "staged-v1")
+            const current = path.join(tmp.path, "opencode")
+            const legacy = path.join(tmp.path, "bolt")
+            yield* Effect.promise(async () => {
+              await fs.mkdir(scope, { recursive: true })
+              await fs.writeFile(path.join(project, "root.txt"), "original\n")
+              await fs.writeFile(path.join(scope, "inside.txt"), "original inside\n")
+              await initGit(project)
+            })
+            const capture = (data: string) =>
+              Effect.gen(function* () {
+                return yield* (yield* Snapshot.Service).capture({ scope: "project" })
+              }).pipe(Effect.provide(snapshotLayer(data, scope)))
+            const old = yield* capture(staged)
+            expect(old).toBeDefined()
+            yield* Effect.promise(() => fs.writeFile(path.join(project, "root.txt"), "V2 content\n"))
+            const existing = yield* capture(current)
+            expect(existing).toBeDefined()
+            yield* Effect.promise(async () => {
+              await fs.mkdir(legacy, { recursive: true })
+              await fs.cp(path.join(staged, "snapshot"), path.join(legacy, "snapshot"), { recursive: true })
+            })
+            const oldStorage = yield* snapshotDirectory(legacy)
+            const oldIndex = yield* Effect.promise(() => fs.readFile(path.join(oldStorage, "index")))
+            yield* Effect.gen(function* () {
+              const snapshot = yield* Snapshot.Service
+              const scoped = yield* snapshot.capture()
+              const all = yield* snapshot.capture({ scope: "project" })
+              if (!old || !existing || !scoped || !all) throw new Error("Snapshot capture failed")
+              expect(yield* snapshot.files({ from: old, to: all })).toEqual([RelativePath.make("root.txt")])
+              // Existing V2 objects survive the import, and the saved V1 tree is usable.
+              expect(yield* snapshot.files({ from: existing, to: all })).toEqual([])
+              yield* snapshot.restore({ files: new Map([[RelativePath.make("root.txt"), old]]) })
+              expect(yield* read(path.join(project, "root.txt"))).toBe("original\n")
+              const restored = yield* snapshot.capture({ scope: "project" })
+              if (!restored) throw new Error("Restored capture missing")
+              expect(yield* snapshot.files({ from: old, to: restored })).toEqual([])
+              yield* Effect.promise(() => fs.writeFile(path.join(project, "root.txt"), "outside current Location\n"))
+              expect(yield* snapshot.capture()).toBe(restored)
+              expect(yield* snapshot.capture({ scope: "project" })).not.toBe(restored)
+            }).pipe(Effect.provide(snapshotLayer(current, scope)))
+            expect(yield* Effect.promise(() => fs.readFile(path.join(oldStorage, "index")))).toEqual(oldIndex)
+          }),
+        (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
+      ),
+    { timeout: 30_000 },
+  )
+
   testEffect(Layer.empty).live("keeps lazy repository discovery after the first caller is interrupted", () =>
     Effect.acquireUseRelease(
       Effect.promise(() => tmpdir()),

@@ -16,6 +16,7 @@ const names = [
   "client",
   "plugin",
   "plugin-browser",
+  "memory",
   "core",
   "simulation",
   "server",
@@ -190,7 +191,13 @@ try {
     ),
     Bun.write(
       join(consumer, "imports.mjs"),
-      `const modules = await Promise.all([
+      `// The restored memory package must resolve compiled JavaScript, including its text prompts.
+await Promise.all([
+  import("@bolt-ai/memory"),
+  import("@bolt-ai/memory/effect"),
+  import("@bolt-ai/memory/effect/httpapi"),
+])
+const modules = await Promise.all([
   import("@opencode/sdk"),
   import("@opencode/sdk/effect"),
   import("@opencode/sdk/workerd"),

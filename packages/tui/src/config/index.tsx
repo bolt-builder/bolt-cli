@@ -156,6 +156,12 @@ export const Info = Schema.Struct({
         description: "Session sidebar visibility; 'auto' shows it when space permits",
       }),
       scrollbar: Schema.optional(Schema.Boolean).annotate({ description: "Show the session transcript scrollbar" }),
+      timestamps: Schema.optional(Schema.Literals(["show", "hide"])).annotate({
+        description: "Show or hide message timestamps",
+      }),
+      details: Schema.optional(Schema.Boolean).annotate({
+        description: "Show successfully completed tool calls; running tools and errors remain visible",
+      }),
       thinking: Schema.optional(Schema.Literals(["show", "hide"])).annotate({
         description: "Show or hide model reasoning by default",
       }),
@@ -249,6 +255,7 @@ export const Info = Schema.Struct({
     description: "Experimental features that may change or be removed at any time",
   }),
   animations: Schema.optional(Schema.Boolean).annotate({ description: "Enable interface animations" }),
+  fire: Schema.optional(Schema.Boolean).annotate({ description: "Show the Bolt fire animation while working" }),
   highlights: Schema.optional(Schema.Boolean).annotate({
     description: "Show the release highlights once after Bolt updates",
   }),

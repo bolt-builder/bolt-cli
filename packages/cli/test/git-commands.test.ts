@@ -19,8 +19,8 @@ test("bench cleans temporary checkouts after success and command failure; submod
       stderr: "pipe",
     })
     const [stdout, stderr, code] = await Promise.all([
-      new Response(child.stdout).text(),
-      new Response(child.stderr).text(),
+      new Response(child.stdout).text().then((text) => text.replaceAll("\r\n", "\n")),
+      new Response(child.stderr).text().then((text) => text.replaceAll("\r\n", "\n")),
       child.exited,
     ])
     return { stdout, stderr, code }
@@ -103,11 +103,17 @@ test("bench exits nonzero when temporary worktree cleanup fails", async () => {
     await Bun.write(path.join(root, "file"), "fixture\n")
     await raw("add", ".")
     await raw("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture")
-    await Bun.write(
-      path.join(bin, "git"),
-      `#!/bin/sh\ncase " $* " in *" worktree remove "*) exit 1;; esac\nexec "${git}" "$@"\n`,
-    )
-    await fs.chmod(path.join(bin, "git"), 0o755)
+    if (process.platform === "win32")
+      await Bun.write(
+        path.join(bin, "git.cmd"),
+        `@echo off\r\necho %* | findstr /R /C:"worktree.*remove" >nul && exit /b 1\r\n"${git}" %*\r\nexit /b %errorlevel%\r\n`,
+      )
+    if (process.platform !== "win32")
+      await Bun.write(
+        path.join(bin, "git"),
+        `#!/bin/sh\ncase " $* " in *" worktree remove "*) exit 1;; esac\nexec "${git}" "$@"\n`,
+      )
+    if (process.platform !== "win32") await fs.chmod(path.join(bin, "git"), 0o755)
     const proc = Bun.spawn(
       [
         process.execPath,
@@ -123,7 +129,7 @@ test("bench exits nonzero when temporary worktree cleanup fails", async () => {
       ],
       {
         cwd: root,
-        env: isolatedEnv(home, { PATH: `${bin}:${process.env.PATH}` }),
+        env: isolatedEnv(home, { PATH: `${bin}${path.delimiter}${process.env.PATH}` }),
         stdout: "pipe",
         stderr: "pipe",
         stdin: "ignore",
@@ -139,7 +145,8 @@ test("bench exits nonzero when temporary worktree cleanup fails", async () => {
     expect(stderr).toContain("Failed to remove the temporary worktree")
     const list = await raw("worktree", "list", "--porcelain")
     for (const match of list.matchAll(/^worktree (.+)$/gm))
-      if (match[1] !== root) await raw("worktree", "remove", "--force", match[1])
+      if ((await fs.realpath(match[1].trim())) !== (await fs.realpath(root)))
+        await raw("worktree", "remove", "--force", match[1].trim())
   } finally {
     await fs.rm(home, { recursive: true, force: true })
   }

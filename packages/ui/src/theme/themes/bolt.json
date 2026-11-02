@@ -9,14 +9,15 @@
       "accent": "#1f5fbf",
       "interactive": "#3b7dd8",
       "success": "#3d9a57",
-      "warning": "#3b7dd8",
+      "warning": "#b7791f",
       "error": "#d1383d",
       "info": "#318795",
       "diffAdd": "#1e725c",
       "diffDelete": "#c53b53"
     },
     "v2Overrides": {
-      "v2-background-bg-deep": "#ffffff"
+      "v2-background-bg-deep": "#ffffff",
+      "v2-background-bg-base": "#fafafa"
     }
   },
   "dark": {
@@ -27,7 +28,7 @@
       "accent": "#63d9ff",
       "interactive": "#2d7bff",
       "success": "#55c78a",
-      "warning": "#2d7bff",
+      "warning": "#e5b567",
       "error": "#e06c75",
       "info": "#63d9ff",
       "diffAdd": "#4fd6be",

@@ -12,6 +12,8 @@ import { EOL } from "node:os"
 import { readFile } from "node:fs/promises"
 import { nonEmptyToolContent, toolOutputText, type MiniToolPart } from "@opencode/tui/mini/tool"
 import { UI } from "./ui"
+import type { Observer } from "./controls"
+import { errorMessage } from "../util/error"
 
 type Model = {
   providerID: string
@@ -39,6 +41,8 @@ type Input = {
   /** True when the client is attached to a shared server rather than an exclusive in-process one. */
   attached: boolean
   compatibility?: "v1"
+  quiet?: boolean
+  observer?: Observer
   renderTool: (part: SessionMessageAssistantTool) => Promise<void>
   renderToolError: (part: SessionMessageAssistantTool) => Promise<void>
 }
@@ -101,6 +105,8 @@ export async function runNonInteractivePrompt(input: Input) {
   let pendingStep: { timestamp: number; part: Record<string, unknown>; label: string } | undefined
 
   const emit = (type: string, timestamp: number, data: Record<string, unknown>) => {
+    if (type === "error") input.observer?.error?.(errorMessage(data.error))
+    if (input.quiet) return true
     if (input.format !== "json") return false
     process.stdout.write(JSON.stringify({ type, timestamp, sessionID: input.sessionID, ...data }) + EOL)
     return true
@@ -120,6 +126,7 @@ export async function runNonInteractivePrompt(input: Input) {
   }
 
   const writeReasoning = (part: { text: string; [key: string]: unknown }, timestamp: number) => {
+    input.observer?.reasoning?.(part.text)
     if (emit("reasoning", timestamp, { part })) return
     const text = part.text.trim()
     if (!text) return
@@ -300,6 +307,10 @@ export async function runNonInteractivePrompt(input: Input) {
         })
         continue
       }
+      if (event.type === "session.text.delta") {
+        input.observer?.delta?.(contentKey(event.data.assistantMessageID, event.data.ordinal), event.data.delta)
+        continue
+      }
       if (event.type === "session.text.ended") {
         const key = contentKey(event.data.assistantMessageID, event.data.ordinal)
         const started = starts.get(`text\u0000${key}`)
@@ -312,6 +323,7 @@ export async function runNonInteractivePrompt(input: Input) {
           text: event.data.text,
           time: { start: started?.timestamp ?? time, end: time },
         }
+        input.observer?.text?.(key, event.data.text)
         renderedText.set(key, event.data.text)
         writeText(part, time)
         continue
@@ -432,6 +444,7 @@ export async function runNonInteractivePrompt(input: Input) {
         }
         tools.delete(key)
         renderedTools.add(key)
+        input.observer?.tool?.(tool)
         if (!emit("tool_use", time, { part })) await input.renderTool(tool)
         continue
       }
@@ -477,6 +490,7 @@ export async function runNonInteractivePrompt(input: Input) {
         }
         tools.delete(key)
         renderedTools.add(key)
+        input.observer?.tool?.(tool)
         if (input.compatibility === "v1" && (permissionRejected || formCancelled)) continue
         if (!emit("tool_use", time, { part })) {
           if (content && toolOutputText(current.tool, content).trim())
@@ -508,6 +522,7 @@ export async function runNonInteractivePrompt(input: Input) {
           cost: event.data.cost,
           tokens: event.data.tokens,
         }
+        input.observer?.step?.(event.data.assistantMessageID, { cost: event.data.cost, tokens: event.data.tokens })
         emit("step_finish", time, { part })
         continue
       }
@@ -591,6 +606,7 @@ export async function runNonInteractivePrompt(input: Input) {
         if (item.type === "text") {
           const ordinal = textOrdinal++
           const key = contentKey(message.id, ordinal)
+          input.observer?.text?.(key, item.text)
           const rendered = renderedText.get(key) ?? ""
           if (rendered === item.text || !item.text.startsWith(rendered)) continue
           const text = item.text.slice(rendered.length)
@@ -657,6 +673,7 @@ export async function runNonInteractivePrompt(input: Input) {
                 },
         }
         renderedTools.add(key)
+        input.observer?.tool?.(item)
         if (emit("tool_use", timestamp, { part })) continue
         if (item.state.status === "completed") {
           await input.renderTool(item)
@@ -678,6 +695,7 @@ export async function runNonInteractivePrompt(input: Input) {
       }
 
       if (step !== "ended" && message.finish && message.tokens) {
+        input.observer?.step?.(message.id, { cost: message.cost ?? 0, tokens: message.tokens })
         emit("step_finish", timestamp, {
           part: {
             id: projectedPartID(message.id, "step-finish"),
@@ -742,6 +760,7 @@ export async function runNonInteractivePrompt(input: Input) {
     if (interrupted) return
     submitted = true
     completed = consume()
+    void completed.catch(() => {})
     admission = new AbortController()
     const response = await input.client.session
       .prompt(

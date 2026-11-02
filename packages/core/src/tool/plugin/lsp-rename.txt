@@ -1,0 +1,10 @@
+Rename the symbol at a position across the whole workspace using the project's language servers.
+
+- Performs a semantic rename: every reference to the symbol is updated, not just text matches
+- Positions are 1-based, exactly as shown in editors
+- Returns the list of edited files with the number of edits applied to each
+
+Usage notes:
+- Place the position on the symbol name itself (any character inside the identifier works)
+- A language server must be configured for the file type; if none is available an error is returned
+- Text edits are applied to files directly. Resource operations some servers attach (creating, renaming, or deleting files) are not applied; if a rename requires moving a file, do that separately

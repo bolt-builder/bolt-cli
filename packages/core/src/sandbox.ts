@@ -1,6 +1,7 @@
 export * as Sandbox from "./sandbox"
 
 import os from "os"
+import { which } from "./util/which.js"
 import { Effect, Schema } from "effect"
 import { ShellSelect } from "./shell/select.js"
 
@@ -71,7 +72,7 @@ export const wrap = Effect.fn("Sandbox.wrap")(function* (input: {
   writable: string[]
 }) {
   if (process.platform === "linux") {
-    const exe = Bun.which("bwrap")
+    const exe = which("bwrap")
     if (!exe)
       return yield* new UnsupportedError({
         message:
@@ -80,7 +81,7 @@ export const wrap = Effect.fn("Sandbox.wrap")(function* (input: {
     return linux(input, exe)
   }
   if (process.platform === "darwin") {
-    const exe = Bun.which("sandbox-exec")
+    const exe = which("sandbox-exec")
     if (!exe)
       return yield* new UnsupportedError({
         message:

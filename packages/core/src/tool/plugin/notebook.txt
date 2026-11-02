@@ -1,0 +1,14 @@
+Reads and edits Jupyter notebooks (.ipynb files) natively, without corrupting the JSON structure.
+
+Actions:
+- read: list all cells with index, type, source, and a capped summary of outputs
+- edit: replace the source of the cell at the given index
+- insert: add a new code or markdown cell at the given index (existing cells shift down; index equal to the cell count appends)
+- delete: remove the cell at the given index
+
+Usage notes:
+- Always use this tool for .ipynb files instead of read/edit/write; raw text edits easily break the notebook JSON and lose metadata.
+- Cell indices are 0-based. Run read first to see indices before editing.
+- Everything the tool does not touch is preserved exactly: nbformat version, notebook and cell metadata, cell ids, and any unknown fields.
+- Outputs and execution counts are cleared only for code cells whose source actually changed; other cells keep their outputs.
+- The source parameter is the full new cell source; there is no partial replace within a cell.

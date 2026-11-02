@@ -156,3 +156,25 @@ test.each(["light", "dark"] as const)("migrates the original Bolt palette in %s 
   expect(tokens.text.base.toInts()).toEqual(original.text.toInts())
   expect(tokens.syntax.keyword.toInts()).toEqual(original.syntaxKeyword.toInts())
 })
+
+test("discovers V1 Bolt global and project themes with existing V2 globals and nearest projects taking precedence", async () => {
+  await using tmp = await tmpdir()
+  const current = path.join(tmp.path, "opencode")
+  const legacy = path.join(tmp.path, "bolt")
+  const project = path.join(tmp.path, "project", "child")
+  for (const [directory, name, source] of [
+    [legacy, "legacy", "v1"],
+    [legacy, "shared", "v1"],
+    [current, "shared", "v2"],
+    [path.join(project, ".opencode"), "project", "compat"],
+    [path.join(project, ".bolt"), "project", "bolt"],
+  ]) {
+    await mkdir(path.join(directory, "themes"), { recursive: true })
+    await writeFile(path.join(directory, "themes", `${name}.json`), JSON.stringify({ source }))
+  }
+  await expect(discoverThemes(configDirectories(current, project))).resolves.toEqual({
+    legacy: { source: "v1" },
+    shared: { source: "v2" },
+    project: { source: "bolt" },
+  })
+})

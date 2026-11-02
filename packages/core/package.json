@@ -32,6 +32,16 @@
     "./*": "./src/*.ts"
   },
   "imports": {
+    "#sql-driver": {
+      "workerd": "./src/tool/sql-driver.workerd.ts",
+      "bun": "./src/tool/sql-driver.bun.ts",
+      "node": "./src/tool/sql-driver.node.ts",
+      "default": "./src/tool/sql-driver.node.ts"
+    },
+    "#headless-browser-proxy": {
+      "workerd": "./src/tool/browser-proxy.workerd.ts",
+      "default": "./src/tool/browser-proxy.node.ts"
+    },
     "#guarded-network": {
       "workerd": "./src/net-guard.workerd.ts",
       "default": "./src/net-guard.node.ts"

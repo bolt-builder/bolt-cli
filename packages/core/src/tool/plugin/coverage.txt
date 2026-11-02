@@ -1,0 +1,9 @@
+Map source files to the test files that cover them, before planning or making changes.
+
+Use this tool when you are deciding where and how to change code:
+- Prefer changes in covered files: existing tests will catch mistakes.
+- Treat untested files as risky: plan to add tests first, or explicitly flag the missing coverage in your summary or handoff.
+
+Pass the source files you intend to touch (paths relative to the project root). For each file the tool reports the matching test files it found, or marks the file as untested.
+
+Detection is convention-based, not instrumentation-based: it finds test files named after the source file (foo.test.*, foo.spec.*, foo_test.*, test_foo.*) anywhere in the project. It does not run tests and does not compute line coverage. A file marked covered may still have shallow tests, and a file marked untested may be exercised indirectly by integration tests; say so when it matters.

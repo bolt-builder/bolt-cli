@@ -11,6 +11,7 @@ import { Node } from "@opencode/util/effect/app-node"
 import { FileMutation } from "./file-mutation.js"
 import { Environment } from "./environment/index.js"
 import { Formatter } from "./formatter.js"
+import { LSP } from "./lsp.js"
 import { FileSystem } from "./filesystem.js"
 import { FileSystemSearch } from "./filesystem/search.js"
 import { Generate } from "./generate.js"
@@ -90,6 +91,7 @@ const nodes = [
   FileAccess.node,
   FileMutation.node,
   Formatter.node,
+  LSP.node,
   Mcp.node,
   Permission.node,
   Tool.node,

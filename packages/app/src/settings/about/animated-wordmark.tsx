@@ -1,4 +1,4 @@
-import { createEffect, For, on, onCleanup } from "solid-js"
+import { createEffect, createUniqueId, For, on, onCleanup } from "solid-js"
 import { createStore } from "solid-js/store"
 import { prefersReducedMotion } from "@opencode/ui/motion"
 
@@ -9,6 +9,7 @@ const positions = [72, 102, 132, 144]
 const choices = ["b", "o", "l", "t"] as const
 
 export function AnimatedWordmark(props: { active: boolean }) {
+  const gradient = createUniqueId()
   const [state, setState] = createStore({ letters: [...target] })
   const timers = new Set<ReturnType<typeof setTimeout>>()
 
@@ -52,6 +53,19 @@ export function AnimatedWordmark(props: { active: boolean }) {
   return (
     <svg class="settings-about-wordmark" viewBox="0 0 234 42" aria-hidden="true">
       <defs>
+        <For each={positions}>
+          {(position, index) => (
+            <linearGradient
+              id={`${gradient}-${index()}`}
+              x1={72 - position}
+              x2={162 - position}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stop-color="var(--brand-accent, var(--icon-base))" />
+              <stop offset="1" stop-color="var(--brand-primary, var(--icon-strong-base))" />
+            </linearGradient>
+          )}
+        </For>
         <symbol id="settings-about-letter-b" viewBox="0 0 24 42">
           <path class="settings-about-letter-shadow" d="M18 30H6V18H18V30Z" />
           <path d="M18 12H6V30H18V12ZM24 36H0V0H6V6H24V36Z" />
@@ -69,7 +83,13 @@ export function AnimatedWordmark(props: { active: boolean }) {
       </defs>
       <For each={state.letters}>
         {(letter, index) => (
-          <use href={`#settings-about-letter-${letter}`} x={positions[index()]} width="24" height="42" />
+          <use
+            href={`#settings-about-letter-${letter}`}
+            x={positions[index()]}
+            width="24"
+            height="42"
+            fill={`url(#${gradient}-${index()})`}
+          />
         )}
       </For>
     </svg>

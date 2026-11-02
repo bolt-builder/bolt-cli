@@ -131,13 +131,13 @@ describe("mini command", () => {
     expect(result.stdout).toMatch(/^  run[ \t]+Run Bolt with a message\r?$/m)
   })
 
-  test("exposes run without legacy interactive, attach, or command modes", async () => {
+  test("exposes restored Mini and model controls on run", async () => {
     const result = await cli(["run", "--help"])
 
     expect(result.exitCode).toBe(0)
     expect(result.stdout).toContain("--server string")
-    expect(result.stdout).not.toContain("--interactive")
-    expect(result.stdout).not.toContain("--variant")
+    expect(result.stdout).toContain("--interactive")
+    expect(result.stdout).toContain("--variant")
     expect(result.stdout).not.toContain("--attach")
     expect(result.stdout).not.toContain("--command")
   })
@@ -256,11 +256,18 @@ describe("mini command", () => {
   })
 
   test("routes local and explicit-server invocations into mini", async () => {
-    for (const args of [["mini"], ["mini", "--no-replay"], ["mini", "--server", "http://127.0.0.1:1"]]) {
+    for (const args of [
+      ["mini"],
+      ["mini", "--no-replay"],
+      ["mini", "--server", "http://127.0.0.1:1"],
+      ["--mini"],
+      ["run", "--mini", "hello"],
+      ["run", "--interactive", "hello"],
+    ]) {
       const result = await cli(args)
 
       expect(result.exitCode).toBe(1)
-      expect(result.stderr).toContain("opencode mini requires a TTY stdout")
+      expect(result.stderr).toContain("Bolt Mini requires a TTY stdout")
     }
   })
 })

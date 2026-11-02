@@ -36,7 +36,7 @@ async function fixture() {
   const env = {
     ...process.env,
     BASH_ENV: "",
-    PATH: `${dirs.bin}:${process.env.PATH}`,
+    PATH: `${dirs.bin}${path.delimiter}${process.env.PATH}`,
     RUNNER_TEMP: dirs.temp,
     OPENCODE_VERSION: "2.3.4",
     OPENCODE_CHANNEL: "latest",
@@ -162,7 +162,8 @@ test("npm publication validates Bolt ownership, version, scripts and signed orig
               : f.dirs.npm,
         `${name.replace(/[@/]/g, "-")}.tgz`,
       )
-      const child = Bun.spawn(["tar", "-czf", out, "-C", path.dirname(stage), "package"], {
+      const child = Bun.spawn(["tar", "-czf", path.basename(out), "-C", path.dirname(stage), "package"], {
+        cwd: path.dirname(out),
         stdout: "ignore",
         stderr: "pipe",
       })
@@ -173,7 +174,7 @@ test("npm publication validates Bolt ownership, version, scripts and signed orig
     for (const target of targets) await pack(`@bolt-builder/bolt-cli-${target}`)
     await pack("@opencode/schema")
     const args = [f.dirs.npm, f.dirs.mac, f.dirs.win]
-    expect((await f.run("publish-npm.sh", args)).code).toBe(0)
+    expect(await f.run("publish-npm.sh", args)).toMatchObject({ code: 0 })
     const calls = (await Bun.file(f.env.CALLS).text()).trim().split("\n")
     expect(calls).toHaveLength(13)
     expect(calls.every((call) => call.includes("--ignore-scripts") && call.includes("--dry-run"))).toBe(true)

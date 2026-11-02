@@ -6,6 +6,12 @@ type SessionSwitchProbe = {
   stop: () => void
 }
 
+declare global {
+  interface Window {
+    __sessionSwitchProbe?: SessionSwitchProbe
+  }
+}
+
 async function installSessionSwitchProbe(
   page: Page,
   input: {
@@ -26,7 +32,7 @@ async function installSessionSwitchProbe(
       let started: number | undefined
       let running = true
 
-      const reviewLevels: Record<string, string> = {
+      const reviewLevels = {
         panel: "#review-panel",
         tabs: '#review-panel [data-component="tabs"]',
         body: '#review-panel [data-slot="session-review-v2-body"]',
@@ -34,7 +40,7 @@ async function installSessionSwitchProbe(
         preview: '#review-panel [data-slot="session-review-v2-preview"]',
         scroll: '#review-panel [data-slot="session-review-v2-diff-scroll"]',
         file: '#review-panel [data-component="file"][data-mode="diff"]',
-      }
+      } satisfies Record<string, string>
 
       const initialReviewNodes: Record<string, Element | null> = {}
 
@@ -74,20 +80,24 @@ async function installSessionSwitchProbe(
           if (root) {
             const view = root.getBoundingClientRect()
 
+            // The composer covers the inset at the bottom of the scroll viewport.
+            const visibleBottom =
+              view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
+
             const inViewport = (element: HTMLElement) => {
               if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false
               const rect = element.getBoundingClientRect()
               const clip = element.closest<HTMLElement>("[data-timeline-key]")?.getBoundingClientRect() ?? view
 
               return (
-                Math.min(rect.bottom, clip.bottom, view.bottom) > Math.max(rect.top, clip.top, view.top) &&
+                Math.min(rect.bottom, clip.bottom, visibleBottom) > Math.max(rect.top, clip.top, view.top) &&
                 Math.min(rect.right, clip.right, view.right) > Math.max(rect.left, clip.left, view.left)
               )
             }
 
-            const visible = [...root.querySelectorAll<HTMLElement>("[data-message-id]")]
-              .filter(inViewport)
-              .map((element) => element.dataset.messageId!)
+            const visible = [...root.querySelectorAll<HTMLElement>("[data-message-id]")].flatMap((element) =>
+              inViewport(element) ? [element.dataset.messageId!] : [],
+            )
 
             const hasVisibleRows = [...root.querySelectorAll<HTMLElement>("[data-timeline-key]")].some(inViewport)
 
@@ -115,7 +125,7 @@ async function installSessionSwitchProbe(
               last: visible.includes(lastID),
               requiredPartVisible,
               bottomAnchorRequired: requireBottomAnchor !== false,
-              bottomErrorPx: spacer ? spacer.bottom - view.bottom : undefined,
+              bottomErrorPx: spacer ? spacer.bottom - visibleBottom : undefined,
               review,
             })
           } else {
@@ -153,7 +163,7 @@ async function installSessionSwitchProbe(
       // Tabs activate on mousedown; click alone misses the synchronous navigation work.
       document.addEventListener("mousedown", start, true)
       document.addEventListener("click", start, true)
-      ;(window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe = {
+      window.__sessionSwitchProbe = {
         samples,
         stop: () => {
           running = false
@@ -169,7 +179,7 @@ async function installSessionSwitchProbe(
 
 async function waitForStableSessionSwitch(page: Page) {
   await page.waitForFunction(() => {
-    const samples = (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe?.samples
+    const samples = window.__sessionSwitchProbe?.samples
 
     if (!samples) return false
 
@@ -193,9 +203,9 @@ async function waitForStableSessionSwitch(page: Page) {
 
 async function collectSessionSwitchResult(page: Page) {
   const samples = await page.evaluate(() => {
-    const probe = (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe!
+    const probe = window.__sessionSwitchProbe!
     probe.stop()
-    delete (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe
+    delete window.__sessionSwitchProbe
 
     return probe.samples
   })
@@ -236,8 +246,8 @@ export async function measureSessionSwitch(
     return await collectSessionSwitchResult(page)
   } finally {
     await page.evaluate(() => {
-      ;(window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe?.stop()
-      delete (window as Window & { __sessionSwitchProbe?: SessionSwitchProbe }).__sessionSwitchProbe
+      window.__sessionSwitchProbe?.stop()
+      delete window.__sessionSwitchProbe
     })
   }
 }
@@ -265,18 +275,21 @@ export async function waitForStableTimeline(page: Page, lastID: string) {
 
                     const view = root.getBoundingClientRect()
 
+                    const visibleBottom =
+                      view.bottom - (root.querySelector("[data-timeline-inset]")?.getBoundingClientRect().height ?? 0)
+
                     const last = [...root.querySelectorAll<HTMLElement>("[data-message-id]")].some((element) => {
                       if (element.dataset.messageId !== lastID) return false
                       const rect = element.getBoundingClientRect()
 
-                      return rect.bottom > view.top && rect.top < view.bottom
+                      return rect.bottom > view.top && rect.top < visibleBottom
                     })
 
                     const spacer = root
                       .querySelector<HTMLElement>('[data-timeline-row="bottom-spacer"]')
                       ?.getBoundingClientRect()
 
-                    resolve({ last, bottomErrorPx: spacer ? spacer.bottom - view.bottom : undefined })
+                    resolve({ last, bottomErrorPx: spacer ? spacer.bottom - visibleBottom : undefined })
                   }, 0),
                 )
               }),

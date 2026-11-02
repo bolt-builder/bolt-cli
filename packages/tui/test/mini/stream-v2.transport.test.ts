@@ -4704,3 +4704,64 @@ describe("V2 mini transport", () => {
     await transport.close()
   })
 })
+
+
+test("Mini auto-approval replies once for root and child asks, leaves other sessions and forms alone", async () => {
+  const events = feed()
+  events.push(connected())
+  const parent: PermissionRequest = { id: "per_parent", sessionID: "ses_1", action: "edit", resources: ["file.ts"] }
+  const child: PermissionRequest = { id: "per_child", sessionID: "ses_child", action: "shell", resources: ["git status"] }
+  const client = sdk({
+    streams: [events], sessions: [{ id: "ses_child", parentID: "ses_1", title: "Child", time: { updated: 1 } }],
+    permissions: { ses_1: [parent], ses_child: [child] }, messages: { ses_1: [], ses_child: [] },
+  })
+  const replied = defer()
+  const requests: Parameters<typeof client.permission.reply>[0][] = []
+  spyOn(client.permission, "reply").mockImplementation((request) => {
+    requests.push(request)
+    if (requests.length === 2) replied.resolve()
+    return ok(undefined)
+  })
+  const ui = footer()
+  const formShown = defer()
+  const emit = ui.api.event.bind(ui.api)
+  ui.api.event = (event) => {
+    emit(event)
+    if (event.type === "stream.view" && event.view.type === "form" && event.view.request.id === "form_marker") formShown.resolve()
+  }
+  const transport = await createSessionTransport({ sdk: client, sessionID: "ses_1", thinking: false, auto: true, footer: ui.api })
+  try {
+    await replied.promise
+    events.push({ id: "evt_duplicate", created: 2, type: "permission.asked", data: parent })
+    events.push({ id: "evt_other", created: 3, type: "permission.asked", data: { ...parent, id: "per_other", sessionID: "ses_other" } })
+    events.push({ id: "evt_marker", created: 4, type: "form.created", data: { form: eventForm(form("form_marker", "ses_1")) } })
+    await formShown.promise
+    expect(requests).toEqual([
+      { sessionID: "ses_1", requestID: "per_parent", decision: "once" },
+      { sessionID: "ses_child", requestID: "per_child", decision: "once" },
+    ])
+    expect(ui.events.some((event) => event.type === "stream.view" && event.view.type === "permission")).toBe(false)
+    expect(ui.events.some((event) => event.type === "stream.view" && event.view.type === "form")).toBe(true)
+  } finally { events.close(); await transport.close() }
+})
+
+test("Mini auto-approval returns a failed reply to the permission UI", async () => {
+  const events = feed()
+  events.push(connected())
+  const request: PermissionRequest = { id: "per_failed", sessionID: "ses_1", action: "edit", resources: ["file.ts"] }
+  const client = sdk({ streams: [events], permissions: { ses_1: [request] } })
+  const reply = spyOn(client.permission, "reply").mockImplementation(() => Promise.reject(new Error("reply failed")))
+  const ui = footer()
+  const shown = defer()
+  const emit = ui.api.event.bind(ui.api)
+  ui.api.event = (event) => {
+    emit(event)
+    if (event.type === "stream.view" && event.view.type === "permission" && event.view.request.id === request.id) shown.resolve()
+  }
+  const transport = await createSessionTransport({ sdk: client, sessionID: "ses_1", thinking: false, auto: true, footer: ui.api })
+  try {
+    await shown.promise
+    expect(reply).toHaveBeenCalledTimes(1)
+    expect(ui.events.findLast((event) => event.type === "stream.view")).toMatchObject({ view: { type: "permission", request: { id: "per_failed" } } })
+  } finally { events.close(); await transport.close() }
+})

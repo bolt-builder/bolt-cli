@@ -2,6 +2,7 @@ import { FSUtil } from "@opencode/util/fs-util"
 import { Global } from "@opencode/util/global"
 import { AppProcess } from "@opencode/util/process"
 import { Integration } from "../integration.js"
+import { which } from "../util/which.js"
 import { rm } from "node:fs/promises"
 import path from "node:path"
 import { Effect, Schema } from "effect"
@@ -105,7 +106,7 @@ export const transcribe = Effect.fn("VoiceTranscription.transcribe")(function* (
 export const local = Effect.fnUntraced(function* (mime: string) {
   if (!mime.includes("wav")) return undefined
   const global = yield* Global.Service
-  const binary = process.env.BOLT_VOICE_WHISPER ?? Bun.which("whisper-cli") ?? Bun.which("whisper-cpp") ?? undefined
+  const binary = process.env.BOLT_VOICE_WHISPER ?? which("whisper-cli") ?? which("whisper-cpp") ?? undefined
   if (!binary) return undefined
   const data = path.basename(global.data) === "opencode" ? path.join(path.dirname(global.data), "bolt") : global.data
   const model = process.env.BOLT_VOICE_MODEL ?? path.join(data, "models", "ggml-large-v3-turbo-q5_0.bin")

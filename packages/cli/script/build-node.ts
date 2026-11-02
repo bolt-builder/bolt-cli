@@ -106,6 +106,7 @@ for (const target of targets) {
   await copyNodeAssets(assets)
   await writeFile(path.join("dist-node", "assets", appArchiveAsset), appArchive)
   await build(mainConfig(input))
+  Bun.gc(true)
   await assertTextImportsInlined("dist-node/opencode.mjs")
   if (bundleOnly) await verifyArtifact("dist-node/opencode.mjs")
 

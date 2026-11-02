@@ -201,7 +201,8 @@ describe("ConfigInstructionPlugin.Plugin", () => {
       (tmp) => Effect.promise(() => tmp[Symbol.asyncDispose]()),
     ).pipe(
       Effect.flatMap((tmp) => {
-        const global = path.join(tmp.path, "global")
+        const global = path.join(tmp.path, "opencode")
+        const legacyFile = path.join(tmp.path, "bolt", "AGENTS.md")
         const home = path.join(tmp.path, "home")
         const shared = path.join(home, "code")
         const project = path.join(shared, "repo")
@@ -216,6 +217,8 @@ describe("ConfigInstructionPlugin.Plugin", () => {
             await fs.mkdir(global, { recursive: true })
             await fs.mkdir(directory, { recursive: true })
             await fs.writeFile(outside, "outside")
+            await fs.mkdir(path.dirname(legacyFile), { recursive: true })
+            await fs.writeFile(legacyFile, "bolt legacy")
             await fs.writeFile(globalFile, "global")
             await fs.writeFile(sharedFile, "shared")
             await fs.writeFile(projectFile, "project")
@@ -225,6 +228,7 @@ describe("ConfigInstructionPlugin.Plugin", () => {
           const discovery = yield* start()
           const watcher = yield* Watcher.Test
           expect(yield* watcher.subscriptions()).toEqual([
+            { path: legacyFile, type: "file" },
             { path: globalFile, type: "file" },
             { path: packageFile, type: "file" },
             { path: path.join(project, "packages", "AGENTS.md"), type: "file" },
@@ -239,6 +243,7 @@ describe("ConfigInstructionPlugin.Plugin", () => {
           const initialized = yield* readInitial(yield* discovery.load())
           expect(initialized.text).toBe(
             [
+              `Instructions from: ${legacyFile}\nbolt legacy`,
               `Instructions from: ${globalFile}\nglobal`,
               `Instructions from: ${packageFile}\npackage`,
               `Instructions from: ${projectFile}\nproject`,
@@ -259,6 +264,8 @@ describe("ConfigInstructionPlugin.Plugin", () => {
           expect(removed).toContain(`The instructions from ${packageFile} no longer apply.`)
           expect(removed).not.toContain(`Instructions from: ${globalFile}\nglobal`)
 
+          yield* Effect.promise(() => fs.rm(legacyFile))
+          yield* emitAndWait({ type: "delete", path: legacyFile })
           yield* Effect.promise(() => fs.rm(globalFile))
           yield* emitAndWait({ type: "delete", path: globalFile })
           yield* Effect.promise(() => fs.rm(projectFile))

@@ -7,6 +7,7 @@ import { Effect, FileSystem, Option, Schema } from "effect"
 import { randomUUID } from "crypto"
 import { applyEdits, createScanner, modify, parse, parseTree, type Node, type ParseError } from "jsonc-parser"
 import path from "path"
+import { Global } from "@opencode/util/global"
 import { Info, SchemaURL } from "./schema"
 
 const decodeV1 = Schema.decodeUnknownOption(TuiConfigV1.Info)
@@ -32,6 +33,25 @@ export const run = Effect.fn("cli.config.migrate")(function* (input: {
       Effect.ensuring(fs.remove(temp).pipe(Effect.ignore)),
     )
     return cause === undefined ? { info } : { info, cause }
+  })
+
+  const boltConfig = Global.boltDirectory(input.config)
+  const boltState = Global.boltDirectory(input.state)
+  const marker = boltState ? path.join(input.state, "bolt-v1-appearance-import.json") : undefined
+  const imported = marker ? yield* fs.exists(marker) : true
+  const legacyAppearance =
+    !imported && boltConfig && boltState
+      ? migrateV1(
+          Option.getOrUndefined(decodeV1(yield* readJson(path.join(boltConfig, "tui.json")))),
+          (yield* readJson(path.join(boltState, "kv.json"))) ?? {},
+        )
+      : undefined
+  const markImported = Effect.fnUntraced(function* () {
+    if (!marker || !legacyAppearance || !Object.keys(legacyAppearance).length) return
+    const temporary = `${marker}.${randomUUID()}.tmp`
+    yield* fs.makeDirectory(path.dirname(marker), { recursive: true })
+    yield* fs.writeFileString(temporary, '{"version":1}\n', { mode: 0o600 })
+    yield* fs.rename(temporary, marker).pipe(Effect.ensuring(fs.remove(temporary).pipe(Effect.ignore)))
   })
 
   if (yield* fs.exists(input.file).pipe(Effect.orElseSucceed(() => false))) {
@@ -60,7 +80,7 @@ export const run = Effect.fn("cli.config.migrate")(function* (input: {
             text,
           )
     const keybinds = Option.getOrUndefined(decodeRecord(config.keybinds))
-    const updated =
+    let updated =
       keybinds === undefined
         ? renamed
         : Object.keys(keybinds).reduce(
@@ -90,29 +110,66 @@ export const run = Effect.fn("cli.config.migrate")(function* (input: {
                 return property === undefined ? text : removeProperty(text, property)
               }, renamed),
           )
-    if (updated === text) return
+    if (legacyAppearance) {
+      const current = parse(updated, [], { allowTrailingComma: true })
+      const defaults = (value: object, prefix: string[] = []): void => {
+        for (const [key, fallback] of Object.entries(value)) {
+          const route = [...prefix, key]
+          const existing = route.reduce<any>((value, key) => value?.[key], current)
+          if (existing === undefined) {
+            updated = applyEdits(
+              updated,
+              modify(updated, route, fallback, { formattingOptions: { tabSize: 2, insertSpaces: true } }),
+            )
+          } else if (
+            fallback &&
+            typeof fallback === "object" &&
+            !Array.isArray(fallback) &&
+            existing &&
+            typeof existing === "object" &&
+            !Array.isArray(existing)
+          )
+            defaults(fallback, route)
+        }
+      }
+      defaults(legacyAppearance)
+    }
+    if (updated === text) {
+      yield* markImported()
+      return
+    }
     const updatedErrors: ParseError[] = []
     const info = Option.getOrUndefined(decodeInfo(parse(updated, updatedErrors, { allowTrailingComma: true })))
     if (updatedErrors.length || info === undefined) return
-    return yield* persist(updated, info)
+    const result = yield* persist(updated, info)
+    if (result.cause === undefined) yield* markImported()
+    return result
   }
 
-  const legacyValue = yield* readJson(path.join(input.config, "tui.json"))
+  const currentLegacy = yield* readJson(path.join(input.config, "tui.json"))
+  const legacyValue = currentLegacy ?? (boltConfig ? yield* readJson(path.join(boltConfig, "tui.json")) : undefined)
   const legacy = Option.getOrUndefined(decodeV1(legacyValue))
-  const kv = yield* readJson(path.join(input.state, "kv.json"))
+  const boltKv = boltState ? yield* readJson(path.join(boltState, "kv.json")) : undefined
+  const currentKv = yield* readJson(path.join(input.state, "kv.json"))
+  const kv = boltKv === undefined && currentKv === undefined ? undefined : { ...boltKv, ...currentKv }
   const values = migrateV1(legacy, kv ?? {})
   if (!Object.keys(values).length) return
   const migrated = { $schema: SchemaURL, ...values }
 
   const result = yield* persist(JSON.stringify(migrated, null, 2) + "\n", migrated)
-  if (result.cause === undefined)
+  if (result.cause === undefined) {
+    yield* markImported()
     yield* Effect.logInfo("migrated cli config", {
       from: [
-        legacyValue === undefined ? undefined : path.join(input.config, "tui.json"),
-        kv === undefined ? undefined : path.join(input.state, "kv.json"),
+        legacyValue === undefined
+          ? undefined
+          : path.join(currentLegacy === undefined && boltConfig ? boltConfig : input.config, "tui.json"),
+        boltKv === undefined || !boltState ? undefined : path.join(boltState, "kv.json"),
+        currentKv === undefined ? undefined : path.join(input.state, "kv.json"),
       ].filter(Boolean),
       to: input.file,
     })
+  }
   return result
 })
 
@@ -158,6 +215,8 @@ function findComma(text: string, start: number, end: number) {
 }
 
 export function migrateV1(legacy: TuiConfigV1.Info | undefined, kv: Record<string, any>): Info {
+  const timestamps = kv.timestamps === "show" || kv.timestamps === "hide" ? kv.timestamps : undefined
+  const details = typeof kv.tool_details_visibility === "boolean" ? kv.tool_details_visibility : undefined
   const plugins = [
     ...(legacy?.plugin?.map((plugin) =>
       typeof plugin === "string" ? plugin : { package: plugin[0], options: plugin[1] },
@@ -238,6 +297,8 @@ export function migrateV1(legacy: TuiConfigV1.Info | undefined, kv: Record<strin
         }),
     ...(kv.sidebar === undefined &&
     kv.scrollbar_visible === undefined &&
+    timestamps === undefined &&
+    details === undefined &&
     thinking === undefined &&
     kv.exploration_grouping === undefined
       ? {}
@@ -245,6 +306,8 @@ export function migrateV1(legacy: TuiConfigV1.Info | undefined, kv: Record<strin
           session: {
             ...(kv.sidebar === undefined ? {} : { sidebar: kv.sidebar }),
             ...(kv.scrollbar_visible === undefined ? {} : { scrollbar: kv.scrollbar_visible }),
+            ...(timestamps === undefined ? {} : { timestamps }),
+            ...(details === undefined ? {} : { details }),
             ...(thinking === undefined ? {} : { thinking }),
             ...(kv.exploration_grouping === undefined
               ? {}
@@ -252,6 +315,7 @@ export function migrateV1(legacy: TuiConfigV1.Info | undefined, kv: Record<strin
           },
         }),
     ...(kv.animations_enabled === undefined ? {} : { animations: kv.animations_enabled }),
+    ...(kv.fire_animation_enabled === undefined ? {} : { fire: kv.fire_animation_enabled }),
     ...(legacy?.mouse === undefined ? {} : { mouse: legacy.mouse }),
     ...(legacy?.cursor === undefined ? {} : { cursor: legacy.cursor }),
   }

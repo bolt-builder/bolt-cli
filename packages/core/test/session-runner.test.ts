@@ -61,6 +61,9 @@ import { QuestionTool } from "@opencode/core/tool/plugin/question"
 import { Agent } from "@opencode/core/agent"
 import { Config } from "@opencode/core/config"
 import { Document, Info } from "@opencode/schema/config"
+import { ConfigExperimental } from "@opencode/schema/config/experimental"
+import { ContextReplay } from "@opencode/util/context-replay"
+import { Global } from "@opencode/util/global"
 import { ConfigCompaction } from "@opencode/schema/config/compaction"
 import { Tool } from "@opencode/core/tool"
 import type { Info as ToolInfo } from "@opencode/schema/tool"
@@ -492,6 +495,7 @@ const layer = Layer.unwrap(
         SkillInstructions.node,
         ReferenceInstructions.node,
         Config.node,
+        Global.node,
         Snapshot.node,
         SessionCompaction.node,
         LayerNodePlatform.llmClient,
@@ -506,7 +510,7 @@ const layer = Layer.unwrap(
         Model.node.replace(promptModels),
         SessionExecution.node.replace(execution),
       ],
-    )
+    ).pipe(Layer.merge(config))
   }),
 ).pipe(Layer.provideMerge(Layer.sync(RunnerState, makeRunnerState)), Layer.provideMerge(testLLM))
 const it = testEffect(layer)
@@ -612,6 +616,25 @@ const scenario = (
       return yield* body(s)
     }),
   )
+
+scenario("records the final prepared primary request after session context hooks", function* (s) {
+  const config = yield* Config.Test
+  const existing = yield* config.entries()
+  yield* config.setEntries([...existing, new Document({ type: "document", info: new Info({ experimental: new ConfigExperimental.Info({ context_replay: true }) }) })])
+  const hooks = yield* PluginHooks.Service
+  yield* hooks.register("session", "context", (event) => Effect.sync(() => {
+    event.system = [...event.system, SystemPart.make("Final hook instruction")]
+  }))
+  yield* s.llm.push(TestLLM.text("Saved", "text-replay"))
+  yield* s.runPrompt("Preserve this exact prepared user input")
+  const global = yield* Global.Service
+  const entries = yield* Effect.promise(() => ContextReplay.list(sessionID, [global.data]))
+  expect(entries).toHaveLength(1)
+  const data = yield* Effect.promise(() => ContextReplay.load(sessionID, entries[0]))
+  expect(data).toMatchObject({ version: 2, sessionID, messages: JSON.parse(JSON.stringify(s.requests[0].messages)) })
+  expect(JSON.stringify(data)).toContain("Final hook instruction")
+})
+
 
 // Nominal retry gaps: exponential from 2s capped at 10s, for 10 retries.
 const RETRY_GAPS = [2_000, 4_000, 8_000, ...Array<number>(7).fill(10_000)]

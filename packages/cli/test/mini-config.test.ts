@@ -23,12 +23,14 @@ test("mini handler passes resolved CLI keybinds to the runtime", async () => {
   )
   const received: { value?: MiniCommandInput["tuiConfig"] } = {}
   const captured = () => received.value
+  let forwarded: Partial<MiniCommandInput> | undefined
   let session: string | undefined
   const mini = await import("../src/mini")
   mock.module("../src/mini", () => ({
     ...mini,
     validateMiniTerminal() {},
-    runMini(input: Pick<MiniCommandInput, "tuiConfig" | "session">) {
+    runMini(input: MiniCommandInput) {
+      forwarded = input
       session = input.session
       received.value = input.tuiConfig
       return Promise.resolve()
@@ -43,11 +45,18 @@ test("mini handler passes resolved CLI keybinds to the runtime", async () => {
   try {
     await Effect.runPromise(
       handler({
+        thinking: Option.some(true),
+        auto: true,
+        yolo: false,
+        dangerouslySkipPermissions: false,
+        file: ["example.ts"],
+        variant: Option.some("high"),
+        title: Option.some("Bolt Mini test"),
         continue: false,
         session: Option.none(),
         fork: false,
-        replay: true as never,
-        replayLimit: Option.none(),
+        replay: Option.some(false),
+        replayLimit: Option.some(12),
         model: Option.none(),
         agent: Option.none(),
         prompt: Option.none(),
@@ -62,6 +71,15 @@ test("mini handler passes resolved CLI keybinds to the runtime", async () => {
     )
 
     const config = await received.value
+    expect(forwarded).toMatchObject({
+      auto: true,
+      file: ["example.ts"],
+      variant: "high",
+      title: "Bolt Mini test",
+      replay: false,
+      replayLimit: 12,
+    })
+    expect(config?.mini?.thinking).toBe("show")
     expect(config?.leader.timeout).toBe(321)
     expect(config?.keybinds.get("composer.subagent.interrupt")).toMatchObject([{ key: "ctrl+i" }])
 

@@ -460,6 +460,15 @@ function normalizeExperimental(
       unsupportedExperimental.forEach((key) =>
         unsupportedIfPresent(experimental, key, ["experimental", key], diagnostics),
       )
+      if (own(experimental, "context_replay")) {
+        const value = decodeEncoded(
+          ConfigExperimental.Info.fields.context_replay,
+          experimental.context_replay,
+          ["experimental", "context_replay"],
+          diagnostics,
+        )
+        if (value !== undefined) result.context_replay = value
+      }
       if (own(experimental, "redact")) {
         const value = decodeEncoded(
           ConfigExperimental.Info.fields.redact,

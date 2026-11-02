@@ -74,8 +74,8 @@ test("V2 logs emits filtered history, versioned JSON, escaped TSV and validates 
       { cwd: root, env: isolatedEnv(root), stdout: "pipe", stderr: "pipe", stdin: "ignore" },
     )
     const [stdout, stderr, code] = await Promise.all([
-      new Response(child.stdout).text(),
-      new Response(child.stderr).text(),
+      new Response(child.stdout).text().then((text) => text.replaceAll("\r\n", "\n")),
+      new Response(child.stderr).text().then((text) => text.replaceAll("\r\n", "\n")),
       child.exited,
     ])
     return { stdout, stderr, code }

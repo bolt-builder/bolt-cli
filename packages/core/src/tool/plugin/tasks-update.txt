@@ -1,0 +1,10 @@
+Update a structured task by id.
+
+Changes one task's fields: subject, description, status, or blockers. Only the provided fields change.
+
+Usage notes:
+- `status` transitions are validated: pending and in_progress tasks can move between pending, in_progress, completed, and cancelled; completed and cancelled tasks are terminal and cannot change status again.
+- Exactly one task may be in_progress at a time. Moving a task to in_progress while another is in_progress is rejected; finish or park the other task first.
+- Completing a task is rejected while any of its blockers is still pending or in_progress. A blocker unblocks once it is completed or cancelled.
+- `blockers` replaces the task's blocker list; every id must reference an existing task and a task cannot block itself.
+- Mark tasks completed as soon as they are actually done; do not batch completions.
