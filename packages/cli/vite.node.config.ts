@@ -3,10 +3,22 @@ import { readFile } from "node:fs/promises"
 import { createRequire } from "node:module"
 import { defineConfig, type Plugin, type UserConfig } from "vite"
 import solid from "vite-plugin-solid"
-import { nodeExecArgv, nodeTarget, type NodeTarget, photonWasmAsset } from "./src/node/target"
+import { fireWasmAsset, nodeExecArgv, nodeTarget, type NodeTarget, photonWasmAsset } from "./src/node/target"
 import { verifySimulationGraph } from "./script/verify-artifact"
 
 const dir = import.meta.dirname
+
+function fireAssetPlugin(): Plugin {
+  return {
+    name: "bolt:fire-asset",
+    enforce: "pre",
+    load(id) {
+      if (!id.replaceAll("\\", "/").endsWith(`/${fireWasmAsset}`)) return
+      return `import path from "node:path"
+export default path.join(process.env.OPENCODE_NODE_ASSETS_DIR, ${JSON.stringify(fireWasmAsset)})`
+    },
+  }
+}
 
 function rawTextPlugin(modelsSnapshot?: string): Plugin {
   return {
@@ -260,6 +272,7 @@ export function mainConfig(input: NodeBuildInput): UserConfig {
   return defineConfig({
     root: dir,
     plugins: [
+      fireAssetPlugin(),
       appAssetsPlugin(),
       rawTextPlugin(input.modelsSnapshot),
       runtimeRequirePlugin(),
@@ -276,7 +289,7 @@ export function mainConfig(input: NodeBuildInput): UserConfig {
     esbuild: { jsx: "automatic" },
     define: {
       OPENCODE_VERSION: JSON.stringify(input.version),
-      OPENCODE_CLI_NAME: JSON.stringify("opencode2-node"),
+      OPENCODE_CLI_NAME: JSON.stringify("bolt-node"),
       OPENCODE_CHANNEL: JSON.stringify(input.channel),
       OPENCODE_ARTIFACT: JSON.stringify("cli-node"),
       ...(input.highlights ? { OPENCODE_RELEASE_HIGHLIGHTS: JSON.stringify(input.highlights) } : {}),

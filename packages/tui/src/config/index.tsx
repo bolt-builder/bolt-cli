@@ -138,6 +138,7 @@ export const Info = Schema.Struct({
   ).annotate({ description: "Terminal integration settings" }),
   prompt: Schema.optional(
     Schema.Struct({
+      vim: Schema.optional(Schema.Boolean).annotate({ description: "Enable Vim modal editing in the prompt" }),
       editor: Schema.optional(Schema.Boolean).annotate({
         description: "Include the active editor file or selection as prompt context",
       }),
@@ -155,6 +156,12 @@ export const Info = Schema.Struct({
         description: "Session sidebar visibility; 'auto' shows it when space permits",
       }),
       scrollbar: Schema.optional(Schema.Boolean).annotate({ description: "Show the session transcript scrollbar" }),
+      timestamps: Schema.optional(Schema.Literals(["show", "hide"])).annotate({
+        description: "Show or hide message timestamps",
+      }),
+      details: Schema.optional(Schema.Boolean).annotate({
+        description: "Show successfully completed tool calls; running tools and errors remain visible",
+      }),
       thinking: Schema.optional(Schema.Literals(["show", "hide"])).annotate({
         description: "Show or hide model reasoning by default",
       }),
@@ -248,8 +255,9 @@ export const Info = Schema.Struct({
     description: "Experimental features that may change or be removed at any time",
   }),
   animations: Schema.optional(Schema.Boolean).annotate({ description: "Enable interface animations" }),
+  fire: Schema.optional(Schema.Boolean).annotate({ description: "Show the Bolt fire animation while working" }),
   highlights: Schema.optional(Schema.Boolean).annotate({
-    description: "Show the release highlights once after OpenCode updates",
+    description: "Show the release highlights once after Bolt updates",
   }),
   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable terminal mouse capture" }),
   cursor: Schema.optional(Cursor),

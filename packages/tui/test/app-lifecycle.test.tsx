@@ -256,7 +256,7 @@ test("SIGHUP clears title and disposes scoped resources once", async () => {
   })
   const setTitle = setup.renderer.setTerminalTitle.bind(setup.renderer)
   setup.renderer.setTerminalTitle = (title) => {
-    if (title === "OpenCode") started()
+    if (title === "Bolt") started()
     setTitle(title)
   }
   const listeners = new Set(process.listeners("SIGHUP"))
@@ -304,8 +304,8 @@ test("session lifecycle updates the terminal title and prints the epilogue after
   })
   const setTitle = setup.renderer.setTerminalTitle.bind(setup.renderer)
   setup.renderer.setTerminalTitle = (title) => {
-    if (title === "OC | Demo session") initialTitle()
-    if (title === "OC | Renamed session") renamedTitle()
+    if (title === "Bolt | Demo session") initialTitle()
+    if (title === "Bolt | Renamed session") renamedTitle()
     setTitle(title)
   }
   const events = createEventStream()
@@ -369,7 +369,7 @@ test("session lifecycle updates the terminal title and prints the epilogue after
     await task
 
     expect(stdout).toContain("Renamed session")
-    expect(stdout).toContain("opencode -s dummy")
+    expect(stdout).toContain("bolt -s dummy")
     expect(promptRequests).toBe(0)
   } finally {
     process.stdout.write = originalWrite
@@ -387,7 +387,7 @@ test("session title generated while an untitled session is loading remains visib
   const generatedTitle = Promise.withResolvers<void>()
   setup.renderer.setTerminalTitle = (title) => {
     titles.push(title)
-    if (title === "OC | Generated title") generatedTitle.resolve()
+    if (title === "Bolt | Generated title") generatedTitle.resolve()
     setTitle(title)
   }
   const sessionRequested = Promise.withResolvers<void>()
@@ -455,7 +455,7 @@ test("session title generated while an untitled session is loading remains visib
     ])
     await Bun.sleep(20)
 
-    const generated = titles.lastIndexOf("OC | Generated title")
+    const generated = titles.lastIndexOf("Bolt | Generated title")
     expect(generated).toBeGreaterThan(-1)
     expect(titles.slice(generated + 1)).not.toContain("OpenCode")
     setup.renderer.destroy()
@@ -533,13 +533,13 @@ test("narrow vertical session tabs collapse to a compact rail with the terminal"
     },
   })
   await setup.ready
-  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 10).trim() === "⌕")
+  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 6).trim() === "⌕")
 
   setup.resize(68, 30)
-  await setup.waitForFrame((frame) => frame.split("\n")[0].includes(session.title))
+  await setup.waitForFrame((frame) => frame.includes(session.title))
   expect(setup.captureCharFrame()).not.toContain("⌕")
   setup.resize(80, 30)
-  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 10).trim() === "⌕")
+  await setup.waitForFrame((frame) => frame.split("\n")[1].slice(0, 6).trim() === "⌕")
 })
 
 test("automatic rename refreshes the displayed title before settling, even without a renamed event", async () => {
@@ -1389,10 +1389,10 @@ test("ctrl+c dismisses autocomplete and shell mode before exiting", async () => 
 
 test.skipIf(process.platform === "win32").each(["manual", "select"] as const)(
   "selection copy and pane management respect %s mode in the prompt and terminal pane",
-    async (copy) => {
-      await using state = await tmpdir()
-      const setup = await createTestRenderer({ width: 100, height: 30, kittyKeyboard: true })
-      await setup.renderer.setupTerminal()
+  async (copy) => {
+    await using state = await tmpdir()
+    const setup = await createTestRenderer({ width: 100, height: 30, kittyKeyboard: true })
+    await setup.renderer.setupTerminal()
     setup.renderer.start()
     const ready = Promise.withResolvers<void>()
     const session = {
@@ -1987,9 +1987,7 @@ test("free usage limit offers OpenCode Go once per 24h, transitions Subscribe to
   setup.mockInput.pressEnter()
   await setup.waitForFrame((frame) => frame.includes("GOGO-1234"))
   expect(openSpy).toHaveBeenCalledWith("https://opencode.ai/go")
-  expect(oauthRequests).toEqual([
-    { methodID: "device", answer: { server: "https://opencode.ai/console" } },
-  ])
+  expect(oauthRequests).toEqual([{ methodID: "device", answer: { server: "https://opencode.ai/console" } }])
   const connectFrame = setup.captureCharFrame()
   expect(connectFrame).toContain("OpenCode Console account")
   expect(connectFrame).not.toContain("Enter Go API key")
@@ -2278,7 +2276,13 @@ test("free usage limit Subscribe handles mid-auth/mid-sync Escape, sync failure,
     created: 6,
     type: "session.step.started",
     durable: { aggregateID: session.id, seq: 6, version: 1 },
-    data: { sessionID: session.id, assistantMessageID: "msg_free_assistant_expired", agent: "build", model, started: 6 },
+    data: {
+      sessionID: session.id,
+      assistantMessageID: "msg_free_assistant_expired",
+      agent: "build",
+      model,
+      started: 6,
+    },
   })
   setup.events.emit({
     id: "evt_free_limit_expired_fail",
@@ -2511,21 +2515,24 @@ test("free usage limit claims suppression atomically across two TUI instances an
   }
   first.events.emit(event)
   second.events.emit(event)
-  await Promise.all([
-    first.waitForFrame((frame) => frame.includes("You've used today's free messages. They reset at")),
-    second.waitForFrame((frame) => frame.includes("You've used today's free messages. They reset at")),
-  ])
   await first.waitForFrame(
     () =>
       first.captureCharFrame().includes("Free limit reached") ||
       second.captureCharFrame().includes("Free limit reached"),
   )
-  await Bun.sleep(30)
-  await Promise.all([first.renderOnce(), second.renderOnce()])
-  const opened = [first.captureCharFrame(), second.captureCharFrame()].filter((frame) =>
-    frame.includes("Free limit reached"),
-  )
+  const opened = [first, second].filter((setup) => setup.captureCharFrame().includes("Free limit reached"))
   expect(opened).toHaveLength(1)
+
+  // The modal can cover the inline explanation. Dismiss it before checking both explanations.
+  await opened[0].mockInput.pressEscape()
+  await Promise.all(
+    [first, second].map((setup) =>
+      setup.waitForFrame(
+        (frame) =>
+          !frame.includes("Free limit reached") && frame.includes("You've used today's free messages. They reset at"),
+      ),
+    ),
+  )
 
   // Typing draft protection: does not overwrite a draft or open Free limit reached while typing.
   await using typingState = await tmpdir()
@@ -2845,4 +2852,3 @@ test.each([44, 100])(
   },
   15_000,
 )
-

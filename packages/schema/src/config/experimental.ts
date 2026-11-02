@@ -6,6 +6,14 @@ import { ConfigModel } from "./model.js"
 import { ConfigPolicy } from "./policy.js"
 
 export class Info extends Schema.Class<Info>("ConfigExperimental.Info")({
+  context_replay: Schema.Boolean.pipe(optional).annotate({
+    description:
+      "Experimental: save prepared model prompts, messages and tool definitions locally for bolt debug context. May contain private conversation content. Defaults to false.",
+  }),
+  redact: Schema.Boolean.pipe(optional).annotate({
+    description:
+      "Experimental: redact known credential formats from model prompts. Defaults to true; set false to disable.",
+  }),
   portable_shell_scanner: Schema.Boolean.pipe(optional).annotate({
     description: "Deprecated: the built-in shell permission scanner is now always enabled.",
   }),

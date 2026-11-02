@@ -48,6 +48,7 @@ type StreamInput = {
   location?: LocationRef
   sessionID: string
   thinking: boolean
+  auto?: boolean
   tools?: boolean
   replay?: boolean
   replayLimit?: number
@@ -640,11 +641,31 @@ export async function createSessionTransport(input: StreamInput): Promise<Sessio
     wait.terminalError = undefined
   }
 
+  const autoReplies = new Set<string>()
+  const autoFailed = new Set<string>()
   const syncBlockers = () => {
     if (state.closed || controller.signal.aborted || input.footer.isClosed) return
     const descendant = subagents.snapshot()
+    const permissions = [...state.permissions, ...descendant.permissions]
+    const key = (request: MiniPermissionRequest) => `${request.sessionID}\0${request.id}`
+    if (input.auto) {
+      for (const request of permissions) {
+        if (autoReplies.has(key(request))) continue
+        autoReplies.add(key(request))
+        void sdk.permission
+          .reply(
+            { sessionID: request.sessionID, requestID: request.id, decision: "once" },
+            { signal: controller.signal },
+          )
+          .catch(() => {
+            if (state.closed || controller.signal.aborted) return
+            autoFailed.add(key(request))
+            syncBlockers()
+          })
+      }
+    }
     const next = pickBlockerView({
-      permission: state.permissions[0] ?? descendant.permissions[0],
+      permission: permissions.find((request) => !input.auto || autoFailed.has(key(request))),
       form: state.forms[0] ?? descendant.forms[0] ?? state.globalForms[0],
     })
     if (next.type === "prompt" && state.view.type === "prompt") return
@@ -1026,8 +1047,7 @@ export async function createSessionTransport(input: StreamInput): Promise<Sessio
     if (!current(attempt)) return
     const client = attempt.client
     if (catalogEvents.has(event.type)) {
-      if (input.location && event.location && event.location.directory !== input.location.directory)
-        return
+      if (input.location && event.location && event.location.directory !== input.location.directory) return
       void refreshCatalog(attempt)
       return
     }

@@ -13,6 +13,8 @@ import { AbsolutePath } from "../../schema.js"
 import { Skill } from "../../skill.js"
 import { SkillDiscovery } from "../../skill/discovery.js"
 import { ReadToolFileSystem } from "../read-filesystem.js"
+import { KV } from "../../kv.js"
+import { ReadProof } from "../read-proof.js"
 import { Environment } from "../../environment/index.js"
 
 export const name = "read"
@@ -33,6 +35,7 @@ export const Plugin = {
   id: "opencode.tool.read",
   effect: Effect.fn("ReadTool.Plugin")(function* (ctx: Context) {
     const reader = yield* ReadToolFileSystem.Service
+    const kv = yield* KV.Service
     const access = yield* FileAccess.Service
     const permission = yield* Permission.Service
     const skills = yield* Skill.Service
@@ -155,6 +158,8 @@ export const Plugin = {
                 Effect.catch(() => Effect.void),
                 Effect.catchDefect(() => Effect.void),
               )
+              if (result.content.type !== "list-page")
+                yield* ReadProof.note(kv, context.sessionID, result.target.absolute)
               return { output: result.content, path: result.path }
             }).pipe(
               Effect.map((result) => ({

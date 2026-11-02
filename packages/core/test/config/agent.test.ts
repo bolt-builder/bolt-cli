@@ -176,7 +176,9 @@ permissions:
     Effect.gen(function* () {
       const agents = yield* Agent.Service
       const global = yield* Global.Service
-      yield* AgentPlugin.Plugin.effect(host({ agent: agentHost(agents) }))
+      yield* AgentPlugin.Plugin.effect(
+        host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+      )
 
       const entries = [
         new Document({
@@ -225,9 +227,9 @@ permissions:
         }),
       ]
 
-      yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-        Effect.provide(Config.testLayer(entries)),
-      )
+      yield* ConfigAgentPlugin.Plugin.effect(
+        host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+      ).pipe(Effect.provide(Config.testLayer(entries)))
 
       const build = yield* agents.get(Agent.defaultID)
       if (!build) throw new Error("expected configured build agent")
@@ -310,9 +312,9 @@ permissions:
         }),
       ]
 
-      yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-        Effect.provide(Config.testLayer(entries)),
-      )
+      yield* ConfigAgentPlugin.Plugin.effect(
+        host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+      ).pipe(Effect.provide(Config.testLayer(entries)))
 
       const buildAgent = yield* agents.get(build)
       if (!buildAgent) throw new Error("expected configured build agent")
@@ -391,9 +393,9 @@ permissions:
         }),
       ]
 
-      yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-        Effect.provide(Config.testLayer(entries)),
-      )
+      yield* ConfigAgentPlugin.Plugin.effect(
+        host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+      ).pipe(Effect.provide(Config.testLayer(entries)))
 
       const reviewer = yield* agents.get(Agent.ID.make("reviewer"))
       if (!reviewer) throw new Error("expected configured reviewer agent")
@@ -427,9 +429,9 @@ permissions:
         }),
       ]
 
-      yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-        Effect.provide(Config.testLayer(entries)),
-      )
+      yield* ConfigAgentPlugin.Plugin.effect(
+        host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+      ).pipe(Effect.provide(Config.testLayer(entries)))
 
       expect(yield* agents.get(build)).toBeUndefined()
     }),
@@ -487,9 +489,9 @@ Use native v2 fields.`,
             directoryEntry(tmp.path),
           ]
 
-          yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-            Effect.provide(Config.testLayer(entries)),
-          )
+          yield* ConfigAgentPlugin.Plugin.effect(
+            host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+          ).pipe(Effect.provide(Config.testLayer(entries)))
 
           expect(yield* agents.get(Agent.ID.make("reviewer"))).toMatchObject({
             model: { providerID: "openrouter", id: "openai/gpt-5" },
@@ -548,9 +550,9 @@ Mixed fields.`,
           })
           const agents = yield* Agent.Service
 
-          yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-            Effect.provide(Config.testLayer([directoryEntry(tmp.path)])),
-          )
+          yield* ConfigAgentPlugin.Plugin.effect(
+            host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+          ).pipe(Effect.provide(Config.testLayer([directoryEntry(tmp.path)])))
 
           const named = yield* agents.get(Agent.ID.make("named"))
           expect(named).toMatchObject({
@@ -580,7 +582,9 @@ Mixed fields.`,
             const agents = yield* Agent.Service
             const bus = yield* Bus.Service
             const configTest = yield* Config.Test
-            yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) }))
+            yield* ConfigAgentPlugin.Plugin.effect(
+              host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+            )
 
             // Verify inside the subscription so the update event is a read barrier:
             // committed state must be visible at event delivery time.
@@ -710,9 +714,9 @@ function loadMarkdownAgent(frontmatter: string) {
       `---\n${frontmatter}\n---\nReview carefully.`,
     )
     const agents = yield* Agent.Service
-    yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
-      Effect.provide(Config.testLayer([directoryEntry(tmp.path)])),
-    )
+    yield* ConfigAgentPlugin.Plugin.effect(
+      host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+    ).pipe(Effect.provide(Config.testLayer([directoryEntry(tmp.path)])))
     const agent = yield* agents.get(Agent.ID.make("reviewer"))
     if (!agent) throw new Error("expected configured Markdown agent")
     expect(agent.system).toBe("Review carefully.")
@@ -846,7 +850,9 @@ function loadHomePermissions(home: string) {
       }),
     ]
 
-    yield* ConfigAgentPlugin.Plugin.effect(host({ agent: agentHost(agents) })).pipe(
+    yield* ConfigAgentPlugin.Plugin.effect(
+      host({ agent: agentHost(agents), session: { hook: () => Effect.succeed({ dispose: Effect.void }) } }),
+    ).pipe(
       Effect.provide(Config.testLayer(entries)),
       Effect.provideService(Global.Service, Global.Service.of({ ...Global.make(), home })),
     )

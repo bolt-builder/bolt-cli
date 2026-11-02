@@ -1,0 +1,9 @@
+Extracts still frames from a video file (e.g. a screen recording of a bug repro) so they can be inspected with the read tool, which accepts images.
+
+Requires ffmpeg on PATH. If ffmpeg is missing the tool fails with an install hint instead of guessing.
+
+Usage:
+- Pass `video` as a path to the recording, absolute or relative to the project directory.
+- Pass `timestamps` (e.g. ["0:05", "12.5", "1:02:03.5"]) to grab stills at specific moments, or `count` to grab that many evenly spaced stills across the whole video (`count` needs ffprobe, which ships with ffmpeg).
+- Frames are written as PNGs into a temporary directory and the image paths are returned, one per line. Read them with the read tool to see what is on screen.
+- Timestamps accept seconds ("90", "12.5"), minutes:seconds ("1:30"), or hours:minutes:seconds ("1:02:03.5").

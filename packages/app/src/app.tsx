@@ -57,7 +57,7 @@ export function AppBaseProviders(
 ) {
   return (
     <MetaProvider>
-      <Title>OpenCode</Title>
+      <Title>Bolt</Title>
       <Font />
       <ThemeProvider
         onThemeApplied={(_, mode, scheme) => {

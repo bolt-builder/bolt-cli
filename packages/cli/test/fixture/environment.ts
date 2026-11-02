@@ -10,6 +10,13 @@ export function isolatedEnv(root: string, overrides: Record<string, string | und
     ...process.env,
     BUN_RUNTIME_TRANSPILER_CACHE_PATH: transpilerCache,
     HOME: root,
+    USERPROFILE: root,
+    NO_COLOR: "1",
+    FORCE_COLOR: undefined,
+    // Synthetic repositories must not inherit a runner's line-ending conversion policy.
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "core.autocrlf",
+    GIT_CONFIG_VALUE_0: "false",
     OPENCODE_CLI_CONFIG_CONTENT: undefined,
     OPENCODE_CONFIG_CONTENT: "{}",
     OPENCODE_CONFIG_DIR: path.join(root, "config"),

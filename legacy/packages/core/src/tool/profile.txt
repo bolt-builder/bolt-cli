@@ -1,0 +1,11 @@
+Runs a command under a CPU profiler and returns the hottest stack frames so you can see where the time goes.
+
+For Bun and Node commands (e.g. `bun script.ts`, `node server.js`), the runtime's built-in V8 CPU profiler is used: the command runs to completion (bounded by `duration`), the resulting .cpuprofile is parsed, and the top frames are returned with self time, total time, function name, and file:line.
+
+For any other command no CPU profile is available: the command is run under `/usr/bin/time -v` instead and the resource summary is returned. The output states which mode was used.
+
+Usage:
+- `command` is executed from the project directory.
+- The process must exit on its own to produce a profile. If it is still running after `duration` milliseconds it is killed, and a killed process usually does not write its profile. For servers, profile a bounded workload script instead.
+- Use `limit` to control how many hot frames are returned (default 10).
+- Self time is time spent in the function itself; total time includes its callees. Sort is by self time, so the first rows are the best optimization targets.

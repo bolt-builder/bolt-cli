@@ -13,6 +13,7 @@ import { SessionInbox } from "@opencode/schema/session-inbox"
 import { SessionMessage } from "@opencode/schema/session-message"
 import { Command } from "@opencode/core/command"
 import { Config } from "@opencode/core/config"
+import { CommandPlugin } from "@opencode/core/plugin/command"
 import { ConfigCommandPlugin } from "@opencode/core/config/plugin/command"
 import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
 import { LayerNode } from "@opencode/util/effect/layer-node"
@@ -596,3 +597,42 @@ function sourceCases() {
     },
   ] as const
 }
+
+it.live("registers and executes Bolt bug reporting through the V2 command service", () =>
+  Effect.gen(function* () {
+    const commands = yield* Command.Service
+    const prompts: { text: string; delivery?: string }[] = []
+    yield* CommandPlugin.Plugin.effect(
+      host({
+        command: {
+          list: () => Effect.die("unused command.list"),
+          transform: commands.transform,
+          reload: commands.reload,
+        },
+        session: {
+          prompt: (input) =>
+            Effect.sync(() => {
+              prompts.push({ text: input.text, delivery: input.delivery })
+              return SessionInbox.User.make({
+                id: SessionMessage.ID.make("msg_bug"),
+                sessionID: input.sessionID,
+                time: { created: DateTime.makeUnsafe(0) },
+                type: "user",
+                payload: { text: input.text },
+                delivery: input.delivery ?? "steer",
+              })
+            }),
+        },
+      }),
+    ).pipe(Effect.provide(emptyMcpLayer))
+    expect((yield* commands.list()).map((command) => command.name)).toContain("bug")
+    yield* commands.execute({
+      name: "bug",
+      invocation: { sessionID: Session.ID.make("ses_bug"), prompt: { text: "$& fails to load" }, delivery: "queue" },
+    })
+    expect(prompts[0].delivery).toBe("queue")
+    expect(prompts[0].text).toContain("$& fails to load")
+    expect(prompts[0].text).toContain("bolt-builder/bolt-cli")
+    expect(prompts[0].text).toContain("Show the drafted report to the user and ask for confirmation")
+  }),
+)

@@ -46,7 +46,7 @@ export interface Interface extends State.Transformable<Editor> {
    * tree. Returns `undefined` when snapshots are disabled, unsupported, or the
    * best-effort capture fails.
    */
-  readonly capture: () => Effect.Effect<ID | undefined>
+  readonly capture: (input?: { readonly scope: "project" }) => Effect.Effect<ID | undefined>
 
   /**
    * List project-relative paths changed between two captured trees without
@@ -100,6 +100,19 @@ const layer = Layer.effect(
           : yield* git.repo
               .create({ worktree, gitDirectory, seed: source })
               .pipe(Effect.mapError((cause) => failure("capture", cause)))
+        const legacy = Global.boltDirectory(global.data)
+        const imported = path.join(gitDirectory, "bolt-v1-objects-imported")
+        const oldObjects = legacy
+          ? path.join(legacy, "snapshot", location.project.id, Hash.fast(worktree), "objects")
+          : undefined
+        if (oldObjects && (yield* fs.isDir(oldObjects)) && !(yield* fs.existsSafe(imported))) {
+          // Object names are content hashes. Merge immutable loose objects/packs;
+          // the V2 index, config and alternates must retain their current state.
+          const directories = yield* fs.readDirectory(oldObjects)
+          for (const name of directories.filter((name) => /^[a-f0-9]{2}$/.test(name) || name === "pack"))
+            yield* fs.copy(path.join(oldObjects, name), path.join(gitDirectory, "objects", name), { overwrite: false })
+          yield* fs.writeFileString(imported, "1\n", { mode: 0o600 })
+        }
         return { source, worktree, snapshotRepository }
       }).pipe(Effect.forkIn(lifetime)),
     )
@@ -125,13 +138,13 @@ const layer = Layer.effect(
       )
     })
 
-    const capture = Effect.fn("Snapshot.capture")(function* () {
+    const capture = Effect.fn("Snapshot.capture")(function* (input?: { readonly scope: "project" }) {
       if (!enabled()) return undefined
       return yield* Effect.gen(function* () {
         const repo = yield* repository
         const tree = yield* git.tree.capture({
           repository: repo.snapshotRepository,
-          scopes: [yield* scope(repo.worktree)],
+          scopes: [input?.scope === "project" ? RelativePath.make(".") : yield* scope(repo.worktree)],
           ignores: repo.source,
           maximumUntrackedFileBytes: 2 * 1024 * 1024,
         })

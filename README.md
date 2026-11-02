@@ -1,114 +1,84 @@
 <p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
+  <a href="https://github.com/bolt-builder/bolt-cli">
+    <img width="576" height="186" alt="Bolt" src="https://github.com/user-attachments/assets/05ada17d-5f43-4ed8-9696-3fc84e46f066" />
   </a>
 </p>
-<p align="center">The open source AI coding agent.</p>
+
+<p align="center">Your terminal, now with a full AI engineering team inside it.</p>
+
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/@opencode/cli"><img alt="npm" src="https://img.shields.io/npm/v/@opencode/cli?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/release.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/release.yml?style=flat-square&branch=dev" /></a>
+  <a href="https://github.com/bolt-builder/bolt-cli/actions/workflows/check-test.yml"><img alt="Tests" src="https://img.shields.io/github/actions/workflow/status/bolt-builder/bolt-cli/check-test.yml?style=flat-square&branch=dev&label=tests" /></a>
+  <a href="https://github.com/bolt-builder/bolt-cli/actions/workflows/check.yml"><img alt="Typecheck" src="https://img.shields.io/github/actions/workflow/status/bolt-builder/bolt-cli/check.yml?style=flat-square&branch=dev&label=typecheck" /></a>
+  <a href="LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square" /></a>
 </p>
 
 <p align="center">
-  <a href="README.md">English</a> |
-  <a href="README.zh.md">简体中文</a> |
-  <a href="README.zht.md">繁體中文</a> |
-  <a href="README.ko.md">한국어</a> |
-  <a href="README.de.md">Deutsch</a> |
-  <a href="README.es.md">Español</a> |
-  <a href="README.fr.md">Français</a> |
-  <a href="README.it.md">Italiano</a> |
-  <a href="README.da.md">Dansk</a> |
-  <a href="README.ja.md">日本語</a> |
-  <a href="README.pl.md">Polski</a> |
-  <a href="README.ru.md">Русский</a> |
-  <a href="README.bs.md">Bosanski</a> |
-  <a href="README.ar.md">العربية</a> |
-  <a href="README.no.md">Norsk</a> |
-  <a href="README.br.md">Português (Brasil)</a> |
-  <a href="README.th.md">ไทย</a> |
-  <a href="README.tr.md">Türkçe</a> |
-  <a href="README.uk.md">Українська</a> |
-  <a href="README.bn.md">বাংলা</a> |
-  <a href="README.gr.md">Ελληνικά</a> |
-  <a href="README.vi.md">Tiếng Việt</a>
+<img width="640" height="360" alt="Demo" src="./images/demo.gif" />
 </p>
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
-
 ---
 
-### Installation
+Bolt is a terminal-first AI coding agent built on the [OpenCode](https://github.com/anomalyco/opencode) V2 engine: a keyboard-driven TUI, a headless server with an HTTP API, a web UI, a desktop app, MCP servers with OAuth, plugins, and agent sessions you can detach from and re-attach to.
+
+## Status
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:02784b777cf0c37d48f9258b3f5fe3735d7f69a78ab7ead6df1856c00958b14b -->
+
+Bolt uses the OpenCode V2 engine while restoring the original Bolt identity and workflows. The active workspace includes Bolt branding, themes and terminal effects, project memory, voice, sandbox controls, extra agents and CLI commands.
+
+Restoration is in progress. [The parity checklist](legacy/V1-PARITY.md) and [interaction inventory](legacy/V1-SURFACES.md) distinguish tested behavior from remaining work. The pre-sync V1 commit is the reference; archived source in `legacy/` is excluded from production builds.
+
+<!-- /coderabbit-ai-generated:v1 -->
+## Install
 
 ```bash
-# YOLO
-curl -fsSL https://opencode.ai/v2/install | bash
-
-# Package managers
-npm i -g @opencode/cli@latest      # or bun/pnpm/yarn
-brew install anomalyco/tap/opencode-v2 # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-sudo pacman -S opencode            # Arch Linux (Stable)
-paru -S opencode-beta              # Arch Linux (Latest from AUR)
-mise use -g opencode               # Any OS
-nix run github:anomalyco/opencode  # Nix
+# Latest release (macOS / Linux)
+curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install | bash
 ```
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
+Desktop builds for macOS, Windows, and Linux are on the [releases page](https://github.com/bolt-builder/bolt-cli/releases).
 
-### Desktop App (BETA)
+## Develop
 
-OpenCode is also available as a desktop application. Download it from [opencode.ai/download](https://opencode.ai/download).
-
-| Platform              | Download                           |
-| --------------------- | ---------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-mac-arm64.dmg`   |
-| macOS (Intel)         | `opencode-desktop-mac-x64.dmg`     |
-| Windows               | `opencode-desktop-win-x64.exe`     |
-| Linux                 | `.deb`, `.rpm`, or `.AppImage`     |
+Bolt requires the Bun version pinned in `package.json`.
 
 ```bash
-# macOS (Homebrew)
-brew install --cask opencode-desktop
+bun install
+bun dev          # V2 CLI and TUI on this checkout
+bun dev .        # open this repository in the TUI
+bun run check    # lint and typecheck
 ```
 
-#### Installation Directory
+Run tests from a package directory, never from the repository root:
 
-The install script installs OpenCode to `$HOME/.opencode/bin`.
+```bash
+cd packages/core && bun run test
+```
 
-### Agents
+<!-- coderabbit-ai-generated:v1 -->
 
-OpenCode includes two built-in agents you can switch between with the `Tab` key.
+<!-- coderabbit-ai-generated-section:v1:34607b63a7a1fa6fd0ed8a00e11a55dd6ac183ab34505030e70cb4afcd0141de -->
 
-- **build** - Default, full-access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
+`packages/cli` ships three entry points that start the same CLI: `bolt`, `opencode`, and `opencode2`. Existing `opencode.json`, `.opencode/` and `OPENCODE_*` configuration remains supported. Bolt configuration names and selected `BOLT_*` aliases are also recognized; explicit V2 environment settings take precedence. V1 history, credentials, appearance preferences and background-job metadata are imported without deleting their source data. See the parity checklist for migration coverage and remaining compatibility checks.
 
-Also included is a **general** subagent for complex searches and multistep tasks.
-This is used internally and can be invoked using `@general` in messages.
+<!-- /coderabbit-ai-generated:v1 -->
 
-Learn more about [agents](https://opencode.ai/v2/docs/agents).
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [AGENTS.md](./AGENTS.md) for the development workflow and style guide.
 
-### Documentation
+## Syncing upstream
 
-For more info on how to configure OpenCode, [**head over to our docs**](https://opencode.ai/v2/docs).
+`dev` records `anomalyco/opencode` `dev` as a merge parent. To pull new upstream work:
 
-### Contributing
+```bash
+git remote add upstream https://github.com/anomalyco/opencode.git
+git fetch upstream dev
+git merge upstream/dev
+```
 
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
+Workspace packages keep their upstream `@opencode/*` names so upstream merges apply cleanly. Keep Bolt-specific changes to upstream files small and listed in [`legacy/README.md`](./legacy/README.md#bolt-overlay-on-upstream-files).
 
-### Building on OpenCode
+## License
 
-If you are working on a project that's related to OpenCode and is using "opencode" as part of its name, for example "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
-
----
-
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+Bolt is licensed under [AGPL-3.0](./LICENSE). It incorporates OpenCode, which is MIT licensed; see [CREDITS](./CREDITS).

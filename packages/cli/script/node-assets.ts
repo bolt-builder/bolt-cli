@@ -3,7 +3,7 @@ import { copyFile, mkdir, readFile, stat } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { getNodeAssets } from "@opentui/core/node-assets"
-import { attentionSoundAssets, type NodeTarget, photonWasmAsset } from "../src/node/target"
+import { attentionSoundAssets, fireWasmAsset, type NodeTarget, photonWasmAsset } from "../src/node/target"
 import { collectFiles } from "./files"
 import { resolveOpencodePty } from "./opencode-pty"
 
@@ -38,6 +38,10 @@ export async function collectNodeAssets(target: NodeTarget) {
     {
       key: photonWasmAsset,
       source: fileURLToPath(import.meta.resolve(photonWasmAsset)),
+    },
+    {
+      key: fireWasmAsset,
+      source: fileURLToPath(import.meta.resolve(fireWasmAsset, path.join(dir, "../tui/src/ui/fire.ts"))),
     },
     ...attentionSoundAssets.map((key) => ({
       key,

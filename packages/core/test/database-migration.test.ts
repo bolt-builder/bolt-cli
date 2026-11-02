@@ -13,6 +13,7 @@ import { migrations } from "@opencode/core/database/migration.gen"
 import workspaceNameMigration from "@opencode/core/database/migration/20260410174513_workspace-name"
 import { Database } from "@opencode/core/database/database"
 import { tmpdir } from "./fixture/tmpdir"
+import { importBoltCredentials } from "@opencode/core/database/bolt-credentials"
 import legacyCredentialsMigration from "@opencode/core/database/migration/20260805200742_import_legacy_credentials"
 import worktreeMigration from "@opencode/core/database/migration/20260812213948_worktree"
 import previousV2Migration from "@opencode/core/database/migration/20260804233008_loose_psylocke"
@@ -65,6 +66,53 @@ const parkedClient = (arrived: Deferred.Deferred<void>, gate: Deferred.Deferred<
   ).pipe(Layer.provide(SqliteClient.layer({ filename: ":memory:", disableWAL: true })), Layer.provide(Reactivity.layer))
 
 describe("DatabaseMigration", () => {
+  test("imports sibling Bolt credentials on fresh and existing V2 databases only once", async () => {
+    await using tmp = await tmpdir()
+    const current = path.join(tmp.path, "opencode")
+    const legacy = path.join(tmp.path, "bolt", "auth.json")
+    const source = JSON.stringify({
+      openai: { type: "api", key: "v1-synthetic" },
+      anthropic: { type: "api", key: "older-synthetic" },
+    })
+    await Bun.write(legacy, source)
+    await Bun.write(path.join(current, "auth.json"), JSON.stringify({ openai: { type: "api", key: "v2-synthetic" } }))
+    const global = Global.make({ data: current })
+    await run(
+      Effect.gen(function* () {
+        const db = yield* makeDb
+        yield* DatabaseMigration.apply(db)
+        yield* importBoltCredentials(db)
+        const credentials = yield* db.all<{ integration_id: string; value: string }>(
+          sql`SELECT integration_id, value FROM credential ORDER BY integration_id`,
+        )
+        expect(credentials.map((item) => [item.integration_id, JSON.parse(item.value).key])).toEqual([
+          ["anthropic", "older-synthetic"],
+          ["openai", "v2-synthetic"],
+        ])
+        yield* db.run(sql`DELETE FROM credential WHERE integration_id = 'anthropic'`)
+        yield* importBoltCredentials(db)
+        expect(yield* db.get(sql`SELECT id FROM credential WHERE integration_id = 'anthropic'`)).toBeUndefined()
+      }),
+      global,
+    )
+    expect(await Bun.file(legacy).text()).toBe(source)
+
+    await Bun.write(legacy, "[]")
+    await run(
+      Effect.gen(function* () {
+        const db = yield* makeDb
+        yield* DatabaseMigration.apply(db)
+        yield* importBoltCredentials(db)
+        expect(yield* db.all(sql`SELECT id FROM credential`)).toEqual([])
+        expect(yield* db.get(sql`SELECT key FROM kv WHERE key = 'migration.credentials.bolt.v1'`)).toBeUndefined()
+        yield* Effect.promise(() => Bun.write(legacy, source))
+        yield* importBoltCredentials(db)
+        expect(yield* db.all(sql`SELECT id FROM credential`)).toHaveLength(2)
+      }),
+      global,
+    )
+  })
+
   test("defaults missing workspace names while preserving legacy workspace data", async () => {
     await run(
       Effect.gen(function* () {

@@ -32,6 +32,20 @@
     "./*": "./src/*.ts"
   },
   "imports": {
+    "#sql-driver": {
+      "workerd": "./src/tool/sql-driver.workerd.ts",
+      "bun": "./src/tool/sql-driver.bun.ts",
+      "node": "./src/tool/sql-driver.node.ts",
+      "default": "./src/tool/sql-driver.node.ts"
+    },
+    "#headless-browser-proxy": {
+      "workerd": "./src/tool/browser-proxy.workerd.ts",
+      "default": "./src/tool/browser-proxy.node.ts"
+    },
+    "#guarded-network": {
+      "workerd": "./src/net-guard.workerd.ts",
+      "default": "./src/net-guard.node.ts"
+    },
     "#sqlite": {
       "workerd": "./src/database/sqlite.workerd.ts",
       "bun": "./src/database/sqlite.bun.ts",
@@ -130,7 +144,8 @@
     "jsonc-parser": "3.3.1",
     "mime-types": "3.0.2",
     "which": "6.0.1",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@bolt-ai/memory": "workspace:*"
   },
   "peerDependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.301"

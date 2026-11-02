@@ -57,6 +57,23 @@ function withoutEmptyCompatibilityContainers(input: Record<string, unknown>) {
 }
 
 describe("ConfigNormalize", () => {
+  test("preserves redaction and context replay settings through normalization", () => {
+    for (const context_replay of [true, false])
+      expect(decoded({ experimental: { context_replay } }).experimental?.context_replay).toBe(context_replay)
+    expect(normalized({ experimental: { context_replay: "true" } }).diagnostics.map((entry) => entry.path)).toEqual([
+      ["experimental", "context_replay"],
+    ])
+    expect(decoded({ redact: false }).redact).toBe(false)
+    expect(decoded({ experimental: { redact: false } }).experimental?.redact).toBe(false)
+    expect(decoded({ redact: false, experimental: { redact: true } })).toMatchObject({
+      redact: false,
+      experimental: { redact: true },
+    })
+    expect(
+      normalized({ redact: "false", experimental: { redact: "false" } }).diagnostics.map((entry) => entry.path),
+    ).toEqual([["experimental", "redact"], ["redact"]])
+  })
+
   test("accepts tool.use without losing statement order", () => {
     const policies = [
       { action: "tool.use", effect: "deny", resource: "shell:*" },

@@ -1,0 +1,9 @@
+Runs the project's tests and returns structured results: pass/fail status, counts, and a list of failing tests with file and message where available.
+
+Prefer this over running test commands with the bash tool: it detects the right test command, parses failures out of the noise, and keeps the output compact.
+
+Usage:
+- With no parameters, the project's test command is detected (package.json test script with the right package manager, cargo test, go test ./..., or pytest).
+- Pass `command` to run a specific test command instead, e.g. a single test file: `bun test ./test/foo.test.ts`.
+- Supported failure formats: pytest, go test, cargo test, bun test, jest/vitest/mocha, and TAP. Unrecognized output still returns status, exit code, and the output tail.
+- On failure the raw output tail is included after the structured list; use it when a failure needs more context.

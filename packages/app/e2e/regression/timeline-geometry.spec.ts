@@ -657,7 +657,7 @@ test("scrolls the timeline behind the composer region, fading at the card, and k
             },
             time: { created: 2 },
           },
-          { type: "text", id: "prt_timeline_end", text: "The last answer ends above the composer region." },
+          textPart("prt_timeline_end", "The last answer ends above the composer region."),
         ],
         time: { created: 2 },
       },

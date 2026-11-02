@@ -1,0 +1,108 @@
+name: "Bolt Run"
+description: "Run Bolt headlessly in GitHub Actions with cached install and runtime caches"
+branding:
+  icon: "zap"
+  color: "orange"
+
+inputs:
+  prompt:
+    description: "Prompt to run headlessly with `bolt run`"
+    required: true
+
+  model:
+    description: "Model to use in the format of provider/model (or 'auto')"
+    required: false
+
+  agent:
+    description: "Agent to use. Must be a primary agent."
+    required: false
+
+  variant:
+    description: "Model variant for provider-specific reasoning effort (e.g., high, max, minimal)"
+    required: false
+
+  version:
+    description: "Bolt release tag to install. Defaults to the latest release."
+    required: false
+    default: "latest"
+
+  working-directory:
+    description: "Directory to run in, relative to the workspace"
+    required: false
+    default: "."
+
+  format:
+    description: "Output format: default (formatted) or json (raw JSON events)"
+    required: false
+    default: "default"
+
+  extra-args:
+    description: "Extra arguments appended to `bolt run` (e.g. --max-cost 2 --output-schema schema.json)"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Resolve bolt version
+      id: version
+      shell: bash
+      env:
+        REQUESTED: ${{ inputs.version }}
+      run: |
+        if [ -n "$REQUESTED" ] && [ "$REQUESTED" != "latest" ]; then
+          echo "version=$REQUESTED" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        VERSION=$(curl -sf https://api.github.com/repos/bolt-builder/bolt-cli/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
+        if [ -z "$VERSION" ]; then
+          echo "Failed to resolve the latest bolt release version" >&2
+          exit 1
+        fi
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Cache bolt binary
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.bolt/bin
+        key: bolt-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+
+    - name: Cache bolt runtime data
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/opencode
+        key: bolt-runtime-${{ runner.os }}-${{ steps.version.outputs.version }}
+        restore-keys: |
+          bolt-runtime-${{ runner.os }}-
+
+    - name: Install bolt
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      # The install script ships with this repository, so it is pinned to the
+      # same ref as the action itself. Passing the resolved release tag keeps
+      # the installed binary tied to the cache key.
+      run: bash "${GITHUB_ACTION_PATH}/../../../install" --version "${{ steps.version.outputs.version }}"
+
+    - name: Add bolt to PATH
+      shell: bash
+      run: echo "$HOME/.bolt/bin" >> "$GITHUB_PATH"
+
+    - name: Run bolt
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PROMPT: ${{ inputs.prompt }}
+        MODEL: ${{ inputs.model }}
+        AGENT: ${{ inputs.agent }}
+        VARIANT: ${{ inputs.variant }}
+        FORMAT: ${{ inputs.format }}
+        EXTRA_ARGS: ${{ inputs.extra-args }}
+      run: |
+        set -o pipefail
+        flags=(--format "$FORMAT")
+        if [ -n "$MODEL" ]; then flags+=(--model "$MODEL"); fi
+        if [ -n "$AGENT" ]; then flags+=(--agent "$AGENT"); fi
+        if [ -n "$VARIANT" ]; then flags+=(--variant "$VARIANT"); fi
+        # extra-args is intentionally word-split so callers can pass several flags
+        # shellcheck disable=SC2086
+        bolt run "${flags[@]}" $EXTRA_ARGS "$PROMPT"

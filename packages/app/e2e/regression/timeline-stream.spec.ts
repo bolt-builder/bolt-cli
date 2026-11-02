@@ -1562,7 +1562,7 @@ test.describe("compaction", () => {
       sessionStatus: { [sessionID]: { type: "busy" } },
     })
 
-    await timeline.send(compactionStarted({ sessionID, reason: "manual", recent: "" }))
+    await timeline.send(compactionStarted({ sessionID, reason: "manual" }))
     const compaction = page.locator('[data-component="session-compaction-message"]')
     await expect(compaction.getByText("Session compaction started", { exact: true })).toBeVisible()
     await expect(compaction.getByRole("status").getByLabel("Compacting", { exact: true })).toBeVisible()
@@ -1594,7 +1594,6 @@ test.describe("compaction", () => {
         sessionID,
         reason: "manual",
         text: "## Checkpoint\n\nFinal implementation details.",
-        recent: "",
       }),
     )
     await expect(compaction).toContainText("Final implementation details.")
@@ -1684,7 +1683,7 @@ test.describe("compaction", () => {
 
       for (const [index, name] of names.entries()) {
         const outcome = outcomes[name]
-        await timeline.send(compactionStarted({ sessionID, reason: outcome.reason, recent: "" }))
+        await timeline.send(compactionStarted({ sessionID, reason: outcome.reason }))
         await timeline.send(compactionDelta({ sessionID, text: outcome.partial }))
         await expect(compactions).toHaveCount(index + 1)
         const compaction = compactions.nth(index)
@@ -2351,8 +2350,8 @@ test("highlights the exact duplicate passage whenever its quote comment is open"
   await expect(jump).toHaveCount(0)
 
   for (const palette of [
-    { colorScheme: "dark" as const, background: "color(srgb 0.635294 0.737255 1 / 0.25)" },
-    { colorScheme: "light" as const, background: "color(srgb 0.133333 0.219608 0.560784 / 0.1)" },
+    { colorScheme: "dark" as const, background: "color(srgb 0.776471 0.854902 0.988235 / 0.25)" },
+    { colorScheme: "light" as const, background: "color(srgb 0.00784314 0.129412 0.290196 / 0.1)" },
   ]) {
     await page.emulateMedia({ colorScheme: palette.colorScheme })
     await expect
@@ -2780,7 +2779,7 @@ test("quotes table rows and diff lines selected across a diff viewer", async ({ 
   await expect(added).toHaveText("export const value = 'after'")
   await expect
     .poll(() => added.evaluate((element) => getComputedStyle(element, "::selection").backgroundColor))
-    .toBe("color(srgb 0.133333 0.219608 0.560784 / 0.1)")
+    .toBe("color(srgb 0.00784314 0.129412 0.290196 / 0.1)")
 
   const drag = async (from: Locator, to: Locator) => {
     const start = await from.boundingBox()
@@ -3323,8 +3322,8 @@ function pauseExitAnimations(locator: Locator) {
   return locator.evaluateHandle((element) => {
     const animations: Animation[] = []
 
-    const pause = (event: AnimationEvent) => {
-      if (event.target !== element || event.animationName !== "exit") return
+    const pause = (event: Event) => {
+      if (!(event instanceof AnimationEvent) || event.target !== element || event.animationName !== "exit") return
 
       animations.push(...element.getAnimations())
       animations.forEach((animation) => animation.pause())

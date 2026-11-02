@@ -22,11 +22,14 @@ function fixture(
   }) => Partial<AppProcess.RunResult> & {
     error?: AppProcess.AppProcessError
   } = () => ({}),
-  name = "@opencode/cli",
+  name = "@bolt-builder/bolt-cli",
   failCleanup = false,
-  releasePackage = name,
+  _releasePackage = name,
   formula?: string,
-  executableOverride?: (root: string, home: string) => Effect.Effect<string, PlatformError.PlatformError, FileSystem.FileSystem>,
+  executableOverride?: (
+    root: string,
+    home: string,
+  ) => Effect.Effect<string, PlatformError.PlatformError, FileSystem.FileSystem>,
 ) {
   return Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem
@@ -37,14 +40,14 @@ function fixture(
     const executable = executableOverride
       ? yield* executableOverride(root, path.join(root, "home"))
       : formula
-        ? path.join(root, "Cellar", formula, "2.0.20", "bin", "opencode")
-        : path.join(modules, "@opencode", "cli", "bin", "opencode")
+        ? path.join(root, "Cellar", formula, "2.0.20", "bin", "bolt")
+        : path.join(modules, "@bolt-builder", "bolt-cli", "bin", "bolt")
     yield* fs.makeDirectory(path.dirname(executable), { recursive: true })
     yield* fs.writeFileString(executable, "binary")
     if (!formula && !executableOverride)
       yield* fs.writeFileString(
-        path.join(modules, "@opencode", "cli", "package.json"),
-        JSON.stringify({ name, bin: { opencode: "bin/opencode" } }),
+        path.join(modules, "@bolt-builder", "bolt-cli", "package.json"),
+        JSON.stringify({ name, bin: { bolt: "bin/bolt" } }),
       )
     const requests: string[] = []
     // The updater uses global fetch; scope this replacement to each install test.
@@ -56,7 +59,12 @@ function fixture(
               const url = input instanceof Request ? input.url : input.toString()
               requests.push(url)
               if (new URL(url).hostname === "formulae.brew.sh") return Response.json({ versions: { stable: "2.0.21" } })
-              return Response.json({ version: "2.3.4", metadata: { package: releasePackage } })
+              if (new URL(url).hostname === "api.github.com")
+                return Response.json([
+                  { tag_name: "v1.21.0", draft: false, prerelease: false },
+                  { tag_name: "v2.3.4", draft: false, prerelease: false },
+                ])
+              return Response.json({ version: "2.3.4" })
             },
             { preconnect: fetch.preconnect },
           ),
@@ -144,14 +152,21 @@ const unix = process.platform === "win32" ? it.live.skip : it.live
 const installs = [
   {
     method: "npm",
-    command: ["npm", "install", "--global", "--allow-scripts=@opencode/cli", "--force", "@opencode/cli@2.3.4-beta.1"],
+    command: [
+      "npm",
+      "install",
+      "--global",
+      "--allow-scripts=@bolt-builder/bolt-cli",
+      "--force",
+      "@bolt-builder/bolt-cli@2.3.4-beta.1",
+    ],
   },
   {
     method: "pnpm",
-    command: ["pnpm", "add", "--global", "--allow-build=@opencode/cli", "@opencode/cli@2.3.4-beta.1"],
+    command: ["pnpm", "add", "--global", "--allow-build=@bolt-builder/bolt-cli", "@bolt-builder/bolt-cli@2.3.4-beta.1"],
   },
-  { method: "yarn", command: ["yarn", "global", "add", "@opencode/cli@2.3.4-beta.1"] },
-  { method: "vp", command: ["vp", "update", "-g", "@opencode/cli@2.3.4-beta.1"] },
+  { method: "yarn", command: ["yarn", "global", "add", "@bolt-builder/bolt-cli@2.3.4-beta.1"] },
+  { method: "vp", command: ["vp", "update", "-g", "@bolt-builder/bolt-cli@2.3.4-beta.1"] },
 ] as const
 
 installs.forEach(({ method, command }) => {
@@ -164,11 +179,11 @@ installs.forEach(({ method, command }) => {
   )
 })
 
-it.live("vp force-installs a renamed V2 package that replaces the existing binary owner", () =>
+it.live("vp force-installs the current Bolt artifact when a different Bolt package owns the binary", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", false, "@opencode/cli-node")
+    const test = yield* fixture(() => ({}), "@bolt-builder/bolt-cli-node")
     yield* test.updater.upgrade("vp", "v2.3.4-beta.1")
-    expect(test.commands).toEqual([["vp", "install", "-g", "--force", "@opencode/cli-node@2.3.4-beta.1"]])
+    expect(test.commands).toEqual([["vp", "install", "-g", "--force", "@bolt-builder/bolt-cli@2.3.4-beta.1"]])
   }),
 )
 
@@ -177,9 +192,9 @@ it.live("vp removes the package from its managed global store", () =>
     const test = yield* fixture()
     const removal = test.updater.removal("vp")
     if (!removal) return yield* Effect.die("Expected vp removal command")
-    expect(removal.command).toEqual(["vp", "uninstall", "-g", "@opencode/cli"])
+    expect(removal.command).toEqual(["vp", "uninstall", "-g", "@bolt-builder/bolt-cli"])
     yield* removal.run
-    expect(test.commands).toEqual([["vp", "uninstall", "-g", "@opencode/cli"]])
+    expect(test.commands).toEqual([["vp", "uninstall", "-g", "@bolt-builder/bolt-cli"]])
   }),
 )
 ;[0, 1].forEach((exitCode) => {
@@ -194,7 +209,7 @@ it.live("vp removes the package from its managed global store", () =>
       const cache = test.commands[0]?.[5]
       expect(cache).toStartWith(path.join(test.global.cache, "update-"))
       expect(test.commands).toEqual([
-        ["bun", "install", "--global", "--trust", "--cache-dir", cache, "@opencode/cli@2.3.4-beta.1"],
+        ["bun", "install", "--global", "--trust", "--cache-dir", cache, "@bolt-builder/bolt-cli@2.3.4-beta.1"],
       ])
       expect(yield* test.fs.readDirectory(test.global.cache)).toEqual([])
       expect(result._tag).toBe(exitCode === 0 ? "None" : "Some")
@@ -205,7 +220,7 @@ it.live("vp removes the package from its managed global store", () =>
 
 it.live("bun ignores install cache cleanup failures", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", true)
+    const test = yield* fixture(() => ({}), "@bolt-builder/bolt-cli", true)
     yield* test.updater.upgrade("bun", "v2.3.4-beta.1")
     expect(test.commands).toHaveLength(1)
   }),
@@ -229,7 +244,7 @@ it.live("bun ignores install cache cleanup failures", () =>
       const installer = test.commands[0]?.[3]
       expect(installer).toStartWith(path.join(test.global.cache, "update-"))
       expect(test.commands).toEqual([
-        ["curl", "-fsSL", "-o", installer, "https://opencode.ai/v2/install"],
+        ["curl", "-fsSL", "-o", installer, "https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install"],
         ...(failure === "download" ? [] : [[test.bash, installer, "--version", "2.3.4-beta.1", "--no-modify-path"]]),
       ])
       expect(yield* test.fs.readDirectory(test.global.cache)).toEqual([])
@@ -276,8 +291,8 @@ it.live("install failures expose stderr and process errors do not report success
         stdout: Buffer.from(
           command.command === method
             ? method === "vp"
-              ? JSON.stringify([{ name: "@opencode/cli", version: "2.3.4" }])
-              : "@opencode/cli@2.3.4"
+              ? JSON.stringify([{ name: "@bolt-builder/bolt-cli", version: "2.3.4" }])
+              : "@bolt-builder/bolt-cli@2.3.4"
             : command.command === "vp"
               ? "[]"
               : "opencode-ai@1.0.0",
@@ -285,11 +300,11 @@ it.live("install failures expose stderr and process errors do not report success
       }))
       expect(yield* test.updater.method()).toBe(method)
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli"],
-        ["pnpm", "list", "-g", "--depth=0", "@opencode/cli"],
+        ["npm", "list", "-g", "--depth=0", "@bolt-builder/bolt-cli"],
+        ["pnpm", "list", "-g", "--depth=0", "@bolt-builder/bolt-cli"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
-        ["vp", "list", "-g", "--json", "@opencode/cli"],
+        ["vp", "list", "-g", "--json", "@bolt-builder/bolt-cli"],
       ])
     }),
   )
@@ -299,7 +314,7 @@ it.live("method detection tolerates unavailable package managers", () =>
   Effect.gen(function* () {
     const test = yield* fixture((command) =>
       command.command === "yarn"
-        ? { stdout: Buffer.from("@opencode/cli@2.3.4") }
+        ? { stdout: Buffer.from("@bolt-builder/bolt-cli@2.3.4") }
         : { error: new AppProcess.AppProcessError({ command: command.command }) },
     )
     expect(yield* test.updater.method()).toBe("yarn")
@@ -310,105 +325,50 @@ it.live("method detection tolerates unavailable package managers", () =>
 it.live("vp detection ignores no-match output that repeats the package name", () =>
   Effect.gen(function* () {
     const test = yield* fixture((command) => ({
-      stdout: Buffer.from(command.command === "vp" ? "No global packages matching '@opencode/cli'." : ""),
+      stdout: Buffer.from(command.command === "vp" ? "No global packages matching '@bolt-builder/bolt-cli'." : ""),
     }))
     expect(yield* test.updater.method()).toBeUndefined()
   }),
 )
 
-it.live("Homebrew Core installs check and upgrade the Core formula", () =>
+it.live("Homebrew installs discover Bolt V2 releases and upgrade the Bolt tap formula", () =>
   Effect.gen(function* () {
-    const test = yield* fixture(() => ({}), "@opencode/cli", false, "anomalyco/tap/opencode-v2", "opencode")
+    const test = yield* fixture(() => ({}), "@bolt-builder/bolt-cli", false, "bolt-builder/tap/bolt-cli", "bolt-cli")
     expect(yield* test.updater.method()).toBe("brew")
-    expect(yield* test.updater.latest()).toBe("2.0.21")
-    yield* test.updater.upgrade("brew", "2.0.21")
-    expect(test.commands).toEqual([["brew", "upgrade", "opencode"]])
-    // An explicitly selected method keeps its own release source.
+    expect(yield* test.updater.latest()).toBe("2.3.4")
+    yield* test.updater.upgrade("brew", "2.3.4")
+    expect(test.commands).toEqual([["brew", "upgrade", "bolt-builder/tap/bolt-cli"]])
+    expect(test.requests).toEqual(["https://api.github.com/repos/bolt-builder/bolt-cli/releases?per_page=100"])
     expect(yield* test.updater.latest("npm")).toBe("2.3.4")
-    expect(test.requests).toEqual([
-      "https://formulae.brew.sh/api/formula/opencode.json",
-      "https://opencode.ai/update/api/local/cli/npm?current=local",
-    ])
+    expect(test.requests.at(-1)).toBe("https://registry.npmjs.org/@bolt-builder%2Fbolt-cli/latest")
   }),
 )
-;["opencode-v2", "opencode-beta"].forEach((formula) => {
-  it.live(`Homebrew tap installs of ${formula} use the published tap formula`, () =>
+;(["scoop", "choco"] as const).forEach((method) => {
+  it.live(`${method} restores the V1 Bolt upgrade command`, () =>
     Effect.gen(function* () {
-      const test = yield* fixture(() => ({}), "@opencode/cli", false, `anomalyco/tap/${formula}`, formula)
-      expect(yield* test.updater.method()).toBe("brew")
-      expect(yield* test.updater.latest()).toBe("2.3.4")
-      yield* test.updater.upgrade("brew", "2.3.4")
-      expect(test.commands).toEqual([["brew", "upgrade", `anomalyco/tap/${formula}`]])
-      expect(test.requests).toEqual([
-        "https://opencode.ai/update/api/local/cli/homebrew?current=local",
-        "https://opencode.ai/update/api/local/cli/homebrew?current=local",
+      const test = yield* fixture()
+      yield* test.updater.upgrade(method, "v2.3.4")
+      expect(test.commands).toEqual([
+        method === "scoop" ? ["scoop", "install", "bolt@2.3.4"] : ["choco", "upgrade", "bolt", "--version=2.3.4", "-y"],
       ])
+      expect(test.requests).toEqual([])
     }),
   )
 })
 
-const winget = (search: Partial<AppProcess.RunResult>) =>
-  fixture(
-    (command) => (command.args[0] === "search" ? search : {}),
-    "@opencode/cli",
-    false,
-    "@opencode/cli",
-    undefined,
-    (root) =>
-      Effect.succeed(
-        path.join(
-          root,
-          "AppData",
-          "Local",
-          "Microsoft",
-          "WinGet",
-          "Packages",
-          "Anomaly.OpenCode_Microsoft.Winget.Source_8wekyb3d8bbwe",
-          "opencode.exe",
-        ),
-      ),
-  )
-const wingetArgs = [
-  "--id",
-  "Anomaly.OpenCode",
-  "--exact",
-  "--source",
-  "winget",
-  "--accept-source-agreements",
-  "--disable-interactivity",
-]
-
-it.live("WinGet installs check, upgrade, and remove the version in the WinGet index", () =>
+it.live("V1 latest releases cannot replace a V2 install automatically; explicit installs still work", () =>
   Effect.gen(function* () {
-    const test = yield* winget({
-      stdout: Buffer.from(
-        "Name     Id               Version\r\n------------------------------\r\nOpenCode Anomaly.OpenCode 2.0.28\r\n",
-      ),
-    })
-    expect(yield* test.updater.method()).toBe("winget")
-    expect(yield* test.updater.latest()).toBe("2.0.28")
-    yield* test.updater.upgrade("winget", "v2.0.28")
-    const removal = test.updater.removal("winget")
-    if (!removal) return yield* Effect.die("Expected winget removal command")
-    yield* removal.run
+    const test = yield* fixture()
+    const request = spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json([{ tag_name: "v1.21.0", draft: false, prerelease: false }]),
+    )
+    const error = yield* test.updater.latest("curl").pipe(Effect.flip)
+    expect(error.message).toContain("does not yet contain a Bolt V2 release")
+    yield* test.updater.upgrade("npm", "1.21.0")
     expect(test.commands).toEqual([
-      ["winget", "search", ...wingetArgs],
-      ["winget", "upgrade", ...wingetArgs, "--version", "2.0.28", "--silent", "--accept-package-agreements"],
-      ["winget", "uninstall", ...wingetArgs],
+      ["npm", "install", "--global", "--allow-scripts=@bolt-builder/bolt-cli", "--force", "@bolt-builder/bolt-cli@1.21.0"],
     ])
-    // WinGet moderates submissions, so the OpenCode release service may list a version WinGet cannot install yet.
-    expect(test.requests).toEqual([])
-  }),
-)
-
-it.live("WinGet update checks report a missing package instead of a version", () =>
-  Effect.gen(function* () {
-    const test = yield* winget({
-      exitCode: -1978335212,
-      stdout: Buffer.from("No package found matching input criteria.\r\n"),
-    })
-    const error = yield* test.updater.latest().pipe(Effect.flip)
-    expect(error.message).toBe("No package found matching input criteria.")
+    request.mockRestore()
   }),
 )
 
@@ -469,7 +429,7 @@ windows("windows keeps the uninstall link in the temporary directory, not the re
     const removal = test.updater.removal("bun")
     if (!removal) return yield* Effect.die("Expected bun removal command")
     yield* removal.run
-    expect(test.commands).toEqual([["bun", "remove", "--global", "@opencode/cli"]])
+    expect(test.commands).toEqual([["bun", "remove", "--global", "@bolt-builder/bolt-cli"]])
     expect(links(test.global.cache)).toEqual([])
     expect(links(test.global.tmp)).toEqual([])
   }),
@@ -486,11 +446,11 @@ windows("windows links the curl binary before the installer replaces it", () =>
         }
         return {}
       },
-      "@opencode/cli",
+      "@bolt-builder/bolt-cli",
       false,
-      "@opencode/cli",
+      "@bolt-builder/bolt-cli",
       undefined,
-      (_root, home) => Effect.succeed(path.join(home, ".opencode", "bin", "opencode.exe")),
+      (_root, home) => Effect.succeed(path.join(home, ".bolt", "bin", "bolt.exe")),
     )
     layout.executable = test.executable
     layout.cache = test.global.cache
@@ -509,15 +469,15 @@ unix("curl method detection resolves symlinked home directories", () =>
   Effect.gen(function* () {
     const test = yield* fixture(
       () => ({}),
-      "@opencode/cli",
+      "@bolt-builder/bolt-cli",
       false,
-      "@opencode/cli",
+      "@bolt-builder/bolt-cli",
       undefined,
       (root, home) =>
         Effect.gen(function* () {
           const fs = yield* FileSystem.FileSystem
           const realHome = path.join(root, "real-home")
-          const bin = path.join(realHome, ".opencode", "bin", "opencode")
+          const bin = path.join(realHome, ".bolt", "bin", "bolt")
           yield* fs.makeDirectory(path.dirname(bin), { recursive: true })
           yield* fs.symlink(realHome, home)
           return bin
@@ -561,7 +521,9 @@ test("Node distribution honors the compile-time CLI name", async () => {
       "test",
       import.meta.path,
       "--define",
-      'OPENCODE_CLI_NAME="opencode2-node"',
+      'OPENCODE_CLI_NAME="bolt-node"',
+      "--define",
+      'OPENCODE_ARTIFACT="cli-node"',
       "--test-name-pattern",
       "^Node distribution resolves the published npm package$",
     ],
@@ -578,28 +540,28 @@ test("Node distribution honors the compile-time CLI name", async () => {
   expect(stderr).toContain("1 pass")
 })
 
-if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "opencode2-node") {
+if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "bolt-node") {
   it.live("Node distribution resolves the published npm package", () =>
     Effect.gen(function* () {
       const test = yield* fixture(
         (command) => ({
-          stdout: Buffer.from(command.command === "npm" ? "@opencode/cli-node@2.3.4" : ""),
+          stdout: Buffer.from(command.command === "npm" ? "@bolt-builder/bolt-cli-node@2.3.4" : ""),
         }),
-        "@opencode/cli-node",
+        "@bolt-builder/bolt-cli-node",
       )
       expect(yield* test.updater.method()).toBe("npm")
       yield* test.updater.upgrade("npm", "v2.3.4")
       yield* test.updater.upgrade("pnpm", "v2.3.4")
       yield* test.updater.upgrade("vp", "v2.3.4")
       expect(test.commands).toEqual([
-        ["npm", "list", "-g", "--depth=0", "@opencode/cli-node"],
-        ["pnpm", "list", "-g", "--depth=0", "@opencode/cli-node"],
+        ["npm", "list", "-g", "--depth=0", "@bolt-builder/bolt-cli-node"],
+        ["pnpm", "list", "-g", "--depth=0", "@bolt-builder/bolt-cli-node"],
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
-        ["vp", "list", "-g", "--json", "@opencode/cli-node"],
-        ["npm", "install", "--global", "--allow-scripts=@opencode/cli-node", "@opencode/cli-node@2.3.4"],
-        ["pnpm", "add", "--global", "--allow-build=@opencode/cli-node", "@opencode/cli-node@2.3.4"],
-        ["vp", "update", "-g", "@opencode/cli-node@2.3.4"],
+        ["vp", "list", "-g", "--json", "@bolt-builder/bolt-cli-node"],
+        ["npm", "install", "--global", "--allow-scripts=@bolt-builder/bolt-cli-node", "@bolt-builder/bolt-cli-node@2.3.4"],
+        ["pnpm", "add", "--global", "--allow-build=@bolt-builder/bolt-cli-node", "@bolt-builder/bolt-cli-node@2.3.4"],
+        ["vp", "update", "-g", "@bolt-builder/bolt-cli-node@2.3.4"],
       ])
     }),
   )

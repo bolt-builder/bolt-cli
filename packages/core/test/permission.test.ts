@@ -256,6 +256,34 @@ describe("Permission", () => {
     }),
   )
 
+  it.effect("honors legacy browser session rules and saved approvals for headless capture", () =>
+    Effect.gen(function* () {
+      yield* setup([{ action: "*", resource: "*", effect: "allow" }])
+      const { db } = yield* Database.Service
+      const service = yield* Permission.Service
+      const setSession = (permission: Permission.Ruleset) =>
+        db
+          .update(SessionTable)
+          .set({ permission })
+          .where(eq(SessionTable.id, Session.ID.make("ses_test")))
+          .run()
+          .pipe(Effect.orDie)
+      const capture = assertion({ action: "browser_headless", resources: ["http://localhost:3000/"] })
+      yield* setSession([{ action: "browser", resource: "*", effect: "deny" }])
+      expect((yield* service.ask(capture)).effect).toBe("deny")
+      yield* setSession([{ action: "browser", resource: "*", effect: "ask" }])
+      expect((yield* service.ask(capture)).effect).toBe("ask")
+      yield* (yield* PermissionSaved.Service).add({
+        projectID: Project.ID.global,
+        action: "browser",
+        resources: ["http://localhost:3000/"],
+      })
+      expect((yield* service.ask(capture)).effect).toBe("allow")
+      yield* setSession([{ action: "browser", resource: "*", effect: "deny" }])
+      expect((yield* service.ask(capture)).effect).toBe("deny")
+    }),
+  )
+
   it.effect("merges session rules after agent rules and before saved approvals", () =>
     Effect.gen(function* () {
       yield* setup([{ action: "*", resource: "*", effect: "allow" }])
@@ -764,10 +792,7 @@ describe("shell scanner permission impact", () => {
       name: "assignment redirect prefix",
       shell: "bash",
       command: "FOO=bar > output; printf done",
-      grants: [
-        ["printf *"],
-        ["FOO=bar > *", "printf *"],
-      ],
+      grants: [["printf *"], ["FOO=bar > *", "printf *"]],
       repeat: [
         ["ask", "allow"],
         ["ask", "allow"],
@@ -779,10 +804,7 @@ describe("shell scanner permission impact", () => {
       name: "PowerShell method prefix",
       shell: "pwsh",
       command: '[IO.File]::Delete("C:\\first")',
-      grants: [
-        ["[IO.File]::Delete(*"],
-        ["[IO.File]::Delete(*"],
-      ],
+      grants: [["[IO.File]::Delete(*"], ["[IO.File]::Delete(*"]],
       repeat: [
         ["allow", "allow"],
         ["allow", "allow"],

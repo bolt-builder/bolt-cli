@@ -2329,6 +2329,7 @@ export type ConfigEntry =
       path?: AbsolutePath
       info: {
         $schema?: string
+        redact?: boolean
         shell?: string
         model?: string | { providerID: string; model: string; variant?: string }
         default_agent?: string
@@ -2500,6 +2501,8 @@ export type ConfigEntry =
           }
         }
         experimental?: {
+          context_replay?: boolean
+          redact?: boolean
           portable_shell_scanner?: boolean
           todo?: boolean
           background_compaction?: boolean

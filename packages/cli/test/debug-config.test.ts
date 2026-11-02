@@ -13,7 +13,7 @@ describe("debug config command", () => {
     expect(debug.stdout).toContain("config")
     expect(debug.stdout).toContain("List configuration sources")
     expect(config.exitCode).toBe(0)
-    expect(config.stdout).toContain("opencode debug config [flags]")
+    expect(config.stdout).toContain("bolt debug config [flags]")
     expect(config.stdout).toContain("List configuration sources")
     expect(config.stdout).not.toContain("--reveal-secrets")
   })

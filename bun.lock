@@ -107,6 +107,7 @@
       "name": "@opencode/cli",
       "version": "2.2.5",
       "bin": {
+        "bolt": "./bin/bolt.cjs",
         "opencode": "./bin/opencode.cjs",
         "opencode2": "./bin/opencode2.cjs",
       },
@@ -127,6 +128,7 @@
         "@opentunnel/client": "0.6.1",
         "@parcel/watcher": "2.5.1",
         "@silvia-odwyer/photon-node": "0.3.4",
+        "@zip.js/zip.js": "2.7.62",
         "diff": "catalog:",
         "effect": "catalog:",
         "immer": "11.1.4",
@@ -251,6 +253,7 @@
       "dependencies": {
         "@ai-sdk/provider": "3.0.19",
         "@ai-sdk/provider-utils": "4.0.62",
+        "@bolt-ai/memory": "workspace:*",
         "@effect/sql-sqlite-bun": "catalog:",
         "@effect/sql-sqlite-node": "catalog:",
         "@ff-labs/fff-bun": "0.10.5",
@@ -465,6 +468,20 @@
         "@tsconfig/bun": "catalog:",
         "@types/bun": "catalog:",
         "@typescript/native": "catalog:",
+      },
+    },
+    "packages/memory": {
+      "name": "@bolt-ai/memory",
+      "version": "1.20.7",
+      "dependencies": {
+        "effect": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@tsconfig/node22": "catalog:",
+        "@types/node": "catalog:",
+        "@typescript/native": "catalog:",
+        "typescript": "catalog:",
       },
     },
     "packages/merman": {
@@ -830,6 +847,7 @@
         "@opentui/core": "catalog:",
         "@opentui/keymap": "catalog:",
         "@opentui/solid": "catalog:",
+        "@seomis/doom-fire": "0.1.0",
         "@solid-primitives/event-bus": "1.1.2",
         "effect": "catalog:",
         "fuzzysort": "catalog:",
@@ -1463,6 +1481,8 @@
     "@betteroffice/pptx": ["@betteroffice/pptx@0.2.0", "", {}, "sha512-pNPQ58tlA+pVibERbLdQNskvP7a0GIMf4jhkCU/gPp8043Ichf6gB3PSb4ra9sfqoIaWqOaZKCWyptovA2+Q0A=="],
 
     "@betteroffice/xlsx": ["@betteroffice/xlsx@0.3.0", "", {}, "sha512-K2bHtdk/epAxsmvxJlIWBRndjP3ltQU0Oh3p4gcZd2n5/YgXglo3SmMYX4nQe8WEm/yvz91p+aIasKyXXQP9Wg=="],
+
+    "@bolt-ai/memory": ["@bolt-ai/memory@workspace:packages/memory"],
 
     "@brendonovich/vite-plugin-opencode": ["@brendonovich/vite-plugin-opencode@0.1.3", "", { "dependencies": { "@babel/core": "^7.29.0", "@opencode-ai/client": "0.0.0-beta-18050" }, "peerDependencies": { "vite": "^6.0.0 || ^7.0.0 || ^8.0.0" } }, "sha512-iiIwlNoycOMUiaUzL1ZirLapCG3WY8cg9hSj4KgE/JYIWgqauoHikIlfUt7SdMqqGIkb4iZu6I1MxgDDJaRfBA=="],
 
@@ -2357,6 +2377,8 @@
     "@sentry/solid": ["@sentry/solid@10.71.0", "", { "dependencies": { "@sentry/browser": "10.71.0", "@sentry/conventions": "^0.16.0", "@sentry/core": "10.71.0" }, "peerDependencies": { "@solidjs/router": ">=0.13.4 <2.0.0-0", "@tanstack/solid-router": "^1.132.27", "solid-js": "^1.8.4" }, "optionalPeers": ["@solidjs/router", "@tanstack/solid-router"] }, "sha512-/vVy9GmB/RejmomWEMZ+P3xlwrhfpIYJ3F0+UcTE836uuH92r8CSnmucdGQqke8c/6ullQFjZrLd/dTDPXj1aA=="],
 
     "@sentry/vite-plugin": ["@sentry/vite-plugin@5.4.0", "", { "dependencies": { "@sentry/bundler-plugins": "^10.64.0" } }, "sha512-fFJgCxs5hDyAm9BbZJ+LbA+LK2tjX5OoD0v0ARU4StR6KQmGUduoPs69yJ9AfqZ0om3Rlp5JDliiwFcNkasORA=="],
+
+    "@seomis/doom-fire": ["@seomis/doom-fire@0.1.0", "", {}, "sha512-fal/Eumrc/TBQGb1x1/sZCB2uzZU16vRBTkDOiohwwQSLOait002Ohq3Sc8tTaDoUyR3Bqp6d+EgNoKhSiExew=="],
 
     "@shikijs/core": ["@shikijs/core@4.4.3", "", { "dependencies": { "@shikijs/primitive": "4.4.3", "@shikijs/types": "4.4.3", "@shikijs/vscode-textmate": "^10.0.2", "@types/hast": "^3.0.5", "hast-util-to-html": "^9.0.5" } }, "sha512-QCR4q2ZO/ILJEuwiBMel4wdcTDb1JGwfjKTxPDF6x8ixOaluPrVqIn06C99AcRPhmYlBR56d/Fb+GN58GzExpg=="],
 

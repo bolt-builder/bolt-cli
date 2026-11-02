@@ -3,9 +3,10 @@ import { Effect } from "effect"
 import path from "node:path"
 import { Standalone } from "../services/standalone"
 import { errorMessage } from "../util/error"
+import type { Controls } from "./controls"
 import { reportRunError, runNonInteractiveWithOptions, type RunCommandInput } from "./run"
 
-export type V1RunCommandInput = {
+export type V1RunCommandInput = Controls & {
   message: string[]
   continue?: boolean
   session?: string
@@ -60,6 +61,16 @@ export function runV1Bridge(input: V1RunCommandInput) {
 function nativeInput(input: V1RunCommandInput, endpoint: Endpoint): RunCommandInput {
   return {
     server: { endpoint },
+    json: input.json,
+    porcelain: input.porcelain,
+    emit: input.emit,
+    maxCost: input.maxCost,
+    maxTokens: input.maxTokens,
+    timeout: input.timeout,
+    retries: input.retries,
+    outputSchema: input.outputSchema,
+    costReport: input.costReport,
+    autoAgent: input.autoAgent,
     message: input.message,
     continue: input.continue,
     session: input.session,

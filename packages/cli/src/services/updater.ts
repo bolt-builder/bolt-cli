@@ -11,7 +11,7 @@ import { RetainedImage } from "./retained-image"
 import { action, parseReleaseVersion, type Policy } from "./updater-action"
 import { errorMessage } from "../util/error"
 
-export const methods = ["curl", "npm", "pnpm", "bun", "yarn", "vp", "brew", "winget"] as const
+export const methods = ["curl", "npm", "pnpm", "bun", "yarn", "vp", "brew", "scoop", "choco"] as const
 
 export type Method = (typeof methods)[number]
 export type RunResult = { readonly type: "available" | "installed"; readonly version: string }
@@ -46,26 +46,16 @@ const decodeVpPackages = Schema.decodeUnknownOption(
 )
 
 const installNames: Record<Method, string> = {
-  curl: "The OpenCode installer",
+  curl: "The Bolt installer",
   npm: "npm",
   pnpm: "pnpm",
   bun: "Bun",
   yarn: "Yarn",
   vp: "Vite+",
   brew: "Homebrew",
-  winget: "WinGet",
+  scoop: "Scoop",
+  choco: "Chocolatey",
 }
-
-const wingetPackage = "Anomaly.OpenCode"
-const wingetArgs = [
-  "--id",
-  wingetPackage,
-  "--exact",
-  "--source",
-  "winget",
-  "--accept-source-agreements",
-  "--disable-interactivity",
-]
 
 function conciseDetail(input: string) {
   const lines = stripVTControlCharacters(input)
@@ -150,16 +140,15 @@ const make = Effect.gen(function* () {
       .readFileString(path.join(directory, "package.json"))
       .pipe(Effect.flatMap((text) => Effect.try(() => JSON.parse(text))))
     // Source invocations run inside Bun or Node, which may themselves be npm packages.
-    if (!/^@opencode(?:-ai)?\/cli(?:-node)?$/.test(manifest.name)) return
+    if (!/^@bolt-builder\/bolt-cli(?:-node)?$/.test(manifest.name)) return
     if (Object.values(manifest.bin ?? {}).some((bin) => path.resolve(directory, bin) === executable))
       return manifest.name
   }).pipe(Effect.orElseSucceed(() => undefined))
-  // "opencode" is Homebrew Core's formula; the others are published to anomalyco/tap.
-  const installedFormula = ["opencode", "opencode-beta", "opencode-v2"].find((name) =>
+  const installedFormula = ["bolt-cli", "bolt-cli-beta"].find((name) =>
     executable.includes(`${path.sep}Cellar${path.sep}${name}${path.sep}`),
   )
-  // WinGet extracts portable packages into a directory named after the package identifier.
-  const installedWinget = /[\\/]winget[\\/]packages[\\/]anomaly\.opencode_/i.test(executable)
+  const installedScoop = /[\\/]scoop[\\/]apps[\\/]bolt[\\/]/i.test(executable)
+  const installedChoco = /[\\/]chocolatey[\\/]lib[\\/]bolt[\\/]/i.test(executable)
 
   const readPolicy = Effect.fnUntraced(function* () {
     const values = yield* Effect.forEach(["config.json", "opencode.json", "opencode.jsonc"], (name) =>
@@ -187,12 +176,7 @@ const make = Effect.gen(function* () {
       )
   })
 
-  const curlPath = path.resolve(
-    global.home,
-    ".opencode",
-    "bin",
-    process.platform === "win32" ? "opencode.exe" : "opencode",
-  )
+  const curlPath = path.resolve(global.home, ".bolt", "bin", process.platform === "win32" ? "bolt.exe" : "bolt")
   const curlBinary = yield* fs.realPath(curlPath).pipe(Effect.orElseSucceed(() => curlPath))
 
   // On Windows a bare `bash` may be the WSL launcher, which cannot run the installer against Windows paths.
@@ -204,9 +188,9 @@ const make = Effect.gen(function* () {
     if (bash && (yield* fs.exists(bash).pipe(Effect.orElseSucceed(() => false)))) return bash
     return yield* Effect.fail(
       new UpgradeError({
-        title: "Git Bash is required to update OpenCode",
-        detail: "The OpenCode installer runs with Git Bash on Windows, and it was not found.",
-        retry: "Install Git for Windows or set OPENCODE_GIT_BASH_PATH, then run opencode upgrade again.",
+        title: "Git Bash is required to update Bolt",
+        detail: "The Bolt installer runs with Git Bash on Windows, and it was not found.",
+        retry: "Install Git for Windows or set OPENCODE_GIT_BASH_PATH, then run bolt upgrade again.",
       }),
     )
   })
@@ -214,10 +198,14 @@ const make = Effect.gen(function* () {
   const method = Effect.fnUntraced(function* () {
     if (executable === curlBinary) return "curl"
     if (installedFormula) return "brew"
-    if (installedWinget) return "winget"
+    if (installedScoop) return "scoop"
+    if (installedChoco) return "choco"
     if (!installedPackage) return
 
-    const parts = executable.toLowerCase().split(path.sep).map((part) => part.replace(/^\./, ""))
+    const parts = executable
+      .toLowerCase()
+      .split(path.sep)
+      .map((part) => part.replace(/^\./, ""))
     const checks: Array<{ method: Method; command: string[] }> = [
       { method: "npm", command: ["npm", "list", "-g", "--depth=0", installedPackage] },
       { method: "pnpm", command: ["pnpm", "list", "-g", "--depth=0", installedPackage] },
@@ -245,7 +233,8 @@ const make = Effect.gen(function* () {
   })
 
   const removalCommand = (method: Method) => {
-    if (method === "winget") return ["winget", "uninstall", ...wingetArgs]
+    if (method === "scoop") return installedScoop ? ["scoop", "uninstall", "bolt"] : undefined
+    if (method === "choco") return installedChoco ? ["choco", "uninstall", "bolt", "-y"] : undefined
     if (method === "curl" || method === "brew" || !installedPackage) return undefined
     const commands = {
       npm: ["npm", "uninstall", "--global", installedPackage],
@@ -273,25 +262,23 @@ const make = Effect.gen(function* () {
   }
 
   const release = Effect.fnUntraced(function* (method?: Method) {
-    const distribution = method === "brew" ? "homebrew" : "npm"
-    // Homebrew Core builds its formula on its own schedule, so the tap release does not describe it.
-    const core = method === "brew" && installedFormula === "opencode"
+    const github = method === "curl" || method === "brew" || method === "scoop" || method === "choco"
+    const tag = channel === "local" ? "latest" : channel
+    const url = github
+      ? "https://api.github.com/repos/bolt-builder/bolt-cli/releases?per_page=100"
+      : `https://registry.npmjs.org/@bolt-builder%2Fbolt-cli${OPENCODE_ARTIFACT === "cli-node" ? "-node" : ""}/${encodeURIComponent(tag)}`
     const response = yield* Effect.tryPromise({
       try: (signal) =>
-        fetch(
-          core
-            ? "https://formulae.brew.sh/api/formula/opencode.json"
-            : `https://opencode.ai/update/api/${encodeURIComponent(channel)}/${encodeURIComponent(OPENCODE_ARTIFACT)}/${distribution}?current=${encodeURIComponent(OPENCODE_VERSION)}`,
-          {
-            signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
-          },
-        ),
+        fetch(url, {
+          signal: AbortSignal.any([signal, AbortSignal.timeout(10_000)]),
+          headers: { accept: "application/json" },
+        }),
       catch: (cause) =>
         new UpgradeError(
           {
-            title: "Could not check for OpenCode updates",
+            title: "Could not check for Bolt updates",
             detail: errorDetail(cause),
-            retry: "Check your network, then run opencode upgrade again.",
+            retry: "Check your network, then run bolt upgrade again.",
           },
           { cause },
         ),
@@ -299,70 +286,64 @@ const make = Effect.gen(function* () {
     if (!response.ok)
       return yield* Effect.fail(
         new UpgradeError({
-          title: "Could not check for OpenCode updates",
+          title: "Could not check for Bolt updates",
           detail: `The update service returned HTTP ${response.status}.`,
           retry: "Try again in a few minutes.",
         }),
       )
-    const data: { version?: string; metadata?: { package?: string }; versions?: { stable?: string } } =
-      yield* Effect.tryPromise({
-        try: () => response.json(),
-        catch: (cause) =>
-          new UpgradeError(
-            {
-              title: "Could not read the OpenCode update information",
-              detail: errorDetail(cause),
-              retry: "Try again in a few minutes.",
-            },
-            { cause },
-          ),
-      })
-    const version = core ? data.versions?.stable : data.version
-    const packageName = core ? "opencode" : data.metadata?.package
-    if (!version || !packageName)
+    const raw = yield* Effect.tryPromise({
+      try: () => response.json(),
+      catch: (cause) => new Error(errorDetail(cause)),
+    })
+    const current = parseReleaseVersion(OPENCODE_VERSION)
+    // A V2 installation must not automatically switch back to the legacy V1 product.
+    // Rollbacks among V2 releases and explicit version installs retain their existing behavior.
+    const eligible = (version: string) => {
+      const parsed = parseReleaseVersion(version)
+      return (
+        parsed !== undefined &&
+        ((current?.major === "0" && parsed.major === "0") ||
+          Number(parsed.major) >= Math.max(2, Number(current?.major ?? 2)))
+      )
+    }
+    const version = yield* Effect.gen(function* () {
+      if (!github) {
+        const data = yield* Schema.decodeUnknownEffect(Schema.Struct({ version: Schema.String }))(raw)
+        return eligible(data.version) ? data.version : undefined
+      }
+      const releases = yield* Schema.decodeUnknownEffect(
+        Schema.Array(Schema.Struct({ tag_name: Schema.String, draft: Schema.Boolean, prerelease: Schema.Boolean })),
+      )(raw)
+      return releases
+        .find(
+          (entry) =>
+            !entry.draft &&
+            ((tag !== "latest" && (entry.tag_name.includes(`-${tag}`) || (tag === "dev" && entry.prerelease))) ||
+              (tag === "latest" && !entry.prerelease)) &&
+            eligible(entry.tag_name),
+        )
+        ?.tag_name.replace(/^v/, "")
+    })
+    if (!version)
       return yield* Effect.fail(
         new UpgradeError({
-          title: "Could not read the OpenCode update information",
-          detail: "The update service returned incomplete release information.",
-          retry: "Try again in a few minutes.",
+          title: "No compatible Bolt release is published",
+          detail: "The release source does not yet contain a Bolt V2 release for this channel.",
+          retry: "Try again after the V2 release is published, or pass an explicit version to bolt upgrade.",
         }),
       )
-    return { package: packageName, version }
-  })
-
-  // WinGet moderates every submission, so only its own index knows which release it can install.
-  const wingetVersion = Effect.fnUntraced(function* () {
-    const failure = (detail: string, cause?: unknown) =>
-      new UpgradeError(
-        {
-          title: "Could not check for OpenCode updates",
-          detail,
-          command: ["winget", "search", ...wingetArgs].join(" "),
-          retry: "Fix the issue above, then run opencode upgrade again.",
-        },
-        cause === undefined ? undefined : { cause },
-      )
-    const result = yield* exec(["winget", "search", ...wingetArgs], "1 minute").pipe(
-      Effect.mapError((cause) => failure(errorDetail(cause), cause)),
-    )
-    // Column headers are localized, but the result row always lists the identifier followed by the version.
-    const version = result.stdout
-      .split(/\r?\n|\r/)
-      .map((line) => line.trim().split(/\s+/))
-      .flatMap((tokens) => {
-        const index = tokens.findIndex((token) => token.toLowerCase() === wingetPackage.toLowerCase())
-        return index === -1 ? [] : tokens.slice(index + 1, index + 2)
-      })
-      .find((token) => parseReleaseVersion(token))
-    if (result.code !== 0 || !version) return yield* Effect.fail(failure(resultDetail(result)))
-    return version
+    return {
+      package:
+        method === "brew"
+          ? "bolt-builder/tap/bolt-cli"
+          : `@bolt-builder/bolt-cli${OPENCODE_ARTIFACT === "cli-node" ? "-node" : ""}`,
+      version,
+    }
   })
 
   const latest = (selected?: Method) =>
     (selected ? Effect.succeed(selected) : method()).pipe(
-      Effect.flatMap((method) =>
-        method === "winget" ? wingetVersion() : release(method).pipe(Effect.map((data) => data.version)),
-      ),
+      Effect.flatMap((method) => release(method).pipe(Effect.map((data) => data.version))),
     )
 
   const temporaryDirectory = (prefix: string) =>
@@ -379,9 +360,11 @@ const make = Effect.gen(function* () {
     const owned =
       method === "curl"
         ? executable === curlBinary
-        : method === "winget"
-          ? installedWinget
-          : installedPackage !== undefined
+        : method === "scoop"
+          ? installedScoop
+          : method === "choco"
+            ? installedChoco
+            : installedPackage !== undefined
     if (!owned) return effect
     return Effect.scoped(RetainedImage.retain(directory, "upgrade").pipe(Effect.andThen(effect))).pipe(
       Effect.provideService(FileSystem.FileSystem, fs),
@@ -398,10 +381,10 @@ const make = Effect.gen(function* () {
     const failure = (detail: string, cause?: unknown) =>
       new UpgradeError(
         {
-          title: input.title ?? `${installNames[input.method]} could not install OpenCode`,
+          title: input.title ?? `${installNames[input.method]} could not install Bolt`,
           detail,
           command: (input.displayCommand ?? input.command).join(" "),
-          retry: input.retry ?? "Fix the issue above, then run opencode upgrade again.",
+          retry: input.retry ?? "Fix the issue above, then run bolt upgrade again.",
         },
         cause === undefined ? undefined : { cause },
       )
@@ -426,23 +409,21 @@ const make = Effect.gen(function* () {
     if (!parseReleaseVersion(input)) return yield* Effect.fail(new Error(`Invalid version: ${input}`))
     const version = input.trim().replace(/^v/, "")
     const packageName =
-      method === "winget"
-        ? wingetPackage
-        : method === "brew" && installedFormula === "opencode"
-          ? "opencode"
-          : (yield* release(method)).package
+      method === "brew"
+        ? "bolt-builder/tap/bolt-cli"
+        : `@bolt-builder/bolt-cli${OPENCODE_ARTIFACT === "cli-node" ? "-node" : ""}`
     const target = `${packageName}@${version}`
     if (installedPackage && packageName !== installedPackage && (method === "pnpm" || method === "yarn")) {
       return yield* Effect.fail(new Error(`Reinstall ${target} with ${method} to migrate from ${installedPackage}.`))
     }
-    const commands: Record<Exclude<Method, "bun" | "curl" | "brew" | "winget">, string[]> = {
+    const commands: Record<Exclude<Method, "bun" | "curl" | "brew" | "scoop" | "choco">, string[]> = {
       // Keep the old package: uninstalling it can unlink the replacement command.
       npm: [
         "npm",
         "install",
         "--global",
         `--allow-scripts=${packageName}`,
-        ...((OPENCODE_ARTIFACT === "cli" && !installedPackage?.endsWith("/cli-node")) ||
+        ...((OPENCODE_ARTIFACT === "cli" && !installedPackage?.endsWith("/bolt-cli-node")) ||
         (installedPackage && packageName !== installedPackage)
           ? ["--force"]
           : []),
@@ -457,7 +438,7 @@ const make = Effect.gen(function* () {
     }
     yield* Effect.scoped(
       Effect.gen(function* () {
-        // Other OpenCode processes may be installing at the same time. Wait longer than the
+        // Other Bolt processes may be installing at the same time. Wait longer than the
         // slowest install (curl runs two 5-minute commands).
         yield* flock.acquire("cli-upgrade", undefined, { timeoutMs: Duration.toMillis("15 minutes") })
         if (method === "bun") {
@@ -480,37 +461,34 @@ const make = Effect.gen(function* () {
           const installer = path.join(directory, "install")
           yield* runUpgrade({
             method,
-            command: ["curl", "-fsSL", "-o", installer, "https://opencode.ai/v2/install"],
-            displayCommand: ["curl", "-fsSL", "https://opencode.ai/v2/install"],
-            title: "Could not download the OpenCode installer",
-            retry: "Check your network, then run opencode upgrade again.",
+            command: [
+              "curl",
+              "-fsSL",
+              "-o",
+              installer,
+              "https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install",
+            ],
+            displayCommand: ["curl", "-fsSL", "https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install"],
+            title: "Could not download the Bolt installer",
+            retry: "Check your network, then run bolt upgrade again.",
           })
           return yield* retaining(
             method,
             runUpgrade({
               method,
               command: [bash, installer, "--version", version, "--no-modify-path"],
-              displayCommand: ["opencode", "upgrade", version, "--method", "curl"],
-              title: "The OpenCode installer failed",
+              displayCommand: ["bolt", "upgrade", version, "--method", "curl"],
+              title: "The Bolt installer failed",
             }),
           )
         }
         if (method === "brew") return yield* runUpgrade({ method, command: ["brew", "upgrade", packageName] })
-        if (method === "winget")
+        if (method === "scoop")
+          return yield* retaining(method, runUpgrade({ method, command: ["scoop", "install", `bolt@${version}`] }))
+        if (method === "choco")
           return yield* retaining(
             method,
-            runUpgrade({
-              method,
-              command: [
-                "winget",
-                "upgrade",
-                ...wingetArgs,
-                "--version",
-                version,
-                "--silent",
-                "--accept-package-agreements",
-              ],
-            }),
+            runUpgrade({ method, command: ["choco", "upgrade", "bolt", `--version=${version}`, "-y"] }),
           )
         return yield* retaining(method, runUpgrade({ method, command: commands[method] }))
       }),
@@ -520,9 +498,9 @@ const make = Effect.gen(function* () {
           ? cause
           : new UpgradeError(
               {
-                title: "Could not prepare the OpenCode upgrade",
+                title: "Could not prepare the Bolt upgrade",
                 detail: errorDetail(cause),
-                retry: "Fix the issue above, then run opencode upgrade again.",
+                retry: "Fix the issue above, then run bolt upgrade again.",
               },
               { cause },
             ),
@@ -557,7 +535,7 @@ const make = Effect.gen(function* () {
       yield* Effect.logInfo("update check done", { action: "up-to-date" })
       return undefined
     }
-    yield* Effect.logInfo("OpenCode update available", { current, latest: version, action: next })
+    yield* Effect.logInfo("Bolt update available", { current, latest: version, action: next })
     return { policy, version }
   })
 
@@ -570,7 +548,7 @@ const make = Effect.gen(function* () {
     const current = yield* Ref.get(installedVersion)
     yield* upgrade(detected, version)
     yield* Ref.set(installedVersion, version)
-    yield* Effect.logInfo("updated OpenCode", { from: current, to: version, method: detected })
+    yield* Effect.logInfo("updated Bolt", { from: current, to: version, method: detected })
     return true
   })
 
@@ -587,7 +565,7 @@ const make = Effect.gen(function* () {
     if (OPENCODE_LOCAL)
       return {
         type: "unavailable" as const,
-        message: "This build runs from a source checkout. Use an installed OpenCode release to check for updates.",
+        message: "This build runs from a source checkout. Use an installed Bolt release to check for updates.",
       }
     const detected = yield* method()
     if (!detected)

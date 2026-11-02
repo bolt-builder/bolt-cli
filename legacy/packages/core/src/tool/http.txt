@@ -1,0 +1,20 @@
+- Calls an HTTP API and returns the status, response headers, and body
+- Supports named auth profiles from .bolt/http-profiles.json so requests can authenticate without secrets ever appearing in the conversation
+- JSON responses include a shape summary (top-level keys and types) so you can orient before digging into the payload
+- Authorization headers and profile-injected header values are redacted from everything echoed back
+
+Auth profiles (.bolt/http-profiles.json in the project root):
+  {
+    "github": {
+      "headers": { "Authorization": "Bearer ${GITHUB_TOKEN}" }
+    }
+  }
+  - Header values are templates; ${VAR} placeholders are filled from environment variables at request time
+  - The file stores only templates, never raw secrets
+  - Pass profile: "github" to attach the profile's headers to the request
+
+Usage notes:
+  - The URL must be a fully-formed http:// or https:// URL
+  - The body parameter is sent as-is; set a content-type header when sending JSON
+  - Response bodies are truncated past a fixed cap; refine the request or use the API's pagination for large payloads
+  - Explicit headers win over profile headers with the same name

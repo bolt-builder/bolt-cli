@@ -11,6 +11,10 @@
     padding-inline: 8px;
   }
 
+  [data-slot="menu-v2-item-chevron"] {
+    color: var(--v2-icon-icon-muted);
+  }
+
   /* A row whose submenu is open keeps the hover background while the pointer is in the submenu. */
   [data-component="menu-v2-item"][data-expanded] {
     background: var(--menu-v2-hover);

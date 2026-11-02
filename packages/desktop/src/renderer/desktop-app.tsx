@@ -25,6 +25,7 @@ import { bindDesktopMenu } from "./platform/menu"
 import { createSidecarResolver, initializationData, sidecarHttp } from "./startup/initialization"
 import { preloadStoredLocale } from "./startup/locale"
 import { LoadingSplash } from "./startup/splash"
+import { windowBackground } from "./window/background"
 import { getLastActiveUrl } from "./window/route-storage"
 import { DesktopMemoryRouter } from "./window/router"
 
@@ -187,7 +188,7 @@ function DesktopEffects(props: { api: ElectronAPI }) {
   createEffect(() => {
     theme.themeId()
     theme.mode()
-    const background = getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()
+    const background = windowBackground(getComputedStyle(document.documentElement).backgroundColor)
 
     if (background) void props.api.setBackgroundColor(background)
   })

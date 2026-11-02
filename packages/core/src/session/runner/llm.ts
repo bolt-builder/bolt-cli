@@ -28,6 +28,9 @@ import { makeLocationNode } from "@opencode/util/effect/app-node"
 import { llmClient } from "../../effect/app-node-platform.js"
 import { StepFailedError } from "../error.js"
 import { SessionRunnerRetry } from "./retry.js"
+import { Config } from "../../config.js"
+import { Global } from "@opencode/util/global"
+import { SessionReplay } from "../replay.js"
 import { SessionStep } from "./step.js"
 import { ToolOutput } from "../../tool-output.js"
 import { Plugin } from "../../plugin.js"
@@ -57,6 +60,7 @@ const layer = Layer.effect(
     const jobs = yield* Job.Service
     const title = yield* SessionTitle.Service
     const steps = yield* SessionStep.make
+    const record = yield* SessionReplay.make
     // Title generation starts once input is visible and must not delay model execution.
     const titles = yield* FiberMap.make<SessionSchema.ID, void, never>()
 
@@ -178,7 +182,9 @@ const layer = Layer.effect(
                 // The Session would go idle; a plugin may admit input to keep this execution working.
                 yield* restore(
                   SessionBackground.outstanding(jobs, store, sessionID).pipe(
-                    Effect.flatMap((background) => hooks.trigger("session", "experimental.idle", { sessionID, background })),
+                    Effect.flatMap((background) =>
+                      hooks.trigger("session", "experimental.idle", { sessionID, background }),
+                    ),
                   ),
                 )
                 if (!(yield* SessionInbox.has(db, sessionID, "input"))) return DrainResult.Complete()
@@ -283,6 +289,12 @@ const layer = Layer.effect(
               executeTool: prepared.executeTool,
             })),
           )
+        yield* record({
+          sessionID,
+          messageID: assistantMessageID,
+          model: { providerID: loaded.model.ref.providerID, modelID: loaded.model.ref.id },
+          request: prepared.request,
+        })
         const outcome = yield* steps.attempt({
           isLocationClosed: lifecycle.isClosed,
           sessionID,
@@ -445,6 +457,8 @@ export const node = makeLocationNode({
   layer,
   deps: [
     Bus.node,
+    Config.node,
+    Global.node,
     LocationLifecycle.node,
     llmClient,
     SessionContext.node,

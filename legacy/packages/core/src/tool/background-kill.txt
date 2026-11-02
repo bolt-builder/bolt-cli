@@ -1,0 +1,7 @@
+Terminates a background process started with bash_background.
+
+Usage:
+- Pass the process id returned by bash_background.
+- The whole process tree is terminated (graceful kill first, force kill after a short grace period).
+- Safe to call on processes that already finished; reports their final status.
+- Always kill dev servers and watchers you started once you no longer need them.

@@ -1,0 +1,41 @@
+{
+  "name": "Bolt",
+  "id": "bolt",
+  "light": {
+    "palette": {
+      "neutral": "#ffffff",
+      "ink": "#1a1a1a",
+      "primary": "#3b7dd8",
+      "accent": "#1f5fbf",
+      "interactive": "#3b7dd8",
+      "success": "#3d9a57",
+      "warning": "#b7791f",
+      "error": "#d1383d",
+      "info": "#318795",
+      "diffAdd": "#1e725c",
+      "diffDelete": "#c53b53"
+    },
+    "v2Overrides": {
+      "v2-background-bg-deep": "#ffffff",
+      "v2-background-bg-base": "#fafafa"
+    }
+  },
+  "dark": {
+    "palette": {
+      "neutral": "#050814",
+      "ink": "#e5f1ff",
+      "primary": "#2d7bff",
+      "accent": "#63d9ff",
+      "interactive": "#2d7bff",
+      "success": "#55c78a",
+      "warning": "#e5b567",
+      "error": "#e06c75",
+      "info": "#63d9ff",
+      "diffAdd": "#4fd6be",
+      "diffDelete": "#c53b53"
+    },
+    "v2Overrides": {
+      "v2-background-bg-deep": "#050814"
+    }
+  }
+}

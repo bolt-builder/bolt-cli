@@ -103,6 +103,7 @@ describe("run interactive runtime", () => {
         model: undefined,
         variant: undefined,
         files: [],
+        auto: true,
       },
       {
         createRuntimeLifecycle: async (input) => {
@@ -118,6 +119,7 @@ describe("run interactive runtime", () => {
         },
         streamTransport: Promise.resolve({
           createSessionTransport: async (input) => {
+            expect(input.auto).toBe(true)
             refreshCatalog = () => Promise.resolve(input.onCatalogRefresh?.())
             await refreshCatalog()
             catalogLoaded.resolve()

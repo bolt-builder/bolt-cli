@@ -1,0 +1,11 @@
+Performs multiple find-and-replace edits on one file in a single atomic operation.
+
+Prefer this over several sequential `edit` calls when you need to make more than one change to the same file.
+
+Usage:
+- You must use your `read` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file.
+- Provide `filePath` (absolute path) and an `edits` array. Each edit has `oldString`, `newString`, and an optional `replaceAll`.
+- Edits are applied in order. Each edit operates on the result of the previous edit, so a later `oldString` must match the file content as it exists after the earlier edits.
+- All edits must succeed or none are applied. If any edit fails (oldString not found, or found multiple times without `replaceAll`), the file is left untouched.
+- Matching semantics are identical to the `edit` tool: `oldString` must match exactly, including indentation, and must be unique in the file unless `replaceAll` is set.
+- This tool cannot create new files. Use `write` for new files and `edit` for single changes.

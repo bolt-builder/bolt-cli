@@ -1,0 +1,7 @@
+List the structured tasks for the current session.
+
+Returns every task with its id, status, subject, blockers, and whether it is currently blocked. Use it to recall task ids before task_update, to check what is in_progress, and to find the next unblocked pending task.
+
+Usage notes:
+- A task is shown as blocked while any of its blockers is still pending or in_progress.
+- Takes no parameters.

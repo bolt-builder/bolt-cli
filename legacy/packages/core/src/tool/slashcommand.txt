@@ -1,0 +1,10 @@
+Run a slash command from within the current session.
+
+Resolves a configured slash command by name, substitutes the provided arguments into its template, and returns the rendered prompt text. Treat the returned text as instructions to execute right now as part of the current task.
+
+Usage notes:
+- `command` is the command name without the leading slash (e.g. "review", not "/review").
+- `arguments` is a single string. Numbered placeholders ($1, $2, ...) consume whitespace-separated arguments (quoted arguments stay together); the last numbered placeholder receives all remaining arguments. $ARGUMENTS receives the full argument string. If the template has no placeholders, the arguments are appended after the template.
+- This tool is template expansion only: it does not spawn a nested session and it does not execute the rendered instructions or any !`shell` blocks inside the template. You execute the rendered instructions yourself.
+- If the output notes the command is marked as a subtask, run the rendered instructions as a subtask via the task tool instead of executing them inline.
+- Only use this for commands the user asked for or that clearly advance the current task. Available commands can be discovered from the user's message when they reference one (e.g. "/review").

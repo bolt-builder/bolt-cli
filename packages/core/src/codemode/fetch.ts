@@ -4,6 +4,7 @@ import { Extension } from "@opencode/codemode"
 import { isRecord } from "@opencode/util/record"
 import { Effect } from "effect"
 import { Permission } from "../permission.js"
+import { NetGuard } from "../net-guard.js"
 import { CodeModeExecution } from "./execution.js"
 
 const TIMEOUT_MS = 30_000
@@ -38,25 +39,68 @@ const fetch = (input: string | URL, init: Init = {}) =>
           Effect.fail(new Error(`The user rejected fetching ${url}: ${error.feedback}`)),
         ),
       )
-    return yield* Effect.tryPromise({ try: () => send(input, init), catch: (error) => error })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS)
+    return yield* Effect.gen(function* () {
+      let current = url
+      let request: Init = init
+      let redirected = false
+      for (let count = 0; ; count++) {
+        const response = yield* Effect.tryPromise({
+          try: (signal) =>
+            NetGuard.fetch(current, { ...request, signal: AbortSignal.any([controller.signal, signal]) }),
+          catch: (error) => error,
+        })
+        const destination = response.headers.get("location")
+        if (![301, 302, 303, 307, 308].includes(response.status) || !destination)
+          return yield* Effect.tryPromise({ try: () => read(response, current, redirected), catch: (error) => error })
+        if (count >= 10) return yield* Effect.fail(new Error("Too many redirects"))
+        const next = yield* Effect.try({ try: () => new URL(destination, current).href, catch: (error) => error })
+        yield* permission.assertNotDenied({
+          action: "webfetch",
+          resources: [next],
+          metadata: { ...display([input, init]), url: next },
+          sessionID: execution.sessionID,
+          agent: execution.agent,
+          source: { type: "tool", messageID: execution.messageID, id: execution.id },
+        })
+        yield* NetGuard.assertFetchable(new URL(next))
+        yield* Effect.promise(() => response.body?.cancel() ?? Promise.resolve())
+        const method = (request.method ?? "GET").toUpperCase()
+        const headers = new Headers(request.headers)
+        if (new URL(current).origin !== new URL(next).origin) {
+          headers.delete("authorization")
+          headers.delete("cookie")
+          headers.delete("proxy-authorization")
+        }
+        const dropBody =
+          (response.status === 303 && method !== "HEAD") || ([301, 302].includes(response.status) && method === "POST")
+        if (dropBody) {
+          headers.delete("content-length")
+          headers.delete("content-type")
+        }
+        request = {
+          ...request,
+          method: dropBody ? "GET" : request.method,
+          body: dropBody ? undefined : request.body,
+          headers: [...headers.entries()],
+        }
+        current = next
+        redirected = true
+      }
+    }).pipe(Effect.ensuring(Effect.sync(() => clearTimeout(timeout))))
   })
 
-const send = async (input: string | URL, init: Init) => {
-  const response = await globalThis.fetch(input, {
-    method: init.method,
-    headers: init.headers,
-    body: init.body,
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
+const read = async (response: Response, url: string, redirected: boolean) => {
   const bytes = await response.bytes()
   const headers = Object.fromEntries(response.headers)
   const text = () => new TextDecoder().decode(bytes)
   return {
-    url: response.url,
+    url,
     status: response.status,
     statusText: response.statusText,
     ok: response.ok,
-    redirected: response.redirected,
+    redirected,
     headers: {
       get: (name: string) => headers[name.toLowerCase()] ?? null,
       has: (name: string) => name.toLowerCase() in headers,

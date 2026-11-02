@@ -17,6 +17,30 @@ import { testEffect } from "./lib/effect"
 const it = testEffect(AppNodeBuilder.build(LayerNode.group([Job.node, Database.node, Global.node])))
 
 describe("Job", () => {
+  it.live("retains only the newest 25 acknowledged background results without durable notification rows", () =>
+    Effect.gen(function* () {
+      const jobs = yield* Job.Service
+      const sessionID = SessionSchema.ID.make("ses_bounded_background_history")
+      for (let index = 0; index < 28; index++) {
+        const id = `bounded_history_${index}`
+        yield* jobs.start({
+          id,
+          type: "shell",
+          recovery: { kind: "shell", sessionID, shellID: id, command: "fixture" },
+          run: Effect.succeed(`result ${index}`),
+        })
+        yield* jobs.wait({ id })
+        const background = yield* jobs.background(id)
+        if (!background?.notificationID) return yield* Effect.die("Missing background notification")
+        yield* jobs.completeBackground(background.notificationID)
+      }
+      expect((yield* jobs.list).filter((job) => job.id.startsWith("bounded_history_")).length).toBe(25)
+      expect(yield* jobs.get("bounded_history_0")).toBeUndefined()
+      expect(yield* jobs.get("bounded_history_27")).toMatchObject({ status: "completed", output: "result 27" })
+      expect((yield* jobs.get("bounded_history_27"))?.notificationID).toBeUndefined()
+      expect((yield* jobs.pendingBackground).filter((job) => job.id.startsWith("bounded_history_")).length).toBe(0)
+    }),
+  )
   it.live("tracks process-local work through explicit observation", () =>
     Effect.gen(function* () {
       const jobs = yield* Job.Service
@@ -29,6 +53,10 @@ describe("Job", () => {
       })
 
       expect(job).toMatchObject({ type: "test", status: "running", metadata: { durable: false } })
+      const listed = yield* jobs.list
+      expect(listed).toContainEqual(job)
+      listed[0]!.metadata!.durable = true
+      expect((yield* jobs.get(job.id))?.metadata?.durable).toBe(false)
       expect(yield* jobs.wait({ id: job.id, timeout: 0 })).toMatchObject({
         timedOut: true,
         info: { status: "running" },

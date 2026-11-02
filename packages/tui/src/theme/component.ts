@@ -8,6 +8,9 @@ export function createComponentTheme(
   surfaces = new Map<SurfaceName, ComponentTheme>(),
 ): ComponentTheme {
   return {
+    get brand() {
+      return view().brand
+    },
     get hue() {
       return view().hue
     },

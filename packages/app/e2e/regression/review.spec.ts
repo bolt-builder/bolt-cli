@@ -485,7 +485,6 @@ test("context hides free-model cost but keeps paid-model zero cost", async ({ pa
                       status: "completed" as const,
                       reason: "manual" as const,
                       summary: "Current state",
-                      recent: "",
                       time: { created: 3 },
                     },
                   ]
@@ -772,6 +771,7 @@ test("artifact actions copy and download content, switch source, and follow the 
 
   const workspace = await openSession(page, {
     name: "ArtifactActions",
+    seed: { theme: { id: "bolt", scheme: "light" } },
     fileList: () => [],
     fileContent: (path) => {
       if (path === "vector.svg") return { content: source }
@@ -831,9 +831,10 @@ test("artifact actions copy and download content, switch source, and follow the 
   await expect(image).toHaveJSProperty("naturalWidth", 120)
 
   await page.getByRole("link", { name: "Table", exact: true }).click()
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "bolt")
   await expect(panel.getByRole("columnheader", { name: /^name(?:\s|$)/ })).toHaveCSS(
     "background-color",
-    "rgb(242, 242, 242)",
+    "rgb(237, 237, 237)",
   )
   const nameCell = panel.getByRole("cell", { name: /^Jensen, Oliver(?:\s|$)/ })
   await expect(nameCell).toBeVisible()
@@ -980,7 +981,9 @@ test("Markdown and DOCX sheets stay aligned when switching at wide and narrow pr
     await expect(markdown.getByRole("heading", { name: "Document spacing", exact: true })).toBeVisible()
     await expect.poll(() => edges(markdown)).toEqual(reference)
     await expect.poll(() => toolbar.boundingBox()).toEqual(header)
-    expect(await canvas!.evaluate((element) => element.isConnected && Number(element.getAttribute("width")) > 0)).toBe(true)
+    expect(await canvas!.evaluate((element) => element.isConnected && Number(element.getAttribute("width")) > 0)).toBe(
+      true,
+    )
     await panel.getByRole("tab", { name: "other.docx", exact: true }).click()
     await expect(word).toHaveAttribute("data-e2e-probe", "other-warm")
     await panel.getByRole("tab", { name: "notes.md", exact: true }).click()

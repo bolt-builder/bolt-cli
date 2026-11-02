@@ -28,6 +28,11 @@ const paths = {
 
 export const Path = paths
 
+/** V1 Bolt used a sibling XDG application directory. Custom roots stay isolated. */
+export function boltDirectory(directory: string) {
+  return path.basename(directory).toLowerCase() === "opencode" ? path.join(path.dirname(directory), "bolt") : undefined
+}
+
 Flock.setGlobal({ state })
 
 export class Service extends Context.Service<Service, Interface>()("@opencode/Global") {}

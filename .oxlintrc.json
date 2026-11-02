@@ -175,6 +175,7 @@
     }
   ],
   "ignorePatterns": [
+    "legacy/**",
     "**/node_modules",
     "**/dist",
     "**/.build",

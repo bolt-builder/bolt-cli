@@ -1,10 +1,10 @@
 import type { Page } from "@playwright/test"
 import { expect, story } from "../../stories/playwright/story"
 
-// A cell of the "c" in the wordmark (column 40, row 2 of the 78×14 pin grid).
-const PIN = { x: 40.5 / 78, y: 2.5 / 14 }
+// A cell of the Bolt "b" in the wordmark (column 28, row 2 of the 78×14 pin grid).
+const PIN = { x: 28.5 / 78, y: 2.5 / 14 }
 
-// An empty cell above the "o", clear of every pin, side and shadow at rest.
+// An empty cell to the left of the Bolt wordmark, clear of every pin, side and shadow at rest.
 const EMPTY = { x: 5.5 / 78, y: 0.5 / 14 }
 
 story("draws the wordmark as pins and stops animating once settled", async ({ mount, page }) => {
@@ -14,15 +14,20 @@ story("draws the wordmark as pins and stops animating once settled", async ({ mo
   const empty = await pinPixel(page, EMPTY)
   await expect.poll(() => pinPixel(page)).not.toEqual(empty)
   await expect.poll(() => requestedFrames(page)).toBe(0)
+  // The upstream eight-letter mark filled the left edge; Bolt starts at column 24.
+  expect(await pinPixel(page, { x: 0.5 / 78, y: 2.5 / 14 })).toEqual(empty)
 })
 
 story("knocks pins out from the panel but never from the composer", async ({ mount, page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" })
   await mount("app-new-session-wordmark--pin-board")
+  // Pointer movement tilts the board. Settle at the composer before comparing the click itself.
+  const composer = page.locator('[data-component="composer"]')
+  await composer.hover()
   await expect.poll(() => requestedFrames(page)).toBe(0)
   const before = await pinPixel(page)
 
-  await page.locator('[data-component="composer"]').click()
+  await composer.click()
   await nextFrames(page, 2)
   expect(await pinPixel(page)).toEqual(before)
 

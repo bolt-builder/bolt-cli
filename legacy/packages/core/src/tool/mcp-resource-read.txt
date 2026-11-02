@@ -1,0 +1,9 @@
+Read a resource from a connected MCP server.
+
+Reads the resource at the given URI from the named server and returns its text content. Use mcp_resources first to discover the server names and resource URIs that are available.
+
+Usage notes:
+- `server` is the MCP server name exactly as returned by mcp_resources.
+- `uri` is the resource URI exactly as returned by mcp_resources (resource templates with filled-in parameters also work when the server supports them).
+- Only text content is returned. Binary (blob) content and non-text MIME types produce a clear error instead of garbled output.
+- Output is capped; when a resource is larger than the cap the result is truncated and says so.

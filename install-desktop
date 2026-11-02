@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+set -euo pipefail
+APP=Bolt
+
+MUTED='\033[0;2m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+usage() {
+    cat <<EOF
+Bolt Desktop Installer (macOS)
+
+Installs Bolt.app into /Applications from the terminal. Terminal downloads
+carry no quarantine attribute, so macOS shows no Gatekeeper warning.
+
+Usage: install-desktop [options]
+
+Options:
+    -h, --help              Display this help message
+    -v, --version <version> Install a specific version (e.g., 1.20.2)
+
+Examples:
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install-desktop | bash
+    curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install-desktop | bash -s -- --version 1.20.2
+EOF
+}
+
+error() {
+    printf "${RED}error${NC}: %s\n" "$1" >&2
+    exit 1
+}
+
+VERSION=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help) usage; exit 0 ;;
+        -v|--version) VERSION="${2:-}"; shift 2 ;;
+        *) error "unknown option: $1" ;;
+    esac
+done
+
+[[ "$(uname -s)" == "Darwin" ]] || error "this installer is for macOS; grab a Linux or Windows build from https://github.com/bolt-builder/bolt-cli/releases/latest"
+
+case "$(uname -m)" in
+    arm64) ARCH=arm64 ;;
+    x86_64) ARCH=x64 ;;
+    *) error "unsupported architecture: $(uname -m)" ;;
+esac
+
+ASSET="bolt-desktop-mac-$ARCH.app.tar.gz"
+if [[ -n "$VERSION" ]]; then
+    URL="https://github.com/bolt-builder/bolt-cli/releases/download/v${VERSION#v}/$ASSET"
+else
+    URL="https://github.com/bolt-builder/bolt-cli/releases/latest/download/$ASSET"
+fi
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+printf "${MUTED}downloading${NC} %s\n" "$URL"
+curl -#fL "$URL" -o "$TMP/$ASSET" || error "download failed; check the version exists at https://github.com/bolt-builder/bolt-cli/releases"
+
+printf "${MUTED}installing${NC} /Applications/$APP.app\n"
+tar -xzf "$TMP/$ASSET" -C "$TMP"
+[[ -d "$TMP/$APP.app" ]] || error "unexpected archive layout: $APP.app not found"
+
+# A running copy can't be replaced cleanly.
+if pgrep -xq "$APP" 2>/dev/null; then
+    error "$APP is running; quit it and re-run this installer"
+fi
+
+rm -rf "/Applications/$APP.app"
+mv "$TMP/$APP.app" "/Applications/$APP.app"
+
+# Terminal downloads carry no quarantine attribute; strip defensively anyway.
+xattr -rd com.apple.quarantine "/Applications/$APP.app" 2>/dev/null || true
+
+printf "\n${MUTED}done${NC} — installed to /Applications/$APP.app\n"
+printf "open it from Launchpad, or: open -a $APP\n"

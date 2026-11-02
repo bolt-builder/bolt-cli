@@ -1,3 +1,4 @@
+import { APP_NAME } from "../constants"
 import { randomUUID } from "node:crypto"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -60,7 +61,7 @@ export function createEarlyWindow() {
     height: state.height,
     show: !deferReveal,
     autoHideMenuBar: true,
-    title: "OpenCode",
+    title: APP_NAME,
     icon: path.join(icons, `icon.${process.platform === "win32" ? "ico" : "png"}`),
     backgroundColor: storedBackgroundColor(),
     ...platformFrame(tone(), zoom),

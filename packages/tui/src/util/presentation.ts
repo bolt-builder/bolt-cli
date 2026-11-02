@@ -1,42 +1,45 @@
+import { RGBA } from "@opentui/core"
 import { logo } from "../logo"
+import { tint } from "../theme/color"
 
 const reset = "\x1b[0m"
 const bold = "\x1b[1m"
 const dim = "\x1b[90m"
 
-function wordmark(pad = "") {
-  const draw = (line: string, fg: string, shadow: string, bg: string) =>
-    [...line]
-      .map((char) => {
-        if (char === "_") return `${bg} ${reset}`
-        if (char === "^") return `${fg}${bg}▀${reset}`
-        if (char === "~") return `${shadow}▀${reset}`
-        if (char === " ") return " "
-        return `${fg}${char}${reset}`
-      })
-      .join("")
+type Brand = { readonly primary: string; readonly accent: string }
 
-  return logo.left.map((line, index) => {
-    const left = draw(line, dim, "\x1b[38;5;235m", "\x1b[48;5;235m")
-    const right = draw(logo.right[index] ?? "", reset, "\x1b[38;5;238m", "\x1b[48;5;238m")
-    return `${pad}${left} ${right}`
-  })
+function wordmark(pad = "", brand: Brand = { primary: "#2d7bff", accent: "#63d9ff" }) {
+  const left = RGBA.fromHex(brand.accent)
+  const right = RGBA.fromHex(brand.primary)
+  const width =
+    Math.max(...logo.left.map((line) => line.length)) + Math.max(...logo.right.map((line) => line.length)) + 1
+  return logo.left.map(
+    (line, index) =>
+      pad +
+      Array.from(`${line} ${logo.right[index] ?? ""}`)
+        .map((char, column) => {
+          const color = tint(left, right, column / Math.max(1, width - 1))
+          return `\x1b[38;2;${Math.round(color.r * 255)};${Math.round(color.g * 255)};${Math.round(color.b * 255)}m${char}`
+        })
+        .join("") +
+      reset,
+  )
 }
 
-export type SessionEpilogue = { readonly title: string; readonly sessionID?: string }
+export type SessionEpilogue = { readonly title: string; readonly sessionID?: string; readonly brand?: Brand }
 
 // Printed after the TUI closes.
 export function epilogue(input: { readonly session?: SessionEpilogue; readonly updatedVersion?: string }) {
   if (!input.session && !input.updatedVersion) return
   const row = (label: string, value: string) => `  ${dim}${label.padEnd(10, " ")}${reset}${bold}${value}${reset}`
   return [
-    ...wordmark("  "),
+    ...wordmark("  ", input.session?.brand),
     "",
     ...(input.updatedVersion
-      ? [`  ${dim}Run ${reset}${bold}opencode${reset}${dim} to use ${reset}${bold}${input.updatedVersion}${reset}`, ""]
+      ? [`  ${dim}Run ${reset}${bold}bolt${reset}${dim} to use ${reset}${bold}${input.updatedVersion}${reset}`, ""]
       : []),
     ...(input.session
-      ? [row("Session", input.session.title), row("Continue", `opencode -s ${input.session.sessionID}`), ""]
+      ? [row("Session", input.session.title), row("Continue", `bolt -s ${input.session.sessionID}`), ""]
       : []),
   ].join("\n")
 }

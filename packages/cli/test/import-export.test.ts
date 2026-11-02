@@ -150,6 +150,45 @@ test("export reports a missing session without a stack trace", async () => {
   }
 })
 
+test("export --json reports failures as an envelope on stdout", async () => {
+  const sessionID = "ses_missing"
+  const server = Bun.serve({
+    port: 0,
+    fetch(request) {
+      const url = new URL(request.url)
+      if (url.pathname === "/api/info") return status()
+      if (url.pathname === `/api/experimental/session/${sessionID}/export`) {
+        return Response.json(
+          { _tag: "SessionNotFoundError", sessionID, message: `Session not found: ${sessionID}` },
+          { status: 404 },
+        )
+      }
+      return new Response("Not found", { status: 404 })
+    },
+  })
+
+  try {
+    const [stdout, stderr, exitCode] = await run([
+      "session",
+      "export",
+      sessionID,
+      "--json",
+      "--server",
+      server.url.toString(),
+    ])
+
+    expect(exitCode).toBe(1)
+    expect(stderr).toBe("")
+    expect(JSON.parse(stdout)).toMatchObject({
+      version: 1,
+      ok: false,
+      error: { message: `Session not found: ${sessionID}` },
+    })
+  } finally {
+    await server.stop(true)
+  }
+})
+
 test("import sends the file unchanged to the resolved location", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "opencode-import-"))
   const file = path.join(root, "session.json")

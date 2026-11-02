@@ -322,13 +322,42 @@ const makeCrossSpawnSpawner = Effect.gen(function* () {
     Effect.suspend(() => {
       let sink: Sink.Sink<void, unknown, never, PlatformError.PlatformError> = Sink.drain
       if (Predicate.isNotNull(proc.stdin)) {
-        handleInputErrors(proc.stdin)
-        sink = NodeSink.fromWritable({
-          evaluate: () => proc.stdin!,
-          onError: (err) => toPlatformError("fromWritable(stdin)", toError(err), command),
-          endOnDone: cfg.endOnDone,
-          encoding: cfg.encoding,
-        })
+        const writable = proc.stdin
+        handleInputErrors(writable)
+        sink =
+          cfg.endOnDone === false
+            ? Sink.forEach((chunk: unknown) =>
+                Effect.callback<void, PlatformError.PlatformError>((resume) => {
+                  let finished = false
+                  const done = (error?: Error | null) => {
+                    if (finished) return
+                    finished = true
+                    writable.off("error", done)
+                    resume(error ? Effect.fail(toPlatformError("write(stdin)", error, command)) : Effect.void)
+                  }
+                  if (typeof chunk !== "string" && !(chunk instanceof Uint8Array)) {
+                    done(new TypeError("Process stdin accepts strings or byte arrays"))
+                    return
+                  }
+                  writable.once("error", done)
+                  try {
+                    // Wait for the write callback even below the high-water mark, so EPIPE is observable.
+                    writable.write(chunk, cfg.encoding ?? "utf8", done)
+                  } catch (error) {
+                    done(toError(error))
+                  }
+                  return Effect.sync(() => {
+                    finished = true
+                    writable.off("error", done)
+                  })
+                }),
+              )
+            : NodeSink.fromWritable({
+                evaluate: () => writable,
+                onError: (err) => toPlatformError("fromWritable(stdin)", toError(err), command),
+                endOnDone: cfg.endOnDone,
+                encoding: cfg.encoding,
+              })
       }
       if (Stream.isStream(cfg.stream)) return Effect.as(Effect.forkScoped(Stream.run(cfg.stream, sink)), sink)
       return Effect.succeed(sink)

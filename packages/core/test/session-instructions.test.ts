@@ -1,3 +1,4 @@
+import { KV } from "@opencode/core/kv"
 import { describe, expect, test } from "bun:test"
 import fs from "fs/promises"
 import path from "path"
@@ -44,6 +45,7 @@ const readToolNode = makeLocationNode({
   deps: [
     Tool.node,
     ReadToolFileSystem.node,
+    KV.node,
     FileAccess.node,
     Image.node,
     Permission.node,

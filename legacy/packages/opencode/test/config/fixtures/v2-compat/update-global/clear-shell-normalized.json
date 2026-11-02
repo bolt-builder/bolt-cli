@@ -1,0 +1,5 @@
+{
+  "$schema": "https://bolt.ai/config.json",
+  "model": "example/demo",
+  "snapshot": false
+}

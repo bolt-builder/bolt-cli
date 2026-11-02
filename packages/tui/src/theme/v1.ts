@@ -1,4 +1,5 @@
 import type { ThemeV1Json } from "@opencode/theme/tui/v1"
+import bolt from "./assets/bolt.json" with { type: "json" }
 import aura from "./assets/aura.json" with { type: "json" }
 import ayu from "./assets/ayu.json" with { type: "json" }
 import carbonfox from "./assets/carbonfox.json" with { type: "json" }
@@ -35,6 +36,7 @@ import zenburn from "./assets/zenburn.json" with { type: "json" }
 export type { ColorValue, Theme, ThemeColor, ThemeV1Json } from "@opencode/theme/tui/v1"
 
 export const DEFAULT_THEMES: Record<string, ThemeV1Json> = {
+  bolt,
   aura,
   ayu,
   catppuccin,

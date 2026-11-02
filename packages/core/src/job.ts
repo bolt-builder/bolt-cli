@@ -132,6 +132,7 @@ export type BackgroundAllInput = {
 }
 
 export interface Interface {
+  readonly list: Effect.Effect<Info[]>
   readonly get: (id: string) => Effect.Effect<Info | undefined>
   readonly start: (input: StartInput) => Effect.Effect<Info>
   readonly wait: (input: WaitInput) => Effect.Effect<WaitResult>
@@ -199,7 +200,8 @@ function decrementSession(input: Map<SessionSchema.ID, number>, sessionID: Sessi
 
 /**
  * Makes one scoped, process-local registry backed by the durable SQLite `job` table for
- * backgrounded work until its completion notification is admitted.
+ * backgrounded work until its completion notification is admitted. The newest completed
+ * results remain in bounded process-local history after notification acknowledgment.
  */
 export const make = Effect.gen(function* () {
   const db = (yield* Database.Service).db
@@ -544,12 +546,17 @@ export const make = Effect.gen(function* () {
         if (!entry || entry[1].info.status === "running") return jobs
         const next = new Map(jobs)
         next.delete(entry[0])
+        const { notificationID: _notificationID, ...info } = entry[1].info
+        next.set(entry[0], { ...entry[1], info, consumed: true })
+        const completed = [...next].filter(([, job]) => job.consumed && !job.info.notificationID)
+        for (const [id] of completed.slice(0, -COMPLETED_LIMIT)) next.delete(id)
         return next
       }),
     ),
   )
 
   return Service.of({
+    list: SynchronizedRef.get(state.jobs).pipe(Effect.map((jobs) => [...jobs.values()].map(snapshot))),
     get,
     start,
     wait,

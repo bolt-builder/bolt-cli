@@ -36,7 +36,7 @@ if (app) {
   // The installer uses the channel's icons; the rest of the app is already built and signed.
   await $`bun ./script/copy-icons.ts ${resolveChannel()}`
   await $`bunx electron-builder ${flags} --prepackaged ${app}`
-  await cp(`dist/opencode-desktop-win-${cli.cpu}.exe`, path.join(out, `opencode-desktop-win-${cli.cpu}.exe`))
+  await cp(`dist/bolt-desktop-win-${cli.cpu}.exe`, path.join(out, `bolt-desktop-win-${cli.cpu}.exe`))
 }
 
 if (!app && os === "linux") {
@@ -52,7 +52,7 @@ if (!app && os === "mac") {
 
   if (bundles.length !== 1) throw new Error(`Expected one .app bundle in ${parent}, found ${bundles.join(", ")}`)
   await writeUpdateConfig(path.join(parent, bundles[0], "Contents", "Resources"))
-  await $`tar -cf ${path.join(out, `opencode-desktop-mac-${cli.cpu}.app.tar`)} -C ${parent} ${bundles[0]}`
+  await $`tar -cf ${path.join(out, `bolt-desktop-mac-${cli.cpu}.app.tar`)} -C ${parent} ${bundles[0]}`
 }
 
 if (!app && os === "win") {
@@ -70,9 +70,7 @@ async function writeUpdateConfig(resources: string) {
   await Bun.write(
     path.join(resources, "app-update.yml"),
     [
-      `provider: ${publish.provider}`,
-      `url: ${publish.url}`,
-      `channel: ${publish.channel}`,
+      ...Object.entries(publish).map(([key, value]) => `${key}: ${JSON.stringify(value)}`),
       `updaterCacheDirName: '${name.replace(/[/\\:*?"<>|]/g, "").toLowerCase()}-updater'`,
     ].join("\n") + "\n",
   )

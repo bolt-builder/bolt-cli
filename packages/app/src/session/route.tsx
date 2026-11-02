@@ -248,7 +248,7 @@ function SessionDocumentTitle(props: { sessionID: () => string }) {
   // Keyed: <Title> reads its text inside a meta effect, which would hit a stale Show accessor once the session is deleted.
   return (
     <Show when={title()} keyed>
-      {(value) => <Title>{`${value} · OpenCode`}</Title>}
+      {(value) => <Title>{`${value} · Bolt`}</Title>}
     </Show>
   )
 }

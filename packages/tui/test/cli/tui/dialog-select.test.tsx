@@ -12,7 +12,7 @@ import {
   type DialogSelectProps,
 } from "../../../src/ui/dialog-select"
 import { truncateFilePath } from "../../../src/ui/file-path"
-import { getOpenCodeTheme } from "../../../src/theme"
+import { allThemes, parseTheme } from "../../../src/theme"
 import { resolveThemeDocument } from "@opencode/theme/tui"
 import { stringWidth } from "../../../src/util/string-width"
 import { emptyThemeSource, tmpdir } from "../../fixture/fixture"
@@ -380,7 +380,7 @@ test("dialog actions run without options while row actions still require a selec
 
 test("matches the search cursor to the highlighted row until text is typed under new designs", async () => {
   await using tmp = await tmpdir()
-  const theme = resolveThemeDocument(getOpenCodeTheme(), "dark")
+  const theme = resolveThemeDocument(parseTheme(allThemes().bolt, "bolt", { newDesigns: true }), "dark")
   const app = await renderSelect(
     tmp.path,
     [{ title: "First", value: "first" }],

@@ -1,0 +1,6 @@
+Lists all background processes started with bash_background, with their id, status, and command.
+
+Usage:
+- Takes no parameters.
+- Use it to find a process id you lost, or to check for stray processes before starting new ones.
+- Statuses: running, completed, error, cancelled.

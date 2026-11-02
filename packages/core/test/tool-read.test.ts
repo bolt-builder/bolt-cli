@@ -1,3 +1,4 @@
+import { KV } from "@opencode/core/kv"
 import { beforeEach, describe, expect } from "bun:test"
 import path from "path"
 import { Effect, Exit, Layer, Result } from "effect"
@@ -31,6 +32,7 @@ const readToolNode = makeLocationNode({
   deps: [
     Tool.node,
     ReadToolFileSystem.node,
+    KV.node,
     FileAccess.node,
     Image.node,
     Permission.node,

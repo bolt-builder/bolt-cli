@@ -1,0 +1,12 @@
+Navigates a headless browser to a URL and captures what renders, so UI changes can be verified visually against a running app (e.g. a dev server).
+
+Uses a system-installed Chromium-based browser (chromium, google-chrome, etc.). If none is found on PATH the tool fails with an install hint instead of guessing.
+
+Actions:
+- `screenshot` (default): renders the page and writes a PNG. The image path is returned; read it with the read tool to see the page.
+- `text`: renders the page and returns its visible text content, useful for asserting on copy without an image round trip.
+
+Usage:
+- Only http and https URLs are accepted. A bare `localhost:3000/path` is treated as http.
+- Each call is a fresh one-shot navigation (no persistent browser session); the page gets a few seconds of virtual time to settle before capture.
+- Use `width` and `height` to control the viewport (default 1280x800).

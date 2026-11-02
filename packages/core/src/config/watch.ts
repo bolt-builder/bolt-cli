@@ -9,9 +9,11 @@ export function plan(sources: ConfigDiscovery.Sources) {
   const directories = [
     ...(sources.system?.present ? [sources.system.path] : []),
     ...(sources.global ? [sources.global] : []),
+    ...(sources.legacyGlobal?.present ? [sources.legacyGlobal.path] : []),
     ...sources.project.filter((root) => root.present).map((root) => root.path),
   ]
   const files = [
+    ...(sources.legacyGlobal ? [sources.legacyGlobal.path] : []),
     ...(sources.system ? [sources.system.path] : []),
     ...sources.direct,
     ...sources.project.map((root) => root.path),

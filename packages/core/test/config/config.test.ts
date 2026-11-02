@@ -94,6 +94,118 @@ const provider = {
 }
 
 describe("Config", () => {
+  it.live("loads V1 Bolt globals below V2 and excludes both roots when globals are disabled", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          const legacy = path.join(tmp.path, "bolt")
+          const current = path.join(tmp.path, "opencode")
+          const project = path.join(legacy, "project")
+          yield* Effect.promise(async () => {
+            await fs.mkdir(project, { recursive: true })
+            await Bun.write(path.join(legacy, "config.json"), JSON.stringify({ username: "v1", shell: "v1-shell" }))
+            await Bun.write(path.join(legacy, "bolt.jsonc"), '{// legacy comment\n"shell":"v1-bolt"}')
+            await Bun.write(path.join(current, "opencode.json"), JSON.stringify({ shell: "v2-shell" }))
+          })
+          yield* Effect.gen(function* () {
+            const config = yield* Config.Service
+            const entries = yield* config.entries()
+            expect(Config.latest(entries, "username")).toBe("v1")
+            expect(Config.latest(entries, "shell")).toBe("v2-shell")
+            expect(entries.filter((entry) => entry.type === "document").map((entry) => entry.path)).toEqual([
+              AbsolutePath.make(path.join(legacy, "config.json")),
+              AbsolutePath.make(path.join(legacy, "bolt.jsonc")),
+              AbsolutePath.make(path.join(current, "opencode.json")),
+            ])
+            const watcher = yield* Watcher.Test
+            expect(yield* watcher.subscriptions()).toContainEqual(
+              expect.objectContaining({
+                path: AbsolutePath.make(legacy),
+                type: "directory",
+              }),
+            )
+          }).pipe(Effect.provide(testLayer(project, current)))
+          yield* Effect.gen(function* () {
+            const config = yield* Config.Service
+            expect(yield* config.entries()).toEqual([])
+          }).pipe(
+            Effect.provide(
+              testLayer(project, current, project, undefined, undefined, undefined, undefined, { global: false }),
+            ),
+          )
+          expect(yield* Effect.promise(() => fs.readFile(path.join(legacy, "bolt.jsonc"), "utf8"))).toContain(
+            "// legacy comment",
+          )
+        }),
+      ),
+    ),
+  )
+
+  it.live("loads Bolt project files and directories after their V2 compatibility sources", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          yield* Effect.promise(async () => {
+            await fs.mkdir(path.join(tmp.path, ".opencode"), { recursive: true })
+            await fs.mkdir(path.join(tmp.path, ".bolt", "agent"), { recursive: true })
+            await fs.mkdir(path.join(tmp.path, ".bolt", "command"), { recursive: true })
+            for (const [name, shell] of [
+              ["opencode.json", "compat-json"],
+              ["opencode.jsonc", "compat-jsonc"],
+              ["bolt.json", "bolt-json"],
+              ["bolt.jsonc", "bolt-jsonc"],
+              [".opencode/opencode.json", "compat-directory"],
+              [".bolt/bolt.jsonc", "bolt-directory"],
+            ])
+              await Bun.write(path.join(tmp.path, name), JSON.stringify({ shell }))
+            await Bun.write(
+              path.join(tmp.path, ".bolt/agent/reviewer.md"),
+              "---\ndescription: Reviews changes\nmode: subagent\n---\nReview carefully.\n",
+            )
+            await Bun.write(
+              path.join(tmp.path, ".bolt/command/release-notes.md"),
+              "---\ndescription: Draft notes\n---\nDraft release notes.\n",
+            )
+          })
+          yield* Effect.gen(function* () {
+            const config = yield* Config.Service
+            const entries = yield* config.entries()
+            expect(
+              entries.flatMap((entry) =>
+                entry.type === "document" && entry.path
+                  ? [path.relative(tmp.path, entry.path).replaceAll("\\", "/")]
+                  : [],
+              ),
+            ).toEqual([
+              "opencode.json",
+              "opencode.jsonc",
+              "bolt.json",
+              "bolt.jsonc",
+              ".opencode/opencode.json",
+              ".bolt/bolt.jsonc",
+            ])
+            expect(Config.latest(entries, "shell")).toBe("bolt-directory")
+            expect(entries.filter((entry) => entry.type === "directory").map((entry) => entry.path)).toContain(
+              AbsolutePath.make(path.join(tmp.path, ".bolt")),
+            )
+            const watcher = yield* Watcher.Test
+            expect(
+              (yield* watcher.subscriptions()).some(
+                (item) => item.path === path.join(tmp.path, ".bolt") && item.type === "directory",
+              ),
+            ).toBe(true)
+          }).pipe(
+            Effect.provide(
+              testLayer(tmp.path, path.join(tmp.path, "global"), tmp.path, undefined, undefined, undefined, undefined, {
+                system: false,
+              }),
+            ),
+          )
+        }),
+      ),
+    ),
+  )
+
   it.live("excludes home-level claude and agents directories when global is disabled", () =>
     Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
       Effect.flatMap((tmp) => {
@@ -1558,7 +1670,16 @@ describe("Config", () => {
               {
                 type: "entries",
                 path: tmp.path,
-                names: [".agents", ".claude", ".opencode", "opencode.json", "opencode.jsonc"],
+                names: [
+                  ".agents",
+                  ".bolt",
+                  ".claude",
+                  ".opencode",
+                  "bolt.json",
+                  "bolt.jsonc",
+                  "opencode.json",
+                  "opencode.jsonc",
+                ],
               },
             ])
           }).pipe(Effect.provide(testLayer(tmp.path, undefined, undefined, undefined, Watcher.testLayer)))
@@ -2162,7 +2283,16 @@ describe("Config", () => {
             expect(yield* watcher.subscriptions()).toContainEqual({
               path: tmp.path,
               type: "entries",
-              names: [".agents", ".claude", ".opencode", "opencode.json", "opencode.jsonc"],
+              names: [
+                ".agents",
+                ".bolt",
+                ".claude",
+                ".opencode",
+                "bolt.json",
+                "bolt.jsonc",
+                "opencode.json",
+                "opencode.jsonc",
+              ],
             })
           }).pipe(Effect.provide(testLayer(tmp.path)))
         }),

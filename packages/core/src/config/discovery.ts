@@ -9,7 +9,7 @@ import { Location } from "../location.js"
 import { AbsolutePath } from "../schema.js"
 import type { Options } from "../config.js"
 
-export const names = ["opencode.json", "opencode.jsonc"]
+export const names = ["opencode.json", "opencode.jsonc", "bolt.json", "bolt.jsonc"]
 
 /** Eligible sources in priority order, including paths that may appear later. */
 export interface Sources {
@@ -17,6 +17,7 @@ export interface Sources {
   /** macOS MDM managed preferences plist (`ai.opencode.managed`), when one is deployed. */
   readonly preferences?: AbsolutePath
   readonly global?: AbsolutePath
+  readonly legacyGlobal?: { readonly path: AbsolutePath; readonly present: boolean }
   readonly explicit?: AbsolutePath
   readonly direct: readonly AbsolutePath[]
   readonly project: readonly { readonly path: AbsolutePath; readonly present: boolean }[]
@@ -66,9 +67,11 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     return systemDirectory()
   })()
   const globalDirectory = AbsolutePath.make(global.config)
+  const legacyDirectory = Global.boltDirectory(global.config)
+  const legacyGlobal = legacyDirectory ? AbsolutePath.make(legacyDirectory) : undefined
   const globalAgentsDirectory = AbsolutePath.make(path.join(global.home, ".agents"))
   const globalClaudeDirectory = AbsolutePath.make(path.join(global.home, ".claude"))
-  const configDirectories = [...(system ? [system] : []), globalDirectory]
+  const configDirectories = [...(system ? [system] : []), ...(legacyGlobal ? [legacyGlobal] : []), globalDirectory]
   const globalRoots = yield* Effect.forEach(
     [...configDirectories, globalClaudeDirectory, globalAgentsDirectory],
     (item) => fs.resolve(item),
@@ -79,7 +82,7 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     globalRoots.slice(0, configDirectories.length).includes(current) || options?.project === false
       ? []
       : yield* fs.up({ targets: ["."], start: location.directory }).pipe(Effect.orDie)
-  const candidates = [".claude", ".agents", ".opencode", ...names.toReversed()]
+  const candidates = [".claude", ".agents", ".bolt", ".opencode", ...names.toReversed()]
   const discovered = yield* Effect.forEach(
     directories,
     (directory) =>
@@ -139,10 +142,14 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     system: globalEnabled && system ? { path: system, present: yield* fs.isDir(system) } : undefined,
     preferences,
     global: globalEnabled ? globalDirectory : undefined,
+    legacyGlobal:
+      globalEnabled && legacyGlobal ? { path: legacyGlobal, present: yield* fs.isDir(legacyGlobal) } : undefined,
     explicit: options?.file ? AbsolutePath.make(path.resolve(options.file)) : undefined,
-    direct: visible.filter((item) => ![".agents", ".claude", ".opencode"].includes(path.basename(item))).toReversed(),
+    direct: visible
+      .filter((item) => ![".agents", ".claude", ".opencode", ".bolt"].includes(path.basename(item)))
+      .toReversed(),
     project: yield* Effect.forEach(
-      visibleEntries.filter((entry) => path.basename(entry.item) === ".opencode").toReversed(),
+      visibleEntries.filter((entry) => [".opencode", ".bolt"].includes(path.basename(entry.item))).toReversed(),
       (entry) =>
         entry.missing
           ? Effect.succeed({ path: entry.item, present: false })

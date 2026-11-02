@@ -21,6 +21,27 @@ export default Runtime.handler(Commands, (input) =>
     const requestedDirectory = Option.getOrUndefined(input.directory)
     const requestedServer = Option.getOrUndefined(input.server)
     if (requestedDirectory !== undefined) process.chdir(requestedDirectory)
+    if (input.mini) {
+      const handler = yield* Effect.promise(() => import("./mini"))
+      return yield* handler.default({
+        continue: input.continue,
+        session: input.session,
+        fork: input.fork,
+        model: input.model,
+        agent: input.agent,
+        prompt: input.prompt,
+        auto: input.auto,
+        yolo: input.yolo,
+        dangerouslySkipPermissions: input.dangerouslySkipPermissions,
+        thinking: Option.none(),
+        file: [],
+        variant: Option.none(),
+        title: Option.none(),
+        replay: input.replay,
+        replayLimit: input.replayLimit,
+        demo: input.demo,
+      })
+    }
     const preflight = UpdatePreflight.make()
     yield* Effect.addFinalizer(() => Effect.promise(() => preflight.close()))
     const serviceStarts = yield* Queue.unbounded<{
@@ -47,7 +68,7 @@ export default Runtime.handler(Commands, (input) =>
       },
     }).pipe(
       Effect.tapError(() =>
-        Effect.promise(() => preflight.fail("OpenCode update could not start the new background service")),
+        Effect.promise(() => preflight.fail("Bolt update could not start the new background service")),
       ),
     )
     const session = Option.getOrUndefined(input.session)
@@ -56,7 +77,10 @@ export default Runtime.handler(Commands, (input) =>
       session !== undefined &&
       (yield* Effect.tryPromise({
         try: () =>
-          findSession(OpenCode.make({ baseUrl: server.endpoint.url, headers: Service.headers(server.endpoint) }), session),
+          findSession(
+            OpenCode.make({ baseUrl: server.endpoint.url, headers: Service.headers(server.endpoint) }),
+            session,
+          ),
         catch: (cause) => new Error(errorMessage(cause)),
       })) !== undefined
     const updater = yield* Updater.Service
@@ -113,6 +137,9 @@ export default Runtime.handler(Commands, (input) =>
       },
       args: {
         continue: input.continue,
+        model: Option.getOrUndefined(input.model),
+        agent: Option.getOrUndefined(input.agent),
+        fork: input.fork,
         sessionID: sessionExists ? session : undefined,
         newSessionID: sessionExists ? undefined : session,
         prompt: Option.getOrUndefined(input.prompt),

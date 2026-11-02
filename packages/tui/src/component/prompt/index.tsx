@@ -1,6 +1,8 @@
+import { useVim, vimToggleCommand } from "./vim-mode"
 import {
   BoxRenderable,
   RGBA,
+  rgbToHex,
   TextareaRenderable,
   MouseEvent,
   PasteEvent,
@@ -69,6 +71,7 @@ import { useDirectoryRecents } from "../../prompt/directory-recents"
 import { directoryRecentValue } from "../../prompt/directory-completion"
 import { useWorkingDirectoryActions } from "../../ui/working-directory-actions"
 import { truncateFilePath } from "../../ui/file-path"
+import { createFire, FireStrip } from "../fire-frame"
 import { PromptMetadataRow } from "./metadata"
 import { limitLabel, useUsageLimits } from "../usage"
 
@@ -186,6 +189,7 @@ function argumentSlash(input: string, commands: readonly KeymapCommand[]) {
 export function Prompt(props: PromptProps) {
   let input: TextareaRenderable
   let anchor: BoxRenderable
+  const [fireWidth, setFireWidth] = createSignal(0)
   const [inputTarget, setInputTarget] = createSignal<TextareaRenderable | undefined>()
 
   const enabled = useInteractivity()
@@ -206,7 +210,8 @@ export function Prompt(props: PromptProps) {
   const keymapCommands = Keymap.useCommands()
   const currentLocation = useLocation()
   const args = useArgs()
-  const config = useConfig().data
+  const configContext = useConfig()
+  const config = configContext.data
   const cursorStyle = useCursorStyle()
   const dialog = useDialog()
   const toast = useToast()
@@ -221,6 +226,18 @@ export function Prompt(props: PromptProps) {
   const theme = useTheme()
   const { currentSyntax: syntax } = useThemes()
   const animationsEnabled = createMemo(() => config.animations ?? true)
+  const fire = createFire(
+    () => Math.max(1, fireWidth() - 1),
+    () =>
+      animationsEnabled() &&
+      (config.fire ?? true) &&
+      props.visible !== false &&
+      !disabled() &&
+      status() === "running" &&
+      fireWidth() > 0 &&
+      dimensions().height >= 30,
+    () => rgbToHex(theme.brand.primary),
+  )
   const list = createMemo(() => props.placeholders?.normal ?? [])
   const shell = createMemo(() => props.placeholders?.shell ?? [])
   const fileContextEnabled = createMemo(() => config.prompt?.editor ?? true)
@@ -314,6 +331,16 @@ export function Prompt(props: PromptProps) {
     ],
   }))
   const [cursorVersion, setCursorVersion] = createSignal(0)
+  const vim = useVim({
+    input: () => input,
+    disabled,
+    autocompleteVisible: () => !!auto()?.visible,
+    getVimEnabled: () => config.prompt?.vim ?? false,
+    measure,
+    bumpCursor: () => setCursorVersion((value) => value + 1),
+    cursorVersion,
+  })
+
   const connected = useConnected()
 
   function promptModelWarning() {
@@ -418,6 +445,18 @@ export function Prompt(props: PromptProps) {
 
   const promptCommands = createMemo(() =>
     [
+      vimToggleCommand({
+        vimEnabled: vim.vimEnabled,
+        setVimEnabled: (value) =>
+          configContext
+            .update((draft) => {
+              draft.prompt = { ...draft.prompt, vim: value }
+            })
+            .then(() => {}),
+        resetVim: vim.resetVim,
+        clearDialog: () => dialog.clear(),
+        showToast: (message) => toast.show({ message, variant: "info" }),
+      }),
       {
         title: "Clear prompt",
         name: "prompt.clear",
@@ -624,7 +663,7 @@ export function Prompt(props: PromptProps) {
         desc: "Manage workspaces",
         name: "session.move",
         category: "Session",
-        slash: { name: "worktrees" },
+        slash: { name: "worktrees", aliases: ["warp", "workspaces"] },
         run: () => {
           move.open()
         },
@@ -657,6 +696,7 @@ export function Prompt(props: PromptProps) {
     enabled: !disabled(),
     bindings: [
       "prompt.submit",
+      "prompt.vim.toggle",
       "prompt.editor",
       "prompt.editor_context.clear",
       "prompt.images.view",
@@ -1522,6 +1562,7 @@ export function Prompt(props: PromptProps) {
   }
 
   function clearPrompt() {
+    vim.resetVim()
     if (
       store.prompt.text.trim().length >= DRAFT_RETENTION_MIN_CHARS ||
       store.prompt.pasted.length > 0 ||
@@ -1679,7 +1720,15 @@ export function Prompt(props: PromptProps) {
 
   return (
     <>
-      <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
+      <FireStrip rows={fire()} />
+      <box
+        ref={(r: BoxRenderable) => (anchor = r)}
+        onSizeChange={function () {
+          setFireWidth(this.width)
+        }}
+        visible={props.visible !== false}
+        width="100%"
+      >
         <box
           width="100%"
           border={["left"]}
@@ -1774,7 +1823,13 @@ export function Prompt(props: PromptProps) {
               focusedTextColor={muted() ? theme.text.muted : theme.text.base}
               minHeight={1}
               maxHeight={maxHeight()}
-              cursorStyle={cursorStyle()}
+              cursorStyle={
+                vim.vimEnabled()
+                  ? vim.vimMode() === "insert"
+                    ? { style: "line", blinking: true }
+                    : { style: "block", blinking: false }
+                  : cursorStyle()
+              }
               onContentChange={() => {
                 const value = input.plainText
                 setStore("prompt", "text", value)
@@ -1783,10 +1838,14 @@ export function Prompt(props: PromptProps) {
                 setCursorVersion((value) => value + 1)
               }}
               onCursorChange={() => setCursorVersion((value) => value + 1)}
-              onKeyDown={(e: { preventDefault(): void }) => {
+              onKeyDown={(e: KeyEvent) => {
                 if (disabled()) {
                   e.preventDefault()
                   return
+                }
+                if (vim.vimOnKey(e)) {
+                  e.preventDefault()
+                  e.stopPropagation()
                 }
               }}
               onSubmit={() => {
@@ -1854,6 +1913,9 @@ export function Prompt(props: PromptProps) {
               syntaxStyle={syntax()}
             />
             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
+              <Show when={vim.vimEnabled() && store.mode !== "shell"}>
+                <text fg={theme.text.muted}>{vim.vimMode().toUpperCase()}</text>
+              </Show>
               <PromptMetadataRow
                 mode={store.mode}
                 agent={agentLabel()}
