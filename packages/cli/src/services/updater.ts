@@ -422,6 +422,7 @@ const make = Effect.gen(function* () {
         "npm",
         "install",
         "--global",
+        `--allow-scripts=${packageName}`,
         ...((OPENCODE_ARTIFACT === "cli" && !installedPackage?.endsWith("/bolt-cli-node")) ||
         (installedPackage && packageName !== installedPackage)
           ? ["--force"]

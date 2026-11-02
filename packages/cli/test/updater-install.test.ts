@@ -150,7 +150,17 @@ const windows = process.platform === "win32" ? it.live : it.live.skip
 const unix = process.platform === "win32" ? it.live.skip : it.live
 
 const installs = [
-  { method: "npm", command: ["npm", "install", "--global", "--force", "@bolt-builder/bolt-cli@2.3.4-beta.1"] },
+  {
+    method: "npm",
+    command: [
+      "npm",
+      "install",
+      "--global",
+      "--allow-scripts=@bolt-builder/bolt-cli",
+      "--force",
+      "@bolt-builder/bolt-cli@2.3.4-beta.1",
+    ],
+  },
   {
     method: "pnpm",
     command: ["pnpm", "add", "--global", "--allow-build=@bolt-builder/bolt-cli", "@bolt-builder/bolt-cli@2.3.4-beta.1"],
@@ -355,7 +365,9 @@ it.live("V1 latest releases cannot replace a V2 install automatically; explicit 
     const error = yield* test.updater.latest("curl").pipe(Effect.flip)
     expect(error.message).toContain("does not yet contain a Bolt V2 release")
     yield* test.updater.upgrade("npm", "1.21.0")
-    expect(test.commands).toEqual([["npm", "install", "--global", "--force", "@bolt-builder/bolt-cli@1.21.0"]])
+    expect(test.commands).toEqual([
+      ["npm", "install", "--global", "--allow-scripts=@bolt-builder/bolt-cli", "--force", "@bolt-builder/bolt-cli@1.21.0"],
+    ])
     request.mockRestore()
   }),
 )
@@ -547,7 +559,7 @@ if (typeof OPENCODE_CLI_NAME === "string" && OPENCODE_CLI_NAME === "bolt-node") 
         ["bun", "pm", "ls", "-g"],
         ["yarn", "global", "list"],
         ["vp", "list", "-g", "--json", "@bolt-builder/bolt-cli-node"],
-        ["npm", "install", "--global", "@bolt-builder/bolt-cli-node@2.3.4"],
+        ["npm", "install", "--global", "--allow-scripts=@bolt-builder/bolt-cli-node", "@bolt-builder/bolt-cli-node@2.3.4"],
         ["pnpm", "add", "--global", "--allow-build=@bolt-builder/bolt-cli-node", "@bolt-builder/bolt-cli-node@2.3.4"],
         ["vp", "update", "-g", "@bolt-builder/bolt-cli-node@2.3.4"],
       ])
