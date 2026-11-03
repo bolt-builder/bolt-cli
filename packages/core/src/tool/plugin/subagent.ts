@@ -59,6 +59,7 @@ export const description = [
   "Foreground (default) runs the subagent to completion and returns its final response.",
   "Background mode (background=true) launches it asynchronously and returns immediately; you are notified when it finishes.",
   "Use background only for independent work that can run while you continue elsewhere.",
+  'Users or the assistant can define a project subagent in .bolt/subagent/<name>.md, using YAML frontmatter and Markdown instructions, for example: "---\\ndescription: Reviews APIs\\n---\\nReview API compatibility." The filename is the agent name. Optional model uses provider/model. Optional permissions are YAML rules with action, resource, and effect. Normal file-edit permissions apply; instructions alone do not restrict tools.',
 ].join("\n")
 
 export const Plugin = {
