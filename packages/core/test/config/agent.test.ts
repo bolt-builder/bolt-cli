@@ -444,6 +444,20 @@ permissions:
           yield* Effect.promise(async () => {
             await fs.mkdir(path.join(tmp.path, "agents", "team"), { recursive: true })
             await fs.mkdir(path.join(tmp.path, "modes"), { recursive: true })
+            await fs.mkdir(path.join(tmp.path, "subagent"), { recursive: true })
+            await fs.writeFile(
+              path.join(tmp.path, "subagent", "api-reviewer.md"),
+              `---
+description: Review APIs
+mode: primary
+model: example/chat
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+---
+Review API compatibility.`,
+            )
             await fs.writeFile(
               path.join(tmp.path, "agents", "reviewer.md"),
               `---
@@ -512,6 +526,14 @@ Use native v2 fields.`,
           expect(yield* agents.get(Agent.ID.make("disabled"))).toBeUndefined()
           expect(yield* agents.get(Agent.ID.make("empty"))).toBeUndefined()
           expect(yield* agents.get(Agent.ID.make("plan"))).toMatchObject({ system: "Make a plan.", mode: "primary" })
+          const subagent = yield* agents.get(Agent.ID.make("api-reviewer"))
+          expect(subagent).toMatchObject({
+            description: "Review APIs",
+            system: "Review API compatibility.",
+            mode: "subagent",
+            model: { providerID: "example", id: "chat" },
+          })
+          expect(Permission.evaluate("edit", "src/api.ts", subagent?.permissions ?? []).effect).toBe("deny")
         }),
       ),
     ),
@@ -743,6 +765,55 @@ function sourceCases() {
       verify: (agents: Agent.Interface) =>
         Effect.gen(function* () {
           expect(yield* agents.get(Agent.ID.make("reviewer"))).toMatchObject({ system: "Review changes" })
+        }),
+    },
+    {
+      name: "created in a subagent directory",
+      source: "subagent",
+      prepare: () => Effect.void,
+      mutate: (directory: string) =>
+        Effect.promise(async () => {
+          const file = path.join(directory, "custom.md")
+          await fs.writeFile(file, "---\ndescription: Custom agent\n---\nHelp with tasks")
+          return [{ type: "create" as const, path: file }]
+        }),
+      verify: (agents: Agent.Interface) =>
+        Effect.gen(function* () {
+          expect(yield* agents.get(Agent.ID.make("custom"))).toMatchObject({
+            description: "Custom agent",
+            system: "Help with tasks",
+            mode: "subagent",
+          })
+        }),
+    },
+    {
+      name: "updated in a subagent directory",
+      source: "subagent",
+      prepare: (directory: string) => Effect.promise(() => fs.writeFile(path.join(directory, "custom.md"), "Before")),
+      mutate: (directory: string) =>
+        Effect.promise(async () => {
+          const file = path.join(directory, "custom.md")
+          await fs.writeFile(file, "After")
+          return [{ type: "update" as const, path: file }]
+        }),
+      verify: (agents: Agent.Interface) =>
+        Effect.gen(function* () {
+          expect(yield* agents.get(Agent.ID.make("custom"))).toMatchObject({ system: "After", mode: "subagent" })
+        }),
+    },
+    {
+      name: "deleted from a subagent directory",
+      source: "subagent",
+      prepare: (directory: string) => Effect.promise(() => fs.writeFile(path.join(directory, "custom.md"), "Before")),
+      mutate: (directory: string) =>
+        Effect.promise(async () => {
+          const file = path.join(directory, "custom.md")
+          await fs.unlink(file)
+          return [{ type: "delete" as const, path: file }]
+        }),
+      verify: (agents: Agent.Interface) =>
+        Effect.gen(function* () {
+          expect(yield* agents.get(Agent.ID.make("custom"))).toBeUndefined()
         }),
     },
     {
