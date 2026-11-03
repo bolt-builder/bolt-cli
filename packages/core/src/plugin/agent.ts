@@ -220,6 +220,49 @@ export const Plugin = define({
         )
       })
 
+      for (const specialist of [
+        { id: "reviewer", name: "Reviewer", description: "Review code changes for actionable defects.", system: PROMPT_CODE_REVIEW, readOnly: true },
+        { id: "security-auditor", name: "Security Auditor", description: "Audit code for security vulnerabilities.", system: PROMPT_SECURITY, readOnly: true },
+        { id: "debugger", name: "Debugger", description: "Investigate and fix bugs and failing tests.", system: PROMPT_DEBUG, readOnly: false },
+        {
+          id: "bug-hunter",
+          name: "Bug Hunter",
+          description: "Find and fix reproducible bugs in the requested code.",
+          system: `You find and fix bugs in the code requested by the caller.
+
+Inspect the relevant implementation and identify concrete defects, not speculative issues. Reproduce each issue where practical, fix its root cause with a minimal change, and run focused checks or regression tests. Report the fixes, verification, and any issues you could not confirm or fix.`,
+          readOnly: false,
+        },
+        {
+          id: "security-fixer",
+          name: "Security Fixer",
+          description: "Find and remediate security vulnerabilities in the requested code.",
+          system: `You find and fix security vulnerabilities in the code requested by the caller.
+
+Inspect relevant trust boundaries, authentication and authorization, input handling, secrets, and dependencies. Confirm concrete vulnerabilities before changing code; do not treat speculative risks as findings. Make minimal fixes and run focused security or regression checks. Report the vulnerabilities, fixes, verification, and any unresolved risks without exposing secrets.`,
+          readOnly: false,
+        },
+        { id: "documentation", name: "Documentation", description: "Write and update technical documentation.", system: PROMPT_DOCS, readOnly: false },
+      ]) {
+        editor.update(Agent.ID.make(specialist.id), (item) => {
+          item.name = Agent.Name.make(specialist.name)
+          item.description = specialist.description
+          item.system = specialist.system
+          item.mode = "subagent"
+          item.permissions.push(
+            { action: "question", resource: "*", effect: "deny" },
+            { action: "subagent", resource: "*", effect: "deny" },
+          )
+          if (specialist.readOnly) {
+            item.permissions.push(
+              { action: "edit", resource: "*", effect: "deny" },
+              ...readOnlyMutations.map((action) => ({ action, resource: "*", effect: "deny" as const })),
+              { action: "shell", resource: "*", effect: "deny" },
+            )
+          }
+        })
+      }
+
       editor.update(Agent.ID.make("explore"), (item) => {
         item.name = Agent.Name.make("Explore")
         item.description =
