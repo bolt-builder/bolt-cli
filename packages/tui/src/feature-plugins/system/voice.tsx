@@ -4,6 +4,7 @@ import { onCleanup } from "solid-js"
 import { useLocation } from "../../context/location"
 import { usePromptRef } from "../../context/prompt"
 import { voice } from "../../voice"
+import { errorMessage } from "../../util/error"
 
 export default Plugin.define({
   id: "bolt.voice",
@@ -64,7 +65,7 @@ export default Plugin.define({
                   })
                   current.focus()
                 } catch (error) {
-                  context.ui.toast.show({ variant: "error", message: String(error) })
+                  context.ui.toast.show({ variant: "error", message: errorMessage(error) })
                 } finally {
                   await voice.reset()
                 }
