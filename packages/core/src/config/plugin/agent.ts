@@ -22,9 +22,10 @@ import { AbsolutePath } from "../../schema.js"
 const legacySources = [
   { pattern: "{agent,agents}/**/*.md", primary: false },
   { pattern: "{mode,modes}/*.md", primary: true },
+  { pattern: "subagent/**/*.md", primary: false, subagent: true },
 ] as const
 // Keep in sync with the legacySources patterns and the name-strip regex in decode.
-const sourceDirectories = ["agent", "agents", "mode", "modes"] as const
+const sourceDirectories = ["agent", "agents", "mode", "modes", "subagent"] as const
 const decodeAgent = Schema.decodeUnknownOption(ConfigAgent.Info)
 const decodeLegacyAgent = Schema.decodeUnknownOption(ConfigAgentV1.Info)
 type PathAction = FileAccess.ExternalDirectoryAuthorization["action"] | typeof ReadTool.name | typeof EditTool.name
@@ -136,7 +137,14 @@ function discover(fs: FSUtil.Interface, directory: string) {
     fs
       .scan(source.pattern, { cwd: directory, absolute: true, dot: true, symlink: true })
       .pipe(
-        Effect.map((files) => files.toSorted().map((filepath) => ({ directory, filepath, primary: source.primary }))),
+        Effect.map((files) =>
+          files.toSorted().map((filepath) => ({
+            directory,
+            filepath,
+            primary: source.primary,
+            subagent: "subagent" in source && source.subagent,
+          })),
+        ),
       ),
   ).pipe(
     Effect.map((files) => files.flat()),
@@ -145,7 +153,7 @@ function discover(fs: FSUtil.Interface, directory: string) {
 }
 
 const decode = Effect.fnUntraced(function* (
-  file: { directory: string; filepath: string; primary: boolean },
+  file: { directory: string; filepath: string; primary: boolean; subagent: boolean },
   content: string,
 ) {
   const markdown = ConfigMarkdown.parseOption(content)
@@ -153,7 +161,7 @@ const decode = Effect.fnUntraced(function* (
   const name = path
     .relative(file.directory, file.filepath)
     .replaceAll("\\", "/")
-    .replace(/^(agent|agents|mode|modes)\//, "")
+    .replace(/^(agent|agents|mode|modes|subagent)\//, "")
     .replace(/\.md$/, "")
   const body = markdown.content.trim()
   const keys = Object.keys(markdown.data)
@@ -180,7 +188,11 @@ const decode = Effect.fnUntraced(function* (
     : Option.getOrUndefined(decodeAgent({ ...data, system: body }, { errors: "all" }))
   if (!agent) return
   const info = Info.make({
-    agents: { [name]: file.primary ? ConfigAgent.Info.make({ ...agent, mode: "primary" }) : agent },
+    agents: {
+      [name]: file.primary || file.subagent
+        ? ConfigAgent.Info.make({ ...agent, mode: file.primary ? "primary" : "subagent" })
+        : agent,
+    },
   })
   return new Document({ type: "document", path: AbsolutePath.make(file.filepath), info })
 })
