@@ -61,6 +61,11 @@ export const makeMemoryDriver = (): MemoryDriver => {
   }
   const failed = (value: string, cause: unknown) => new Failed({ path: value, cause })
   const overrides: FilesImpl = {
+    realpath: (value) =>
+      Effect.suspend(() => {
+        const target = resolveKey(value, true)
+        return target && nodes.has(target) ? Effect.succeed(target) : Effect.fail(new NotFound({ path: value }))
+      }),
     stat: (value) =>
       Effect.suspend(() => {
         const node = lookup(value)
