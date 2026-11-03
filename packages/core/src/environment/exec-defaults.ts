@@ -35,6 +35,10 @@ ${loadMetadata()}
 printf '%s\n' "$metadata"
 `
 
+const realpathScript = `
+realpath -e -- "$1" 2>/dev/null || exit ${NOT_FOUND}
+`
+
 const readScript = `
 ${loadMetadata("-L")}
 kind=\${metadata%%${TAB}*}
@@ -118,6 +122,12 @@ export const execDefaults = (spawner: ChildProcessSpawner["Service"]): FilesImpl
     result.exitCode === 0 ? Effect.void : Effect.fail(processFailure(path, result))
 
   return {
+    realpath: (path) =>
+      run(path, realpathScript).pipe(
+        Effect.flatMap((result) =>
+          classifyPlain(path, result, (stdout) => new TextDecoder().decode(stdout).trim()),
+        ),
+      ),
     stat: (path) => run(path, statScript).pipe(Effect.flatMap((result) => classifyPlain(path, result, parseInfo))),
     read: (path, range) =>
       run(
