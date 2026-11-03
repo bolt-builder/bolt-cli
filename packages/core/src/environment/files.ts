@@ -29,6 +29,8 @@ export class Failed extends Schema.TaggedError<Failed>()("Environment.Failed", {
 }) {}
 
 export interface FilesImpl {
+  /** Resolves existing paths through symlinks, matching the target used by content operations. */
+  readonly realpath: (path: string) => Effect.Effect<string, NotFound | Failed>
   /**
    * Content operations (`read`, `list`) follow final symlinks; metadata operations (`stat` and entry
    * tags returned by `list`) do not. `info` describes the target file whose bytes are returned.
