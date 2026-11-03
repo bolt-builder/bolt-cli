@@ -7,6 +7,7 @@ import { useLocation } from "../../context/location"
 import { useTheme } from "../../context/theme"
 import { DialogSelect } from "../../ui/dialog-select"
 import { DialogHeader, DialogLayout } from "../../ui/dialog"
+import { errorMessage } from "../../util/error"
 
 export function subagentText(messages: readonly SessionMessageInfo[]) {
   const assistant = messages.findLast((message) => message.type === "assistant")
@@ -59,7 +60,7 @@ export function Processes(props: { context: Plugin.Context }) {
           }
         },
         (reason) => {
-          if (!disposed && version === locationVersion) setError(String(reason))
+          if (!disposed && version === locationVersion) setError(errorMessage(reason))
         },
       )
       .finally(() => {
@@ -76,7 +77,7 @@ export function Processes(props: { context: Plugin.Context }) {
     setBusy(true)
     await rpc
       .cancel({ id }, { location: location.ref })
-      .then(load, (reason) => props.context.ui.toast.show({ variant: "error", message: String(reason) }))
+      .then(load, (reason) => props.context.ui.toast.show({ variant: "error", message: errorMessage(reason) }))
       .finally(() => setBusy(false))
   }
   onMount(() => {
@@ -114,12 +115,13 @@ export function Processes(props: { context: Plugin.Context }) {
       when={selected()}
       fallback={
         <DialogSelect
-          title="Background Processes"
+          title={`Parallel tasks · ${jobs().filter((job) => job.status === "running").length} running`}
           options={list().map((job) => ({
             title: job.title?.trim() || job.type,
             value: job.id,
-            description: job.type,
+            description: `${job.type} · started ${new Date(job.started_at).toLocaleTimeString()}`,
             footer: job.status,
+            category: job.status === "running" ? "Running" : "Finished",
           }))}
           emptyView={
             <text fg={error() ? theme.text.feedback.error.base : theme.text.muted}>
@@ -199,10 +201,10 @@ export default Plugin.define({
           commands: [
             {
               id: "background_job.list",
-              title: "Background processes",
+              title: "Parallel task dashboard",
               group: "Session",
               palette: true,
-              slash: { name: "process", aliases: ["processes"] },
+              slash: { name: "process", aliases: ["processes", "tasks"], arguments: true },
               run: () => context.ui.dialog.show(() => <Processes context={context} />),
             },
           ],
