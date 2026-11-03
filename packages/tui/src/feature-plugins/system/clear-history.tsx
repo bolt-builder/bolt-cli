@@ -1,4 +1,5 @@
 import { Plugin } from "@opencode/plugin/tui"
+import { errorMessage } from "../../util/error"
 
 export default Plugin.define({
   id: "bolt.clear-history",
@@ -61,7 +62,7 @@ export default Plugin.define({
                       : `Deleted ${removed.size} conversations`,
                   })
                 } catch (error) {
-                  context.ui.toast.show({ variant: "error", message: String(error) })
+                  context.ui.toast.show({ variant: "error", message: errorMessage(error) })
                 } finally {
                   pending = false
                 }
