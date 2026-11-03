@@ -114,6 +114,73 @@ test("custom commands commit the captured agent, model and variant before execut
   }
 })
 
+test("home ideas use the selected model and insert a suggestion without sending it", async () => {
+  const location = { directory, project: { id: "project", directory, canonical: directory } }
+  const requests: unknown[] = []
+  await using setup = await createAppFixture({
+    fetch: async (url, request) => {
+      if (url.pathname === "/api/agent")
+        return json({ location, data: [{ id: "build", mode: "primary", hidden: false, permissions: [] }] })
+      if (url.pathname === "/api/provider") return json({ location, data: [{ id: "demo", name: "Demo" }] })
+      if (url.pathname === "/api/model")
+        return json({
+          location,
+          data: [{ id: "selected", providerID: "demo", name: "Selected", variants: [], cost: [], time: { released: 0 } }],
+        })
+      if (url.pathname === "/api/fs/list") {
+        const entries = url.searchParams.get("path") === "src"
+          ? [{ path: "src/app.ts", type: "file" }, { path: "src/.secret", type: "file" }]
+          : [{ path: "src", type: "directory" }, { path: ".env", type: "file" }]
+        return json({ location, data: entries })
+      }
+      if (url.pathname === "/api/experimental/generate/text") {
+        requests.push(await request.json())
+        return json({ data: { text: "1. Improve the app\n2. Add tests\n3. Review errors" } })
+      }
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("Selected") && setup.renderer.currentFocusedRenderable instanceof TextareaRenderable)
+  await setup.mockInput.typeText("/ideas")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitForFrame((frame) => frame.includes("Improve the app") && requests.length === 1)
+  expect(requests).toHaveLength(1)
+  expect(requests[0]).toMatchObject({ model: { providerID: "demo", id: "selected" } })
+  expect(JSON.stringify(requests[0])).toContain("src/app.ts")
+  expect(JSON.stringify(requests[0])).not.toContain(".env")
+  expect(JSON.stringify(requests[0])).not.toContain(".secret")
+  await setup.mockInput.typeText("/idea 1")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitFor(() =>
+    setup.renderer.currentFocusedRenderable instanceof TextareaRenderable &&
+    setup.renderer.currentFocusedRenderable.plainText === "Improve the app",
+  )
+})
+
+test("parallel task dashboard shows running and completed jobs", async () => {
+  await using setup = await createAppFixture({
+    fetch: async (url) => {
+      if (url.pathname === "/api/rpc/bolt.process/list")
+        return json({ output: [
+          { id: "ses_child", type: "subagent", title: "Review changes", status: "running", started_at: 1 },
+          { id: "shell_done", type: "shell", title: "Run tests", status: "completed", started_at: 2, output: "Tests passed" },
+        ] })
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("Parallel tasks") && setup.renderer.currentFocusedRenderable instanceof TextareaRenderable)
+  const editor = setup.renderer.currentFocusedRenderable
+  if (!(editor instanceof TextareaRenderable)) throw new Error("Expected a focused prompt")
+  editor.setText("")
+  await setup.mockInput.typeText("/tasks")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitForFrame((frame) => frame.includes("Review changes") && frame.includes("Run tests"))
+  expect(setup.captureCharFrame()).toContain("1 running")
+})
+
 async function waitForFrame(setup: Awaited<ReturnType<typeof createAppFixture>>, matches: (frame: string) => boolean) {
   const started = Date.now()
   while (!matches(setup.captureCharFrame())) {
