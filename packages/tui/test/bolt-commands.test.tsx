@@ -214,6 +214,22 @@ test("cost alert slash command accepts its old alias without requiring a model",
   await setup.waitForFrame((frame) => frame.includes("Cost alert disabled"))
 })
 
+test("typed no-argument commands run directly without selecting autocomplete", async () => {
+  takeDraft(undefined)
+  await using setup = await createAppFixture({
+    fetch: (url) => {
+      if (url.pathname === "/api/session") return json({ data: [], cursor: {} })
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("commands") && setup.renderer.currentFocusedEditor instanceof TextareaRenderable)
+  await setup.mockInput.typeText("/clear-history")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitForFrame((frame) => frame.includes("No session history to clear"))
+  expect(setup.renderer.currentFocusedEditor?.plainText).toBe("")
+})
+
 test("memory alias sends arguments to the V2 RPC and displays the result without a model", async () => {
   takeDraft(undefined)
   const calls: unknown[] = []
@@ -232,6 +248,22 @@ test("memory alias sends arguments to the V2 RPC and displays the result without
   await setup.waitForFrame((frame) => frame.includes("Remembered fixture convention"))
   expect(calls).toHaveLength(1)
   expect(calls[0]).toMatchObject({ input: { text: "remember use Bun" } })
+})
+
+test("memory shows the server's structured error instead of an object", async () => {
+  takeDraft(undefined)
+  await using setup = await createAppFixture({
+    fetch: (url) => {
+      if (url.pathname === "/api/rpc/bolt.memory/command")
+        return json({ _tag: "RpcError", type: "rpc.unavailable", message: "RPC is unavailable: bolt.memory" }, { status: 400 })
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("commands"))
+  await setup.mockInput.typeText("/mem status")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitForFrame((frame) => frame.includes("RPC is unavailable: bolt.memory"))
 })
 
 test("sandbox toggles the current session through RPC and reflects server metadata", async () => {
@@ -298,6 +330,38 @@ test("plan mode does not claim success when the plan agent is unavailable", asyn
   expect(frame).not.toContain("Plan mode on")
 })
 
+test("sandbox from home uses the selected model and agent", async () => {
+  takeDraft(undefined)
+  const location = { directory, project: { id: "project", directory, canonical: directory } }
+  const calls: unknown[] = []
+  const session = {
+    id: "ses_sandbox_home", title: "New sandbox session", projectID: "project", location: { directory },
+    cost: 0, tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+    time: { created: 1, updated: 2 },
+  }
+  await using setup = await createAppFixture({
+    fetch: async (url, request) => {
+      if (url.pathname === "/api/agent") return json({ location, data: [{ id: "debug", mode: "primary", hidden: false, permissions: [] }] })
+      if (url.pathname === "/api/provider") return json({ location, data: [{ id: "demo", name: "Demo" }] })
+      if (url.pathname === "/api/model") return json({ location, data: [{ id: "selected", providerID: "demo", name: "Selected", variants: [], cost: [], time: { released: 0 } }] })
+      if (url.pathname === "/api/session" && request.method === "POST") {
+        calls.push(await request.json())
+        return json({ data: session })
+      }
+      if (url.pathname === `/api/session/${session.id}`) return json({ data: session })
+      if (/^\/api\/session\/ses_sandbox_home\/(message|inbox|permission)$/.test(url.pathname)) return json({ data: [], cursor: {} })
+      if (url.pathname === "/api/rpc/bolt.sandbox/set") return json({ output: { enabled: true } })
+    },
+  })
+  await setup.ready
+  await setup.waitForFrame((frame) => frame.includes("Selected") && setup.renderer.currentFocusedEditor instanceof TextareaRenderable)
+  await setup.mockInput.typeText("/sandbox")
+  setup.mockInput.pressEscape()
+  setup.mockInput.pressEnter()
+  await setup.waitForFrame((frame) => frame.includes("Filesystem sandbox enabled"))
+  expect(calls).toEqual([{ location: { directory }, agent: "debug", model: { providerID: "demo", id: "selected" } }])
+})
+
 test("sandbox setup failure keeps a newly created session accessible", async () => {
   takeDraft(undefined)
   const session = {
@@ -314,7 +378,8 @@ test("sandbox setup failure keeps a newly created session accessible", async () 
     fetch: (url, request) => {
       if (url.pathname === "/api/session" && request.method === "POST") return json({ data: session })
       if (url.pathname === `/api/session/${session.id}`) return json({ data: session })
-      if (url.pathname === "/api/rpc/bolt.sandbox/set") return new Response("fixture error", { status: 500 })
+      if (url.pathname === "/api/rpc/bolt.sandbox/set")
+        return json({ _tag: "RpcError", type: "unavailable", message: "Sandbox wrapper is unavailable" }, { status: 400 })
       if (/^\/api\/session\/ses_sandbox_failure\/(message|inbox|permission)$/.test(url.pathname))
         return json({ data: [], cursor: {} })
     },
@@ -322,8 +387,8 @@ test("sandbox setup failure keeps a newly created session accessible", async () 
   await setup.ready
   await setup.waitForFrame((frame) => frame.includes("commands"))
   setup.mockInput.pressKey("F6")
-  await setup.waitForFrame((frame) => frame.includes("Created sandbox session"))
-  expect(setup.captureCharFrame()).toContain("Created sandbox session")
+  await setup.waitForFrame((frame) => frame.includes("Created sandbox session") && frame.includes("Sandbox wrapper is unavailable"))
+  expect(setup.captureCharFrame()).not.toContain("[object Object]")
 })
 
 test("child sessions do not advertise a sidebar that they cannot display", async () => {
