@@ -16,7 +16,7 @@ it.effect("uses the V1 commit temperature on V2 generation context only for the 
   Effect.gen(function* () {
     const plugins = yield* Plugin.Service
     const hooks = yield* PluginHooks.Service
-    yield* AgentPlugin.Plugin.effect(yield* PluginHost.make(plugins))
+    yield* AgentPlugin.Plugin.effect(yield* PluginHost.make(plugins, "test"))
     const base = {
       sessionID: Session.ID.make("ses_agent_temperature"),
       model: Model.Ref.make({ providerID: Provider.ID.make("test"), id: Model.ID.make("model") }),

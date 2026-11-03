@@ -79,11 +79,6 @@ export const resolvePath = (directory: string, input: string, home = Global.Path
 }
 
 const slash = (value: string) => value.replaceAll("\\", "/")
-const invocation = (context: Invocation) => ({
-  sessionID: context.sessionID,
-  agent: context.agent,
-  source: { type: "tool" as const, messageID: context.messageID, id: context.id },
-})
 
 const layer = Layer.effect(
   Service,
@@ -140,7 +135,7 @@ const layer = Layer.effect(
         resources: external.map((item) => item.resource),
         save: external.map((item) => item.save),
         ...(metadata === undefined ? {} : { metadata }),
-        ...invocation(context),
+        ...Permission.invocation(context),
       })
     })
 
@@ -158,7 +153,7 @@ const layer = Layer.effect(
         action: "read",
         resources: [target.resource],
         save: ["*"],
-        ...invocation(context),
+        ...Permission.invocation(context),
       })
       return target
     })
