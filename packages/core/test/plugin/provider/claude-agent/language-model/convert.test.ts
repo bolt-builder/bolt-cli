@@ -20,6 +20,13 @@ function firstToolReply(tools: readonly LanguageModelV3FunctionTool[]) {
 }
 
 describe("Claude conversions", () => {
+  test("identifies the Bolt runtime without changing the Claude Code preset", () => {
+    const prompt = ClaudeSystemPrompt.make("Review code")
+    expect(prompt.preset).toBe("claude_code")
+    expect(prompt.append).toContain("running in Bolt through the Claude Code harness")
+    expect(prompt.append).toContain("# Agent role (from Bolt)\nReview code")
+  })
+
   test("calls to tools we did not offer are left to Claude Code and do not end the step", () => {
     const offered = firstToolReply(TestTools.tools)
     expect(offered.filter((part) => part.type === "tool-call")).toHaveLength(2)
