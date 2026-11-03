@@ -31,7 +31,7 @@ it.effect("redacts V2 message classes for every generation hook without modifyin
   Effect.gen(function* () {
     const plugins = yield* Plugin.Service
     const hooks = yield* PluginHooks.Service
-    yield* RedactPlugin.Plugin.effect(yield* PluginHost.make(plugins))
+    yield* RedactPlugin.Plugin.effect(yield* PluginHost.make(plugins, "test"))
     for (const kind of ["context", "compaction", "generate", "title"] as const) {
       const event = request()
       const original = event.messages[0]
@@ -49,7 +49,7 @@ it.effect("honors the legacy opt-out and experimental override across config lay
     const plugins = yield* Plugin.Service
     const hooks = yield* PluginHooks.Service
     const config = yield* Config.Test
-    yield* RedactPlugin.Plugin.effect(yield* PluginHost.make(plugins))
+    yield* RedactPlugin.Plugin.effect(yield* PluginHost.make(plugins, "test"))
     for (const [settings, redacted] of [
       [[{ redact: false }], false],
       [[{ experimental: { redact: false } }], false],
