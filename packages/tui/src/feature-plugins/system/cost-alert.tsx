@@ -1,5 +1,6 @@
 import { Plugin } from "@opencode/plugin/tui"
 import { MaxCostNudge, parseCostAlert, costAlertUsage } from "../../util/cost-alert"
+import { errorMessage } from "../../util/error"
 
 /** V2 publishes authoritative session costs, so message costs need not be summed again. */
 export default Plugin.define({
@@ -23,7 +24,7 @@ export default Plugin.define({
           if (result === undefined) return
           nudge.resolve(sessionID, result ? "continue" : "stop", alert.limit)
           if (!result)
-            void context.client.session.interrupt({ sessionID }).catch((error) => context.ui.toast.show({ variant: "error", message: String(error) }))
+            void context.client.session.interrupt({ sessionID }).catch((error) => context.ui.toast.show({ variant: "error", message: errorMessage(error) }))
         })
     }
     const run = async (input?: string) => {

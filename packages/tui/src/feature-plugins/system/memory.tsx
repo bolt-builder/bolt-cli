@@ -1,6 +1,7 @@
 import { Plugin } from "@opencode/plugin/tui"
 import { BoltMemory } from "@opencode/schema/bolt-memory"
 import { useLocation } from "../../context/location"
+import { errorMessage } from "../../util/error"
 
 export default Plugin.define({
   id: "bolt.memory",
@@ -35,7 +36,7 @@ export default Plugin.define({
               palette: true,
               slash: { name: "memory", aliases: ["mem"], arguments: true },
               run: (text) =>
-                run(text).catch((error) => context.ui.toast.show({ variant: "error", message: String(error) })),
+                run(text).catch((error) => context.ui.toast.show({ variant: "error", message: errorMessage(error) })),
             },
           ],
         }))

@@ -303,6 +303,7 @@ const layer = (options: Options) =>
               ),
             )
           const overrides: FilesImpl = {
+            realpath: (path) => withFiles(path, (files) => files.realpath(path)),
             read: (path, range) => withFiles(path, (files) => files.read(path, range)),
             write: (path, bytes) => withFiles(path, (files) => files.write(path, bytes)),
             stat: (path) => withFiles(path, (files) => files.stat(path)),

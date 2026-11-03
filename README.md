@@ -40,6 +40,26 @@ curl -fsSL https://raw.githubusercontent.com/bolt-builder/bolt-cli/dev/install |
 
 Desktop builds for macOS, Windows, and Linux are on the [releases page](https://github.com/bolt-builder/bolt-cli/releases).
 
+## Custom subagents
+
+Ask Bolt to create a subagent, or create `.bolt/subagent/<name>.md` in your project. The filename is the subagent name; YAML frontmatter sets its description and optional model or permissions, and the Markdown body provides its instructions. For example, `.bolt/subagent/api-reviewer.md`:
+
+```md
+---
+description: Review API changes for compatibility
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+---
+Review API changes for breaking behavior and report actionable findings.
+```
+
+These files always define subagents, not primary agents. They use normal agent permissions unless overridden; a prompt alone does not restrict tools. New and edited definitions are reloaded automatically, and can be requested by name. Optional `model` uses `provider/model` (or `provider/model#variant`). Built-in specialists include `reviewer` and `security-auditor` for review, `bug-hunter` and `security-fixer` for finding and fixing issues, and `debugger` and `documentation` for focused tasks.
+
 ## Develop
 
 Bolt requires the Bun version pinned in `package.json`.

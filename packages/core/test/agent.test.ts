@@ -180,19 +180,25 @@ describe("Agent", () => {
       const agents = yield* agent.list()
       expect(agents.map((item) => String(item.id)).sort()).toEqual([
         "ask",
+        "bug-hunter",
         "build",
         "code",
         "code-review",
         "commit",
         "compaction",
         "debug",
+        "debugger",
         "docs",
+        "documentation",
         "explore",
         "general",
         "migrate",
         "perf",
         "refactor",
+        "reviewer",
         "security",
+        "security-auditor",
+        "security-fixer",
         "summary",
         "title",
       ])
@@ -252,7 +258,7 @@ describe("Agent", () => {
         }),
       )
 
-      yield* Effect.forEach(["general", "explore"], (id) =>
+      yield* Effect.forEach(["general", "explore", "reviewer", "security-auditor", "debugger", "documentation", "bug-hunter", "security-fixer"], (id) =>
         Effect.gen(function* () {
           const info = yield* agent.get(Agent.ID.make(id))
           if (!info) throw new Error(`expected built-in agent: ${id}`)

@@ -121,7 +121,25 @@ describe("FileAccess.resolve", () => {
     ),
   )
 
-  it.live("resolves a prospective target below an external symlink lexically", () =>
+  it.live("rejects dangling symlinks before authorizing prospective targets", () =>
+    withTempDir(({ path: directory }) =>
+      Effect.gen(function* () {
+        if (process.platform === "win32") return
+        const outside = yield* tmpdirScoped()
+        yield* Effect.promise(async () => {
+          await fs.symlink(path.join(outside.path, "missing.txt"), path.join(directory, "file-link"))
+          await fs.symlink(path.join(outside.path, "missing-dir"), path.join(directory, "dir-link"))
+        })
+        const access = yield* FileAccess.Service
+        for (const file of ["file-link", "dir-link/new.txt"]) {
+          const error = yield* access.resolve({ path: file, kind: "file" }).pipe(Effect.flip)
+          expect(error).toBeInstanceOf(Environment.Failed)
+        }
+      }).pipe(provide(directory)),
+    ),
+  )
+
+  it.live("requires external authorization for a prospective target below an external symlink", () =>
     withTempDir(({ path: directory }) =>
       Effect.gen(function* () {
         if (process.platform === "win32") return
@@ -130,10 +148,10 @@ describe("FileAccess.resolve", () => {
         const access = yield* FileAccess.Service
         const target = yield* access.resolve({ path: path.join("escape", "new.txt") })
         expect(target).toMatchObject({
-          absolute: path.join(directory, "escape", "new.txt"),
-          resource: "escape/new.txt",
+          absolute: path.join(outside.path, "new.txt"),
+          resource: path.join(outside.path, "new.txt").replaceAll("\\", "/"),
         })
-        expect(target.externalDirectory).toBeUndefined()
+        expect(target.externalDirectory).toMatchObject({ directory: outside.path })
       }).pipe(provide(directory)),
     ),
   )
@@ -149,8 +167,8 @@ describe("FileAccess.resolve", () => {
 
         const access = yield* FileAccess.Service
         expect(yield* access.resolve({ path: "linked/new.txt" })).toMatchObject({
-          absolute: path.join(directory, "linked", "new.txt"),
-          resource: "linked/new.txt",
+          absolute: path.join(directory, "actual", "new.txt"),
+          resource: "actual/new.txt",
         })
       }).pipe(provide(directory)),
     ),
@@ -276,7 +294,7 @@ describe("FileAccess.resolve", () => {
         save: "/remote/repo/*",
       })
       expect((yield* access.resolve({ path: "/remote/repo/linked" })).externalDirectory).toMatchObject({
-        directory: "/remote/repo/linked",
+        directory: "/remote/repo/src",
         save: "/remote/repo/*",
       })
       expect((yield* access.resolve({ path: "/remote/repo/src/new.txt" })).externalDirectory).toMatchObject({

@@ -9,7 +9,7 @@ import { ServerConnection } from "../../services/server-connection"
 import { Updater } from "../../services/updater"
 import { UpdatePreflight } from "../../services/update-preflight"
 import { Npm } from "@opencode/util/npm"
-import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_HIGHLIGHTS, OPENCODE_VERSION } from "../../version"
+import { OPENCODE_ARTIFACT, OPENCODE_CHANNEL, OPENCODE_HIGHLIGHTS, OPENCODE_LOCAL, OPENCODE_VERSION } from "../../version"
 import { Env } from "../../env"
 import { Service } from "@opencode/client/effect/service"
 import { OpenCode } from "@opencode/client/promise"
@@ -55,7 +55,8 @@ export default Runtime.handler(Commands, (input) =>
     )
     const server = yield* ServerConnection.resolve({
       server: requestedServer,
-      standalone: input.standalone,
+      // Local source changes do not change the version, so a managed server may be running stale code.
+      standalone: input.standalone || (OPENCODE_LOCAL && requestedServer === undefined),
       mismatch: "replace",
       onStart: (reason, previousVersion) => {
         Queue.offerUnsafe(serviceStarts, { reason, previousVersion })

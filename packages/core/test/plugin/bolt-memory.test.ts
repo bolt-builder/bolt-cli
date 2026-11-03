@@ -12,12 +12,15 @@ import { Snapshot } from "@opencode/core/snapshot"
 import { Plugin } from "@opencode/core/plugin"
 import { MemoryPlugin } from "@opencode/core/plugin/memory"
 import { ProcessPlugin } from "@opencode/core/plugin/process"
+import { SandboxPlugin } from "@opencode/core/plugin/sandbox"
+import { Sandbox } from "@opencode/core/sandbox"
 import { Rpc } from "@opencode/core/rpc"
 import { Session } from "@opencode/core/session"
 import { SessionMessage } from "@opencode/core/session/message"
 import { Tool } from "@opencode/core/tool"
 import { BoltMemory } from "@opencode/schema/bolt-memory"
 import { BoltProcess } from "@opencode/schema/bolt-process"
+import { BoltSandbox } from "@opencode/schema/bolt-sandbox"
 import { testEffect } from "../lib/effect"
 import { PluginTestLayer } from "./fixture"
 
@@ -122,6 +125,32 @@ it.live("ports memory RPC, commands and full V1 tool actions with session contro
     expect(learned.text).toContain("bun run test")
     expect((yield* command("show")).text).toContain("test_command")
     yield* command("purge confirm")
+  }),
+)
+
+it.live("toggles sandbox through the real plugin and RPC", () =>
+  Effect.gen(function* () {
+    const plugins = yield* Plugin.Service
+    const rpc = yield* Rpc.Service
+    const sessions = yield* Session.Service
+    const location = yield* Location.Service
+    yield* plugins.activate([{ id: SandboxPlugin.Plugin.id, revision: "1", effect: SandboxPlugin.Plugin.effect }])
+    yield* plugins.awaitActivation
+    expect(yield* plugins.list()).toMatchObject([{ state: { status: "active" } }])
+    const session = yield* sessions.create({ location: { directory: location.directory }, metadata: { existing: true } })
+    const client = rpc.client(BoltSandbox.Definition)
+    const available = yield* Sandbox.wrap({ command: "true", shell: "/bin/sh", writable: [] }).pipe(Effect.option)
+    if (available._tag === "None") {
+      expect(yield* client.set({ sessionID: session.id, enabled: true }).pipe(Effect.flip)).toMatchObject({
+        type: "unavailable",
+      })
+      expect((yield* sessions.get(session.id)).metadata).toEqual({ existing: true })
+      return
+    }
+    expect(yield* client.set({ sessionID: session.id, enabled: true })).toEqual({ enabled: true })
+    expect((yield* sessions.get(session.id)).metadata).toEqual({ existing: true, sandbox: true })
+    expect(yield* client.set({ sessionID: session.id, enabled: false })).toEqual({ enabled: false })
+    expect((yield* sessions.get(session.id)).metadata).toEqual({ existing: true, sandbox: false })
   }),
 )
 
