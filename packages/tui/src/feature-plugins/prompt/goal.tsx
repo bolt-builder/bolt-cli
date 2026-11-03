@@ -4,6 +4,7 @@ import { createEffect, createMemo, createSignal, on, onCleanup, Show, type Acces
 import { Keymap } from "../../context/keymap"
 import { useTheme } from "../../context/theme"
 import { DialogFooter, DialogHeader, DialogLayout, type DialogFooterAction } from "../../ui/dialog"
+import { errorMessage } from "../../util/error"
 
 /**
  * The goal `/goal` set on a Session, from the goal plugin's RPC: fetched when the Session changes or the server
@@ -111,7 +112,7 @@ function GoalDialog(props: {
     void props.context.client.session.command({ sessionID: props.sessionID, name: "goal", text }).catch((error) =>
       props.context.ui.toast.show({
         title: "Failed to update the goal",
-        message: error instanceof Error ? error.message : String(error),
+        message: errorMessage(error),
         variant: "error",
       }),
     )
