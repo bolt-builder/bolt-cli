@@ -24,6 +24,41 @@ const Broken = Rpc.define({
   events: {},
 })
 
+it.live("serves built-in Bolt command RPCs at the project location", () =>
+  Effect.gen(function* () {
+    const directory = yield* tmpdirScoped()
+    const context = yield* Layer.build(
+      createEmbeddedRoutes({
+        database: { path: ":memory:" },
+        models: { fetch: false },
+        config: { directory: directory.path, project: false, content: "{}" },
+        fs: { filewatcher: false },
+      }).pipe(Layer.provide(HttpServer.layerServices)),
+    )
+    const handler = Context.get(context, HttpRouter.HttpRouter).asHttpEffect().pipe(HttpEffect.toWebHandlerWith(context))
+    const call = (route: string, input: unknown) => {
+      const url = new URL(route, "http://opencode.local")
+      url.searchParams.set("location[directory]", directory.path)
+      return Effect.promise(() => handler(new Request(url, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ input }),
+      })))
+    }
+    const memory = yield* call("/api/rpc/bolt.memory/command", { text: "status" })
+    expect(memory.status).toBe(200)
+    expect(yield* Effect.promise(() => memory.json())).toMatchObject({ output: { text: expect.stringContaining("Project memory") } })
+    const processes = yield* call("/api/rpc/bolt.process/list", {})
+    expect(processes.status).toBe(200)
+    expect(yield* Effect.promise(() => processes.json())).toEqual({ output: [] })
+    const created = yield* Effect.promise(() => handler(new Request("http://opencode.local/api/session", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ location: { directory: directory.path } }),
+    })))
+    const session = yield* Effect.promise(() => created.json())
+    const sandbox = yield* call("/api/rpc/bolt.sandbox/set", { sessionID: session.data.id, enabled: true })
+    expect(sandbox.status).toBe(200)
+    expect(yield* Effect.promise(() => sandbox.json())).toEqual({ output: { enabled: true } })
+  }),
+)
+
 for (const method of ["handler", "schema"] as const) {
   it.live(`returns HTTP 500 without exposing the ${method} defect`, () =>
     Effect.gen(function* () {
