@@ -6,6 +6,7 @@ import { Global } from "@opencode/util/global"
 import { Array, Context, Effect, Layer, Schema } from "effect"
 import path from "path"
 import { Environment } from "./environment/index.js"
+import type { Files } from "./environment/index.js"
 import { Location } from "./location.js"
 import { Permission } from "./permission.js"
 import { Project } from "./project.js"
@@ -88,15 +89,17 @@ const layer = Layer.effect(
     const permission = yield* Permission.Service
 
     const resolve = Effect.fn("FileAccess.resolve")(function* (input: ResolveInput) {
-      const absolute = AbsolutePath.make(resolvePath(location.directory, input.path))
-      const worktree = path.resolve(location.project.directory)
+      const requested = resolvePath(location.directory, input.path)
+      const absolute = AbsolutePath.make(yield* canonicalPath(files, requested))
+      const root = AbsolutePath.make(yield* canonicalPath(files, location.directory))
+      const worktree = AbsolutePath.make(yield* canonicalPath(files, path.resolve(location.project.directory)))
       const internal =
-        FSUtil.contains(location.directory, absolute) ||
+        FSUtil.contains(root, absolute) ||
         (worktree !== path.parse(worktree).root && FSUtil.contains(worktree, absolute))
       if (internal) {
         return {
           absolute,
-          resource: slash(path.relative(location.directory, absolute) || "."),
+          resource: slash(path.relative(root, absolute) || "."),
         } satisfies Target
       }
       const type =
@@ -158,6 +161,21 @@ const layer = Layer.effect(
     return Service.of({ resolve, authorizeExternal, authorizeRead })
   }),
 )
+
+function canonicalPath(files: Files, value: string): Effect.Effect<string, Environment.Failed> {
+  return files.realpath(value).pipe(
+    Effect.catchTag("Environment.NotFound", () =>
+      Effect.gen(function* () {
+        const entry = yield* files.stat(value).pipe(Effect.catchTag("Environment.NotFound", () => Effect.undefined))
+        if (entry?.type === "symlink")
+          return yield* new Environment.Failed({ path: value, cause: new Error("Cannot resolve dangling symlink") })
+        const parent = path.dirname(value)
+        if (parent === value) return value
+        return path.join(yield* canonicalPath(files, parent), path.basename(value))
+      }),
+    ),
+  )
+}
 
 export const node = makeLocationNode({
   service: Service,
